@@ -36,5 +36,9 @@ captures/
 *.iml
 .idea/workspace.xml
 
+# Android Studio
+./.idea/*
+*.iml
+
 # Keystore files
 *.jks
