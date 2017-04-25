@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
 
 
-    tools:context="com.project.cruzroja.hospital.MainActivity">
+    tools:context="com.project.cruzroja.hospital.ToggleActivity">
 
 
     <TextView
