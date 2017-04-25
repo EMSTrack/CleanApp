@@ -8,53 +8,54 @@
     <RelativeLayout
         android:id="@+id/topLayer"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:layout_weight="1"
-        >
-        <Button
-            android:id="@+id/button1"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="BUTTON 1"
-            android:layout_gravity="center_vertical"
-            />
+        android:layout_height="match_parent"
+        android:orientation="horizontal">
 
         <Button
-            android:id="@+id/button2"
+            android:id="@+id/bedsButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="BUTTON 2"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentTop="true"
             android:layout_gravity="center_vertical"
-            />
+            android:layout_marginLeft="66dp"
+            android:layout_marginStart="66dp"
+            android:layout_marginTop="91dp"
+            android:text="Beds" />
+
+        <Button
+            android:id="@+id/roomsButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignBaseline="@+id/bedsButton"
+            android:layout_alignBottom="@+id/bedsButton"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="true"
+            android:layout_gravity="center_vertical"
+            android:layout_marginEnd="63dp"
+            android:layout_marginRight="63dp"
+            android:text="Rooms" />
+
+        <Button
+            android:id="@+id/xrayButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignLeft="@+id/bedsButton"
+            android:layout_alignStart="@+id/bedsButton"
+            android:layout_below="@+id/bedsButton"
+            android:layout_marginTop="128dp"
+            android:text="X-Ray" />
+
+        <Button
+            android:id="@+id/catScanButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignLeft="@+id/roomsButton"
+            android:layout_alignStart="@+id/roomsButton"
+            android:layout_alignTop="@+id/xrayButton"
+            android:text="CAT Scan" />
 
     </RelativeLayout>
-
-
-    <LinearLayout
-        android:id="@+id/bottomLayer"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:layout_weight="1"
-        >
-
-        <Button
-            android:id="@+id/button3"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="BUTTON 3"
-            android:layout_gravity="center_vertical"
-            />
-
-        <Button
-            android:id="@+id/button4"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="BUTTON 4"
-            android:layout_gravity="center_vertical"
-            />
-
-    </LinearLayout>
 
 </LinearLayout>

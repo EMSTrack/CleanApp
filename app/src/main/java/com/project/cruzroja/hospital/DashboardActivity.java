@@ -17,15 +17,15 @@ public class DashboardActivity extends AppCompatActivity implements View.OnClick
         setContentView(R.layout.dashboard);
 
         // Create onClicks for the Buttons
-        Button btn1 = (Button) findViewById(R.id.button1);
-        Button btn2 = (Button) findViewById(R.id.button2);
-        Button btn3 = (Button) findViewById(R.id.button3);
-        Button btn4 = (Button) findViewById(R.id.button4);
+        Button bedsButton = (Button) findViewById(R.id.bedsButton);
+        Button roomsButton = (Button) findViewById(R.id.roomsButton);
+        Button xrayButton = (Button) findViewById(R.id.xrayButton);
+        Button catScanButton = (Button) findViewById(R.id.catScanButton);
 
-        btn1.setOnClickListener(this);
-        btn2.setOnClickListener(this);
-        btn3.setOnClickListener(this);
-        btn4.setOnClickListener(this);
+        bedsButton.setOnClickListener(this);
+        roomsButton.setOnClickListener(this);
+        xrayButton.setOnClickListener(this);
+        catScanButton.setOnClickListener(this);
 
     }
 
@@ -34,20 +34,24 @@ public class DashboardActivity extends AppCompatActivity implements View.OnClick
         System.out.println("View was Clicked");
 
         switch(v.getId()) {
-            case R.id.button1:
-                System.out.println("Button 1 Clicked");
+            case R.id.bedsButton:
+                System.out.println("Beds Button Clicked");
                 break;
 
-            case R.id.button2:
-                System.out.println("Button 2 Clicked");
+            case R.id.roomsButton:
+                System.out.println("Rooms Button Clicked");
                 break;
 
-            case R.id.button3:
-                System.out.println("Button 3 Clicked");
+            case R.id.xrayButton:
+                System.out.println("XRAY Button Clicked");
                 break;
 
-            case R.id.button4:
-                System.out.println("Button 4 Clicked");
+            case R.id.catScanButton:
+                System.out.println("CATScan Button Clicked");
+                break;
+
+            default:
+                System.out.println("DEFAULT View Clicked");
                 break;
 
         }
