@@ -14,7 +14,7 @@ public class DashboardActivity extends AppCompatActivity implements View.OnClick
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.dashboard);
+        setContentView(R.layout.activity_dashboard);
 
         // Create onClicks for the Buttons
         Button bedsButton = (Button) findViewById(R.id.bedsButton);
