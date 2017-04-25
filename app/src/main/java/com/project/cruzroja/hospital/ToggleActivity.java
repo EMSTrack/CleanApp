@@ -12,7 +12,7 @@ public class ToggleActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.xray_availability);
+        setContentView(R.layout.activity_toggle);
     }
 
 }
