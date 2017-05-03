@@ -1,9 +1,17 @@
 package com.project.cruzroja.hospital;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.TextView;
+
+import java.util.ArrayList;
 
 /**
  * Created by devinhickey on 4/20/17.
@@ -16,16 +24,7 @@ public class DashboardActivity extends AppCompatActivity implements View.OnClick
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_dashboard);
 
-        // Create onClicks for the Buttons
-        Button bedsButton = (Button) findViewById(R.id.bedsButton);
-        Button roomsButton = (Button) findViewById(R.id.roomsButton);
-        Button xrayButton = (Button) findViewById(R.id.xrayButton);
-        Button catScanButton = (Button) findViewById(R.id.catScanButton);
-
-        bedsButton.setOnClickListener(this);
-        roomsButton.setOnClickListener(this);
-        xrayButton.setOnClickListener(this);
-        catScanButton.setOnClickListener(this);
+        ArrayList<DashboardObject> listObjects = new ArrayList<>();
 
     }
 
@@ -34,21 +33,6 @@ public class DashboardActivity extends AppCompatActivity implements View.OnClick
         System.out.println("View was Clicked");
 
         switch(v.getId()) {
-            case R.id.bedsButton:
-                System.out.println("Beds Button Clicked");
-                break;
-
-            case R.id.roomsButton:
-                System.out.println("Rooms Button Clicked");
-                break;
-
-            case R.id.xrayButton:
-                System.out.println("XRAY Button Clicked");
-                break;
-
-            case R.id.catScanButton:
-                System.out.println("CATScan Button Clicked");
-                break;
 
             default:
                 System.out.println("DEFAULT View Clicked");
@@ -56,6 +40,38 @@ public class DashboardActivity extends AppCompatActivity implements View.OnClick
 
         }
 
+    }
+
+}
+
+class ListAdapter extends ArrayAdapter<DashboardObject> {
+    private final Context ctx;
+    private ArrayList<DashboardObject> objects;
+
+    public ListAdapter(Context context, ArrayList<DashboardObject> objects) {
+        super(context, -1, objects);
+        System.out.println("Inside ListAdapter Constructor");
+        this.ctx = context;
+        this.objects = objects;
+
+    }
+
+    @Override
+    public View getView(int position, View convertView, ViewGroup parent) {
+        // Get the object, and the type
+        // Inflate the correct view based on the type and update the parts of the layout -> set onClicks
+
+        System.out.println("Position: " + position);
+        DashboardObject dashboardObject = objects.get(position);
+
+        LayoutInflater inflater = LayoutInflater.from(ctx);
+        // Currently inflating toggle always
+        View row = inflater.inflate(R.layout.list_item_toggle, parent);
+        TextView text = (TextView) row.findViewById(R.id.toggleTextView);
+        ImageView image = (ImageView) row.findViewById(R.id.toggleImage);
+
+
+        return row;
     }
 
 }
