@@ -7,7 +7,6 @@
     tools:context="com.project.cruzroja.hospital.UpdateValueActivity"
     tools:layout_editor_absoluteY="81dp"
     tools:layout_editor_absoluteX="0dp">
-
     <TextView
         android:id="@+id/textView3"
         android:layout_width="0dp"
@@ -25,7 +24,6 @@
         app:layout_constraintHorizontal_bias="0.0"
         android:layout_marginStart="8dp"
         android:layout_marginEnd="8dp" />
-
     <EditText
         android:id="@+id/editText"
         android:layout_width="265dp"
@@ -44,7 +42,6 @@
         app:layout_constraintHorizontal_bias="0.504"
         android:layout_marginStart="8dp"
         android:layout_marginEnd="8dp" />
-
     <Button
         android:id="@+id/button"
         android:layout_width="265dp"
@@ -60,3 +57,6 @@
         android:layout_marginStart="8dp"
         android:layout_marginEnd="8dp" />
 </android.support.constraint.ConstraintLayout>
+
+
+
