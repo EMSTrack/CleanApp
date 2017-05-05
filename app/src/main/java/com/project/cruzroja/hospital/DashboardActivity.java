@@ -3,8 +3,11 @@ package com.project.cruzroja.hospital;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Bundle;
+import android.os.Debug;
+import android.provider.ContactsContract;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,21 +18,32 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
+
+import com.android.volley.VolleyError;
+import com.project.cruzroja.hospital.data.Hospital;
+
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 
 /**
  * Created by devinhickey on 4/20/17.
+ * The Dashboard
  */
 
 public class DashboardActivity extends AppCompatActivity implements View.OnClickListener {
+    private static final String TAG = DashboardActivity.class.getSimpleName();
+
+    private Database db;
+    private Hospital hospital;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_dashboard);
 
-
+/*
         ArrayList<DashboardObject> listObjects = new ArrayList<>();
 
         // TODO remove
@@ -48,7 +62,25 @@ public class DashboardActivity extends AppCompatActivity implements View.OnClick
         ListView lv = (ListView) findViewById(R.id.dashboardListView);
         ListAdapter adapter = new ListAdapter(this.getApplicationContext(), listObjects);
         lv.setAdapter(adapter);
+*/
+        /* Initialize */
+        db = new Database(this);
+        hospital = new Hospital();
+        ArrayList<DashboardObject> listObjects = new ArrayList<>();
 
+        /* Get data from database */
+        db.requestHospital(1, new ServerCallback() {
+            @Override
+            public void onSuccess(Hospital result) {
+                hospital = result;
+                Log.d(TAG, hospital.getEquipments().get(0).getName());
+            }
+
+            @Override
+            public void onFailure(VolleyError error) {
+                Log.e(TAG, error.toString());
+            }
+        });
     }
 
     @Override
@@ -62,10 +94,10 @@ public class DashboardActivity extends AppCompatActivity implements View.OnClick
                 break;
 
         }
-
     }
 
 }  // end DashboardActivity Class
+
 
 class ListAdapter extends ArrayAdapter<DashboardObject> {
     private final Context ctx;
