@@ -6,13 +6,24 @@ package com.project.cruzroja.hospital;
  */
 
 
-public class DashboardObject {
+class DashboardObject {
 
     private String title = "";
     private String type = "";
 
-    public DashboardObject () {
+    // Toggle Only Fields
+
+
+    // Value Only fields
+    private String currValue = "";
+
+    // TODO either leave as each part or pass in whole server xml string to parse into each part
+    DashboardObject (String title, String type, String currValue) {
         System.out.println("DashboardObject Constructor called");
+        this.title = title;
+        this.type = type;
+        this.currValue = currValue;
+
     }
 
 
@@ -20,7 +31,7 @@ public class DashboardObject {
      * Getter function for the string type.
      * @return the type of data this object holds
      */
-    public String getType() {
+    String getType() {
         return type;
     }
 
@@ -28,8 +39,13 @@ public class DashboardObject {
      * Getter function for the string title
      * @return the title of the object
      */
-    public String getTitle() {
+    String getTitle() {
         return title;
+    }
+
+
+    String getValue() {
+        return currValue;
     }
 
 }  // end DashboardObject Class

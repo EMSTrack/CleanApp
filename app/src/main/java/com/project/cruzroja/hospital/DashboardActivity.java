@@ -1,14 +1,19 @@
 package com.project.cruzroja.hospital;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.os.Bundle;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.ListView;
 import android.widget.TextView;
 
 import java.util.ArrayList;
@@ -24,7 +29,25 @@ public class DashboardActivity extends AppCompatActivity implements View.OnClick
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_dashboard);
 
+
         ArrayList<DashboardObject> listObjects = new ArrayList<>();
+
+        // TODO remove
+
+        // Add static elements
+        for (int i = 0; i < 3; i++) {
+            DashboardObject valObject = new DashboardObject("Object "+ i, "Value", Integer.toString(i));
+            DashboardObject toggleObject = new DashboardObject("Object "+ i, "Toggle", Integer.toString(i));
+            listObjects.add(valObject);
+            listObjects.add(toggleObject);
+        }
+
+        // TODO END
+
+
+        ListView lv = (ListView) findViewById(R.id.dashboardListView);
+        ListAdapter adapter = new ListAdapter(this.getApplicationContext(), listObjects);
+        lv.setAdapter(adapter);
 
     }
 
@@ -42,17 +65,20 @@ public class DashboardActivity extends AppCompatActivity implements View.OnClick
 
     }
 
-}
+}  // end DashboardActivity Class
 
 class ListAdapter extends ArrayAdapter<DashboardObject> {
     private final Context ctx;
     private ArrayList<DashboardObject> objects;
+    private AlertDialog.Builder alertBuilder;
 
-    public ListAdapter(Context context, ArrayList<DashboardObject> objects) {
+    ListAdapter(Context context, ArrayList<DashboardObject> objects) {
         super(context, -1, objects);
         System.out.println("Inside ListAdapter Constructor");
         this.ctx = context;
         this.objects = objects;
+        this.alertBuilder = new AlertDialog.Builder(ctx);
+
 
     }
 
@@ -65,13 +91,100 @@ class ListAdapter extends ArrayAdapter<DashboardObject> {
         DashboardObject dashboardObject = objects.get(position);
 
         LayoutInflater inflater = LayoutInflater.from(ctx);
-        // Currently inflating toggle always
-        View row = inflater.inflate(R.layout.list_item_toggle, parent);
-        TextView text = (TextView) row.findViewById(R.id.toggleTextView);
-        ImageView image = (ImageView) row.findViewById(R.id.toggleImage);
 
+        View row = null;
+
+        // Differentiate between two object types
+        if (dashboardObject.getType().equals("Value")) {
+            System.out.println("Adding Value to List");
+            row = inflater.inflate(R.layout.list_item_value, parent);
+
+            // Grab the elements of the Value ListItem
+            TextView text = (TextView) row.findViewById(R.id.valueTextView);
+            TextView value = (TextView) row.findViewById(R.id.valueData);
+
+            // Set the elements of the ListItem
+            text.setText(dashboardObject.getTitle());
+            value.setText(dashboardObject.getValue());
+
+            row.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    System.out.println("Value ListItem onClick");
+
+                    // Set the title to the title of the ListItem
+                    alertBuilder.setTitle(((TextView) v.findViewById(R.id.valueTextView)).getText());
+                    alertBuilder.setMessage("How many units are available?");
+
+                    // Create the EditText
+                    final EditText valueText = new EditText(ctx);
+
+                    // Create the EditText LayoutParams
+                    LinearLayout.LayoutParams params = new LinearLayout.LayoutParams
+                            (LinearLayout.LayoutParams.MATCH_PARENT,
+                                    LinearLayout.LayoutParams.MATCH_PARENT);
+                    valueText.setLayoutParams(params);
+
+                    // Check for a value already there
+//                    if ( !((TextView)v.findViewById(R.id.valueData)).getText().equals("")) {
+                        // Set the value of the editText to the current value of the Data
+                    // Set the default value to the data value stored in the ListItem
+                    valueText.setText(((TextView)v.findViewById(R.id.valueData)).getText());
+//                    }
+
+                    AlertDialog alert =  alertBuilder.create();
+
+                    // Add the EditText to the AlertDialog
+                    alert.setView(valueText);
+
+                    alert.show();
+
+                }
+            });
+
+        } else if (dashboardObject.getType().equals("Toggle")) {
+            System.out.println("Adding Toggle to List");
+            row = inflater.inflate(R.layout.list_item_toggle, parent);
+
+            // Grab the elements of the Toggle ListItem
+            TextView text = (TextView) row.findViewById(R.id.toggleTextView);
+            ImageView image = (ImageView) row.findViewById(R.id.toggleImage);
+
+            // Set the elements of the ListItem
+            text.setText(dashboardObject.getTitle());
+            row.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    System.out.println("Toggle ListItem onClick");
+                    // Set the title to the title of the ListItem
+                    alertBuilder.setTitle(((TextView) v.findViewById(R.id.toggleTextView)).getText());
+                    alertBuilder.setMessage("Is this item available?");
+                    alertBuilder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            System.out.println("Yes Button Clicked");
+                            dialog.dismiss();
+                        }
+                    });
+
+                    alertBuilder.setNegativeButton("No", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            System.out.println("No Button Clicked");
+                            dialog.dismiss();
+                        }
+                    });
+
+                    AlertDialog alert =  alertBuilder.create();
+                    alert.show();
+
+                }
+            });
+
+            image.setImageResource(R.drawable.apple);
+        }
 
         return row;
-    }
+    }  // end getView
 
 }
