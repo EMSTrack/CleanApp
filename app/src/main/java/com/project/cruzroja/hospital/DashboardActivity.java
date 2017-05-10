@@ -43,13 +43,13 @@ public class DashboardActivity extends AppCompatActivity implements View.OnClick
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_dashboard);
 
-/*
+
         ArrayList<DashboardObject> listObjects = new ArrayList<>();
 
         // TODO remove
 
         // Add static elements
-        for (int i = 0; i < 3; i++) {
+        for (int i = 0; i < 12; i++) {
             DashboardObject valObject = new DashboardObject("Object "+ i, "Value", Integer.toString(i));
             DashboardObject toggleObject = new DashboardObject("Object "+ i, "Toggle", Integer.toString(i));
             listObjects.add(valObject);
@@ -62,26 +62,28 @@ public class DashboardActivity extends AppCompatActivity implements View.OnClick
         ListView lv = (ListView) findViewById(R.id.dashboardListView);
         ListAdapter adapter = new ListAdapter(this.getApplicationContext(), listObjects);
         lv.setAdapter(adapter);
-*/
-        /* Initialize */
-        db = new Database(this);
-        hospital = new Hospital();
-        ArrayList<DashboardObject> listObjects = new ArrayList<>();
 
-        /* Get data from database */
-        db.requestHospital(1, new ServerCallback() {
-            @Override
-            public void onSuccess(Hospital result) {
-                hospital = result;
-                Log.d(TAG, hospital.getEquipments().get(0).getName());
-            }
+//        /* Initialize */
+//        db = new Database(this);
+//        hospital = new Hospital();
+//        ArrayList<DashboardObject> listObjects = new ArrayList<>();
+//
+//        /* Get data from database */
+//        db.requestHospital(1, new ServerCallback() {
+//            @Override
+//            public void onSuccess(Hospital result) {
+//                hospital = result;
+//                Log.d(TAG, hospital.getEquipments().get(0).getName());
+//            }
+//
+//            @Override
+//            public void onFailure(VolleyError error) {
+//                Log.e(TAG, error.toString());
+//            }
+//        });
 
-            @Override
-            public void onFailure(VolleyError error) {
-                Log.e(TAG, error.toString());
-            }
-        });
-    }
+
+    }  // end onCreate
 
     @Override
     public void onClick(View v) {
@@ -126,94 +128,107 @@ class ListAdapter extends ArrayAdapter<DashboardObject> {
 
         View row = null;
 
-        // Differentiate between two object types
-        if (dashboardObject.getType().equals("Value")) {
-            System.out.println("Adding Value to List");
-            row = inflater.inflate(R.layout.list_item_value, parent);
+        try {
 
-            // Grab the elements of the Value ListItem
-            TextView text = (TextView) row.findViewById(R.id.valueTextView);
-            TextView value = (TextView) row.findViewById(R.id.valueData);
+            // Differentiate between two object types
+            if (dashboardObject.getType().equals("Value")) {
+                System.out.println("Adding Value to List");
+                row = inflater.inflate(R.layout.list_item_value, parent, false);
 
-            // Set the elements of the ListItem
-            text.setText(dashboardObject.getTitle());
-            value.setText(dashboardObject.getValue());
+                System.out.println("Grabbing Elements from Row");
+                // Grab the elements of the Value ListItem
+                TextView text = (TextView) row.findViewById(R.id.valueTextView);
+                TextView value = (TextView) row.findViewById(R.id.valueData);
 
-            row.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    System.out.println("Value ListItem onClick");
+                System.out.println("Setting Elements in Row");
+                // Set the elements of the ListItem
+                text.setText(dashboardObject.getTitle());
+                value.setText(dashboardObject.getValue());
 
-                    // Set the title to the title of the ListItem
-                    alertBuilder.setTitle(((TextView) v.findViewById(R.id.valueTextView)).getText());
-                    alertBuilder.setMessage("How many units are available?");
+                System.out.println("Setting row onClick Listener");
+                row.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        System.out.println("Value ListItem onClick");
 
-                    // Create the EditText
-                    final EditText valueText = new EditText(ctx);
+                        // Set the title to the title of the ListItem
+                        alertBuilder.setTitle(((TextView) v.findViewById(R.id.valueTextView)).getText());
+                        alertBuilder.setMessage("How many units are available?");
 
-                    // Create the EditText LayoutParams
-                    LinearLayout.LayoutParams params = new LinearLayout.LayoutParams
-                            (LinearLayout.LayoutParams.MATCH_PARENT,
-                                    LinearLayout.LayoutParams.MATCH_PARENT);
-                    valueText.setLayoutParams(params);
+                        // Create the EditText
+//                        final EditText valueText = new EditText(ctx);
 
-                    // Check for a value already there
-//                    if ( !((TextView)v.findViewById(R.id.valueData)).getText().equals("")) {
+                        // Create the EditText LayoutParams
+//                        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams
+//                                (LinearLayout.LayoutParams.MATCH_PARENT,
+//                                        LinearLayout.LayoutParams.MATCH_PARENT);
+//                        valueText.setLayoutParams(params);
+
+                        // Check for a value already there
+                        //                    if ( !((TextView)v.findViewById(R.id.valueData)).getText().equals("")) {
                         // Set the value of the editText to the current value of the Data
-                    // Set the default value to the data value stored in the ListItem
-                    valueText.setText(((TextView)v.findViewById(R.id.valueData)).getText());
-//                    }
+                        // Set the default value to the data value stored in the ListItem
+//                        valueText.setText(((TextView) v.findViewById(R.id.valueData)).getText());
+                        //                    }
 
-                    AlertDialog alert =  alertBuilder.create();
+                        AlertDialog alert = alertBuilder.create();
 
-                    // Add the EditText to the AlertDialog
-                    alert.setView(valueText);
+                        // Add the EditText to the AlertDialog
+                        //                    alert.setView(valueText);
 
-                    alert.show();
+                        alert.show();
 
-                }
-            });
+                    }
+                });
 
-        } else if (dashboardObject.getType().equals("Toggle")) {
-            System.out.println("Adding Toggle to List");
-            row = inflater.inflate(R.layout.list_item_toggle, parent);
+            } else if (dashboardObject.getType().equals("Toggle")) {
+                System.out.println("Adding Toggle to List");
+                row = inflater.inflate(R.layout.list_item_toggle, parent, false);
 
-            // Grab the elements of the Toggle ListItem
-            TextView text = (TextView) row.findViewById(R.id.toggleTextView);
-            ImageView image = (ImageView) row.findViewById(R.id.toggleImage);
+                // Grab the elements of the Toggle ListItem
+                TextView text = (TextView) row.findViewById(R.id.toggleTextView);
+                ImageView image = (ImageView) row.findViewById(R.id.toggleImage);
 
-            // Set the elements of the ListItem
-            text.setText(dashboardObject.getTitle());
-            row.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    System.out.println("Toggle ListItem onClick");
-                    // Set the title to the title of the ListItem
-                    alertBuilder.setTitle(((TextView) v.findViewById(R.id.toggleTextView)).getText());
-                    alertBuilder.setMessage("Is this item available?");
-                    alertBuilder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            System.out.println("Yes Button Clicked");
-                            dialog.dismiss();
-                        }
-                    });
+                // Set the elements of the ListItem
+                text.setText(dashboardObject.getTitle());
+                row.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        System.out.println("Toggle ListItem onClick");
+                        // Set the title to the title of the ListItem
+                        alertBuilder.setTitle(((TextView) v.findViewById(R.id.toggleTextView)).getText());
+                        alertBuilder.setMessage("Is this item available?");
+                        alertBuilder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                System.out.println("Yes Button Clicked");
+                                dialog.dismiss();
+                            }
+                        });
 
-                    alertBuilder.setNegativeButton("No", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            System.out.println("No Button Clicked");
-                            dialog.dismiss();
-                        }
-                    });
+                        alertBuilder.setNegativeButton("No", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                System.out.println("No Button Clicked");
+                                dialog.dismiss();
+                            }
+                        });
 
-                    AlertDialog alert =  alertBuilder.create();
-                    alert.show();
+                        AlertDialog alert = alertBuilder.create();
+                        alert.show();
 
-                }
-            });
+                    }
+                });
 
-            image.setImageResource(R.drawable.apple);
+
+                image.setImageResource(R.drawable.apple);
+            } else {
+                 return new View(ctx);
+            }
+
+        } catch (Exception e) {
+            System.out.println("Caught an Exception");
+            return new View(ctx);
         }
 
         return row;
