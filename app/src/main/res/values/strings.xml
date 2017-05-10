@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">    Hospital</string>
+    <string name="imageDescr">    Toggle image description</string>
+    <string name="textDescr">    Value text description</string>
 </resources>

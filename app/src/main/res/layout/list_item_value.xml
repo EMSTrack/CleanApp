@@ -9,10 +9,11 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
         android:layout_centerInParent="true"
         android:text="Value Placement"
         android:textAlignment="center"
-        android:textSize="20dp"
+        android:textSize="20sp"
         android:textColor="@color/colorPrimaryDark"
         android:padding="6dp"/>
 
@@ -23,8 +24,10 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
+        android:contentDescription="@string/textDescr"
         android:textAlignment="center"
-        android:textSize="20dp"
+        android:textSize="20sp"
         android:textColor="@color/colorPrimaryDark"
         android:padding="6dp"
         />
