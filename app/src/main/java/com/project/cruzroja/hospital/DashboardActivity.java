@@ -26,6 +26,7 @@ import com.project.cruzroja.hospital.data.Hospital;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import android.view.Window;
 
 /**
  * Created by devinhickey on 4/20/17.
@@ -41,6 +42,7 @@ public class DashboardActivity extends AppCompatActivity implements View.OnClick
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        this.requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.activity_dashboard);
 
 /*
