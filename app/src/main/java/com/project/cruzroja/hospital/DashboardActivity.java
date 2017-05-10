@@ -5,6 +5,8 @@ import android.content.DialogInterface;
 import android.os.Bundle;
 import android.os.Debug;
 import android.provider.ContactsContract;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -50,19 +52,21 @@ public class DashboardActivity extends AppCompatActivity implements View.OnClick
 
         // TODO remove
 
-        // Add static elements
-        for (int i = 0; i < 12; i++) {
-            DashboardObject valObject = new DashboardObject("Object "+ i, "Value", Integer.toString(i));
-            DashboardObject toggleObject = new DashboardObject("Object "+ i, "Toggle", Integer.toString(i));
-            listObjects.add(valObject);
-            listObjects.add(toggleObject);
-        }
+        DashboardObject valObject = new DashboardObject("Number of Rooms", "Value", "20");
+        DashboardObject toggleObject = new DashboardObject("X-RAY", "Toggle", "Available");
+        DashboardObject val1Object = new DashboardObject("Number of Doctors", "Value", "3");
+        DashboardObject toggle1Object = new DashboardObject("CAT Scan", "Toggle", "Available");
+
+        listObjects.add(valObject);
+        listObjects.add(toggleObject);
+        listObjects.add(val1Object);
+        listObjects.add(toggle1Object);
 
         // TODO END
 
 
         ListView lv = (ListView) findViewById(R.id.dashboardListView);
-        ListAdapter adapter = new ListAdapter(this.getApplicationContext(), listObjects);
+        ListAdapter adapter = new ListAdapter(this.getApplicationContext(), listObjects, getSupportFragmentManager());
         lv.setAdapter(adapter);
 
 //        /* Initialize */
@@ -107,14 +111,15 @@ class ListAdapter extends ArrayAdapter<DashboardObject> {
     private final Context ctx;
     private ArrayList<DashboardObject> objects;
     private AlertDialog.Builder alertBuilder;
+    private FragmentManager fragmentManager;
 
-    ListAdapter(Context context, ArrayList<DashboardObject> objects) {
+    ListAdapter(Context context, ArrayList<DashboardObject> objects, FragmentManager fm) {
         super(context, -1, objects);
         System.out.println("Inside ListAdapter Constructor");
         this.ctx = context;
         this.objects = objects;
         this.alertBuilder = new AlertDialog.Builder(ctx);
-
+        this.fragmentManager = fm;
 
     }
 
@@ -128,7 +133,7 @@ class ListAdapter extends ArrayAdapter<DashboardObject> {
 
         LayoutInflater inflater = LayoutInflater.from(ctx);
 
-        View row = null;
+        View row;
 
         try {
 
@@ -153,32 +158,44 @@ class ListAdapter extends ArrayAdapter<DashboardObject> {
                     public void onClick(View v) {
                         System.out.println("Value ListItem onClick");
 
-                        // Set the title to the title of the ListItem
-                        alertBuilder.setTitle(((TextView) v.findViewById(R.id.valueTextView)).getText());
-                        alertBuilder.setMessage("How many units are available?");
-
-                        // Create the EditText
+//                        // Set the title to the title of the ListItem
+//                        alertBuilder.setTitle(((TextView) v.findViewById(R.id.valueTextView)).getText());
+//                        alertBuilder.setMessage("How many units are available?");
+//
+//                        // Create the EditText
 //                        final EditText valueText = new EditText(ctx);
-
-                        // Create the EditText LayoutParams
+//
+//                        // Create the EditText LayoutParams
 //                        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams
 //                                (LinearLayout.LayoutParams.MATCH_PARENT,
 //                                        LinearLayout.LayoutParams.MATCH_PARENT);
 //                        valueText.setLayoutParams(params);
+//
+//                        // Check for a value already there
+//                        if ( !((TextView)v.findViewById(R.id.valueData)).getText().equals("")) {
+//                            //Set the value of the editText to the current value of the Data
+//                            //Set the default value to the data value stored in the ListItem
+//                            valueText.setText(((TextView) v.findViewById(R.id.valueData)).getText());
+//                        }
+//
+//                        AlertDialog alert = alertBuilder.create();
+//
+//                        // Add the EditText to the AlertDialog
+//                        //                    alert.setView(valueText);
+//
+//                        alert.show();
 
-                        // Check for a value already there
-                        //                    if ( !((TextView)v.findViewById(R.id.valueData)).getText().equals("")) {
-                        // Set the value of the editText to the current value of the Data
-                        // Set the default value to the data value stored in the ListItem
-//                        valueText.setText(((TextView) v.findViewById(R.id.valueData)).getText());
-                        //                    }
+                        String title = ((TextView) v.findViewById(R.id.valueTextView)).getText().toString();
+                        String message = "How many units are available?";
+                        String type = "Value";
+                        String data = ((TextView) v.findViewById(R.id.valueData)).getText().toString();
 
-                        AlertDialog alert = alertBuilder.create();
+                        CustomDialog cd = CustomDialog.newInstance(title, message, type, data);
+                        cd.show(fragmentManager, "value_dialog");
+                        System.out.println("After Show----------------");
 
-                        // Add the EditText to the AlertDialog
-                        //                    alert.setView(valueText);
-
-                        alert.show();
+                        // Update to the new text value
+//                        ((TextView) v.findViewById(R.id.valueData)).setText(cd.getUpdatedData());
 
                     }
                 });
@@ -197,27 +214,37 @@ class ListAdapter extends ArrayAdapter<DashboardObject> {
                     @Override
                     public void onClick(View v) {
                         System.out.println("Toggle ListItem onClick");
-                        // Set the title to the title of the ListItem
-                        alertBuilder.setTitle(((TextView) v.findViewById(R.id.toggleTextView)).getText());
-                        alertBuilder.setMessage("Is this item available?");
-                        alertBuilder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                System.out.println("Yes Button Clicked");
-                                dialog.dismiss();
-                            }
-                        });
+//                        // Set the title to the title of the ListItem
+//                        alertBuilder.setTitle(((TextView) v.findViewById(R.id.toggleTextView)).getText());
+//                        alertBuilder.setMessage("Is this item available?");
+//                        alertBuilder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+//                            @Override
+//                            public void onClick(DialogInterface dialog, int which) {
+//                                System.out.println("Yes Button Clicked");
+//                                dialog.dismiss();
+//                            }
+//                        });
+//
+//                        alertBuilder.setNegativeButton("No", new DialogInterface.OnClickListener() {
+//                            @Override
+//                            public void onClick(DialogInterface dialog, int which) {
+//                                System.out.println("No Button Clicked");
+//                                dialog.dismiss();
+//                            }
+//                        });
+//
+//                        AlertDialog alert = alertBuilder.create();
+//                        alert.show();
 
-                        alertBuilder.setNegativeButton("No", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                System.out.println("No Button Clicked");
-                                dialog.dismiss();
-                            }
-                        });
 
-                        AlertDialog alert = alertBuilder.create();
-                        alert.show();
+
+                        String title = ((TextView) v.findViewById(R.id.toggleTextView)).getText().toString();
+                        String message = "Is this resource available?";
+                        String type = "Toggle";
+                        String data = "Yes";
+
+                        CustomDialog cd = CustomDialog.newInstance(title, message, type, data);
+                        cd.show(fragmentManager, "toggle_dialog");
 
                     }
                 });
