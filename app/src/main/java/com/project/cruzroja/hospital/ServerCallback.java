@@ -1,9 +1,7 @@
 package com.project.cruzroja.hospital;
 
 import com.android.volley.VolleyError;
-import com.project.cruzroja.hospital.data.Hospital;
-
-import org.json.JSONObject;
+import com.project.cruzroja.hospital.models.Hospital;
 
 /**
  * Created by Fabian Choi on 5/5/2017.

@@ -1,4 +1,4 @@
-package com.project.cruzroja.hospital.data;
+package com.project.cruzroja.hospital.models;
 
 /**
  * Created by Fabian Choi on 5/4/2017.

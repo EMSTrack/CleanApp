@@ -1,24 +1,21 @@
-package com.project.cruzroja.hospital;
+package com.project.cruzroja.hospital.items;
 
 /**
  * Created by devinhickey on 5/1/17.
  * Object containing the information for a single Dashboard entry
  */
 
-
-class DashboardObject {
-
+public class DashboardItem {
     private String title = "";
     private String type = "";
 
     // Toggle Only Fields
 
-
     // Value Only fields
     private String currValue = "";
 
     // TODO either leave as each part or pass in whole server xml string to parse into each part
-    DashboardObject (String title, String type, String currValue) {
+    public DashboardItem (String title, String type, String currValue) {
         System.out.println("DashboardObject Constructor called");
         this.title = title;
         this.type = type;
@@ -26,12 +23,11 @@ class DashboardObject {
 
     }
 
-
     /**
      * Getter function for the string type.
      * @return the type of data this object holds
      */
-    String getType() {
+    public String getType() {
         return type;
     }
 
@@ -39,13 +35,11 @@ class DashboardObject {
      * Getter function for the string title
      * @return the title of the object
      */
-    String getTitle() {
+    public String getTitle() {
         return title;
     }
 
-
-    String getValue() {
+    public String getValue() {
         return currValue;
     }
-
-}  // end DashboardObject Class
+}

@@ -20,17 +20,17 @@ import com.android.volley.toolbox.Volley;
 import java.util.*;
 
 public class LoginActivity extends AppCompatActivity {
-    EditText username_login;
-    EditText password_login;
+    private EditText username_login;
+    private EditText password_login;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
-
         username_login = (EditText) findViewById(R.id.username);
         password_login = (EditText) findViewById(R.id.password);
+
 
 
         // Submit button's click listener
