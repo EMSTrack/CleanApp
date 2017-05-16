@@ -1,36 +1,53 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<com.daimajia.swipe.SwipeLayout
+    xmlns:swipe="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="?android:attr/listPreferredItemHeight"
-    android:padding="6dp">
+    android:id="@+id/swipe"
+    swipe:leftEdgeSwipeOffset="0dp"
+    swipe:rightEdgeSwipeOffset="0dp">
 
-    <TextView
-        android:id="@+id/toggleTextView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:layout_centerInParent="true"
-        android:text="Toggle Placement"
-        android:textAlignment="center"
-        android:textSize="20sp"
-        android:textColor="@color/colorPrimaryDark"
-        android:padding="6dp"/>
+    <LinearLayout
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:background="#FF5534"
+        android:gravity="center"
+        android:tag="Bottom3">
 
+        <ImageButton
+            android:id="@+id/delete"
+            android:layout_width="45dp"
+            android:layout_height="45dp"
+            android:background="@android:drawable/ic_menu_delete"
+            android:contentDescription="Delete" />
+    </LinearLayout>
 
-    <!--ImageSwitcher for animations?-->
-    <ImageView
-        android:id="@+id/toggleImage"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true"
-        android:src="@drawable/apple"
-        android:contentDescription="@string/imageDescr"
-        android:padding="6dp"
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
 
-        />
+        <TextView
+            android:id="@+id/toggleTextView"
+            android:layout_width="300dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:text="Toggle Placement"
+            android:paddingStart="20dp"
+            android:paddingLeft="20dp"
+            android:textSize="20sp"
+            android:textColor="@color/colorPrimaryDark" />
+
+        <!--ImageSwitcher for animations?-->
+        <ImageView
+            android:id="@+id/toggleImage"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:contentDescription="@string/imageDescr"
+            android:src="@android:drawable/star_on"/>
 
         <!--Add contentDescription?? -->
+    </LinearLayout>
 
-</RelativeLayout>
+</com.daimajia.swipe.SwipeLayout>

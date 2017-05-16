@@ -46,7 +46,7 @@ public class SwipeListAdapter extends ArraySwipeAdapter<DashboardItem> {
 
         LayoutInflater inflater = LayoutInflater.from(context);
 
-        View row;
+        final View row;
 
         try {
 
@@ -66,7 +66,7 @@ public class SwipeListAdapter extends ArraySwipeAdapter<DashboardItem> {
                 value.setText(dashboardItem.getValue());
 
                 System.out.println("Setting row onClick Listener");
-                row.setOnClickListener(new View.OnClickListener() {
+                row.findViewById(R.id.valueData).setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
                         System.out.println("Value ListItem onClick");
@@ -98,10 +98,10 @@ public class SwipeListAdapter extends ArraySwipeAdapter<DashboardItem> {
 //
 //                        alert.show();
 
-                        String title = ((TextView) v.findViewById(R.id.valueTextView)).getText().toString();
+                        String title = ((TextView) row.findViewById(R.id.valueTextView)).getText().toString();
                         String message = "How many units are available?";
                         String type = "Value";
-                        String data = ((TextView) v.findViewById(R.id.valueData)).getText().toString();
+                        String data = ((TextView) row.findViewById(R.id.valueData)).getText().toString();
 
                         CustomDialog cd = CustomDialog.newInstance(title, message, type, data);
                         cd.show(fragmentManager, "value_dialog");
@@ -123,7 +123,7 @@ public class SwipeListAdapter extends ArraySwipeAdapter<DashboardItem> {
 
                 // Set the elements of the ListItem
                 text.setText(dashboardItem.getTitle());
-                row.setOnClickListener(new View.OnClickListener() {
+                row.findViewById(R.id.toggleImage).setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
                         System.out.println("Toggle ListItem onClick");
@@ -151,7 +151,7 @@ public class SwipeListAdapter extends ArraySwipeAdapter<DashboardItem> {
 
 
 
-                        String title = ((TextView) v.findViewById(R.id.toggleTextView)).getText().toString();
+                        String title = ((TextView) row.findViewById(R.id.toggleTextView)).getText().toString();
                         String message = "Is this resource available?";
                         String type = "Toggle";
                         String data = "Yes";
