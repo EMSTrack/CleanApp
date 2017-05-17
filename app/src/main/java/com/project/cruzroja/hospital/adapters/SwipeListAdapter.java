@@ -1,6 +1,7 @@
 package com.project.cruzroja.hospital.adapters;
 
 import android.content.Context;
+import android.support.annotation.NonNull;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AlertDialog;
 import android.view.LayoutInflater;
@@ -37,12 +38,13 @@ public class SwipeListAdapter extends ArraySwipeAdapter<DashboardItem> {
     }
 
     @Override
+    @NonNull
     public View getView(int position, View convertView, ViewGroup parent) {
         // Get the object, and the type
         // Inflate the correct view based on the type and update the parts of the layout -> set onClicks
 
         System.out.println("Position: " + position);
-        DashboardItem dashboardItem = objects.get(position);
+        final DashboardItem dashboardItem = objects.get(position);
 
         LayoutInflater inflater = LayoutInflater.from(context);
 
@@ -71,36 +73,9 @@ public class SwipeListAdapter extends ArraySwipeAdapter<DashboardItem> {
                     public void onClick(View v) {
                         System.out.println("Value ListItem onClick");
 
-//                        // Set the title to the title of the ListItem
-//                        alertBuilder.setTitle(((TextView) v.findViewById(R.id.valueTextView)).getText());
-//                        alertBuilder.setMessage("How many units are available?");
-//
-//                        // Create the EditText
-//                        final EditText valueText = new EditText(context);
-//
-//                        // Create the EditText LayoutParams
-//                        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams
-//                                (LinearLayout.LayoutParams.MATCH_PARENT,
-//                                        LinearLayout.LayoutParams.MATCH_PARENT);
-//                        valueText.setLayoutParams(params);
-//
-//                        // Check for a value already there
-//                        if ( !((TextView)v.findViewById(R.id.valueData)).getText().equals("")) {
-//                            //Set the value of the editText to the current value of the Data
-//                            //Set the default value to the data value stored in the ListItem
-//                            valueText.setText(((TextView) v.findViewById(R.id.valueData)).getText());
-//                        }
-//
-//                        AlertDialog alert = alertBuilder.create();
-//
-//                        // Add the EditText to the AlertDialog
-//                        //                    alert.setView(valueText);
-//
-//                        alert.show();
-
                         String title = ((TextView) row.findViewById(R.id.valueTextView)).getText().toString();
                         String message = "How many units are available?";
-                        String type = "Value";
+                        String type = dashboardItem.getType();
                         String data = ((TextView) row.findViewById(R.id.valueData)).getText().toString();
 
                         CustomDialog cd = CustomDialog.newInstance(title, message, type, data);
@@ -127,34 +102,11 @@ public class SwipeListAdapter extends ArraySwipeAdapter<DashboardItem> {
                     @Override
                     public void onClick(View v) {
                         System.out.println("Toggle ListItem onClick");
-//                        // Set the title to the title of the ListItem
-//                        alertBuilder.setTitle(((TextView) v.findViewById(R.id.toggleTextView)).getText());
-//                        alertBuilder.setMessage("Is this item available?");
-//                        alertBuilder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-//                            @Override
-//                            public void onClick(DialogInterface dialog, int which) {
-//                                System.out.println("Yes Button Clicked");
-//                                dialog.dismiss();
-//                            }
-//                        });
-//
-//                        alertBuilder.setNegativeButton("No", new DialogInterface.OnClickListener() {
-//                            @Override
-//                            public void onClick(DialogInterface dialog, int which) {
-//                                System.out.println("No Button Clicked");
-//                                dialog.dismiss();
-//                            }
-//                        });
-//
-//                        AlertDialog alert = alertBuilder.create();
-//                        alert.show();
-
-
 
                         String title = ((TextView) row.findViewById(R.id.toggleTextView)).getText().toString();
                         String message = "Is this resource available?";
-                        String type = "Toggle";
-                        String data = "Yes";
+                        String type = dashboardItem.getType();
+                        String data = dashboardItem.getValue();
 
                         CustomDialog cd = CustomDialog.newInstance(title, message, type, data);
                         cd.show(fragmentManager, "toggle_dialog");
@@ -162,8 +114,14 @@ public class SwipeListAdapter extends ArraySwipeAdapter<DashboardItem> {
                     }
                 });
 
+                // Check which image to set
+                if (dashboardItem.getValue().equals("Y")) {
+                    image.setImageResource(R.drawable.checkmark);
+                } else {
+                    image.setImageResource(R.drawable.redx);
+                }
 
-                image.setImageResource(R.drawable.apple);
+
             } else {
                 return new View(context);
             }

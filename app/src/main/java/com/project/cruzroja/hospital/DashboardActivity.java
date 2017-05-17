@@ -42,10 +42,10 @@ public class DashboardActivity extends AppCompatActivity implements View.OnClick
 
         // TODO remove
 
-        DashboardItem valObject = new DashboardItem("Number of Rooms", "Value", "20");
-        DashboardItem toggleObject = new DashboardItem("X-RAY", "Toggle", "Available");
-        DashboardItem val1Object = new DashboardItem("Number of Doctors", "Value", "3");
-        DashboardItem toggle1Object = new DashboardItem("CAT Scan", "Toggle", "Available");
+        DashboardItem valObject = new DashboardItem("Available Rooms", "Value", "20");
+        DashboardItem toggleObject = new DashboardItem("X-RAY", "Toggle", "N");
+        DashboardItem val1Object = new DashboardItem("Available Doctors", "Value", "3");
+        DashboardItem toggle1Object = new DashboardItem("CAT Scan", "Toggle", "Y");
 
         dashboardItems.add(valObject);
         dashboardItems.add(toggleObject);
@@ -61,10 +61,8 @@ public class DashboardActivity extends AppCompatActivity implements View.OnClick
         lv.setAdapter(adapter);
         adapter.setMode(Attributes.Mode.Single);
 
-
         // MQTT
-        //client = MqttClient.getInstance(this);
-        //Mqtt mqtt = new Mqtt();
+        client = MqttClient.getInstance(this);
 
         // OLD STUFF
 //        /* Initialize */

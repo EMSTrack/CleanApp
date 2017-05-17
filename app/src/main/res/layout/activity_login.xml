@@ -18,7 +18,7 @@
         android:orientation="horizontal"
         android:paddingLeft="5dp"
         android:visibility="visible"
-        android:background="@android:color/holo_red_light">
+        android:background="@color/redDark">
 
         <TextView
             android:id="@+id/title"

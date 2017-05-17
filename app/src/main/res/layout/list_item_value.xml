@@ -35,7 +35,7 @@
             android:text="Value Placement"
             android:paddingStart="20dp"
             android:paddingLeft="20dp"
-            android:textSize="20sp"
+            android:textSize="30sp"
             android:textColor="@color/colorPrimaryDark"/>
 
         <!--ImageSwitcher for animations?-->
@@ -45,8 +45,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
             android:contentDescription="@string/textDescr"
-            android:text="20"
-            android:textSize="20sp"
+            android:textSize="30sp"
             android:textColor="@color/colorPrimaryDark"/>
 
         <!--Add contentDescription?? -->
