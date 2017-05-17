@@ -3,6 +3,7 @@ package com.project.cruzroja.hospital;
 import android.os.Bundle;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ImageView;
@@ -16,6 +17,10 @@ import com.project.cruzroja.hospital.models.Hospital;
 import java.util.ArrayList;
 import android.view.Window;
 import android.widget.TextView;
+
+import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
+import org.eclipse.paho.client.mqttv3.MqttCallbackExtended;
+import org.eclipse.paho.client.mqttv3.MqttMessage;
 
 /**
  * Created by devinhickey on 4/20/17.
@@ -63,6 +68,32 @@ public class DashboardActivity extends AppCompatActivity implements View.OnClick
 
         // MQTT
         client = MqttClient.getInstance(this);
+        client.connect("brian", "cruzroja", new MqttCallbackExtended() {
+            @Override
+            public void connectComplete(boolean reconnect, String serverURI) {
+                if(reconnect) {
+                    Log.d(TAG, "Reconnected to broker");
+                } else {
+                    Log.d(TAG, "Connected to broker");
+                }
+                client.subscribeToTopic("hospital/+/config");
+            }
+
+            @Override
+            public void connectionLost(Throwable cause) {
+                Log.d(TAG, "Connection to broker lost");
+            }
+
+            @Override
+            public void messageArrived(String topic, MqttMessage message) throws Exception {
+                Log.d(TAG, "Message received: " + new String(message.getPayload()));
+            }
+
+            @Override
+            public void deliveryComplete(IMqttDeliveryToken token) {
+                Log.d(TAG, "Message sent successfully");
+            }
+        });
 
         // OLD STUFF
 //        /* Initialize */
@@ -71,7 +102,7 @@ public class DashboardActivity extends AppCompatActivity implements View.OnClick
 //        ArrayList<DashboardObject> listObjects = new ArrayList<>();
 //
 //        /* Get data from database */
-//        db.requestHospital(1, new ServerCallback() {
+//        db.requestHospital(1, new MqttConnectionCallback() {
 //            @Override
 //            public void onSuccess(Hospital result) {
 //                hospital = result;
