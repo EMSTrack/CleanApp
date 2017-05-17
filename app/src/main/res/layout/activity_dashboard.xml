@@ -12,7 +12,6 @@
             android:visibility="visible"
             android:background="@android:color/holo_red_light">
 
-                //Added the text
                 <TextView
                     android:id="@+id/title"
                     android:layout_width="wrap_content"

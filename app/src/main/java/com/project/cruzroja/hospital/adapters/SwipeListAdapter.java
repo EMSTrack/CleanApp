@@ -114,8 +114,14 @@ public class SwipeListAdapter extends ArraySwipeAdapter<DashboardItem> {
                     }
                 });
 
+                // Check which image to set
+                if (dashboardItem.getValue().equals("Y")) {
+                    image.setImageResource(R.drawable.checkmark);
+                } else {
+                    image.setImageResource(R.drawable.redx);
+                }
 
-                image.setImageResource(R.drawable.apple);
+
             } else {
                 return new View(context);
             }
