@@ -4,11 +4,16 @@ import android.content.Intent;
 import android.provider.Settings;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Spinner;
+import android.widget.TextView;
 
 import com.android.volley.AuthFailureError;
 import com.android.volley.Request;
@@ -19,17 +24,33 @@ import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import java.util.*;
 
+import static com.project.cruzroja.hospital.R.id.parent;
+
 public class LoginActivity extends AppCompatActivity {
     private EditText username_login;
     private EditText password_login;
+    private Spinner spinner;
+    private static final String[] paths = {"Hospital General", "Clinica 2", "IMSS 1"};
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
+        // Find username and password from layout
         username_login = (EditText) findViewById(R.id.username);
         password_login = (EditText) findViewById(R.id.password);
+
+        /*
+         *  Populate Hospital drop-down list
+         */
+        spinner = (Spinner) findViewById(R.id.spinner);
+        ArrayAdapter<String>adapter = new ArrayAdapter<String>(LoginActivity.this,
+                android.R.layout.simple_spinner_item,paths);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        // Add listener to each item in drop down list
+        spinner.setAdapter(adapter);
+        //spinner.setOnItemSelectedListener(this);
 
 
 
@@ -48,6 +69,7 @@ public class LoginActivity extends AppCompatActivity {
             }
         });
 
+        // Code to hide keyboard if user clicks out of window
         findViewById(R.id.relativeLayout).setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
@@ -59,6 +81,7 @@ public class LoginActivity extends AppCompatActivity {
 
 
     }
+
 
     public void loginHospital(){
 

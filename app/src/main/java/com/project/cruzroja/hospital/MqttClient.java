@@ -76,6 +76,8 @@ public class MqttClient {
         MqttConnectOptions mqttConnectOptions = new MqttConnectOptions();
         mqttConnectOptions.setAutomaticReconnect(true);
         mqttConnectOptions.setCleanSession(true);
+        mqttConnectOptions.setUserName("brian");
+        mqttConnectOptions.setPassword("cruzroja".toCharArray());
 
         try {
             //addToHistory("Connecting to " + serverUri);
