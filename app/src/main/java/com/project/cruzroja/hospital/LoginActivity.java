@@ -39,10 +39,12 @@ public class LoginActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 Intent dashboard = new Intent(LoginActivity.this, DashboardActivity.class);
-                startActivity(dashboard);
-
                 String user_text = username_login.getText().toString();
                 String pass_text = password_login.getText().toString();
+                startActivity(dashboard);
+                finish();
+
+
             }
         });
 

@@ -20,7 +20,6 @@
         android:visibility="visible"
         android:background="@android:color/holo_red_light">
 
-        //Added the text
         <TextView
             android:id="@+id/title"
             android:layout_width="wrap_content"
@@ -46,8 +45,8 @@
 
 
     <LinearLayout
-        android:layout_width="368dp"
-        android:layout_height="50dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         android:orientation="horizontal"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintTop_toTopOf="parent"
@@ -77,8 +76,8 @@
     </LinearLayout>
 
     <LinearLayout
-        android:layout_width="0dp"
-        android:layout_height="50dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         android:orientation="horizontal"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintTop_toTopOf="parent"
