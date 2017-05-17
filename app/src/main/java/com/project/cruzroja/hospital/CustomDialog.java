@@ -1,6 +1,7 @@
 package com.project.cruzroja.hospital;
 
 import android.app.Dialog;
+import android.support.annotation.NonNull;
 import android.support.v4.app.DialogFragment;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -15,6 +16,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.ToggleButton;
 
 /**
  * Created by devinhickey on 5/10/17.
@@ -63,6 +65,7 @@ public class CustomDialog extends DialogFragment {
 
 
     @Override
+    @NonNull
     public Dialog onCreateDialog(Bundle savedInstanceState) {
 
         String title = getArguments().getString("Title");
@@ -113,25 +116,38 @@ public class CustomDialog extends DialogFragment {
 
             // Create the Button LayoutParams
             LinearLayout.LayoutParams params = new LinearLayout.LayoutParams
-                    (LinearLayout.LayoutParams.MATCH_PARENT,
-                            LinearLayout.LayoutParams.WRAP_CONTENT);
-
+                    (LinearLayout.LayoutParams.WRAP_CONTENT,
+                            LinearLayout.LayoutParams.WRAP_CONTENT, 1f);
 
             Button yesButton = new Button(getActivity().getApplicationContext());
             yesButton.setText("YES");
-//            yesButton.setBackgroundColor(getResources().getColor(R.color.colorPrimaryDark));
-
+            yesButton.setTag("yesButton");
+            yesButton.setHighlightColor(getResources().getColor(R.color.colorPrimaryDark));
             yesButton.setLayoutParams(params);
+            yesButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    System.out.println("Yes OnClick");
+                }
+            });
 
 
             Button noButton = new Button(getActivity().getApplicationContext());
             noButton.setText("NO");
+            noButton.setTag("noButton");
+            noButton.setHighlightColor(getResources().getColor(R.color.colorPrimaryDark));
             noButton.setLayoutParams(params);
-//            noButton.setBackgroundColor(getResources().getColor(R.color.colorPrimaryDark));
+            noButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    System.out.println("No OnClick");
+                }
+            });
 
 
             LinearLayout ll = new LinearLayout(getActivity().getApplicationContext());
-            ll.setOrientation(LinearLayout.VERTICAL);
+            ll.setOrientation(LinearLayout.HORIZONTAL);
+            ll.setWeightSum(2);
             ll.addView(yesButton);
             ll.addView(noButton);
 
@@ -143,6 +159,13 @@ public class CustomDialog extends DialogFragment {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 System.out.println("Update Button Clicked");
+                dialog.dismiss();
+            }
+        });
+
+        alertBuilder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
                 dialog.dismiss();
             }
         });
