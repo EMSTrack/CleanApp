@@ -43,9 +43,9 @@ public class DashboardActivity extends AppCompatActivity implements View.OnClick
         // TODO remove
 
         DashboardItem valObject = new DashboardItem("Number of Rooms", "Value", "20");
-        DashboardItem toggleObject = new DashboardItem("X-RAY", "Toggle", "Available");
+        DashboardItem toggleObject = new DashboardItem("X-RAY", "Toggle", "N");
         DashboardItem val1Object = new DashboardItem("Number of Doctors", "Value", "3");
-        DashboardItem toggle1Object = new DashboardItem("CAT Scan", "Toggle", "Available");
+        DashboardItem toggle1Object = new DashboardItem("CAT Scan", "Toggle", "Y");
 
         dashboardItems.add(valObject);
         dashboardItems.add(toggleObject);

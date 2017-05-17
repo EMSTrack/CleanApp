@@ -81,13 +81,13 @@ public class CustomDialog extends DialogFragment {
 
         AlertDialog.Builder alertBuilder = new AlertDialog.Builder(getActivity());
 
-        // Set the data elements
-        alertBuilder.setTitle(title);
-        alertBuilder.setMessage(message);
-
         // Check what type of box it is
         if (type.equals("Value")) {
             System.out.println("Value Type, adding box");
+
+            // Set the data elements
+            alertBuilder.setTitle(title);
+            alertBuilder.setMessage(message);
 
             // Save the old Data
             oldData = data;
@@ -113,6 +113,17 @@ public class CustomDialog extends DialogFragment {
         } else {
             System.out.println("Not a Value Type");
             // Add two checkboxes?
+
+            // Set the data elements
+            // Check if the resource is available and set the title to account for it
+            System.out.println("Data = " + data);
+            if (data.equals("Y")) {
+                alertBuilder.setTitle((title + " - Currently Available"));
+            } else {
+                alertBuilder.setTitle((title + " - Not Currently Available"));
+            }
+            alertBuilder.setMessage(message);
+
 
             // Create the Button LayoutParams
             LinearLayout.LayoutParams params = new LinearLayout.LayoutParams
