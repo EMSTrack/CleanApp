@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.provider.Settings;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
@@ -12,6 +13,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
+import android.widget.TextView;
 
 import com.android.volley.AuthFailureError;
 import com.android.volley.Request;
@@ -21,6 +23,8 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import java.util.*;
+
+import static com.project.cruzroja.hospital.R.id.parent;
 
 public class LoginActivity extends AppCompatActivity {
     private EditText username_login;
@@ -46,7 +50,7 @@ public class LoginActivity extends AppCompatActivity {
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         // Add listener to each item in drop down list
         spinner.setAdapter(adapter);
-        spinner.setOnItemSelectedListener((AdapterView.OnItemSelectedListener) this);
+        //spinner.setOnItemSelectedListener(this);
 
 
 
@@ -78,24 +82,6 @@ public class LoginActivity extends AppCompatActivity {
 
     }
 
-    /*
-     *  Action to do for each hospital selected
-     */
-    public void onItemSelected(AdapterView<?> parent, View v, int position, long id) {
-        // TODO: assign a string on each case
-        switch (position) {
-            case 0:
-                // Whatever you want to happen when the first item gets selected
-                break;
-            case 1:
-                // Whatever you want to happen when the second item gets selected
-                break;
-            case 2:
-                // Whatever you want to happen when the thrid item gets selected
-                break;
-
-        }
-    }
 
     public void loginHospital(){
 
