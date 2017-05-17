@@ -7,8 +7,11 @@ import android.os.Bundle;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Spinner;
 
 import com.android.volley.AuthFailureError;
 import com.android.volley.Request;
@@ -22,14 +25,28 @@ import java.util.*;
 public class LoginActivity extends AppCompatActivity {
     private EditText username_login;
     private EditText password_login;
+    private Spinner spinner;
+    private static final String[] paths = {"Hospital General", "Clinica 2", "IMSS 1"};
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
+        // Find username and password from layout
         username_login = (EditText) findViewById(R.id.username);
         password_login = (EditText) findViewById(R.id.password);
+
+        /*
+         *  Populate Hospital drop-down list
+         */
+        spinner = (Spinner) findViewById(R.id.spinner);
+        ArrayAdapter<String>adapter = new ArrayAdapter<String>(LoginActivity.this,
+                android.R.layout.simple_spinner_item,paths);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        // Add listener to each item in drop down list
+        spinner.setAdapter(adapter);
+        spinner.setOnItemSelectedListener((AdapterView.OnItemSelectedListener) this);
 
 
 
@@ -48,6 +65,7 @@ public class LoginActivity extends AppCompatActivity {
             }
         });
 
+        // Code to hide keyboard if user clicks out of window
         findViewById(R.id.relativeLayout).setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
@@ -58,6 +76,25 @@ public class LoginActivity extends AppCompatActivity {
         });
 
 
+    }
+
+    /*
+     *  Action to do for each hospital selected
+     */
+    public void onItemSelected(AdapterView<?> parent, View v, int position, long id) {
+        // TODO: assign a string on each case
+        switch (position) {
+            case 0:
+                // Whatever you want to happen when the first item gets selected
+                break;
+            case 1:
+                // Whatever you want to happen when the second item gets selected
+                break;
+            case 2:
+                // Whatever you want to happen when the thrid item gets selected
+                break;
+
+        }
     }
 
     public void loginHospital(){
