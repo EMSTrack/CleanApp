@@ -61,10 +61,8 @@ public class DashboardActivity extends AppCompatActivity implements View.OnClick
         lv.setAdapter(adapter);
         adapter.setMode(Attributes.Mode.Single);
 
-
         // MQTT
-        //client = MqttClient.getInstance(this);
-        //Mqtt mqtt = new Mqtt();
+        client = MqttClient.getInstance(this);
 
         // OLD STUFF
 //        /* Initialize */
