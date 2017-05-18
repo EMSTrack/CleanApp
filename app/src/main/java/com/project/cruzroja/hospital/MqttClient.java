@@ -89,7 +89,7 @@ public class MqttClient {
 
     /**
      * Subscribe to a topic
-     * @param topic
+     * @param topic Topic to subscribe
      */
     public void subscribeToTopic(final String topic) {
         try {
@@ -112,7 +112,8 @@ public class MqttClient {
 
     /**
      * Subscribe to a topic with callback
-     * @param topic
+     * @param topic Topic to subscribe
+     * @param callback Callback
      */
     public void subscribeToTopic(final String topic, IMqttActionListener callback) {
         try {
@@ -123,6 +124,11 @@ public class MqttClient {
         }
     }
 
+    /**
+     * Returns existing instance or creates if non exist
+     * @param context Context
+     * @return Existing or new instance of the client
+     */
     public static synchronized MqttClient getInstance(Context context) {
         if(instance == null) {
             instance = new MqttClient(context);
