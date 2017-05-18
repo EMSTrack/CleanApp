@@ -8,6 +8,7 @@ import org.eclipse.paho.client.mqttv3.DisconnectedBufferOptions;
 import org.eclipse.paho.client.mqttv3.IMqttActionListener;
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
 import org.eclipse.paho.client.mqttv3.IMqttToken;
+import org.eclipse.paho.client.mqttv3.MqttCallback;
 import org.eclipse.paho.client.mqttv3.MqttCallbackExtended;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
@@ -15,9 +16,8 @@ import org.eclipse.paho.client.mqttv3.MqttMessage;
 
 /**
  * Created by Fabian Choi on 5/12/2017.
- * Singleton that connects to the MQTT broker.
+ * Singleton that connects to the Mqtt broker.
  */
-
 public class MqttClient {
     private static final String TAG = MqttClient.class.getSimpleName();
     private static MqttClient instance;
@@ -28,7 +28,6 @@ public class MqttClient {
     private final String serverUri = "ssl://cruzroja.ucsd.edu:8883";
     private String clientId = "HospitalAppClient-";
 
-
     private MqttClient(Context context) {
         MqttClient.context = context;
         clientId += System.currentTimeMillis();
@@ -37,6 +36,13 @@ public class MqttClient {
         mqttClient = new MqttAndroidClient(context, serverUri, clientId);
     }
 
+    /**
+     * Connect the client to the broker with a username and password.
+     * To reset the callback, use the setCallback function instead.
+     * @param username Username
+     * @param password Password
+     * @param callback Actions to complete on connection
+     */
     public void connect(String username, String password, final MqttCallbackExtended callback) {
         // Set callback options
         mqttClient.setCallback(callback);
@@ -73,7 +79,19 @@ public class MqttClient {
         }
     }
 
-    public void subscribeToTopic(final String topic){
+    /**
+     * Set the callback of the Mqtt client
+     * @param callback Callback info
+     */
+    public void setCallback(final MqttCallback callback) {
+        mqttClient.setCallback(callback);
+    }
+
+    /**
+     * Subscribe to a topic
+     * @param topic
+     */
+    public void subscribeToTopic(final String topic) {
         try {
             mqttClient.subscribe(topic, 0, null, new IMqttActionListener() {
                 @Override
@@ -86,6 +104,19 @@ public class MqttClient {
                     Log.d(TAG, "Failed to subscribe to " + topic);
                 }
             });
+        } catch (MqttException ex){
+            System.err.println("Exception whilst subscribing");
+            ex.printStackTrace();
+        }
+    }
+
+    /**
+     * Subscribe to a topic with callback
+     * @param topic
+     */
+    public void subscribeToTopic(final String topic, IMqttActionListener callback) {
+        try {
+            mqttClient.subscribe(topic, 0, null, callback);
         } catch (MqttException ex){
             System.err.println("Exception whilst subscribing");
             ex.printStackTrace();
