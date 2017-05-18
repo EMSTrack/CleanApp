@@ -1,54 +1,38 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.daimajia.swipe.SwipeLayout
-    xmlns:swipe="http://schemas.android.com/apk/res-auto"
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="?android:attr/listPreferredItemHeight"
-    android:id="@+id/swipe"
-    swipe:leftEdgeSwipeOffset="0dp"
-    swipe:rightEdgeSwipeOffset="0dp">
+    android:padding="6dp">
 
-    <LinearLayout
-        android:layout_width="80dp"
-        android:layout_height="80dp"
-        android:background="#FF5534"
-        android:gravity="center"
-        android:tag="Bottom3">
+    <TextView
+        android:id="@+id/valueTextView"
+        android:layout_width="310dp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_centerInParent="true"
+        android:paddingLeft="10dp"
+        android:paddingStart="10dp"
+        android:text="Value Placement"
+        android:textColor="@color/colorPrimaryDark"
+        android:textSize="30sp" />
 
-        <ImageButton
-            android:id="@+id/delete"
-            android:layout_width="45dp"
-            android:layout_height="45dp"
-            android:background="@android:drawable/ic_menu_delete"
-            android:contentDescription="Delete" />
-    </LinearLayout>
+    <!--ImageSwitcher for animations?-->
+    <TextView
+        android:id="@+id/valueData"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_centerVertical="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
+        android:paddingEnd="10dp"
+        android:paddingRight="10dp"
+        android:contentDescription="@string/textDescr"
+        android:textColor="@color/colorPrimaryDark"
+        android:textSize="30sp" />
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent">
+    <!--Add contentDescription?? -->
 
-        <TextView
-            android:id="@+id/valueTextView"
-            android:layout_width="310dp"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_vertical"
-            android:text="Value Placement"
-            android:paddingStart="20dp"
-            android:paddingLeft="20dp"
-            android:textSize="30sp"
-            android:textColor="@color/colorPrimaryDark"/>
-
-        <!--ImageSwitcher for animations?-->
-        <TextView
-            android:id="@+id/valueData"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_vertical"
-            android:contentDescription="@string/textDescr"
-            android:textSize="30sp"
-            android:textColor="@color/colorPrimaryDark"/>
-
-        <!--Add contentDescription?? -->
-    </LinearLayout>
-
-</com.daimajia.swipe.SwipeLayout>
+</RelativeLayout>

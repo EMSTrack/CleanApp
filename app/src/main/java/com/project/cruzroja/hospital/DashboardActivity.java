@@ -10,7 +10,7 @@ import android.widget.ImageView;
 import android.widget.ListView;
 
 import com.daimajia.swipe.util.Attributes;
-import com.project.cruzroja.hospital.adapters.SwipeListAdapter;
+import com.project.cruzroja.hospital.adapters.ListAdapter;
 import com.project.cruzroja.hospital.items.DashboardItem;
 import com.project.cruzroja.hospital.models.Hospital;
 
@@ -31,7 +31,6 @@ public class DashboardActivity extends AppCompatActivity implements View.OnClick
     private static final String TAG = DashboardActivity.class.getSimpleName();
 
     private ArrayList<DashboardItem> dashboardItems = new ArrayList<>();
-    private FragmentManager fragmentManager;
 
     private Database db;
     private MqttClient client;
@@ -61,10 +60,9 @@ public class DashboardActivity extends AppCompatActivity implements View.OnClick
 
 
         ListView lv = (ListView) findViewById(R.id.dashboardListView);
-        SwipeListAdapter adapter = new SwipeListAdapter(this.getApplicationContext(), dashboardItems,
+        ListAdapter adapter = new ListAdapter(this.getApplicationContext(), dashboardItems,
                 getSupportFragmentManager());
         lv.setAdapter(adapter);
-        adapter.setMode(Attributes.Mode.Single);
 
         // MQTT
         client = MqttClient.getInstance(this);

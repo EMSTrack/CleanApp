@@ -7,6 +7,7 @@ import android.support.v7.app.AlertDialog;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -21,13 +22,13 @@ import java.util.ArrayList;
  * Created by Fabian Choi on 5/16/2017.
  */
 
-public class SwipeListAdapter extends ArraySwipeAdapter<DashboardItem> {
+public class ListAdapter extends ArrayAdapter<DashboardItem> {
     private final Context context;
     private ArrayList<DashboardItem> objects;
     private AlertDialog.Builder alertBuilder;
     private FragmentManager fragmentManager;
 
-    public SwipeListAdapter(Context context, ArrayList<DashboardItem> objects, FragmentManager fm) {
+    public ListAdapter(Context context, ArrayList<DashboardItem> objects, FragmentManager fm) {
         super(context, -1, objects);
         System.out.println("Inside ListAdapter Constructor");
         this.context = context;
@@ -68,7 +69,7 @@ public class SwipeListAdapter extends ArraySwipeAdapter<DashboardItem> {
                 value.setText(dashboardItem.getValue());
 
                 System.out.println("Setting row onClick Listener");
-                row.findViewById(R.id.valueData).setOnClickListener(new View.OnClickListener() {
+                row.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
                         System.out.println("Value ListItem onClick");
@@ -98,7 +99,7 @@ public class SwipeListAdapter extends ArraySwipeAdapter<DashboardItem> {
 
                 // Set the elements of the ListItem
                 text.setText(dashboardItem.getTitle());
-                row.findViewById(R.id.toggleImage).setOnClickListener(new View.OnClickListener() {
+                row.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
                         System.out.println("Toggle ListItem onClick");
@@ -133,9 +134,4 @@ public class SwipeListAdapter extends ArraySwipeAdapter<DashboardItem> {
 
         return row;
     }  // end getView
-
-    @Override
-    public int getSwipeLayoutResourceId(int position) {
-        return 0;
-    }
 }
