@@ -1,20 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:gravity="center_vertical"
+    android:orientation="vertical">
 
-
-    <ListView
-        android:id="@+id/hospitalList"
+    <Spinner
+        android:id="@+id/hospitalSpinner"
         android:layout_width="match_parent"
-        android:layout_height="530dp" />
+        android:layout_height="wrap_content"
+        android:padding="20dp"/>
 
     <Button
         android:id="@+id/submitHospitalButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Submit"
-        />
+        android:padding="20dp"/>
 
 </LinearLayout>
