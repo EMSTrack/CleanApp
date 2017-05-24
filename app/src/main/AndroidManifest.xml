@@ -20,6 +20,11 @@
             </intent-filter>
         </activity>
 
+        <activity android:name=".HospitalListActivity">
+            
+
+        </activity>
+
         <activity android:name=".DashboardActivity">
         </activity>
 
