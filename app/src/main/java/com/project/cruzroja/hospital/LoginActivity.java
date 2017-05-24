@@ -29,7 +29,7 @@ import static com.project.cruzroja.hospital.R.id.parent;
 public class LoginActivity extends AppCompatActivity {
     private EditText username_login;
     private EditText password_login;
-    private Spinner spinner;
+//    private Spinner spinner;
     private static final String[] paths = {"Hospital General", "Clinica 2", "IMSS 1"};
 
     @Override
@@ -44,12 +44,12 @@ public class LoginActivity extends AppCompatActivity {
         /*
          *  Populate Hospital drop-down list
          */
-        spinner = (Spinner) findViewById(R.id.spinner);
-        ArrayAdapter<String>adapter = new ArrayAdapter<String>(LoginActivity.this,
-                android.R.layout.simple_spinner_item,paths);
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        // Add listener to each item in drop down list
-        spinner.setAdapter(adapter);
+//        spinner = (Spinner) findViewById(R.id.spinner);
+//        ArrayAdapter<String> adapter = new ArrayAdapter<String>(LoginActivity.this,
+//                android.R.layout.simple_spinner_item,paths);
+//        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+//        // Add listener to each item in drop down list
+//        spinner.setAdapter(adapter);
         //spinner.setOnItemSelectedListener(this);
 
 
@@ -124,6 +124,7 @@ public class LoginActivity extends AppCompatActivity {
         // Add the request to the RequestQueue.
         queue.add(sr);
     }
+
     public interface PostCommentResponseListener {
         public void requestStarted();
         public void requestCompleted();
