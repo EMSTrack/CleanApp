@@ -3,7 +3,11 @@ package com.project.cruzroja.hospital;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.provider.Settings;
+<<<<<<< HEAD
 import android.support.v7.app.AlertDialog;
+=======
+import android.support.v7.app.ActionBar;
+>>>>>>> 52da4cac181ea189f89f9cd55af21dfc71b8a330
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -15,6 +19,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.Spinner;
 import android.widget.TextView;
 
@@ -52,6 +57,20 @@ public class LoginActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
+        getSupportActionBar().setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM);
+        getSupportActionBar().setDisplayShowCustomEnabled(true);
+        getSupportActionBar().setCustomView(R.layout.maintitlebar);
+        View view = getSupportActionBar().getCustomView();
+
+        ImageButton imageButton= (ImageButton)view.findViewById(R.id.AddBtn);
+
+        imageButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                finish();
+            }
+        });
+
         // Find username and password from layout
         username_login = (EditText) findViewById(R.id.username);
         password_login = (EditText) findViewById(R.id.password);
@@ -64,9 +83,15 @@ public class LoginActivity extends AppCompatActivity {
 
                 String user_text = username_login.getText().toString();
                 String pass_text = password_login.getText().toString();
+<<<<<<< HEAD
                 user_text = user_text.replace(" " , "");
                 pass_text = pass_text.replace(" " , "");
                 loginHospital(user_text, pass_text);
+=======
+                startActivity(dashboard);
+//                finish();
+
+>>>>>>> 52da4cac181ea189f89f9cd55af21dfc71b8a330
 
             }
         });
