@@ -162,8 +162,8 @@ public class LoginActivity extends AppCompatActivity {
                                 Intent dashboard = new Intent(getApplicationContext(), DashboardActivity.class);
                                 dashboard.putExtra("USER", user_text);
                                 dashboard.putExtra("PASS", pass_text);
-                                dashboard.putExtra("H_ID", tmp_hospital.getName());
-                                dashboard.putExtra("H_NM", tmp_hospital.getID());
+                                dashboard.putExtra("H_ID", tmp_hospital.getID());
+                                dashboard.putExtra("H_NM", tmp_hospital.getName());
                                 dashboard.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                                 startActivity(dashboard);
                             }
