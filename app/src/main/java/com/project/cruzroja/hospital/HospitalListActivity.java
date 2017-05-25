@@ -16,8 +16,6 @@ import android.widget.ListView;
 import android.widget.Spinner;
 
 import com.project.cruzroja.hospital.Dialogs.LogoutDialog;
-import com.project.cruzroja.hospital.adapters.HospitalListAdapter;
-
 import java.util.ArrayList;
 
 
