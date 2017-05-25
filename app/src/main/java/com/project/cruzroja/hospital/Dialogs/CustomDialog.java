@@ -1,22 +1,19 @@
-package com.project.cruzroja.hospital;
+package com.project.cruzroja.hospital.Dialogs;
 
 import android.app.Dialog;
 import android.support.annotation.NonNull;
 import android.support.v4.app.DialogFragment;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
 import android.text.InputType;
 import android.view.Gravity;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
-import android.widget.TextView;
-import android.widget.ToggleButton;
+
+import com.project.cruzroja.hospital.R;
 
 /**
  * Created by devinhickey on 5/10/17.
@@ -70,7 +67,7 @@ public class CustomDialog extends DialogFragment {
 
         String title = getArguments().getString("Title");
         String message = getArguments().getString("Message");
-        String type = getArguments().getString("Type");
+        final String type = getArguments().getString("Type");
         String data = getArguments().getString("Data");
 
         System.out.println("Title: " + title);
@@ -79,7 +76,11 @@ public class CustomDialog extends DialogFragment {
         System.out.println("Data: " + data);
 
 
-        AlertDialog.Builder alertBuilder = new AlertDialog.Builder(getActivity());
+        final AlertDialog.Builder alertBuilder = new AlertDialog.Builder(getActivity());
+        final LinearLayout ll = new LinearLayout(getActivity().getApplicationContext());
+        final Button yesButton = new Button(getActivity().getApplicationContext());
+        final Button noButton = new Button(getActivity().getApplicationContext());
+        final EditText valueText = new EditText(getActivity().getApplicationContext());
 
         // Check what type of box it is
         if (type.equals("Value")) {
@@ -93,7 +94,6 @@ public class CustomDialog extends DialogFragment {
             oldData = data;
 
             // Initialize the Value Text
-            EditText valueText = new EditText(getActivity().getApplicationContext());
             valueText.setGravity(Gravity.CENTER_HORIZONTAL);
             valueText.setRawInputType(InputType.TYPE_CLASS_NUMBER);
             valueText.setTextColor(getResources().getColor(R.color.colorPrimaryDark));
@@ -130,7 +130,8 @@ public class CustomDialog extends DialogFragment {
                     (LinearLayout.LayoutParams.WRAP_CONTENT,
                             LinearLayout.LayoutParams.WRAP_CONTENT, 1f);
 
-            Button yesButton = new Button(getActivity().getApplicationContext());
+
+            // Set YesButton traits
             yesButton.setText("YES");
             yesButton.setTag("yesButton");
             yesButton.setHighlightColor(getResources().getColor(R.color.colorPrimaryDark));
@@ -139,11 +140,12 @@ public class CustomDialog extends DialogFragment {
                 @Override
                 public void onClick(View v) {
                     System.out.println("Yes OnClick");
+                    noButton.setSelected(false);
+                    yesButton.setSelected(true);
                 }
             });
 
-
-            Button noButton = new Button(getActivity().getApplicationContext());
+            // Set NoButton traits
             noButton.setText("NO");
             noButton.setTag("noButton");
             noButton.setHighlightColor(getResources().getColor(R.color.colorPrimaryDark));
@@ -152,11 +154,11 @@ public class CustomDialog extends DialogFragment {
                 @Override
                 public void onClick(View v) {
                     System.out.println("No OnClick");
+                    noButton.setSelected(true);
+                    yesButton.setSelected(false);
                 }
             });
 
-
-            LinearLayout ll = new LinearLayout(getActivity().getApplicationContext());
             ll.setOrientation(LinearLayout.HORIZONTAL);
             ll.setWeightSum(2);
             ll.addView(yesButton);
@@ -164,12 +166,27 @@ public class CustomDialog extends DialogFragment {
 
             alertBuilder.setView(ll);
 
-        }
+        }  // end Value if/else statement
 
         alertBuilder.setNeutralButton("Update", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 System.out.println("Update Button Clicked");
+                // Update the value
+                if (type.equals("Value")) {
+                    // Grab the new value
+                    updatedData = valueText.getText().toString();
+                } else {
+                    // Update the value if the button has been clicked
+                    if (yesButton.isSelected()) {
+                        updatedData = "Y";
+                    } else if (noButton.isSelected()) {
+                        updatedData = "N";
+                    } else {
+                        updatedData = "";
+                    }
+                }  // end onCLick value if/else
+
                 dialog.dismiss();
             }
         });
@@ -177,6 +194,7 @@ public class CustomDialog extends DialogFragment {
         alertBuilder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
+                updatedData = "";
                 dialog.dismiss();
             }
         });

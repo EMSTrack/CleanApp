@@ -63,7 +63,7 @@ public class LoginActivity extends AppCompatActivity {
                 String user_text = username_login.getText().toString();
                 String pass_text = password_login.getText().toString();
                 startActivity(dashboard);
-                finish();
+//                finish();
 
 
             }

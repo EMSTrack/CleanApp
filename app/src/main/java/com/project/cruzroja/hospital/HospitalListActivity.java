@@ -11,6 +11,7 @@ import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.Spinner;
 
+import com.project.cruzroja.hospital.Dialogs.LogoutDialog;
 import com.project.cruzroja.hospital.adapters.HospitalListAdapter;
 
 import java.util.ArrayList;
@@ -67,6 +68,13 @@ public class HospitalListActivity extends AppCompatActivity {
             }
         });
 
+    }  // end onCreate
+
+    @Override
+    public void onBackPressed() {
+        System.out.println("BackButton Pressed");
+        LogoutDialog ld = LogoutDialog.newInstance();
+        ld.show(getFragmentManager(), "logout_dialog");
     }
 
 }
