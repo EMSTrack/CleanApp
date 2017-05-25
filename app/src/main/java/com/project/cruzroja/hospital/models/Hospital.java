@@ -10,6 +10,7 @@ import java.util.ArrayList;
 public class Hospital {
     private String name;
     private ArrayList<Equipment> equipment;
+    private int id;
 
     public Hospital() {
         equipment = new ArrayList<>();
@@ -32,4 +33,6 @@ public class Hospital {
      * @return the equipments of the hospital
      */
     public ArrayList<Equipment> getEquipments() { return equipment; }
+
+    public int getID(){return id;}
 }
