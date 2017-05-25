@@ -12,7 +12,8 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.daimajia.swipe.adapters.ArraySwipeAdapter;
-import com.project.cruzroja.hospital.CustomDialog;
+//import com.project.cruzroja.hospital.CustomDialog;
+import com.project.cruzroja.hospital.Dialogs.CustomDialog;
 import com.project.cruzroja.hospital.R;
 import com.project.cruzroja.hospital.items.DashboardItem;
 
