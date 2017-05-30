@@ -117,7 +117,7 @@ public class CustomDialog extends DialogFragment {
             // Set the data elements
             // Check if the resource is available and set the title to account for it
             System.out.println("Data = " + data);
-            if (data.equals("Y")) {
+            if (data.equals("1")) {
                 alertBuilder.setTitle((title + " - Currently Available"));
             } else {
                 alertBuilder.setTitle((title + " - Not Currently Available"));

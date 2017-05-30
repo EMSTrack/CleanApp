@@ -41,7 +41,7 @@ public class DashboardActivity extends AppCompatActivity {
     private Hospital hospital;
 
     private ArrayList<DashboardItem> dashboardItems = new ArrayList<>();
-
+    private ListAdapter adapter;
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -68,22 +68,9 @@ public class DashboardActivity extends AppCompatActivity {
         hospital.setId(intent.getIntExtra("hospital_id", 0));
         hospital.setName(intent.getStringExtra("hospital_name"));
 
-        // TODO remove
-
-        DashboardItem valObject = new DashboardItem("Available Rooms", "Value", "20");
-        DashboardItem toggleObject = new DashboardItem("X-RAY", "Toggle", "N");
-        DashboardItem val1Object = new DashboardItem("Available Doctors", "Value", "3");
-        DashboardItem toggle1Object = new DashboardItem("CAT Scan", "Toggle", "Y");
-
-        dashboardItems.add(valObject);
-        dashboardItems.add(toggleObject);
-        dashboardItems.add(val1Object);
-        dashboardItems.add(toggle1Object);
-
-        // TODO END
-
+        // Set adapter
         ListView lv = (ListView) findViewById(R.id.dashboardListView);
-        ListAdapter adapter = new ListAdapter(this.getApplicationContext(), dashboardItems,
+        adapter = new ListAdapter(this.getApplicationContext(), dashboardItems,
                 getSupportFragmentManager());
         lv.setAdapter(adapter);
 
@@ -122,6 +109,7 @@ public class DashboardActivity extends AppCompatActivity {
                         if(topic.contains(equipment.getName())) {
                             Log.d(TAG, equipment.getName() + " " + equipment.getQuantity());
                             equipment.setQuantity(Integer.parseInt(text));
+                            refreshOrAddItem(equipment.getName());
                         }
                         break;
                     }
@@ -136,5 +124,41 @@ public class DashboardActivity extends AppCompatActivity {
 
         // Start retrieving data
         client.subscribeToTopic("hospital/" + hospital.getId() + "/metadata");
+    }
+
+    private void refreshOrAddItem(String equipmentName) {
+        boolean itemExists = false;
+        // Update item
+        for (DashboardItem item : dashboardItems) {
+            if(item.getTitle().equals(equipmentName)) {
+                Equipment equipment = getEquipment(equipmentName);
+                if(equipment != null) {
+                    item.setValue(equipment.getQuantity() + "");
+                    itemExists = true;
+                }
+            }
+        }
+
+        // Add item if it doesn't exist
+        if(!itemExists) {
+            Equipment equipment = getEquipment(equipmentName);
+            String type = "Value";
+            if(equipment.isToggleable())
+                type = "Toggle";
+            DashboardItem object = new DashboardItem(equipment.getName(), type,
+                    equipment.getQuantity() + "");
+            dashboardItems.add(object);
+        }
+
+        adapter.notifyDataSetChanged();
+    }
+
+    private Equipment getEquipment(String name) {
+        for (Equipment item : hospital.getEquipments()) {
+            if(item.getName().equals(name)) {
+                return item;
+            }
+        }
+        return null;
     }
 }

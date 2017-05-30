@@ -12,15 +12,14 @@ public class DashboardItem {
     // Toggle Only Fields
 
     // Value Only fields
-    private String currValue = "";
+    private String value = "";
 
     // TODO either leave as each part or pass in whole server xml string to parse into each part
-    public DashboardItem (String title, String type, String currValue) {
+    public DashboardItem (String title, String type, String value) {
         System.out.println("DashboardObject Constructor called");
         this.title = title;
         this.type = type;
-        this.currValue = currValue;
-
+        this.value = value;
     }
 
     /**
@@ -40,6 +39,8 @@ public class DashboardItem {
     }
 
     public String getValue() {
-        return currValue;
+        return value;
     }
+
+    public void setValue(String value) { this.value = value; }
 }
