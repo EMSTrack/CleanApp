@@ -19,7 +19,6 @@ public class LogoutDialog extends DialogFragment {
 
     public static LogoutDialog newInstance() {
         LogoutDialog ld = new LogoutDialog();
-
         return ld;
     }
 

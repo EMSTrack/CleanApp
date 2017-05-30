@@ -11,12 +11,15 @@
             @style/spinnerDropDownItemStyle
         </item>
     </style>
+
     <style name="CustomTheme" parent="Theme.AppCompat.Light">
 
         <item name="contentInsetStart">0dp</item>
         <item name="contentInsetEnd">0dp</item>
     </style>
+
     <color name="redDark">#E30A23</color>
+
     <style name="spinnerItemStyle">
         <item name="android:gravity">center</item>
     </style>
