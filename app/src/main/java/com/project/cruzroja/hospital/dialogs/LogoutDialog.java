@@ -1,4 +1,4 @@
-package com.project.cruzroja.hospital.Dialogs;
+package com.project.cruzroja.hospital.dialogs;
 
 import android.app.Dialog;
 import android.app.DialogFragment;
@@ -6,7 +6,6 @@ import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AlertDialog;
-import android.widget.LinearLayout;
 
 /**
  * Created by devinhickey on 5/24/17.

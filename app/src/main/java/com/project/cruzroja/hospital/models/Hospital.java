@@ -8,9 +8,9 @@ import java.util.ArrayList;
  */
 
 public class Hospital {
+    private Integer id;
     private String name;
     private ArrayList<Equipment> equipment;
-    private int id;
 
     public Hospital() {
         equipment = new ArrayList<>();
@@ -34,5 +34,6 @@ public class Hospital {
      */
     public ArrayList<Equipment> getEquipments() { return equipment; }
 
-    public int getID(){return id;}
+    public int getId() { return id; }
+    public void setId(int id) { this.id = id; }
 }

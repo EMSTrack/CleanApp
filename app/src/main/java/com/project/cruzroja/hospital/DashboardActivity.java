@@ -1,5 +1,6 @@
 package com.project.cruzroja.hospital;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.app.ActionBar;
@@ -33,7 +34,7 @@ import org.eclipse.paho.client.mqttv3.MqttMessage;
  * The Dashboard
  */
 
-public class DashboardActivity extends AppCompatActivity implements View.OnClickListener {
+public class DashboardActivity extends AppCompatActivity {
     private static final String TAG = DashboardActivity.class.getSimpleName();
 
     private MqttClient client;
@@ -47,13 +48,13 @@ public class DashboardActivity extends AppCompatActivity implements View.OnClick
         this.requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.activity_dashboard);
 
+        // Action bar
         getSupportActionBar().setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM);
         getSupportActionBar().setDisplayShowCustomEnabled(true);
         getSupportActionBar().setCustomView(R.layout.maintitlebar);
+
         View view = getSupportActionBar().getCustomView();
-
         ImageButton imageButton= (ImageButton)view.findViewById(R.id.AddBtn);
-
         imageButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -61,6 +62,11 @@ public class DashboardActivity extends AppCompatActivity implements View.OnClick
             }
         });
 
+        // Get data from Login and place it into the hospital
+        hospital = new Hospital();
+        Intent intent = getIntent();
+        hospital.setId(intent.getIntExtra("hospital_id", 0));
+        hospital.setName(intent.getStringExtra("hospital_name"));
 
         // TODO remove
 
@@ -76,15 +82,14 @@ public class DashboardActivity extends AppCompatActivity implements View.OnClick
 
         // TODO END
 
-
         ListView lv = (ListView) findViewById(R.id.dashboardListView);
         ListAdapter adapter = new ListAdapter(this.getApplicationContext(), dashboardItems,
                 getSupportFragmentManager());
         lv.setAdapter(adapter);
 
-        // MQTT
+        // Mqtt
         client = MqttClient.getInstance(this);
-        client.connect("brian", "cruzroja", new MqttCallbackExtended() {
+        client.setCallback(new MqttCallbackExtended() {
             @Override
             public void connectComplete(boolean reconnect, String serverURI) {
                 if(reconnect) {
@@ -92,7 +97,6 @@ public class DashboardActivity extends AppCompatActivity implements View.OnClick
                 } else {
                     Log.d(TAG, "Connected to broker");
                 }
-                client.subscribeToTopic("hospital/1/metadata");
             }
 
             @Override
@@ -105,6 +109,7 @@ public class DashboardActivity extends AppCompatActivity implements View.OnClick
                 String text = new String(message.getPayload());
                 // Message from receiving metadata; subscribe to equipments
                 if (topic.contains("metadata")) {
+                    Log.d(TAG, text);
                     // Parse to hospital object
                     hospital = new Gson().fromJson(text, Hospital.class);
                     for (Equipment equipment : hospital.getEquipments()) {
@@ -115,8 +120,8 @@ public class DashboardActivity extends AppCompatActivity implements View.OnClick
                 else {
                     for (Equipment equipment : hospital.getEquipments()) {
                         if(topic.contains(equipment.getName())) {
-                            equipment.setQuantity(Integer.parseInt(text));
                             Log.d(TAG, equipment.getName() + " " + equipment.getQuantity());
+                            equipment.setQuantity(Integer.parseInt(text));
                         }
                         break;
                     }
@@ -129,19 +134,7 @@ public class DashboardActivity extends AppCompatActivity implements View.OnClick
             }
         });
 
-    }  // end onCreate
-
-    @Override
-    public void onClick(View v) {
-        System.out.println("View was Clicked");
-
-        switch(v.getId()) {
-
-            default:
-                System.out.println("DEFAULT View Clicked");
-                break;
-
-        }
+        // Start retrieving data
+        client.subscribeToTopic("hospital/" + hospital.getId() + "/metadata");
     }
-
 }

@@ -5,9 +5,9 @@ package com.project.cruzroja.hospital.models;
  * Represents an Equipment from the database
  */
 public class Equipment {
-    // TODO: Fill it out
     private String name;
     private int quantity;
+    private boolean toggleable;
 
     /**
      * Getter for the name of the equipment
@@ -32,4 +32,12 @@ public class Equipment {
      * @param quantity the quantity of the equipment
      */
     public void setQuantity(int quantity) { this.quantity = quantity; }
+
+    public boolean isToggleable() {
+        return toggleable;
+    }
+
+    public void setToggleable(boolean toggleable) {
+        this.toggleable = toggleable;
+    }
 }

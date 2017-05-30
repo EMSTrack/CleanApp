@@ -11,11 +11,9 @@ import android.widget.Button;
 import android.widget.ImageButton;
 
 
-import android.widget.ListAdapter;
-import android.widget.ListView;
 import android.widget.Spinner;
 
-import com.project.cruzroja.hospital.Dialogs.LogoutDialog;
+import com.project.cruzroja.hospital.dialogs.LogoutDialog;
 import java.util.ArrayList;
 
 

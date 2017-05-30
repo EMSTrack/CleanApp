@@ -2,7 +2,9 @@ package com.project.cruzroja.hospital;
 
 import android.content.Context;
 import android.content.Intent;
+import android.icu.text.LocaleDisplayNames;
 import android.util.Log;
+import android.widget.EditText;
 import android.widget.Toast;
 
 import org.eclipse.paho.android.service.MqttAndroidClient;
@@ -29,7 +31,6 @@ public class MqttClient {
 
     private final String serverUri = "ssl://cruzroja.ucsd.edu:8883";
     private String clientId = "HospitalAppClient-";
-    boolean success;
 
     private MqttClient(Context context) {
         MqttClient.context = context;
@@ -46,7 +47,7 @@ public class MqttClient {
      * @param password Password
      * @param callback Actions to complete on connection
      */
-    void  connect(String username, String password, final MqttCallbackExtended callback) {
+    public void connect(String username, String password, final MqttCallbackExtended callback) {
         // Set callback options
         mqttClient.setCallback(callback);
 
@@ -73,15 +74,10 @@ public class MqttClient {
                 @Override
                 public void onFailure(IMqttToken asyncActionToken, Throwable exception) {
                     Log.d(TAG, "Connection to broker failed");
-
                     Log.e(TAG, exception.getMessage());
 
                     // Set alert if login is wrong
                     Toast.makeText(context, "Wrong login information!", Toast.LENGTH_LONG).show();
-                    LoginActivity.username_login.setError("Error");
-                    //LoginActivity.password_login.setError("");
-
-
                 }
             });
 
@@ -142,6 +138,14 @@ public class MqttClient {
             mqttClient.publish(topic, mqttMessage);
         } catch (MqttException e) {
             Log.e(TAG, "Failed to publish to " + topic);
+            e.printStackTrace();
+        }
+    }
+
+    public void disconnect() {
+        try {
+            mqttClient.disconnect();
+        } catch (MqttException e) {
             e.printStackTrace();
         }
     }

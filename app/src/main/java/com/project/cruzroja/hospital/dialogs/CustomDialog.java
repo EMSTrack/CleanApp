@@ -1,4 +1,4 @@
-package com.project.cruzroja.hospital.Dialogs;
+package com.project.cruzroja.hospital.dialogs;
 
 import android.app.Dialog;
 import android.support.annotation.NonNull;
