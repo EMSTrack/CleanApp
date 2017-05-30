@@ -22,7 +22,6 @@ import java.util.ArrayList;
 /**
  * Created by Fabian Choi on 5/16/2017.
  */
-
 public class ListAdapter extends ArrayAdapter<DashboardItem> {
     private final Context context;
     private ArrayList<DashboardItem> objects;

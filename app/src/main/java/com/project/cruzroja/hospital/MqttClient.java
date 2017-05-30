@@ -116,7 +116,7 @@ public class MqttClient {
                 }
             });
         } catch (MqttException ex){
-            System.err.println("Exception whilst subscribing");
+            Log.e(TAG, "Error while subscribing to " + topic);
             ex.printStackTrace();
         }
     }
@@ -130,13 +130,24 @@ public class MqttClient {
         try {
             mqttClient.subscribe(topic, 0, null, callback);
         } catch (MqttException ex){
-            System.err.println("Exception whilst subscribing");
+            Log.e(TAG, "Error while subscribing to " + topic);
             ex.printStackTrace();
         }
     }
 
+    public void publishMessage(String topic, String message) {
+        try {
+            MqttMessage mqttMessage = new MqttMessage();
+            mqttMessage.setPayload(message.getBytes());
+            mqttClient.publish(topic, mqttMessage);
+        } catch (MqttException e) {
+            Log.e(TAG, "Failed to publish to " + topic);
+            e.printStackTrace();
+        }
+    }
+
     /**
-     * Returns existing instance or creates if non exist
+     * Returns existing instance or creates if none exist
      * @param context Context
      * @return Existing or new instance of the client
      */

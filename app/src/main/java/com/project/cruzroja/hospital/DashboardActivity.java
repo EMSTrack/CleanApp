@@ -3,6 +3,7 @@ package com.project.cruzroja.hospital;
 import android.os.Bundle;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.app.ActionBar;
+import android.support.v4.app.ShareCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
@@ -12,8 +13,10 @@ import android.widget.ImageView;
 import android.widget.ListView;
 
 import com.daimajia.swipe.util.Attributes;
+import com.google.gson.Gson;
 import com.project.cruzroja.hospital.adapters.ListAdapter;
 import com.project.cruzroja.hospital.items.DashboardItem;
+import com.project.cruzroja.hospital.models.Equipment;
 import com.project.cruzroja.hospital.models.Hospital;
 
 import java.util.ArrayList;
@@ -21,6 +24,7 @@ import android.view.Window;
 import android.widget.TextView;
 
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
+import org.eclipse.paho.client.mqttv3.MqttCallback;
 import org.eclipse.paho.client.mqttv3.MqttCallbackExtended;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
@@ -32,11 +36,10 @@ import org.eclipse.paho.client.mqttv3.MqttMessage;
 public class DashboardActivity extends AppCompatActivity implements View.OnClickListener {
     private static final String TAG = DashboardActivity.class.getSimpleName();
 
-    private ArrayList<DashboardItem> dashboardItems = new ArrayList<>();
-
-    private Database db;
     private MqttClient client;
     private Hospital hospital;
+
+    private ArrayList<DashboardItem> dashboardItems = new ArrayList<>();
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -89,7 +92,7 @@ public class DashboardActivity extends AppCompatActivity implements View.OnClick
                 } else {
                     Log.d(TAG, "Connected to broker");
                 }
-                client.subscribeToTopic("hospital/+/config");
+                client.subscribeToTopic("hospital/1/metadata");
             }
 
             @Override
@@ -99,7 +102,25 @@ public class DashboardActivity extends AppCompatActivity implements View.OnClick
 
             @Override
             public void messageArrived(String topic, MqttMessage message) throws Exception {
-                Log.d(TAG, "Message received: " + new String(message.getPayload()));
+                String text = new String(message.getPayload());
+                // Message from receiving metadata; subscribe to equipments
+                if (topic.contains("metadata")) {
+                    // Parse to hospital object
+                    hospital = new Gson().fromJson(text, Hospital.class);
+                    for (Equipment equipment : hospital.getEquipments()) {
+                        client.subscribeToTopic("hospital/1/equipment/" + equipment.getName());
+                    }
+                }
+                // Update equipment values
+                else {
+                    for (Equipment equipment : hospital.getEquipments()) {
+                        if(topic.contains(equipment.getName())) {
+                            equipment.setQuantity(Integer.parseInt(text));
+                            Log.d(TAG, equipment.getName() + " " + equipment.getQuantity());
+                        }
+                        break;
+                    }
+                }
             }
 
             @Override
@@ -107,27 +128,6 @@ public class DashboardActivity extends AppCompatActivity implements View.OnClick
                 Log.d(TAG, "Message sent successfully");
             }
         });
-
-        // OLD STUFF
-//        /* Initialize */
-//        db = new Database(this);
-//        hospital = new Hospital();
-//        ArrayList<DashboardObject> listObjects = new ArrayList<>();
-//
-//        /* Get data from database */
-//        db.requestHospital(1, new MqttConnectionCallback() {
-//            @Override
-//            public void onSuccess(Hospital result) {
-//                hospital = result;
-//                Log.d(TAG, hospital.getEquipments().get(0).getName());
-//            }
-//
-//            @Override
-//            public void onFailure(VolleyError error) {
-//                Log.e(TAG, error.toString());
-//            }
-//        });
-
 
     }  // end onCreate
 
@@ -144,4 +144,4 @@ public class DashboardActivity extends AppCompatActivity implements View.OnClick
         }
     }
 
-}  // end DashboardActivity Class
+}
