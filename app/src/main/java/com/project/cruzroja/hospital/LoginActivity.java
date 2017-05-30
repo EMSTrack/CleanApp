@@ -140,6 +140,7 @@ public class LoginActivity extends AppCompatActivity {
             @Override
             public void onClick(DialogInterface dialog, int i) {
                 client.disconnect();
+                dialog.dismiss();
                 dialog.cancel();
             }
         });

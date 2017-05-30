@@ -51,7 +51,6 @@ public class ListAdapter extends ArrayAdapter<DashboardItem> {
         final View row;
 
         try {
-
             // Differentiate between two object types
             if (dashboardItem.getType().equals("Value")) {
                 System.out.println("Adding Value to List");

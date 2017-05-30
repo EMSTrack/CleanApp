@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.app.ActionBar;
 import android.support.v4.app.ShareCompat;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
@@ -39,9 +40,12 @@ public class DashboardActivity extends AppCompatActivity {
 
     private MqttClient client;
     private Hospital hospital;
+    private boolean backPressed;
 
     private ArrayList<DashboardItem> dashboardItems = new ArrayList<>();
     private ListAdapter adapter;
+
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -176,5 +180,19 @@ public class DashboardActivity extends AppCompatActivity {
             }
         }
         return null;
+    }
+
+    @Override
+    public void onBackPressed()
+    {
+        if(!backPressed) {
+            AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
+            alertDialogBuilder.setMessage("Are you sure you want to log out?\nPress back again to exit.");
+            alertDialogBuilder.show();
+            backPressed = true;
+        } else {
+            client.disconnect();
+            super.onBackPressed();
+        }
     }
 }

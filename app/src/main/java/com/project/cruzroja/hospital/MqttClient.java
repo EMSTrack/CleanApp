@@ -3,6 +3,7 @@ package com.project.cruzroja.hospital;
 import android.content.Context;
 import android.content.Intent;
 import android.icu.text.LocaleDisplayNames;
+import android.text.Html;
 import android.util.Log;
 import android.widget.EditText;
 import android.widget.Toast;
@@ -144,6 +145,7 @@ public class MqttClient {
 
     public void disconnect() {
         try {
+            Log.d(TAG, "MqttClient disconnected");
             mqttClient.disconnect();
         } catch (MqttException e) {
             e.printStackTrace();
@@ -159,6 +161,11 @@ public class MqttClient {
         if(instance == null) {
             instance = new MqttClient(context);
         }
+        return instance;
+    }
+
+    public static synchronized MqttClient getOnlyInstance(Context context) {
+        instance = new MqttClient(context);
         return instance;
     }
 }
