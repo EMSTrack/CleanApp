@@ -61,9 +61,20 @@ public class LoginActivity extends AppCompatActivity {
         login_submit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+
+                // Get user info & remove whitspace
                 String username = usernameButton.getText().toString().replace(" ", "");
                 String password = passwordButton.getText().toString().replace(" ", "");
-                loginHospital(username, password);
+
+                if (username == null || username.isEmpty() ){
+                    alertEmptyLogin("username");
+                }else if (password == null || password.isEmpty()){
+                    alertEmptyLogin("password");
+                }
+                else {
+                    loginHospital(username, password);
+                }
+
             }
         });
 
@@ -76,6 +87,18 @@ public class LoginActivity extends AppCompatActivity {
                 return true;
             }
         });
+    }
+    public void alertEmptyLogin(String msg){
+        AlertDialog alertDialog = new AlertDialog.Builder(LoginActivity.this).create();
+        alertDialog.setTitle("Error");
+        alertDialog.setMessage("Please input a " + msg + ".  Field cannot be left blank.");
+        alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, "OK",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                    }
+                });
+        alertDialog.show();
     }
 
     public void loginHospital(final String username, final String password) {
