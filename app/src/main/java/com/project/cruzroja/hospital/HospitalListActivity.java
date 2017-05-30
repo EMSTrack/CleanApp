@@ -32,7 +32,7 @@ public class HospitalListActivity extends AppCompatActivity {
         getSupportActionBar().setDisplayShowCustomEnabled(true);
         getSupportActionBar().setCustomView(R.layout.maintitlebar);
         View view = getSupportActionBar().getCustomView();
-
+/**
         ImageButton imageButton= (ImageButton)view.findViewById(R.id.LogoutBtn);
 
         imageButton.setOnClickListener(new View.OnClickListener() {
@@ -42,7 +42,7 @@ public class HospitalListActivity extends AppCompatActivity {
                 ld.show(getFragmentManager(), "logout_dialog");
             }
         });
-
+**/
         // TODO Remove, to be replaced by pulled resources from the server
         ArrayList<String> listObjects = new ArrayList<>();
         for (int i = 0; i < 10; i++) {

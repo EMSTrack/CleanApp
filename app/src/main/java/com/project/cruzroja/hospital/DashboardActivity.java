@@ -58,7 +58,7 @@ public class DashboardActivity extends AppCompatActivity {
         getSupportActionBar().setCustomView(R.layout.maintitlebar);
 
         View view = getSupportActionBar().getCustomView();
-        ImageButton imageButton= (ImageButton)view.findViewById(R.id.LogoutBtn);
+        ImageView imageButton= (ImageView)view.findViewById(R.id.LogoutBtn);
         imageButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

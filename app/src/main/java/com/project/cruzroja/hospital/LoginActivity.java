@@ -15,6 +15,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.Toast;
+import android.widget.ImageView;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -42,7 +43,7 @@ public class LoginActivity extends AppCompatActivity {
         getSupportActionBar().setCustomView(R.layout.maintitlebar);
 
         View view = getSupportActionBar().getCustomView();
-        ImageButton imageButton= (ImageButton) view.findViewById(R.id.LogoutBtn);
+        ImageView imageButton= (ImageView) view.findViewById(R.id.LogoutBtn);
         imageButton.setVisibility(View.GONE);
 //        imageButton.setOnClickListener(new View.OnClickListener() {
 //            @Override

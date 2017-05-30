@@ -20,20 +20,17 @@
         android:textSize="18sp"
         android:textStyle="bold" />
 
-    <!-- back button -->
-    <ImageButton
+    <!-- Log Out button -->
+    <ImageView
         android:id="@+id/LogoutBtn"
-        android:layout_width="50dp"
-        android:layout_height="50dp"
+        android:layout_width="28dp"
+        android:layout_height="28dp"
         android:clickable="true"
         android:src="@drawable/log_out"
         android:layout_centerVertical="true"
-        android:layout_centerHorizontal="true"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
         android:layout_marginLeft="11dp"
-        android:layout_marginStart="11dp"
-        android:layout_alignParentTop="true"
-        />
+        android:layout_marginStart="11dp" />
 
 </RelativeLayout>
