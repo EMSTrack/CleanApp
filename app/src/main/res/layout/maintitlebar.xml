@@ -1,40 +1,39 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="57dp"
+    android:layout_height="match_parent"
     android:orientation="horizontal"
 
     android:visibility="visible"
-    android:background="@color/redDark">
+    android:background="@color/redDark"
+    android:layout_gravity="center" >
 
     <TextView
         android:id="@+id/title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="center_vertical"
+        android:layout_centerHorizontal="true"
+        android:layout_centerVertical="true"
         android:gravity="center"
-        android:padding="15dp"
         android:text="Hospital"
+        android:textAlignment="center"
         android:textColor="#FFFFFF"
         android:textSize="18sp"
-        android:textStyle="bold"
-        android:layout_alignParentTop="true"
-        android:layout_centerHorizontal="true" />
+        android:textStyle="bold" />
 
     <!-- back button -->
     <ImageButton
-        android:id="@+id/AddBtn"
+        android:id="@+id/LogoutBtn"
         android:layout_width="50dp"
         android:layout_height="50dp"
         android:clickable="true"
         android:src="@drawable/log_out"
         android:layout_centerVertical="true"
+        android:layout_centerHorizontal="true"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
         android:layout_marginLeft="11dp"
         android:layout_marginStart="11dp"
-        android:layout_gravity="center_vertical"
-        android:background="@android:color/transparent"
         android:layout_alignParentTop="true"
-        android:layout_centerHorizontal="true"
         />
+
 </RelativeLayout>

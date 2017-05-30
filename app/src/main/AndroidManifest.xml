@@ -12,6 +12,7 @@
         android:roundIcon="@mipmap/ic_launcher2"
         android:supportsRtl="true"
         android:theme="@style/CustomTheme">
+
         <activity android:name=".LoginActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -26,6 +27,7 @@
         </activity>
 
         <activity android:name=".DashboardActivity">
+
         </activity>
 
         <service android:name="org.eclipse.paho.android.service.MqttService"/>

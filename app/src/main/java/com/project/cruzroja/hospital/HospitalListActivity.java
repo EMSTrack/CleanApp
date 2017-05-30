@@ -33,12 +33,13 @@ public class HospitalListActivity extends AppCompatActivity {
         getSupportActionBar().setCustomView(R.layout.maintitlebar);
         View view = getSupportActionBar().getCustomView();
 
-        ImageButton imageButton= (ImageButton)view.findViewById(R.id.AddBtn);
+        ImageButton imageButton= (ImageButton)view.findViewById(R.id.LogoutBtn);
 
         imageButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                finish();
+                LogoutDialog ld = LogoutDialog.newInstance();
+                ld.show(getFragmentManager(), "logout_dialog");
             }
         });
 

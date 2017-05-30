@@ -35,5 +35,6 @@ public class Hospital {
     public ArrayList<Equipment> getEquipments() { return equipment; }
 
     public int getId() { return id; }
+
     public void setId(int id) { this.id = id; }
 }

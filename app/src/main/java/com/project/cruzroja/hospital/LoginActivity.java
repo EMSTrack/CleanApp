@@ -42,13 +42,14 @@ public class LoginActivity extends AppCompatActivity {
         getSupportActionBar().setCustomView(R.layout.maintitlebar);
 
         View view = getSupportActionBar().getCustomView();
-        ImageButton imageButton= (ImageButton)view.findViewById(R.id.AddBtn);
-        imageButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                finish();
-            }
-        });
+        ImageButton imageButton= (ImageButton) view.findViewById(R.id.LogoutBtn);
+        imageButton.setVisibility(View.GONE);
+//        imageButton.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                finish();
+//            }
+//        });
 
         // Find username and password from layout
         final EditText usernameButton = (EditText) findViewById(R.id.username);
@@ -105,7 +106,7 @@ public class LoginActivity extends AppCompatActivity {
                         new TypeToken<List<Hospital>>(){}.getType());
 
                 // Error parsing or no hospitals
-                if(hospitalList == null || hospitalList.size() == 0) {
+                if (hospitalList == null || hospitalList.size() == 0) {
                     Toast toast = new Toast(LoginActivity.this);
                     toast.setText("No hospitals associated with this account!");
                     toast.setDuration(Toast.LENGTH_LONG);

@@ -17,6 +17,7 @@ import android.widget.ListView;
 import com.daimajia.swipe.util.Attributes;
 import com.google.gson.Gson;
 import com.project.cruzroja.hospital.adapters.ListAdapter;
+import com.project.cruzroja.hospital.dialogs.LogoutDialog;
 import com.project.cruzroja.hospital.items.DashboardItem;
 import com.project.cruzroja.hospital.models.Equipment;
 import com.project.cruzroja.hospital.models.Hospital;
@@ -57,11 +58,13 @@ public class DashboardActivity extends AppCompatActivity {
         getSupportActionBar().setCustomView(R.layout.maintitlebar);
 
         View view = getSupportActionBar().getCustomView();
-        ImageButton imageButton= (ImageButton)view.findViewById(R.id.AddBtn);
+        ImageButton imageButton= (ImageButton)view.findViewById(R.id.LogoutBtn);
         imageButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                finish();
+                // Create the logout dialog for the user
+                LogoutDialog ld = LogoutDialog.newInstance();
+                ld.show(getFragmentManager(), "logout_dialog");
             }
         });
 
