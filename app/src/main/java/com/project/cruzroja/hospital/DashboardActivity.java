@@ -107,6 +107,7 @@ public class DashboardActivity extends AppCompatActivity {
                 else {
                     for (Equipment equipment : hospital.getEquipments()) {
                         if(topic.contains(equipment.getName())) {
+                            // Found item in the hospital equipments object
                             Log.d(TAG, equipment.getName() + " " + equipment.getQuantity());
                             equipment.setQuantity(Integer.parseInt(text));
                             refreshOrAddItem(equipment.getName());
@@ -126,6 +127,10 @@ public class DashboardActivity extends AppCompatActivity {
         client.subscribeToTopic("hospital/" + hospital.getId() + "/metadata");
     }
 
+    /**
+     * Add or refresh equipment to the list
+     * @param equipmentName Equipment with equipmentName to refresh
+     */
     private void refreshOrAddItem(String equipmentName) {
         boolean itemExists = false;
         // Update item
@@ -142,6 +147,9 @@ public class DashboardActivity extends AppCompatActivity {
         // Add item if it doesn't exist
         if(!itemExists) {
             Equipment equipment = getEquipment(equipmentName);
+            // Quit if equipment doesn't exist (likely to never happen)
+            if(equipment == null)
+                return;
             String type = "Value";
             if(equipment.isToggleable())
                 type = "Toggle";
@@ -150,9 +158,14 @@ public class DashboardActivity extends AppCompatActivity {
             dashboardItems.add(object);
         }
 
-        adapter.notifyDataSetChanged();
+        adapter.notifyDataSetChanged(); // Update UI
     }
 
+    /**
+     * Get equipment from hospital object given a name
+     * @param name Name of the equipment
+     * @return Equipment or null
+     */
     private Equipment getEquipment(String name) {
         for (Equipment item : hospital.getEquipments()) {
             if(item.getName().equals(name)) {
