@@ -45,7 +45,6 @@ public class DashboardActivity extends AppCompatActivity {
     private ArrayList<DashboardItem> dashboardItems = new ArrayList<>();
     private ListAdapter adapter;
 
-
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -114,7 +113,7 @@ public class DashboardActivity extends AppCompatActivity {
                             // Found item in the hospital equipments object
                             Log.d(TAG, equipment.getName() + " " + equipment.getQuantity());
                             equipment.setQuantity(Integer.parseInt(text));
-                            refreshOrAddItem(equipment.getName());
+                            refreshOrAddItem(equipment.getName(), equipment);
                         }
                         break;
                     }
@@ -134,28 +133,20 @@ public class DashboardActivity extends AppCompatActivity {
     /**
      * Add or refresh equipment to the list
      * @param equipmentName Equipment with equipmentName to refresh
+     * @param equipment The updated or new equipment to reflect in the ui
      */
-    private void refreshOrAddItem(String equipmentName) {
+    private void refreshOrAddItem(String equipmentName, Equipment equipment) {
         boolean itemExists = false;
         // Update item
         for (DashboardItem item : dashboardItems) {
             if(item.getTitle().equals(equipmentName)) {
-                Equipment equipment = getEquipment(equipmentName);
-                if(equipment != null) {
-                    item.setValue(equipment.getQuantity() + "");
-                    itemExists = true;
-                }
+                item.setValue(equipment.getQuantity() + "");
+                itemExists = true;
             }
         }
 
         // Add item if it doesn't exist
         if(!itemExists) {
-            Equipment equipment = getEquipment(equipmentName);
-
-            // Quit if equipment doesn't exist (likely to never happen)
-            if(equipment == null)
-                return;
-
             String type = "Value";
             if(equipment.isToggleable())
                 type = "Toggle";
@@ -168,23 +159,8 @@ public class DashboardActivity extends AppCompatActivity {
         adapter.notifyDataSetChanged(); // Update UI
     }
 
-    /**
-     * Get equipment from hospital object given a name
-     * @param name Name of the equipment
-     * @return Equipment or null
-     */
-    private Equipment getEquipment(String name) {
-        for (Equipment item : hospital.getEquipments()) {
-            if(item.getName().equals(name)) {
-                return item;
-            }
-        }
-        return null;
-    }
-
     @Override
-    public void onBackPressed()
-    {
+    public void onBackPressed() {
         if(!backPressed) {
             AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
             alertDialogBuilder.setMessage("Are you sure you want to log out?\nPress back again to exit.");
