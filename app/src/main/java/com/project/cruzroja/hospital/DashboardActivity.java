@@ -147,12 +147,15 @@ public class DashboardActivity extends AppCompatActivity {
         // Add item if it doesn't exist
         if(!itemExists) {
             Equipment equipment = getEquipment(equipmentName);
+
             // Quit if equipment doesn't exist (likely to never happen)
             if(equipment == null)
                 return;
+
             String type = "Value";
             if(equipment.isToggleable())
                 type = "Toggle";
+
             DashboardItem object = new DashboardItem(equipment.getName(), type,
                     equipment.getQuantity() + "");
             dashboardItems.add(object);

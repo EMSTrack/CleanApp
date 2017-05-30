@@ -115,7 +115,7 @@ public class ListAdapter extends ArrayAdapter<DashboardItem> {
                 });
 
                 // Check which image to set
-                if (dashboardItem.getValue().equals("Y")) {
+                if (dashboardItem.getValue().equals("1")) {
                     image.setImageResource(R.drawable.checkmark);
                 } else {
                     image.setImageResource(R.drawable.redx);
