@@ -33,6 +33,9 @@ public class LoginActivity extends AppCompatActivity {
     private static final String TAG = MqttClient.class.getSimpleName();
 
     private MqttClient client;
+    private String user_error = "Please input a valid username.  Field cannot be left blank";
+    private String pass_error = "Please input a valid password.  Field cannot be left blank";
+    private String no_hospital_error = "No hospitals associated with this account!";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,9 +72,9 @@ public class LoginActivity extends AppCompatActivity {
                 String password = passwordButton.getText().toString().replace(" ", "");
 
                 if (username == null || username.isEmpty() ){
-                    alertEmptyLogin(LoginActivity.this, "username");
+                    alertEmptyLogin(LoginActivity.this, user_error);
                 }else if (password == null || password.isEmpty()){
-                    alertEmptyLogin(LoginActivity.this, "password");
+                    alertEmptyLogin(LoginActivity.this, pass_error);
                 }
                 else {
                     showLoadingScreen();
@@ -94,7 +97,7 @@ public class LoginActivity extends AppCompatActivity {
     public void alertEmptyLogin(Activity activity, String msg){
         AlertDialog alertDialog = new AlertDialog.Builder(activity).create();
         alertDialog.setTitle("Error");
-        alertDialog.setMessage("Please input a " + msg + ".  Field cannot be left blank.");
+        alertDialog.setMessage(msg);
         alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, "OK",
                 new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int which) {
@@ -144,6 +147,7 @@ public class LoginActivity extends AppCompatActivity {
                 if (hospitalList == null || hospitalList.size() == 0) {
                     Toast toast = new Toast(LoginActivity.this);
                     toast.setText("No hospitals associated with this account!");
+                    alertEmptyLogin(LoginActivity.this, no_hospital_error);
                     toast.setDuration(Toast.LENGTH_LONG);
                     Log.d(TAG, "Error parsing array");
                     return;
