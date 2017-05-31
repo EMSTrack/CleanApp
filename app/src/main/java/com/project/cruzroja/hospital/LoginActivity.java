@@ -1,5 +1,6 @@
 package com.project.cruzroja.hospital;
 
+import android.app.Activity;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.support.v7.app.ActionBar;
@@ -67,9 +68,9 @@ public class LoginActivity extends AppCompatActivity {
                 String password = passwordButton.getText().toString().replace(" ", "");
 
                 if (username == null || username.isEmpty() ){
-                    alertEmptyLogin("username");
+                    alertEmptyLogin(LoginActivity.this, "username");
                 }else if (password == null || password.isEmpty()){
-                    alertEmptyLogin("password");
+                    alertEmptyLogin(LoginActivity.this, "password");
                 }
                 else {
                     loginHospital(username, password);
@@ -88,8 +89,8 @@ public class LoginActivity extends AppCompatActivity {
             }
         });
     }
-    public void alertEmptyLogin(String msg){
-        AlertDialog alertDialog = new AlertDialog.Builder(LoginActivity.this).create();
+    public void alertEmptyLogin(Activity activity, String msg){
+        AlertDialog alertDialog = new AlertDialog.Builder(activity).create();
         alertDialog.setTitle("Error");
         alertDialog.setMessage("Please input a " + msg + ".  Field cannot be left blank.");
         alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, "OK",
@@ -103,7 +104,7 @@ public class LoginActivity extends AppCompatActivity {
 
     public void loginHospital(final String username, final String password) {
         client = MqttClient.getInstance(getApplicationContext()); // Use application context to tie service to app
-
+        client.passActivity(LoginActivity.this); // Pass activity for dialog builder, otherwise app crashes
         client.connect(username, password, new MqttCallbackExtended() {
             @Override
             public void connectComplete(boolean reconnect, String serverURI) {

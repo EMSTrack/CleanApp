@@ -1,8 +1,11 @@
 package com.project.cruzroja.hospital;
 
+import android.app.Activity;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.icu.text.LocaleDisplayNames;
+import android.support.v7.app.AlertDialog;
 import android.text.Html;
 import android.util.Log;
 import android.widget.EditText;
@@ -27,6 +30,7 @@ public class MqttClient {
     private static final String TAG = MqttClient.class.getSimpleName();
     private static MqttClient instance;
     private static Context context;
+    private static Activity activity;
 
     private MqttAndroidClient mqttClient;
 
@@ -39,6 +43,9 @@ public class MqttClient {
 
         // Initialize the client
         mqttClient = new MqttAndroidClient(context, serverUri, clientId);
+    }
+    public void passActivity(Activity activity){
+        this.activity = activity;
     }
 
     /**
@@ -78,7 +85,17 @@ public class MqttClient {
                     Log.e(TAG, exception.getMessage());
 
                     // Set alert if login is wrong
-                    Toast.makeText(context, "Wrong login information!", Toast.LENGTH_LONG).show();
+                    //Toast.makeText(context, "Wrong login information!", Toast.LENGTH_LONG).show();
+                    AlertDialog alertDialog = new AlertDialog.Builder(activity).create();
+                    alertDialog.setTitle("Error");
+                    alertDialog.setMessage("Please input valid login credentials.");
+                    alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, "OK",
+                            new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int which) {
+                                    dialog.dismiss();
+                                }
+                            });
+                    alertDialog.show();
                 }
             });
 
