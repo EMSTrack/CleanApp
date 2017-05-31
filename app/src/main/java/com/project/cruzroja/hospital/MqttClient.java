@@ -93,6 +93,9 @@ public class MqttClient {
                             new DialogInterface.OnClickListener() {
                                 public void onClick(DialogInterface dialog, int which) {
                                     dialog.dismiss();
+                                    Intent login = new Intent(context, LoginActivity.class);
+                                    login.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                                    context.startActivity(login);
                                 }
                             });
                     alertDialog.show();

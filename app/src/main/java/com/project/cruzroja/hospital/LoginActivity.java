@@ -1,6 +1,7 @@
 package com.project.cruzroja.hospital;
 
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.support.v7.app.ActionBar;
@@ -73,6 +74,7 @@ public class LoginActivity extends AppCompatActivity {
                     alertEmptyLogin(LoginActivity.this, "password");
                 }
                 else {
+                    showLoadingScreen();
                     loginHospital(username, password);
                 }
 
@@ -100,6 +102,14 @@ public class LoginActivity extends AppCompatActivity {
                     }
                 });
         alertDialog.show();
+    }
+    public void showLoadingScreen(){
+        ProgressDialog dialog = new ProgressDialog(LoginActivity.this); // this = YourActivity
+        dialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+        dialog.setMessage("Please wait...");
+        dialog.setIndeterminate(true);
+        dialog.setCanceledOnTouchOutside(false);
+        dialog.show();
     }
 
     public void loginHospital(final String username, final String password) {
