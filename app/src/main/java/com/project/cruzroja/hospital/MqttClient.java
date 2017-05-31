@@ -86,25 +86,29 @@ public class MqttClient {
 
                     // Set alert if login is wrong
                     //Toast.makeText(context, "Wrong login information!", Toast.LENGTH_LONG).show();
-                    AlertDialog alertDialog = new AlertDialog.Builder(activity).create();
-                    alertDialog.setTitle("Error");
-                    alertDialog.setMessage("Please input valid login credentials.");
-                    alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, "OK",
-                            new DialogInterface.OnClickListener() {
-                                public void onClick(DialogInterface dialog, int which) {
-                                    dialog.dismiss();
-                                    Intent login = new Intent(context, LoginActivity.class);
-                                    login.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                                    context.startActivity(login);
-                                }
-                            });
-                    alertDialog.show();
+                    invalidLoginCredentials(activity);
+                    
                 }
             });
 
         } catch (MqttException ex) {
             ex.printStackTrace();
         }
+    }
+    public void invalidLoginCredentials(Activity activity){
+        AlertDialog alertDialog = new AlertDialog.Builder(activity).create();
+        alertDialog.setTitle("Error");
+        alertDialog.setMessage("Please input valid login credentials.");
+        alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, "OK",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                        Intent login = new Intent(context, LoginActivity.class);
+                        login.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                        context.startActivity(login);
+                    }
+                });
+        alertDialog.show();
     }
 
     /**
