@@ -18,7 +18,6 @@ import com.daimajia.swipe.util.Attributes;
 import com.google.gson.Gson;
 import com.project.cruzroja.hospital.adapters.ListAdapter;
 import com.project.cruzroja.hospital.dialogs.LogoutDialog;
-import com.project.cruzroja.hospital.items.DashboardItem;
 import com.project.cruzroja.hospital.models.Equipment;
 import com.project.cruzroja.hospital.models.Hospital;
 
@@ -45,7 +44,7 @@ public class DashboardActivity extends AppCompatActivity {
 
     public static Hospital selectedHospital;
 
-    private ArrayList<DashboardItem> dashboardItems = new ArrayList<>();
+//    private ArrayList<DashboardItem> dashboardItems = new ArrayList<>();
     private ListAdapter adapter;
 
     @Override
@@ -57,6 +56,7 @@ public class DashboardActivity extends AppCompatActivity {
         setContentView(R.layout.activity_dashboard);
 
         System.out.println("Selected Hospital: " + selectedHospital.getName());
+        System.out.println("Number of Equipment: " + selectedHospital.getEquipment().size());
 
         // Action bar
         getSupportActionBar().setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM);
@@ -160,22 +160,41 @@ public class DashboardActivity extends AppCompatActivity {
         boolean itemExists = false;
         System.out.println("Begin Refresh Or Add Item");
         // Update item
-        for (DashboardItem item : dashboardItems) {
-            if(item.getTitle().equals(equipmentName)) {
-                item.setValue(equipment.getQuantity() + "");
+//        for (DashboardItem item : dashboardItems) {
+//            if(item.getTitle().equals(equipmentName)) {
+//                item.setValue(equipment.getQuantity() + "");
+//                itemExists = true;
+//            }
+//        }
+//
+//        // Add item if it doesn't exist
+//        if(!itemExists) {
+//            String type = "Value";
+//            if(equipment.isToggleable())
+//                type = "Toggle";
+//
+//            DashboardItem object = new DashboardItem(equipment.getName(), type,
+//                    equipment.getQuantity() + "");
+//            dashboardItems.add(object);
+//        }
+
+        System.out.println("Number of Equipment: " + selectedHospital.getEquipment().size());
+        // Run through the current list of elements and update any previous ones
+        for (int i = 0; i < selectedHospital.getEquipment().size(); i++) {
+            Equipment currentEquipment = selectedHospital.getEquipment().get(i);
+            System.out.println("Current Equipment: " + currentEquipment.getName());
+            // If there is a match, replace the old equipment object with the new one
+            if (currentEquipment.getName().equals(equipmentName)) {
+                System.out.println("Found a matching Equipment: " + currentEquipment.getName());
+                selectedHospital.getEquipment().set(i, equipment);
                 itemExists = true;
             }
         }
 
-        // Add item if it doesn't exist
-        if(!itemExists) {
-            String type = "Value";
-            if(equipment.isToggleable())
-                type = "Toggle";
-
-            DashboardItem object = new DashboardItem(equipment.getName(), type,
-                    equipment.getQuantity() + "");
-            dashboardItems.add(object);
+        // If it doesnt exist then add the equipment to the list
+        if (!itemExists) {
+            System.out.println("Item Does not Exist: " + equipmentName);
+            selectedHospital.getEquipment().add(equipment);
         }
 
         adapter.notifyDataSetChanged(); // Update UI

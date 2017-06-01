@@ -14,7 +14,6 @@ import android.widget.TextView;
 //import com.project.cruzroja.hospital.CustomDialog;
 import com.project.cruzroja.hospital.dialogs.CustomDialog;
 import com.project.cruzroja.hospital.R;
-import com.project.cruzroja.hospital.items.DashboardItem;
 import com.project.cruzroja.hospital.models.Equipment;
 
 import java.util.ArrayList;
@@ -22,14 +21,14 @@ import java.util.ArrayList;
 /**
  * Created by Fabian Choi on 5/16/2017.
  */
-public class ListAdapter extends ArrayAdapter<DashboardItem> {
+public class ListAdapter extends ArrayAdapter<Equipment> {
     private final Context context;
     private ArrayList<Equipment> objects;
     private AlertDialog.Builder alertBuilder;
     private FragmentManager fragmentManager;
 
     public ListAdapter(Context context, ArrayList<Equipment> objects, FragmentManager fm) {
-        super(context, -1);
+        super(context, -1, objects);
         System.out.println("Inside ListAdapter Constructor");
         this.context = context;
         this.objects = objects;
@@ -44,7 +43,7 @@ public class ListAdapter extends ArrayAdapter<DashboardItem> {
         // Get the object, and the type
         // Inflate the correct view based on the type and update the parts of the layout -> set onClicks
 
-        System.out.println("Position: " + position);
+        System.out.println("GETVIEW - Position: " + position);
 //        final DashboardItem dashboardItem = objects.get(position);
         final Equipment equipmentItem = objects.get(position);
 
