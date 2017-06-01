@@ -1,6 +1,7 @@
 package com.project.cruzroja.hospital;
 
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.support.v7.app.ActionBar;
@@ -32,6 +33,10 @@ public class LoginActivity extends AppCompatActivity {
     private static final String TAG = MqttClient.class.getSimpleName();
 
     private MqttClient client;
+    private String user_error = "Please input a valid username.  Field cannot be left blank";
+    private String pass_error = "Please input a valid password.  Field cannot be left blank";
+    private String no_hospital_error = "No hospitals associated with this account!";
+    public static ProgressDialog loading_dialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,11 +73,12 @@ public class LoginActivity extends AppCompatActivity {
                 String password = passwordButton.getText().toString().replace(" ", "");
 
                 if (username == null || username.isEmpty() ){
-                    alertEmptyLogin(LoginActivity.this, "username");
+                    alertEmptyLogin(LoginActivity.this, user_error);
                 }else if (password == null || password.isEmpty()){
-                    alertEmptyLogin(LoginActivity.this, "password");
+                    alertEmptyLogin(LoginActivity.this, pass_error);
                 }
                 else {
+
                     loginHospital(username, password);
                 }
 
@@ -92,7 +98,7 @@ public class LoginActivity extends AppCompatActivity {
     public void alertEmptyLogin(Activity activity, String msg){
         AlertDialog alertDialog = new AlertDialog.Builder(activity).create();
         alertDialog.setTitle("Error");
-        alertDialog.setMessage("Please input a " + msg + ".  Field cannot be left blank.");
+        alertDialog.setMessage(msg);
         alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, "OK",
                 new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int which) {
@@ -101,8 +107,17 @@ public class LoginActivity extends AppCompatActivity {
                 });
         alertDialog.show();
     }
+    public void showLoadingScreen(){
+        loading_dialog = new ProgressDialog(LoginActivity.this); // this = YourActivity
+        loading_dialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+        loading_dialog.setMessage("Please wait...");
+        loading_dialog.setIndeterminate(true);
+        loading_dialog.setCanceledOnTouchOutside(false);
+        loading_dialog.show();
+    }
 
     public void loginHospital(final String username, final String password) {
+        showLoadingScreen();
         client = MqttClient.getInstance(getApplicationContext()); // Use application context to tie service to app
         client.passActivity(LoginActivity.this); // Pass activity for dialog builder, otherwise app crashes
         client.connect(username, password, new MqttCallbackExtended() {
@@ -113,6 +128,7 @@ public class LoginActivity extends AppCompatActivity {
                 else
                     Log.d(TAG, "Connected to broker");
                 client.subscribeToTopic("user/" + username + "/hospital");
+
             }
 
             @Override
@@ -120,8 +136,11 @@ public class LoginActivity extends AppCompatActivity {
                 Log.d(TAG, "Connection to broker lost");
             }
 
+
+
             @Override
             public void messageArrived(String topic, MqttMessage message) throws Exception {
+                loading_dialog.dismiss();
                 String json = new String(message.getPayload());
                 Log.d(TAG, "Message received: " + json);
 
@@ -134,6 +153,7 @@ public class LoginActivity extends AppCompatActivity {
                 if (hospitalList == null || hospitalList.size() == 0) {
                     Toast toast = new Toast(LoginActivity.this);
                     toast.setText("No hospitals associated with this account!");
+                    alertEmptyLogin(LoginActivity.this, no_hospital_error);
                     toast.setDuration(Toast.LENGTH_LONG);
                     Log.d(TAG, "Error parsing array");
                     return;
