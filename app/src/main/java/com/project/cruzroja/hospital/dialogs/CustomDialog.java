@@ -36,14 +36,14 @@ public class CustomDialog extends DialogFragment {
      * @param message
      * @return
      */
-    public static CustomDialog newInstance(String title, String message, String type, String data) {
+    public static CustomDialog newInstance(String title, String message, boolean isToggleable, String data) {
 
         CustomDialog cd = new CustomDialog();
 
         Bundle args = new Bundle();
         args.putString("Title", title);
         args.putString("Message", message);
-        args.putString("Type", type);
+        args.putBoolean("Toggle", isToggleable);
         args.putString("Data", data);
 
         cd.setArguments(args);
@@ -67,12 +67,12 @@ public class CustomDialog extends DialogFragment {
 
         String title = getArguments().getString("Title");
         String message = getArguments().getString("Message");
-        final String type = getArguments().getString("Type");
+        final boolean isToggleable = getArguments().getBoolean("Toggle");
         String data = getArguments().getString("Data");
 
         System.out.println("Title: " + title);
         System.out.println("Message: " + message);
-        System.out.println("Type: " + type);
+        System.out.println("Toggle: " + isToggleable);
         System.out.println("Data: " + data);
 
 
@@ -83,7 +83,7 @@ public class CustomDialog extends DialogFragment {
         final EditText valueText = new EditText(getActivity().getApplicationContext());
 
         // Check what type of box it is
-        if (type.equals("Value")) {
+        if (!isToggleable) {
             System.out.println("Value Type, adding box");
 
             // Set the data elements
@@ -173,7 +173,7 @@ public class CustomDialog extends DialogFragment {
             public void onClick(DialogInterface dialog, int which) {
                 System.out.println("Update Button Clicked");
                 // Update the value
-                if (type.equals("Value")) {
+                if (!isToggleable) {
                     // Grab the new value
                     updatedData = valueText.getText().toString();
                 } else {

@@ -32,7 +32,7 @@ public class Hospital {
      * Getter for the equipments of the hospital
      * @return the equipments of the hospital
      */
-    public ArrayList<Equipment> getEquipments() { return equipment; }
+    public ArrayList<Equipment> getEquipment() { return equipment; }
 
     public int getId() { return id; }
 

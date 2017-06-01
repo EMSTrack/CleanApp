@@ -14,6 +14,8 @@ import android.widget.ImageButton;
 import android.widget.Spinner;
 
 import com.project.cruzroja.hospital.dialogs.LogoutDialog;
+import com.project.cruzroja.hospital.models.Hospital;
+
 import java.util.ArrayList;
 
 
@@ -22,6 +24,8 @@ import java.util.ArrayList;
  */
 
 public class HospitalListActivity extends AppCompatActivity {
+
+    public static ArrayList<Hospital> hospitalList;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -43,16 +47,15 @@ public class HospitalListActivity extends AppCompatActivity {
             }
         });
 **/
-        // TODO Remove, to be replaced by pulled resources from the server
+
+        // Creates string arraylist of hospital names
         ArrayList<String> listObjects = new ArrayList<>();
-        for (int i = 0; i < 10; i++) {
-            String hospitalTitle = ("Hospital " + i);
-            listObjects.add(hospitalTitle);
+        for (int i = 0; i < hospitalList.size(); i++) {
+            listObjects.add(hospitalList.get(i).getName());
         }
-        // End TODO
 
         // Create the Spinner connection
-        Spinner hospitalSpinner = (Spinner) findViewById(R.id.hospitalSpinner);
+        final Spinner hospitalSpinner = (Spinner) findViewById(R.id.hospitalSpinner);
         hospitalSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
@@ -79,7 +82,16 @@ public class HospitalListActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 System.out.println("Hospital Submit Button Clicked");
+
                 Intent dashboard = new Intent(HospitalListActivity.this, DashboardActivity.class);
+                int position = hospitalSpinner.getSelectedItemPosition();
+                System.out.println("Position Selected: " + position);
+                Hospital selectedHospital = hospitalList.get(position);
+                System.out.println("Selected Hospital: " + selectedHospital.getName());
+
+                // Set the static list of Equipment in Dashboard
+                DashboardActivity.selectedHospital = selectedHospital;
+
                 startActivity(dashboard);
             }
         });

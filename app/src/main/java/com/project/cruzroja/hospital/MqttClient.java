@@ -129,7 +129,7 @@ public class MqttClient {
                     Log.d(TAG, "Failed to subscribe to " + topic);
                 }
             });
-        } catch (MqttException ex){
+        } catch (Exception ex){
             Log.e(TAG, "Error while subscribing to " + topic);
             ex.printStackTrace();
         }
