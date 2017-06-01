@@ -96,6 +96,7 @@ public class MqttClient {
         }
     }
     public void invalidLoginCredentials(Activity activity){
+        LoginActivity.loading_dialog.dismiss();
         AlertDialog alertDialog = new AlertDialog.Builder(activity).create();
         alertDialog.setTitle("Error");
         alertDialog.setMessage("Please input valid login credentials.");

@@ -36,6 +36,7 @@ public class LoginActivity extends AppCompatActivity {
     private String user_error = "Please input a valid username.  Field cannot be left blank";
     private String pass_error = "Please input a valid password.  Field cannot be left blank";
     private String no_hospital_error = "No hospitals associated with this account!";
+    public static ProgressDialog loading_dialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -77,7 +78,7 @@ public class LoginActivity extends AppCompatActivity {
                     alertEmptyLogin(LoginActivity.this, pass_error);
                 }
                 else {
-                    showLoadingScreen();
+
                     loginHospital(username, password);
                 }
 
@@ -107,15 +108,16 @@ public class LoginActivity extends AppCompatActivity {
         alertDialog.show();
     }
     public void showLoadingScreen(){
-        ProgressDialog dialog = new ProgressDialog(LoginActivity.this); // this = YourActivity
-        dialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-        dialog.setMessage("Please wait...");
-        dialog.setIndeterminate(true);
-        dialog.setCanceledOnTouchOutside(false);
-        dialog.show();
+        loading_dialog = new ProgressDialog(LoginActivity.this); // this = YourActivity
+        loading_dialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+        loading_dialog.setMessage("Please wait...");
+        loading_dialog.setIndeterminate(true);
+        loading_dialog.setCanceledOnTouchOutside(false);
+        loading_dialog.show();
     }
 
     public void loginHospital(final String username, final String password) {
+        showLoadingScreen();
         client = MqttClient.getInstance(getApplicationContext()); // Use application context to tie service to app
         client.passActivity(LoginActivity.this); // Pass activity for dialog builder, otherwise app crashes
         client.connect(username, password, new MqttCallbackExtended() {
@@ -126,6 +128,7 @@ public class LoginActivity extends AppCompatActivity {
                 else
                     Log.d(TAG, "Connected to broker");
                 client.subscribeToTopic("user/" + username + "/hospital");
+
             }
 
             @Override
@@ -133,8 +136,11 @@ public class LoginActivity extends AppCompatActivity {
                 Log.d(TAG, "Connection to broker lost");
             }
 
+
+
             @Override
             public void messageArrived(String topic, MqttMessage message) throws Exception {
+                loading_dialog.dismiss();
                 String json = new String(message.getPayload());
                 Log.d(TAG, "Message received: " + json);
 
