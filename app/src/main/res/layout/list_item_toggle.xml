@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="?android:attr/listPreferredItemHeight"
-    android:padding="6dp">
+    android:layout_height="?android:attr/listPreferredItemHeight">
 
         <TextView
             android:id="@+id/toggleTextView"
@@ -11,26 +10,26 @@
             android:layout_gravity="center_vertical"
             android:layout_alignParentLeft="true"
             android:layout_alignParentStart="true"
-            android:layout_centerInParent="true"
             android:text="Toggle Placement"
-            android:paddingStart="10dp"
-            android:paddingLeft="10dp"
+            android:paddingLeft="20dp"
+            android:paddingStart="20dp"
             android:textSize="30sp"
-            android:textColor="@color/colorPrimary" />
+            android:textColor="@color/colorPrimary"
+            android:layout_centerVertical="true"
+            android:layout_toLeftOf="@+id/toggleImage"
+            android:layout_toStartOf="@+id/toggleImage" />
 
         <!--ImageSwitcher for animations?-->
         <ImageView
             android:id="@+id/toggleImage"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="center"
+            android:contentDescription="@string/imageDescr"
+            android:src="@android:drawable/star_on"
+            android:padding="15dp"
             android:layout_centerVertical="true"
             android:layout_alignParentRight="true"
-            android:layout_alignParentEnd="true"
-            android:paddingEnd="10dp"
-            android:paddingRight="10dp"
-            android:contentDescription="@string/imageDescr"
-            android:src="@android:drawable/star_on"/>
+            android:layout_alignParentEnd="true" />
 
         <!--Add contentDescription?? -->
 

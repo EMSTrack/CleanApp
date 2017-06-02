@@ -9,13 +9,22 @@
         android:id="@+id/hospitalSpinner"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="20dp"/>
+        android:layout_marginTop="10dp"
+        android:layout_marginStart="40dp"
+        android:layout_marginLeft="40dp"
+        android:layout_marginEnd="40dp"
+        android:layout_marginRight="40dp"
+        android:textAlignment="center"/>
 
     <Button
         android:id="@+id/submitHospitalButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Submit"
-        android:padding="20dp"/>
+        android:layout_marginTop="10dp"
+        android:layout_marginStart="40dp"
+        android:layout_marginLeft="40dp"
+        android:layout_marginEnd="40dp"
+        android:layout_marginRight="40dp"
+        android:text="Manage hospital"/>
 
 </LinearLayout>
