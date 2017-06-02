@@ -34,17 +34,12 @@ import org.eclipse.paho.client.mqttv3.MqttMessage;
  * Created by devinhickey on 4/20/17.
  * The Dashboard
  */
-
 public class DashboardActivity extends AppCompatActivity {
     private static final String TAG = DashboardActivity.class.getSimpleName();
 
     private MqttClient client;
-//    private Hospital hospital;
-    private boolean backPressed;
+    public static Hospital selectedHospital; // We know...
 
-    public static Hospital selectedHospital;
-
-//    private ArrayList<DashboardItem> dashboardItems = new ArrayList<>();
     private ListAdapter adapter;
 
     @Override
@@ -54,9 +49,6 @@ public class DashboardActivity extends AppCompatActivity {
         System.out.println("DashboardActivity OnCreate");
         this.requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.activity_dashboard);
-
-        System.out.println("Selected Hospital: " + selectedHospital.getName());
-        System.out.println("Number of Equipment: " + selectedHospital.getEquipment().size());
 
         // Action bar
         getSupportActionBar().setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM);
@@ -74,36 +66,21 @@ public class DashboardActivity extends AppCompatActivity {
             }
         });
 
-        // Get data from Login and place it into the hospital
-//        hospital = new Hospital();
-//        Intent intent = getIntent();
-//        hospital.setId(intent.getIntExtra("hospital_id", 0));
-//        hospital.setName(intent.getStringExtra("hospital_name"));
-
-        // Convert Hospital Equipment into DashboardItems
-//        for (Equipment equipment : selectedHospital.getEquipment()) {
-//            dashboardItems.add(parseEquipment(equipment));
-//        }
-
         // Set adapter
         ListView lv = (ListView) findViewById(R.id.dashboardListView);
-        adapter = new ListAdapter(this.getApplicationContext(), selectedHospital.getEquipment(),
+        adapter = new ListAdapter(this, selectedHospital.getEquipment(),
                 getSupportFragmentManager());
         lv.setAdapter(adapter);
 
-        System.out.println("After ListView Adapter is Set");
-
         // Mqtt
         client = MqttClient.getInstance(this);
-        System.out.println("Before Set Call back");
         client.setCallback(new MqttCallbackExtended() {
             @Override
             public void connectComplete(boolean reconnect, String serverURI) {
-                if(reconnect) {
+                if(reconnect)
                     Log.d(TAG, "Reconnected to broker");
-                } else {
+                else
                     Log.d(TAG, "Connected to broker");
-                }
             }
 
             @Override
@@ -114,6 +91,7 @@ public class DashboardActivity extends AppCompatActivity {
             @Override
             public void messageArrived(String topic, MqttMessage message) throws Exception {
                 String text = new String(message.getPayload());
+                Log.d(TAG, "Received data " + text + " at topic " + topic);
                 // Message from receiving metadata; subscribe to equipments
                 if (topic.contains("metadata")) {
                     Log.d(TAG, text);
@@ -128,11 +106,11 @@ public class DashboardActivity extends AppCompatActivity {
                     for (Equipment equipment : selectedHospital.getEquipment()) {
                         if(topic.contains(equipment.getName())) {
                             // Found item in the hospital equipments object
-                            Log.d(TAG, equipment.getName() + " " + equipment.getQuantity());
                             equipment.setQuantity(Integer.parseInt(text));
+                            Log.d(TAG, equipment.getName() + " " + equipment.getQuantity());
                             refreshOrAddItem(equipment.getName(), equipment);
+                            break; // Break since we found the equipment
                         }
-                        break;
                     }
                 }
             }
@@ -143,11 +121,8 @@ public class DashboardActivity extends AppCompatActivity {
             }
         });
 
-        System.out.println("After Set Call Back");
-
         // Start retrieving data
         client.subscribeToTopic("hospital/" + selectedHospital.getId() + "/metadata");
-        System.out.println("End OnCreate");
     }
 
 
@@ -158,59 +133,28 @@ public class DashboardActivity extends AppCompatActivity {
      */
     private void refreshOrAddItem(String equipmentName, Equipment equipment) {
         boolean itemExists = false;
-        System.out.println("Begin Refresh Or Add Item");
         // Update item
-//        for (DashboardItem item : dashboardItems) {
-//            if(item.getTitle().equals(equipmentName)) {
-//                item.setValue(equipment.getQuantity() + "");
-//                itemExists = true;
-//            }
-//        }
-//
-//        // Add item if it doesn't exist
-//        if(!itemExists) {
-//            String type = "Value";
-//            if(equipment.isToggleable())
-//                type = "Toggle";
-//
-//            DashboardItem object = new DashboardItem(equipment.getName(), type,
-//                    equipment.getQuantity() + "");
-//            dashboardItems.add(object);
-//        }
-
-        System.out.println("Number of Equipment: " + selectedHospital.getEquipment().size());
         // Run through the current list of elements and update any previous ones
-        for (int i = 0; i < selectedHospital.getEquipment().size(); i++) {
+        for(int i = 0; i < selectedHospital.getEquipment().size(); i++) {
             Equipment currentEquipment = selectedHospital.getEquipment().get(i);
-            System.out.println("Current Equipment: " + currentEquipment.getName());
             // If there is a match, replace the old equipment object with the new one
-            if (currentEquipment.getName().equals(equipmentName)) {
-                System.out.println("Found a matching Equipment: " + currentEquipment.getName());
+            if(currentEquipment.getName().equals(equipmentName)) {
                 selectedHospital.getEquipment().set(i, equipment);
                 itemExists = true;
             }
         }
 
-        // If it doesnt exist then add the equipment to the list
-        if (!itemExists) {
-            System.out.println("Item Does not Exist: " + equipmentName);
+        // If it doesn't exist then add the equipment to the list
+        if(!itemExists) {
             selectedHospital.getEquipment().add(equipment);
         }
-
+        adapter.clear();
+        adapter.addAll(selectedHospital.getEquipment());
         adapter.notifyDataSetChanged(); // Update UI
-        System.out.println("After Refresh Or Add Item");
     }
 
     @Override
     public void onBackPressed() {
-//        if(!backPressed) {
-//            AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
-//            alertDialogBuilder.setMessage("Are you sure you want to log out?\nPress back again to exit.");
-//            alertDialogBuilder.show();
-//            backPressed = true;
-//        } else {
-//            client.disconnect();
             super.onBackPressed();
-//        }
     }
 }

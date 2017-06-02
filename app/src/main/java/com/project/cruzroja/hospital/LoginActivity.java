@@ -136,8 +136,6 @@ public class LoginActivity extends AppCompatActivity {
                 Log.d(TAG, "Connection to broker lost");
             }
 
-
-
             @Override
             public void messageArrived(String topic, MqttMessage message) throws Exception {
                 loading_dialog.dismiss();
@@ -175,46 +173,4 @@ public class LoginActivity extends AppCompatActivity {
             }
         });
     }
-
-//    private void createHospitalChooser(final ArrayList<Hospital> hospitals) {
-//
-//
-//        final ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(this,
-//                android.R.layout.select_dialog_singlechoice);
-//
-//        AlertDialog.Builder dialog = new AlertDialog.Builder(this);
-//        dialog.setTitle("Select Hospital");
-//
-//        // Load up names
-//        for(int i = 0; i < hospitals.size(); i++) {
-//            arrayAdapter.add(hospitals.get(i).getName());
-//        }
-//
-//        dialog.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-//            @Override
-//            public void onClick(DialogInterface dialog, int i) {
-//                client.disconnect();
-//                dialog.dismiss();
-//                dialog.cancel();
-//            }
-//        });
-//
-//        dialog.setAdapter(arrayAdapter, new DialogInterface.OnClickListener() {
-//            @Override
-//            public void onClick(DialogInterface dialog, int i) {
-//                Hospital hospital = hospitals.get(i);
-//                Log.d(TAG, hospital.getId() + " ");
-//                String strName = hospital.getName(); //arrayAdapter.getItem(i);
-//
-//                Intent dashboard = new Intent(getApplicationContext(), DashboardActivity.class);
-//                dashboard.putExtra("hospital_id", hospital.getId());
-//                dashboard.putExtra("hospital_name", hospital.getName());
-//                dashboard.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-//                startActivity(dashboard);
-//            }
-//        });
-//
-//        dialog.show();
-//    }
-
 }
