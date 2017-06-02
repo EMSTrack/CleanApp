@@ -2,19 +2,15 @@ package com.project.cruzroja.hospital;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.v4.app.FragmentManager;
 import android.support.v7.app.ActionBar;
-import android.support.v4.app.ShareCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
-import android.widget.AdapterView;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ListView;
 
-import com.daimajia.swipe.util.Attributes;
 import com.google.gson.Gson;
 import com.project.cruzroja.hospital.adapters.ListAdapter;
 import com.project.cruzroja.hospital.dialogs.LogoutDialog;
@@ -23,10 +19,8 @@ import com.project.cruzroja.hospital.models.Hospital;
 
 import java.util.ArrayList;
 import android.view.Window;
-import android.widget.TextView;
 
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
-import org.eclipse.paho.client.mqttv3.MqttCallback;
 import org.eclipse.paho.client.mqttv3.MqttCallbackExtended;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
@@ -42,11 +36,11 @@ public class DashboardActivity extends AppCompatActivity {
 
     private ListAdapter adapter;
 
+    private int hospitalId;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        System.out.println("DashboardActivity OnCreate");
         this.requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.activity_dashboard);
 
@@ -66,10 +60,22 @@ public class DashboardActivity extends AppCompatActivity {
             }
         });
 
+        // Get data from Login and place it into the hospital
+        Intent intent = getIntent();
+        hospitalId = selectedHospital.getId();
+
         // Set adapter
         ListView lv = (ListView) findViewById(R.id.dashboardListView);
         adapter = new ListAdapter(this, selectedHospital.getEquipment(),
                 getSupportFragmentManager());
+        adapter.setOnDataChangedListener(new DataListener() {
+            @Override
+            public void onDataChanged(String name, String data) {
+                Log.d(TAG, "onDataChanged: " + name + "@" + data);
+                client.publishMessage("hospital/" + hospitalId + "/equipment/" + name,
+                        data);
+            }
+        });
         lv.setAdapter(adapter);
 
         // Mqtt
@@ -94,11 +100,11 @@ public class DashboardActivity extends AppCompatActivity {
                 Log.d(TAG, "Received data " + text + " at topic " + topic);
                 // Message from receiving metadata; subscribe to equipments
                 if (topic.contains("metadata")) {
-                    Log.d(TAG, text);
+                    Log.d(TAG, "Message arrived: " + text);
                     // Parse to hospital object
                     selectedHospital = new Gson().fromJson(text, Hospital.class);
                     for (Equipment equipment : selectedHospital.getEquipment()) {
-                        client.subscribeToTopic("hospital/1/equipment/" + equipment.getName());
+                        client.subscribeToTopic("hospital/" + hospitalId + "/equipment/" + equipment.getName());
                     }
                 }
                 // Update equipment values
@@ -106,6 +112,7 @@ public class DashboardActivity extends AppCompatActivity {
                     for (Equipment equipment : selectedHospital.getEquipment()) {
                         if(topic.contains(equipment.getName())) {
                             // Found item in the hospital equipments object
+                            Log.d(TAG, "Message arrived: " +  equipment.getName() + "@" + equipment.getQuantity());
                             equipment.setQuantity(Integer.parseInt(text));
                             Log.d(TAG, equipment.getName() + " " + equipment.getQuantity());
                             refreshOrAddItem(equipment.getName(), equipment);
@@ -122,9 +129,8 @@ public class DashboardActivity extends AppCompatActivity {
         });
 
         // Start retrieving data
-        client.subscribeToTopic("hospital/" + selectedHospital.getId() + "/metadata");
+        client.subscribeToTopic("hospital/" + hospitalId + "/metadata");
     }
-
 
     /**
      * Add or refresh equipment to the list

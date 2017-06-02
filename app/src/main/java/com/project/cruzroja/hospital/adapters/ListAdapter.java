@@ -12,6 +12,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 //import com.project.cruzroja.hospital.CustomDialog;
+import com.project.cruzroja.hospital.DataListener;
 import com.project.cruzroja.hospital.dialogs.CustomDialog;
 import com.project.cruzroja.hospital.R;
 import com.project.cruzroja.hospital.models.Equipment;
@@ -26,6 +27,7 @@ public class ListAdapter extends ArrayAdapter<Equipment> {
     private ArrayList<Equipment> objects;
     private AlertDialog.Builder alertBuilder;
     private FragmentManager fragmentManager;
+    private DataListener dr;
 
     public ListAdapter(Context context, ArrayList<Equipment> objects, FragmentManager fm) {
         super(context, -1, objects);
@@ -34,7 +36,6 @@ public class ListAdapter extends ArrayAdapter<Equipment> {
         this.objects = objects;
         this.alertBuilder = new AlertDialog.Builder(this.context);
         this.fragmentManager = fm;
-
     }
 
     @Override
@@ -79,12 +80,12 @@ public class ListAdapter extends ArrayAdapter<Equipment> {
                         String data = ((TextView) row.findViewById(R.id.valueData)).getText().toString();
 
                         CustomDialog cd = CustomDialog.newInstance(title, message, isToggleable, data);
+                        cd.setOnDataChangedListener(dr);
                         cd.show(fragmentManager, "value_dialog");
                         System.out.println("After Show----------------");
 
                         // Update to the new text value
 //                        ((TextView) v.findViewById(R.id.valueData)).setText(cd.getUpdatedData());
-
                     }
                 });
 
@@ -109,8 +110,8 @@ public class ListAdapter extends ArrayAdapter<Equipment> {
                         String data = Integer.toString(equipmentItem.getQuantity());
 
                         CustomDialog cd = CustomDialog.newInstance(title, message, isToggleable, data);
+                        cd.setOnDataChangedListener(dr);
                         cd.show(fragmentManager, "toggle_dialog");
-
                     }
                 });
 
@@ -133,4 +134,8 @@ public class ListAdapter extends ArrayAdapter<Equipment> {
 
         return row;
     }  // end getView
+
+    public void setOnDataChangedListener(DataListener dr) {
+        this.dr = dr;
+    }
 }

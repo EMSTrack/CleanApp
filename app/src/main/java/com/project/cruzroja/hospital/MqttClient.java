@@ -30,7 +30,6 @@ public class MqttClient {
     private static final String TAG = MqttClient.class.getSimpleName();
     private static MqttClient instance;
     private static Context context;
-    private static Activity activity;
 
     private MqttAndroidClient mqttClient;
 
@@ -44,9 +43,6 @@ public class MqttClient {
         // Initialize the client
         mqttClient = new MqttAndroidClient(context, serverUri, clientId);
     }
-    public void passActivity(Activity activity){
-        this.activity = activity;
-    }
 
     /**
      * Connect the client to the broker with a username and password.
@@ -55,7 +51,8 @@ public class MqttClient {
      * @param password Password
      * @param callback Actions to complete on connection
      */
-    public void connect(String username, String password, final MqttCallbackExtended callback) {
+    public void connect(String username, String password, final MqttConnectCallback connectCallback,
+                        final MqttCallbackExtended callback) {
         // Set callback options
         mqttClient.setCallback(callback);
 
@@ -86,30 +83,13 @@ public class MqttClient {
 
                     // Set alert if login is wrong
                     //Toast.makeText(context, "Wrong login information!", Toast.LENGTH_LONG).show();
-                    invalidLoginCredentials(activity);
-                    
+                    connectCallback.onFailure();
                 }
             });
 
         } catch (MqttException ex) {
             ex.printStackTrace();
         }
-    }
-    public void invalidLoginCredentials(Activity activity){
-        LoginActivity.loading_dialog.dismiss();
-        AlertDialog alertDialog = new AlertDialog.Builder(activity).create();
-        alertDialog.setTitle("Error");
-        alertDialog.setMessage("Please input valid login credentials.");
-        alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, "OK",
-                new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int which) {
-                        dialog.dismiss();
-                        Intent login = new Intent(context, LoginActivity.class);
-                        login.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                        context.startActivity(login);
-                    }
-                });
-        alertDialog.show();
     }
 
     /**

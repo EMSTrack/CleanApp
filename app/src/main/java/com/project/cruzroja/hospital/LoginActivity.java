@@ -33,10 +33,12 @@ public class LoginActivity extends AppCompatActivity {
     private static final String TAG = MqttClient.class.getSimpleName();
 
     private MqttClient client;
-    private String user_error = "Please input a valid username.  Field cannot be left blank";
-    private String pass_error = "Please input a valid password.  Field cannot be left blank";
+    private String user_error = "Please input a valid username.\nField cannot be left blank";
+    private String pass_error = "Please input a valid password.\nField cannot be left blank";
+    private String invalid_creds = "Please input valid login credentials.";
     private String no_hospital_error = "No hospitals associated with this account!";
-    public static ProgressDialog loading_dialog;
+
+    private ProgressDialog progressDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,23 +64,23 @@ public class LoginActivity extends AppCompatActivity {
         final EditText usernameButton = (EditText) findViewById(R.id.username);
         final EditText passwordButton = (EditText) findViewById(R.id.password);
 
+        progressDialog = new ProgressDialog(LoginActivity.this); // this = YourActivity
+
         // Submit button's click listener
         Button login_submit = (Button) findViewById(R.id.submit_login);
         login_submit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
                 // Get user info & remove whitspace
                 String username = usernameButton.getText().toString().replace(" ", "");
                 String password = passwordButton.getText().toString().replace(" ", "");
 
-                if (username == null || username.isEmpty() ){
+                if (username == null || username.isEmpty()) {
                     alertEmptyLogin(LoginActivity.this, user_error);
-                }else if (password == null || password.isEmpty()){
+                } else if (password == null || password.isEmpty()) {
                     alertEmptyLogin(LoginActivity.this, pass_error);
-                }
-                else {
-
+                } else {
+                    showLoadingScreen();
                     loginHospital(username, password);
                 }
 
@@ -95,7 +97,7 @@ public class LoginActivity extends AppCompatActivity {
             }
         });
     }
-    public void alertEmptyLogin(Activity activity, String msg){
+    public void alertEmptyLogin(Activity activity, String msg) {
         AlertDialog alertDialog = new AlertDialog.Builder(activity).create();
         alertDialog.setTitle("Error");
         alertDialog.setMessage(msg);
@@ -107,20 +109,27 @@ public class LoginActivity extends AppCompatActivity {
                 });
         alertDialog.show();
     }
+
     public void showLoadingScreen(){
-        loading_dialog = new ProgressDialog(LoginActivity.this); // this = YourActivity
-        loading_dialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-        loading_dialog.setMessage("Please wait...");
-        loading_dialog.setIndeterminate(true);
-        loading_dialog.setCanceledOnTouchOutside(false);
-        loading_dialog.show();
+        progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+        progressDialog.setMessage("Please wait...");
+        progressDialog.setIndeterminate(true);
+        progressDialog.setCanceledOnTouchOutside(false);
+        progressDialog.show();
     }
 
     public void loginHospital(final String username, final String password) {
-        showLoadingScreen();
         client = MqttClient.getInstance(getApplicationContext()); // Use application context to tie service to app
-        client.passActivity(LoginActivity.this); // Pass activity for dialog builder, otherwise app crashes
-        client.connect(username, password, new MqttCallbackExtended() {
+
+        MqttConnectCallback connectCallback = new MqttConnectCallback() {
+            @Override
+            public void onFailure() {
+                progressDialog.dismiss();
+                alertEmptyLogin(LoginActivity.this, invalid_creds);
+            }
+        };
+
+        client.connect(username, password, connectCallback, new MqttCallbackExtended() {
             @Override
             public void connectComplete(boolean reconnect, String serverURI) {
                 if(reconnect)
@@ -128,7 +137,6 @@ public class LoginActivity extends AppCompatActivity {
                 else
                     Log.d(TAG, "Connected to broker");
                 client.subscribeToTopic("user/" + username + "/hospital");
-
             }
 
             @Override
@@ -138,7 +146,6 @@ public class LoginActivity extends AppCompatActivity {
 
             @Override
             public void messageArrived(String topic, MqttMessage message) throws Exception {
-                loading_dialog.dismiss();
                 String json = new String(message.getPayload());
                 Log.d(TAG, "Message received: " + json);
 
@@ -149,10 +156,7 @@ public class LoginActivity extends AppCompatActivity {
 
                 // Error parsing or no hospitals
                 if (hospitalList == null || hospitalList.size() == 0) {
-                    Toast toast = new Toast(LoginActivity.this);
-                    toast.setText("No hospitals associated with this account!");
-                    alertEmptyLogin(LoginActivity.this, no_hospital_error);
-                    toast.setDuration(Toast.LENGTH_LONG);
+                    progressDialog.dismiss();
                     Log.d(TAG, "Error parsing array");
                     return;
                 }
@@ -164,7 +168,7 @@ public class LoginActivity extends AppCompatActivity {
                 startActivity(hospitalIntent);
 
                 // Create hospital chooser
-//                createHospitalChooser(hospitalList);
+                progressDialog.dismiss();
             }
 
             @Override

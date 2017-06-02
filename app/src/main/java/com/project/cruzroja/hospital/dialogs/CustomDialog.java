@@ -1,6 +1,7 @@
 package com.project.cruzroja.hospital.dialogs;
 
 import android.app.Dialog;
+import android.provider.ContactsContract;
 import android.support.annotation.NonNull;
 import android.support.v4.app.DialogFragment;
 import android.content.DialogInterface;
@@ -13,6 +14,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 
+import com.project.cruzroja.hospital.DataListener;
 import com.project.cruzroja.hospital.R;
 
 /**
@@ -21,14 +23,17 @@ import com.project.cruzroja.hospital.R;
 
 public class CustomDialog extends DialogFragment {
 
+    private String title;
+    private String message;
+    private boolean isToggleable;
     private String updatedData = "";
     private String oldData = "";
+    private DataListener dr;
 
     /**
      * Empty Constructor
      */
     public CustomDialog() {}
-
 
     /**
      *
@@ -37,7 +42,6 @@ public class CustomDialog extends DialogFragment {
      * @return
      */
     public static CustomDialog newInstance(String title, String message, boolean isToggleable, String data) {
-
         CustomDialog cd = new CustomDialog();
 
         Bundle args = new Bundle();
@@ -65,15 +69,15 @@ public class CustomDialog extends DialogFragment {
     @NonNull
     public Dialog onCreateDialog(Bundle savedInstanceState) {
 
-        String title = getArguments().getString("Title");
-        String message = getArguments().getString("Message");
-        final boolean isToggleable = getArguments().getBoolean("Toggle");
-        String data = getArguments().getString("Data");
+        title = getArguments().getString("Title");
+        message = getArguments().getString("Message");
+        isToggleable = getArguments().getBoolean("isToggleable");
+        oldData = getArguments().getString("Data");
 
         System.out.println("Title: " + title);
         System.out.println("Message: " + message);
         System.out.println("Toggle: " + isToggleable);
-        System.out.println("Data: " + data);
+        System.out.println("Data: " + oldData);
 
 
         final AlertDialog.Builder alertBuilder = new AlertDialog.Builder(getActivity());
@@ -90,16 +94,13 @@ public class CustomDialog extends DialogFragment {
             alertBuilder.setTitle(title);
             alertBuilder.setMessage(message);
 
-            // Save the old Data
-            oldData = data;
-
             // Initialize the Value Text
             valueText.setGravity(Gravity.CENTER_HORIZONTAL);
             valueText.setRawInputType(InputType.TYPE_CLASS_NUMBER);
             valueText.setTextColor(getResources().getColor(R.color.colorPrimaryDark));
 
             // Set the current data and move the cursor to the end
-            valueText.setText(data);
+            valueText.setText(oldData);
             valueText.setSelection(valueText.getText().length());
 
             // Create the EditText LayoutParams
@@ -116,8 +117,8 @@ public class CustomDialog extends DialogFragment {
 
             // Set the data elements
             // Check if the resource is available and set the title to account for it
-            System.out.println("Data = " + data);
-            if (data.equals("1")) {
+            System.out.println("Data = " + oldData);
+            if (oldData.equals("1")) {
                 alertBuilder.setTitle((title + " - Currently Available"));
             } else {
                 alertBuilder.setTitle((title + " - Not Currently Available"));
@@ -179,14 +180,16 @@ public class CustomDialog extends DialogFragment {
                 } else {
                     // Update the value if the button has been clicked
                     if (yesButton.isSelected()) {
-                        updatedData = "Y";
+                        updatedData = "1";
                     } else if (noButton.isSelected()) {
-                        updatedData = "N";
+                        updatedData = "0";
                     } else {
                         updatedData = "";
                     }
                 }  // end onCLick value if/else
 
+                // Update the data
+                onDataChanged(title, updatedData);
                 dialog.dismiss();
             }
         });
@@ -203,4 +206,11 @@ public class CustomDialog extends DialogFragment {
 
     }
 
+    public void setOnDataChangedListener(DataListener dr) {
+        this.dr = dr;
+    }
+
+    public void onDataChanged(String name, String data) {
+        dr.onDataChanged(name, data);
+    }
 }
