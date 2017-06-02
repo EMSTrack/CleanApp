@@ -97,6 +97,7 @@ public class LoginActivity extends AppCompatActivity {
             }
         });
     }
+
     public void alertEmptyLogin(Activity activity, String msg) {
         AlertDialog alertDialog = new AlertDialog.Builder(activity).create();
         alertDialog.setTitle("Error");

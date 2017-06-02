@@ -11,7 +11,9 @@ import android.widget.Button;
 import android.widget.ImageButton;
 
 
+import android.widget.ImageView;
 import android.widget.Spinner;
+import android.widget.Toast;
 
 import com.project.cruzroja.hospital.dialogs.LogoutDialog;
 import com.project.cruzroja.hospital.models.Hospital;
@@ -36,9 +38,8 @@ public class HospitalListActivity extends AppCompatActivity {
         getSupportActionBar().setDisplayShowCustomEnabled(true);
         getSupportActionBar().setCustomView(R.layout.maintitlebar);
         View view = getSupportActionBar().getCustomView();
-/**
-        ImageButton imageButton= (ImageButton)view.findViewById(R.id.LogoutBtn);
 
+        ImageView imageButton= (ImageView) view.findViewById(R.id.LogoutBtn);
         imageButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -46,7 +47,15 @@ public class HospitalListActivity extends AppCompatActivity {
                 ld.show(getFragmentManager(), "logout_dialog");
             }
         });
-**/
+
+        // No hospitals associated with this account
+        if(hospitalList.size() < 1) {
+            Toast toast = new Toast(this);
+            toast.setText("This account has no hospitals associated with it!");
+            toast.setDuration(Toast.LENGTH_LONG);
+            toast.show();
+            return;
+        }
 
         // Creates string arraylist of hospital names
         ArrayList<String> listObjects = new ArrayList<>();
@@ -100,7 +109,6 @@ public class HospitalListActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
-        System.out.println("BackButton Pressed");
         LogoutDialog ld = LogoutDialog.newInstance();
         ld.show(getFragmentManager(), "logout_dialog");
     }

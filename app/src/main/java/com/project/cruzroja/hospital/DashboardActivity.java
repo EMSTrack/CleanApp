@@ -72,8 +72,7 @@ public class DashboardActivity extends AppCompatActivity {
             @Override
             public void onDataChanged(String name, String data) {
                 Log.d(TAG, "onDataChanged: " + name + "@" + data);
-                client.publishMessage("hospital/" + hospitalId + "/equipment/" + name,
-                        data);
+                client.publishMessage("hospital/" + hospitalId + "/equipment/" + name, data);
             }
         });
         lv.setAdapter(adapter);
@@ -112,10 +111,9 @@ public class DashboardActivity extends AppCompatActivity {
                     for (Equipment equipment : selectedHospital.getEquipment()) {
                         if(topic.contains(equipment.getName())) {
                             // Found item in the hospital equipments object
-                            Log.d(TAG, "Message arrived: " +  equipment.getName() + "@" + equipment.getQuantity());
                             equipment.setQuantity(Integer.parseInt(text));
-                            Log.d(TAG, equipment.getName() + " " + equipment.getQuantity());
-                            refreshOrAddItem(equipment.getName(), equipment);
+                            Log.d(TAG, "Message arrived: " +  equipment.getName() + "@" + equipment.getQuantity());
+                            refreshOrAddItem(equipment);
                             break; // Break since we found the equipment
                         }
                     }
@@ -134,26 +132,9 @@ public class DashboardActivity extends AppCompatActivity {
 
     /**
      * Add or refresh equipment to the list
-     * @param equipmentName Equipment with equipmentName to refresh
      * @param equipment The updated or new equipment to reflect in the ui
      */
-    private void refreshOrAddItem(String equipmentName, Equipment equipment) {
-        boolean itemExists = false;
-        // Update item
-        // Run through the current list of elements and update any previous ones
-        for(int i = 0; i < selectedHospital.getEquipment().size(); i++) {
-            Equipment currentEquipment = selectedHospital.getEquipment().get(i);
-            // If there is a match, replace the old equipment object with the new one
-            if(currentEquipment.getName().equals(equipmentName)) {
-                selectedHospital.getEquipment().set(i, equipment);
-                itemExists = true;
-            }
-        }
-
-        // If it doesn't exist then add the equipment to the list
-        if(!itemExists) {
-            selectedHospital.getEquipment().add(equipment);
-        }
+    private void refreshOrAddItem(Equipment equipment) {
         adapter.clear();
         adapter.addAll(selectedHospital.getEquipment());
         adapter.notifyDataSetChanged(); // Update UI
@@ -161,6 +142,6 @@ public class DashboardActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
-            super.onBackPressed();
+        super.onBackPressed();
     }
 }

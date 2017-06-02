@@ -8,6 +8,7 @@ import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
 import android.text.InputType;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.Button;
@@ -68,10 +69,9 @@ public class CustomDialog extends DialogFragment {
     @Override
     @NonNull
     public Dialog onCreateDialog(Bundle savedInstanceState) {
-
         title = getArguments().getString("Title");
         message = getArguments().getString("Message");
-        isToggleable = getArguments().getBoolean("isToggleable");
+        isToggleable = getArguments().getBoolean("Toggle");
         oldData = getArguments().getString("Data");
 
         System.out.println("Title: " + title);

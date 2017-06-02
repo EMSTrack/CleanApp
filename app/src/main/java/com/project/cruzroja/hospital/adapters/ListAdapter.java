@@ -4,6 +4,7 @@ import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AlertDialog;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -116,7 +117,7 @@ public class ListAdapter extends ArrayAdapter<Equipment> {
                 });
 
                 // Check which image to set
-                if (!equipmentItem.isToggleable()) {
+                if (equipmentItem.getQuantity() == 1) {
                     image.setImageResource(R.drawable.checkmark);
                 } else {
                     image.setImageResource(R.drawable.redx);

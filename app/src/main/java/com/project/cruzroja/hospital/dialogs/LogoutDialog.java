@@ -7,6 +7,8 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AlertDialog;
 
+import com.project.cruzroja.hospital.MqttClient;
+
 /**
  * Created by devinhickey on 5/24/17.
  */
@@ -38,6 +40,8 @@ public class LogoutDialog extends DialogFragment {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 System.out.println("OK Button Clicked");
+                MqttClient client = MqttClient.getInstance(getActivity().getApplicationContext());
+                client.disconnect();
                 getActivity().finish();
             }
         });
