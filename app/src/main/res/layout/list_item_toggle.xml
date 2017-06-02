@@ -8,28 +8,28 @@
             android:layout_width="300dp"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
-            android:layout_alignParentLeft="true"
-            android:layout_alignParentStart="true"
             android:text="Toggle Placement"
             android:paddingLeft="20dp"
             android:paddingStart="20dp"
             android:textSize="30sp"
             android:textColor="@color/colorPrimary"
             android:layout_centerVertical="true"
-            android:layout_toLeftOf="@+id/toggleImage"
-            android:layout_toStartOf="@+id/toggleImage" />
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true" />
 
         <!--ImageSwitcher for animations?-->
         <ImageView
             android:id="@+id/toggleImage"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:contentDescription="@string/imageDescr"
-            android:src="@android:drawable/star_on"
-            android:padding="15dp"
-            android:layout_centerVertical="true"
+            android:layout_alignParentEnd="true"
             android:layout_alignParentRight="true"
-            android:layout_alignParentEnd="true" />
+            android:layout_centerVertical="true"
+            android:contentDescription="@string/imageDescr"
+            android:padding="15dp"
+            android:paddingEnd="-30dp"
+            android:paddingRight="-30dp"
+            android:src="@android:drawable/star_on" />
 
         <!--Add contentDescription?? -->
 
