@@ -53,12 +53,6 @@ public class LoginActivity extends AppCompatActivity {
         View view = getSupportActionBar().getCustomView();
         ImageView imageButton= (ImageView) view.findViewById(R.id.LogoutBtn);
         imageButton.setVisibility(View.GONE);
-//        imageButton.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                finish();
-//            }
-//        });
 
         // Find username and password from layout
         final EditText usernameButton = (EditText) findViewById(R.id.username);
@@ -168,13 +162,29 @@ public class LoginActivity extends AppCompatActivity {
                 Intent hospitalIntent = new Intent(getApplicationContext(), HospitalListActivity.class);
                 startActivity(hospitalIntent);
 
-                // Create hospital chooser
+                // Clear the loading screen
                 progressDialog.dismiss();
+
+                // Clear the password field
+                EditText passwordField = (EditText) findViewById(R.id.password);
+                passwordField.setText("");
+
+                clearFieldFocus();
+
             }
 
             @Override
             public void deliveryComplete(IMqttDeliveryToken token) {
                 Log.d(TAG, "Message sent successfully");
+            }
+
+            public void clearFieldFocus() {
+                System.out.println("Inside ClearFieldFocus");
+                EditText usernameField = (EditText) findViewById(R.id.username);
+                EditText passwordField = (EditText) findViewById(R.id.password);
+
+                usernameField.clearFocus();
+                passwordField.clearFocus();
             }
         });
     }
