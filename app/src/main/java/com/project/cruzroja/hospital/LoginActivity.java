@@ -55,8 +55,8 @@ public class LoginActivity extends AppCompatActivity {
         imageButton.setVisibility(View.GONE);
 
         // Find username and password from layout
-        final EditText usernameButton = (EditText) findViewById(R.id.username);
-        final EditText passwordButton = (EditText) findViewById(R.id.password);
+        final EditText usernameField = (EditText) findViewById(R.id.username);
+        final EditText passwordField = (EditText) findViewById(R.id.password);
 
         progressDialog = new ProgressDialog(LoginActivity.this); // this = YourActivity
 
@@ -66,8 +66,8 @@ public class LoginActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 // Get user info & remove whitspace
-                String username = usernameButton.getText().toString().replace(" ", "");
-                String password = passwordButton.getText().toString().replace(" ", "");
+                String username = usernameField.getText().toString().replace(" ", "");
+                String password = passwordField.getText().toString().replace(" ", "");
 
                 if (username == null || username.isEmpty()) {
                     alertEmptyLogin(LoginActivity.this, user_error);
