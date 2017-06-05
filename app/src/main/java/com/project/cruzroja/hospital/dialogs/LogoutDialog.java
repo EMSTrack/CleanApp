@@ -3,10 +3,12 @@ package com.project.cruzroja.hospital.dialogs;
 import android.app.Dialog;
 import android.app.DialogFragment;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AlertDialog;
 
+import com.project.cruzroja.hospital.LoginActivity;
 import com.project.cruzroja.hospital.MqttClient;
 
 /**
@@ -42,7 +44,11 @@ public class LogoutDialog extends DialogFragment {
                 System.out.println("OK Button Clicked");
                 MqttClient client = MqttClient.getInstance(getActivity().getApplicationContext());
                 client.disconnect();
-                getActivity().finish();
+
+                Intent rootIntent = new Intent(getActivity(), LoginActivity.class);
+                rootIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                startActivity(rootIntent);
+
             }
         });
 
