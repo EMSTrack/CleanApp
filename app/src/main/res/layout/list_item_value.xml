@@ -27,8 +27,8 @@
         android:layout_centerVertical="true"
         android:layout_alignParentRight="true"
         android:layout_alignParentEnd="true"
-        android:paddingEnd="10dp"
-        android:paddingRight="10dp"
+        android:paddingEnd="28dp"
+        android:paddingRight="28dp"
         android:contentDescription="@string/textDescr"
         android:textColor="@color/colorPrimaryDark"
         android:textSize="30sp" />
