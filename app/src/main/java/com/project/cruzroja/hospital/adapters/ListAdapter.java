@@ -107,9 +107,9 @@ public class ListAdapter extends ArrayAdapter<Equipment> {
                         boolean isToggleable = equipmentItem.isToggleable();
                         String data = Integer.toString(equipmentItem.getQuantity());
 
-                        ToggleDialog cd = ToggleDialog.newInstance(title, message, isToggleable, data);
-                        cd.setOnDataChangedListener(dr);
-                        cd.show(fragmentManager, "toggle_dialog");
+                        ToggleDialog td = ToggleDialog.newInstance(title, message, isToggleable, data);
+                        td.setOnDataChangedListener(dr);
+                        td.show(fragmentManager, "toggle_dialog");
                     }
                 });
 

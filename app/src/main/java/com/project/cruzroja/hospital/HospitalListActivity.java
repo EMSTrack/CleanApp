@@ -39,7 +39,7 @@ public class HospitalListActivity extends AppCompatActivity {
         getSupportActionBar().setCustomView(R.layout.maintitlebar);
         View view = getSupportActionBar().getCustomView();
 
-        ImageView imageButton= (ImageView) view.findViewById(R.id.LogoutBtn);
+        ImageView imageButton = (ImageView) view.findViewById(R.id.LogoutBtn);
         imageButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

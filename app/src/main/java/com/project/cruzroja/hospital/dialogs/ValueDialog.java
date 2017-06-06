@@ -26,7 +26,6 @@ public class ValueDialog extends DialogFragment {
 
     private String title;
     private String message;
-    private boolean isToggleable;
     private String updatedData = "";
     private String oldData = "";
     private DataListener dr;
@@ -71,9 +70,6 @@ public class ValueDialog extends DialogFragment {
 
 
         final AlertDialog.Builder alertBuilder = new AlertDialog.Builder(getActivity());
-        final LinearLayout ll = new LinearLayout(getActivity().getApplicationContext());
-        final Button yesButton = new Button(getActivity().getApplicationContext());
-        final Button noButton = new Button(getActivity().getApplicationContext());
         final EditText valueText = new EditText(getActivity().getApplicationContext());
 
         System.out.println("Value Type, adding box");
@@ -104,19 +100,8 @@ public class ValueDialog extends DialogFragment {
             public void onClick(DialogInterface dialog, int which) {
                 System.out.println("Update Button Clicked");
                 // Update the value
-                if (!isToggleable) {
-                    // Grab the new value
-                    updatedData = valueText.getText().toString();
-                } else {
-                    // Update the value if the button has been clicked
-                    if (yesButton.isSelected()) {
-                        updatedData = "1";
-                    } else if (noButton.isSelected()) {
-                        updatedData = "0";
-                    } else {
-                        updatedData = "";
-                    }
-                }  // end onCLick value if/else
+                // Grab the new value
+                updatedData = valueText.getText().toString();
 
                 // Update the data
                 onDataChanged(title, updatedData);
