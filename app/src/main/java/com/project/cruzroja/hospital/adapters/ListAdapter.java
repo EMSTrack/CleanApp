@@ -118,7 +118,7 @@ public class ListAdapter extends ArrayAdapter<Equipment> {
 
                 // Check which image to set
                 if (equipmentItem.getQuantity() == 1) {
-                    image.setImageResource(R.drawable.checkmark);
+                    image.setImageResource(R.drawable.green_check);
                 } else {
                     image.setImageResource(R.drawable.redx);
                 }
