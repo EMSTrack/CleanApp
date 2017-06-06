@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -30,6 +31,8 @@ import org.eclipse.paho.client.mqttv3.MqttMessage;
 import java.util.*;
 
 public class LoginActivity extends AppCompatActivity {
+    SharedPreferences creds_prefs = null;
+
     private static final String TAG = MqttClient.class.getSimpleName();
 
     private MqttClient client;
@@ -43,6 +46,10 @@ public class LoginActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // Get credentials
+        creds_prefs = getSharedPreferences("com.project.cruzroja.hospital", MODE_PRIVATE);
+
         setContentView(R.layout.activity_login);
 
         // Action bar
@@ -90,6 +97,17 @@ public class LoginActivity extends AppCompatActivity {
                 return true;
             }
         });
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        if (creds_prefs.getBoolean("remember_me", true)) {
+            // Do first run stuff here then set 'remember_me' as false
+            // using the following line to edit/commit prefs
+            //creds_prefs.edit().putBoolean("remember_me", false).commit();
+        }
     }
 
     public void alertEmptyLogin(Activity activity, String msg) {
