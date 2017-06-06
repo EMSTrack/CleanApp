@@ -68,7 +68,7 @@ public class ListAdapter extends ArrayAdapter<Equipment> {
                 System.out.println("Setting Elements in Row");
                 // Set the elements of the ListItem
                 text.setText(equipmentItem.getName());
-                value.setText(equipmentItem.getQuantity());
+                value.setText(equipmentItem.getQuantity() + "");
 
                 System.out.println("Setting row onClick Listener");
                 row.setOnClickListener(new View.OnClickListener() {

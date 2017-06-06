@@ -13,12 +13,14 @@
     </style>
 
     <style name="CustomTheme" parent="Theme.AppCompat.Light">
-
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorAccent">@color/colorAccent</item>
         <item name="contentInsetStart">0dp</item>
         <item name="contentInsetEnd">0dp</item>
     </style>
 
-    <color name="redDark">#E30A23</color>
+    <color name="redDark">#d32f2f</color>
 
     <style name="spinnerItemStyle">
         <item name="android:gravity">center</item>
