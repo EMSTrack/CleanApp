@@ -14,8 +14,9 @@ import android.widget.TextView;
 
 //import com.project.cruzroja.hospital.CustomDialog;
 import com.project.cruzroja.hospital.DataListener;
-import com.project.cruzroja.hospital.dialogs.CustomDialog;
 import com.project.cruzroja.hospital.R;
+import com.project.cruzroja.hospital.dialogs.ToggleDialog;
+import com.project.cruzroja.hospital.dialogs.ValueDialog;
 import com.project.cruzroja.hospital.models.Equipment;
 
 import java.util.ArrayList;
@@ -80,9 +81,9 @@ public class ListAdapter extends ArrayAdapter<Equipment> {
                         boolean isToggleable = equipmentItem.isToggleable();
                         String data = ((TextView) row.findViewById(R.id.valueData)).getText().toString();
 
-                        CustomDialog cd = CustomDialog.newInstance(title, message, isToggleable, data);
-                        cd.setOnDataChangedListener(dr);
-                        cd.show(fragmentManager, "value_dialog");
+                        ValueDialog vd = ValueDialog.newInstance(title, message, isToggleable, data);
+                        vd.setOnDataChangedListener(dr);
+                        vd.show(fragmentManager, "value_dialog");
                         System.out.println("After Show----------------");
 
                         // Update to the new text value
@@ -110,7 +111,7 @@ public class ListAdapter extends ArrayAdapter<Equipment> {
                         boolean isToggleable = equipmentItem.isToggleable();
                         String data = Integer.toString(equipmentItem.getQuantity());
 
-                        CustomDialog cd = CustomDialog.newInstance(title, message, isToggleable, data);
+                        ToggleDialog cd = ToggleDialog.newInstance(title, message, isToggleable, data);
                         cd.setOnDataChangedListener(dr);
                         cd.show(fragmentManager, "toggle_dialog");
                     }
