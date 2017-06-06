@@ -44,13 +44,12 @@ public class ValueDialog extends DialogFragment {
      * @param message
      * @return
      */
-    public static ValueDialog newInstance(String title, String message, boolean isToggleable, String data) {
+    public static ValueDialog newInstance(String title, String message, String data) {
         ValueDialog vd = new ValueDialog();
 
         Bundle args = new Bundle();
         args.putString("Title", title);
         args.putString("Message", message);
-        args.putBoolean("Toggle", isToggleable);
         args.putString("Data", data);
 
         vd.setArguments(args);
@@ -64,12 +63,10 @@ public class ValueDialog extends DialogFragment {
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         title = getArguments().getString("Title");
         message = getArguments().getString("Message");
-        isToggleable = getArguments().getBoolean("Toggle");
         oldData = getArguments().getString("Data");
 
         System.out.println("Title: " + title);
         System.out.println("Message: " + message);
-        System.out.println("Toggle: " + isToggleable);
         System.out.println("Data: " + oldData);
 
 

@@ -47,7 +47,6 @@ public class ListAdapter extends ArrayAdapter<Equipment> {
         // Inflate the correct view based on the type and update the parts of the layout -> set onClicks
 
         System.out.println("GETVIEW - Position: " + position);
-//        final DashboardItem dashboardItem = objects.get(position);
         final Equipment equipmentItem = objects.get(position);
 
         LayoutInflater inflater = LayoutInflater.from(context);
@@ -78,16 +77,13 @@ public class ListAdapter extends ArrayAdapter<Equipment> {
 
                         String title = ((TextView) row.findViewById(R.id.valueTextView)).getText().toString();
                         String message = "How many units are available?";
-                        boolean isToggleable = equipmentItem.isToggleable();
                         String data = ((TextView) row.findViewById(R.id.valueData)).getText().toString();
 
-                        ValueDialog vd = ValueDialog.newInstance(title, message, isToggleable, data);
+                        ValueDialog vd = ValueDialog.newInstance(title, message, data);
                         vd.setOnDataChangedListener(dr);
                         vd.show(fragmentManager, "value_dialog");
                         System.out.println("After Show----------------");
 
-                        // Update to the new text value
-//                        ((TextView) v.findViewById(R.id.valueData)).setText(cd.getUpdatedData());
                     }
                 });
 
