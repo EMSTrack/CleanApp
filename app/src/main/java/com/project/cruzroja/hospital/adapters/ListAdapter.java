@@ -14,8 +14,9 @@ import android.widget.TextView;
 
 //import com.project.cruzroja.hospital.CustomDialog;
 import com.project.cruzroja.hospital.DataListener;
-import com.project.cruzroja.hospital.dialogs.CustomDialog;
 import com.project.cruzroja.hospital.R;
+import com.project.cruzroja.hospital.dialogs.ToggleDialog;
+import com.project.cruzroja.hospital.dialogs.ValueDialog;
 import com.project.cruzroja.hospital.models.Equipment;
 
 import java.util.ArrayList;
@@ -46,7 +47,6 @@ public class ListAdapter extends ArrayAdapter<Equipment> {
         // Inflate the correct view based on the type and update the parts of the layout -> set onClicks
 
         System.out.println("GETVIEW - Position: " + position);
-//        final DashboardItem dashboardItem = objects.get(position);
         final Equipment equipmentItem = objects.get(position);
 
         LayoutInflater inflater = LayoutInflater.from(context);
@@ -67,7 +67,7 @@ public class ListAdapter extends ArrayAdapter<Equipment> {
                 System.out.println("Setting Elements in Row");
                 // Set the elements of the ListItem
                 text.setText(equipmentItem.getName());
-                value.setText(equipmentItem.getQuantity());
+                value.setText(equipmentItem.getQuantity() + "");
 
                 System.out.println("Setting row onClick Listener");
                 row.setOnClickListener(new View.OnClickListener() {
@@ -77,16 +77,13 @@ public class ListAdapter extends ArrayAdapter<Equipment> {
 
                         String title = ((TextView) row.findViewById(R.id.valueTextView)).getText().toString();
                         String message = "How many units are available?";
-                        boolean isToggleable = equipmentItem.isToggleable();
                         String data = ((TextView) row.findViewById(R.id.valueData)).getText().toString();
 
-                        CustomDialog cd = CustomDialog.newInstance(title, message, isToggleable, data);
-                        cd.setOnDataChangedListener(dr);
-                        cd.show(fragmentManager, "value_dialog");
+                        ValueDialog vd = ValueDialog.newInstance(title, message, data);
+                        vd.setOnDataChangedListener(dr);
+                        vd.show(fragmentManager, "value_dialog");
                         System.out.println("After Show----------------");
 
-                        // Update to the new text value
-//                        ((TextView) v.findViewById(R.id.valueData)).setText(cd.getUpdatedData());
                     }
                 });
 
@@ -110,9 +107,9 @@ public class ListAdapter extends ArrayAdapter<Equipment> {
                         boolean isToggleable = equipmentItem.isToggleable();
                         String data = Integer.toString(equipmentItem.getQuantity());
 
-                        CustomDialog cd = CustomDialog.newInstance(title, message, isToggleable, data);
-                        cd.setOnDataChangedListener(dr);
-                        cd.show(fragmentManager, "toggle_dialog");
+                        ToggleDialog td = ToggleDialog.newInstance(title, message, isToggleable, data);
+                        td.setOnDataChangedListener(dr);
+                        td.show(fragmentManager, "toggle_dialog");
                     }
                 });
 

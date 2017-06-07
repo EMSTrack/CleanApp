@@ -61,7 +61,6 @@ public class DashboardActivity extends AppCompatActivity {
         });
 
         // Get data from Login and place it into the hospital
-        Intent intent = getIntent();
         hospitalId = selectedHospital.getId();
 
         // Set adapter
@@ -135,9 +134,11 @@ public class DashboardActivity extends AppCompatActivity {
      * @param equipment The updated or new equipment to reflect in the ui
      */
     private void refreshOrAddItem(Equipment equipment) {
+        System.out.println("Inside Refresh Or Add Item");
         adapter.clear();
         adapter.addAll(selectedHospital.getEquipment());
         adapter.notifyDataSetChanged(); // Update UI
+        System.out.println("After Refresh Or Add Item");
     }
 
     @Override
