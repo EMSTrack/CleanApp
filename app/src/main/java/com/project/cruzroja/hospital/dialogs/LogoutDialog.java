@@ -4,12 +4,15 @@ import android.app.Dialog;
 import android.app.DialogFragment;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AlertDialog;
 
 import com.project.cruzroja.hospital.LoginActivity;
 import com.project.cruzroja.hospital.MqttClient;
+
+import static android.content.Context.MODE_PRIVATE;
 
 /**
  * Created by devinhickey on 5/24/17.
@@ -44,6 +47,11 @@ public class LogoutDialog extends DialogFragment {
                 System.out.println("OK Button Clicked");
                 MqttClient client = MqttClient.getInstance(getActivity().getApplicationContext());
                 client.disconnect();
+
+                SharedPreferences creds_prefs = getActivity().getSharedPreferences("com.project.cruzroja.hospital", MODE_PRIVATE);
+                SharedPreferences.Editor editor = creds_prefs.edit();
+                editor.clear();
+                editor.commit();
 
                 Intent rootIntent = new Intent(getActivity(), LoginActivity.class);
                 rootIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
