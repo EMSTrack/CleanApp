@@ -74,17 +74,19 @@ public class LoginActivity extends AppCompatActivity {
         // Find username and password from layout
         final EditText usernameField = (EditText) findViewById(R.id.username);
         final EditText passwordField = (EditText) findViewById(R.id.password);
+        final CheckBox savedUsernameCheck = (CheckBox) findViewById(R.id.checkBox);
 
         // Get credentials
         creds_prefs = getSharedPreferences("com.project.cruzroja.hospital", MODE_PRIVATE);
         editor = creds_prefs.edit();
 
         // Check if credentials are cached
-        if(rememberUserEnabled()){
+        if (rememberUserEnabled()){
             //showLoadingScreen();
             Log.d(TAG_CHECK, "Remember user enabled, using credentials" + rememberUserEnabled());
             username = getStoredUser();
             usernameField.setText(username);
+            savedUsernameCheck.setChecked(true);
             //password = getStoredPassword();
             //Log.d(TAG_CHECK, "User: " + username + " Password: " + password);
             //loginHospital(username, password);
