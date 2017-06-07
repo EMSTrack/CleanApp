@@ -42,8 +42,8 @@ public class LoginActivity extends AppCompatActivity {
     private String username;
     private String password;
     private String user_error = "Por favor introduzca un nombre de usuario valido.  Campo no puede ser dejado en blanco";
-    private String pass_error = "Por favor introduzca una contraseña valida.  Campo no puede ser dejado en blanco";
-    private String invalid_creds = "Por favor introduzca credenciales validas.";
+    private String pass_error = "Por favor introduzca una contraseña válida.  Campo no puede ser dejado en blanco";
+    private String invalid_creds = "Por favor introduzca credenciales válidas.";
     private String no_hospital_error = "Ningun hospital esta asociado con esta cuenta!";
 
     private ProgressDialog progressDialog;

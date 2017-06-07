@@ -37,8 +37,8 @@ public class LogoutDialog extends DialogFragment {
 
         AlertDialog.Builder alertBuilder = new AlertDialog.Builder(getActivity());
 
-        alertBuilder.setTitle("Advertencia!");
-        alertBuilder.setMessage("Seguro que desea cerrar sesión?");
+        alertBuilder.setTitle("¡Advertencia!");
+        alertBuilder.setMessage("¿Seguro que desea cerrar sesión?");
 
         // Create the OK button that logs user out
         alertBuilder.setNeutralButton("OK", new DialogInterface.OnClickListener() {
