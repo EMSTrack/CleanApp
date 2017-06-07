@@ -103,7 +103,7 @@ public class ListAdapter extends ArrayAdapter<Equipment> {
                         System.out.println("Toggle ListItem onClick");
 
                         String title = ((TextView) row.findViewById(R.id.toggleTextView)).getText().toString();
-                        String message = "Este recurso está disponible?";
+                        String message = "¿Este recurso está disponible?";
                         String data = Integer.toString(equipmentItem.getQuantity());
                         // Set the isToggled to the correct value
                         boolean isToggled = (data.equals("1"));
