@@ -15,6 +15,7 @@ import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.Toast;
@@ -31,24 +32,45 @@ import org.eclipse.paho.client.mqttv3.MqttMessage;
 import java.util.*;
 
 public class LoginActivity extends AppCompatActivity {
-    SharedPreferences creds_prefs = null;
+    private SharedPreferences creds_prefs = null;
+    SharedPreferences.Editor editor = null;
+    private MqttClient client;
 
     private static final String TAG = MqttClient.class.getSimpleName();
+    private static final String TAG_CHECK = "shared_preferences";
+    private final String USER = "username";
+    private final String PASS = "password";
+    private final String CHECKBOX = "remember_me";
 
-    private MqttClient client;
-    private String user_error = "Please input a valid username.\nField cannot be left blank";
-    private String pass_error = "Please input a valid password.\nField cannot be left blank";
-    private String invalid_creds = "Please input valid login credentials.";
-    private String no_hospital_error = "No hospitals associated with this account!";
+    private String username;
+    private String password;
+    private String user_error = "Por favor introduzca un nombre de usuario valido.\nCampo no puede ser dejado en blanco";
+    private String pass_error = "Por favor introduzca una contraseña valida.\nCampo no puede ser dejado en blanco";
+    private String invalid_creds = "Pr favor introduzca credenciales validas.";
+    private String no_hospital_error = "Ningun hospital esta asociado con esta cuenta!";
 
     private ProgressDialog progressDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        progressDialog = new ProgressDialog(LoginActivity.this);
 
         // Get credentials
         creds_prefs = getSharedPreferences("com.project.cruzroja.hospital", MODE_PRIVATE);
+        editor = creds_prefs.edit();
+
+        // Check if credentials are cached
+        if(rememberUserEnabled()){
+            showLoadingScreen();
+            Log.d(TAG_CHECK, "Remember user enabled, using credentials" + rememberUserEnabled());
+            username = getStoredUser();
+            password = getStoredPassword();
+            Log.d(TAG_CHECK, "User: " + username + " Password: " + password);
+            loginHospital(username, password);
+        } else{
+            Log.d(TAG_CHECK, "Remember user not enabled, asking for credentials");
+        }
 
         setContentView(R.layout.activity_login);
 
@@ -65,16 +87,17 @@ public class LoginActivity extends AppCompatActivity {
         final EditText usernameField = (EditText) findViewById(R.id.username);
         final EditText passwordField = (EditText) findViewById(R.id.password);
 
-        progressDialog = new ProgressDialog(LoginActivity.this); // this = YourActivity
+        // this = YourActivity
 
         // Submit button's click listener
         Button login_submit = (Button) findViewById(R.id.submit_login);
         login_submit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+
                 // Get user info & remove whitspace
-                String username = usernameField.getText().toString().replace(" ", "");
-                String password = passwordField.getText().toString().replace(" ", "");
+                username = usernameField.getText().toString().replace(" ", "");
+                password = passwordField.getText().toString().replace(" ", "");
 
                 if (username == null || username.isEmpty()) {
                     alertEmptyLogin(LoginActivity.this, user_error);
@@ -99,15 +122,32 @@ public class LoginActivity extends AppCompatActivity {
         });
     }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
 
-        if (creds_prefs.getBoolean("remember_me", true)) {
-            // Do first run stuff here then set 'remember_me' as false
-            // using the following line to edit/commit prefs
-            //creds_prefs.edit().putBoolean("remember_me", false).commit();
-        }
+    private boolean rememberUserEnabled(){
+        return creds_prefs.getBoolean(CHECKBOX, false);
+
+    }
+
+    private String getStoredUser(){
+        return creds_prefs.getString(USER, null);
+    }
+
+    private String getStoredPassword(){
+        return creds_prefs.getString(PASS, null);
+    }
+
+    private void setStoredCredentials(String user, String pass){
+        editor.putString(USER, user);
+        editor.putString(PASS, pass);
+        editor.putBoolean(CHECKBOX, true);
+        editor.commit();
+        //creds_prefs.edit().apply();
+    }
+
+    private void clearStoredCredentials(){
+        editor.clear();
+        editor.commit();
+        //creds_prefs.edit().apply();
     }
 
     public void alertEmptyLogin(Activity activity, String msg) {
@@ -125,7 +165,7 @@ public class LoginActivity extends AppCompatActivity {
 
     public void showLoadingScreen(){
         progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-        progressDialog.setMessage("Please wait...");
+        progressDialog.setMessage("Por favor espere...");
         progressDialog.setIndeterminate(true);
         progressDialog.setCanceledOnTouchOutside(false);
         progressDialog.show();
@@ -159,6 +199,13 @@ public class LoginActivity extends AppCompatActivity {
 
             @Override
             public void messageArrived(String topic, MqttMessage message) throws Exception {
+                // Check if remember me enabled
+                CheckBox remember_box = (CheckBox) findViewById(R.id.checkBox);
+                if(remember_box.isChecked()){
+                    Log.d(TAG_CHECK, "Checkbox checked, storing credentials");
+                    setStoredCredentials(username, password);
+                }
+
                 String json = new String(message.getPayload());
                 Log.d(TAG, "Message received: " + json);
 
@@ -188,6 +235,8 @@ public class LoginActivity extends AppCompatActivity {
                 passwordField.setText("");
 
                 clearFieldFocus();
+
+
 
             }
 

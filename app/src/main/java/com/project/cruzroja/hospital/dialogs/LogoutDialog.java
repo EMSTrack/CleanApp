@@ -34,8 +34,8 @@ public class LogoutDialog extends DialogFragment {
 
         AlertDialog.Builder alertBuilder = new AlertDialog.Builder(getActivity());
 
-        alertBuilder.setTitle("Warning");
-        alertBuilder.setMessage("Are you sure you want to logout?");
+        alertBuilder.setTitle("Advertencia!");
+        alertBuilder.setMessage("Seguro que desea cerrar sesión?");
 
         // Create the OK button that logs user out
         alertBuilder.setNeutralButton("OK", new DialogInterface.OnClickListener() {
@@ -53,7 +53,7 @@ public class LogoutDialog extends DialogFragment {
         });
 
         // Create the Cancel Button
-        alertBuilder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+        alertBuilder.setNegativeButton("Cancelar", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 System.out.println("Cancel Button Clicked");

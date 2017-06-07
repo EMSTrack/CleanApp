@@ -95,7 +95,7 @@ public class ValueDialog extends DialogFragment {
 
         alertBuilder.setView(valueText);
 
-        alertBuilder.setNeutralButton("Update", new DialogInterface.OnClickListener() {
+        alertBuilder.setNeutralButton("Actualizar", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 System.out.println("Update Button Clicked");
@@ -109,7 +109,7 @@ public class ValueDialog extends DialogFragment {
             }
         });
 
-        alertBuilder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+        alertBuilder.setNegativeButton("Cancelar", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 updatedData = "";
