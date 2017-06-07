@@ -37,6 +37,8 @@ public class Equipment {
         return toggleable;
     }
 
+
+
     public void setToggleable(boolean toggleable) {
         this.toggleable = toggleable;
     }

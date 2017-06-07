@@ -104,10 +104,10 @@ public class ListAdapter extends ArrayAdapter<Equipment> {
 
                         String title = ((TextView) row.findViewById(R.id.toggleTextView)).getText().toString();
                         String message = "Is this resource available?";
-                        boolean isToggleable = equipmentItem.isToggleable();
                         String data = Integer.toString(equipmentItem.getQuantity());
-
-                        ToggleDialog td = ToggleDialog.newInstance(title, message, isToggleable, data);
+                        // Set the isToggled to the correct value
+                        boolean isToggled = (data.equals("1"));
+                        ToggleDialog td = ToggleDialog.newInstance(title, message, isToggled, data);
                         td.setOnDataChangedListener(dr);
                         td.show(fragmentManager, "toggle_dialog");
                     }

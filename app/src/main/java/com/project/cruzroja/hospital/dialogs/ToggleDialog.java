@@ -1,6 +1,7 @@
 package com.project.cruzroja.hospital.dialogs;
 
 import android.app.Dialog;
+import android.graphics.Typeface;
 import android.provider.ContactsContract;
 import android.support.annotation.NonNull;
 import android.support.v4.app.DialogFragment;
@@ -10,13 +11,20 @@ import android.support.v7.app.AlertDialog;
 import android.text.InputType;
 import android.util.Log;
 import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.Switch;
+import android.widget.TextView;
+import android.widget.ToggleButton;
 
 import com.project.cruzroja.hospital.DataListener;
 import com.project.cruzroja.hospital.R;
+
+import org.w3c.dom.Text;
 
 /**
  * Created by devinhickey on 6/5/17.
@@ -73,14 +81,9 @@ public class ToggleDialog extends DialogFragment {
         System.out.println("Data: " + oldData);
 
         final AlertDialog.Builder alertBuilder = new AlertDialog.Builder(getActivity());
-        final LinearLayout ll = new LinearLayout(getActivity().getApplicationContext());
+//        final LinearLayout ll = new LinearLayout(getActivity().getApplicationContext());
         final Button yesButton = new Button(getActivity().getApplicationContext());
         final Button noButton = new Button(getActivity().getApplicationContext());
-        final EditText valueText = new EditText(getActivity().getApplicationContext());
-
-
-        System.out.println("Not a Value Type");
-        // Add two checkboxes?
 
         // Set the data elements
         // Check if the resource is available and set the title to account for it
@@ -92,60 +95,33 @@ public class ToggleDialog extends DialogFragment {
         }
         alertBuilder.setMessage(message);
 
+        LayoutInflater inflater = LayoutInflater.from(getContext());
 
-        // Create the Button LayoutParams
-        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams
-                (LinearLayout.LayoutParams.WRAP_CONTENT,
-                        LinearLayout.LayoutParams.WRAP_CONTENT, 1f);
+        View v = inflater.inflate(R.layout.toggle_dialog, null, false);
+        alertBuilder.setView(v.findViewById(R.id.toggleDialogLayout));
 
-        // Set YesButton traits
-        yesButton.setText("YES");
-        yesButton.setTag("yesButton");
-        yesButton.setHighlightColor(getResources().getColor(R.color.colorPrimaryDark));
-        yesButton.setLayoutParams(params);
-        yesButton.setOnClickListener(new View.OnClickListener() {
+        final Switch toggleSwitch = (Switch) v.findViewById(R.id.availableSwitch);
+        final TextView availableText = (TextView) v.findViewById(R.id.availableText);
+        final TextView unavailableText = (TextView) v.findViewById(R.id.unavailableText);
+
+        toggleSwitch.setChecked(!isToggled);
+        toggleText(!isToggled, availableText, unavailableText);
+
+        toggleSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
-            public void onClick(View v) {
-                System.out.println("Yes OnClick");
-                noButton.setSelected(false);
-                yesButton.setSelected(true);
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                toggleText(isChecked, availableText, unavailableText);
             }
         });
-
-        // Set NoButton traits
-        noButton.setText("NO");
-        noButton.setTag("noButton");
-        noButton.setHighlightColor(getResources().getColor(R.color.colorPrimaryDark));
-        noButton.setLayoutParams(params);
-        noButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                System.out.println("No OnClick");
-                noButton.setSelected(true);
-                yesButton.setSelected(false);
-            }
-        });
-
-        ll.setOrientation(LinearLayout.HORIZONTAL);
-        ll.setWeightSum(2);
-        ll.addView(yesButton);
-        ll.addView(noButton);
-
-        alertBuilder.setView(ll);
 
         alertBuilder.setNeutralButton("Update", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                System.out.println("Update Button Clicked");
-                // Update the value if the button has been clicked
-                if (yesButton.isSelected()) {
+                if (!toggleSwitch.isChecked()) {
                     updatedData = "1";
-                } else if (noButton.isSelected()) {
-                    updatedData = "0";
                 } else {
-                    updatedData = "";
+                    updatedData = "0";
                 }
-
 
                 // Update the data
                 onDataChanged(title, updatedData);
@@ -163,6 +139,20 @@ public class ToggleDialog extends DialogFragment {
 
         return alertBuilder.create();
 
+    }
+
+    private void toggleText (boolean toggle, final TextView availableText, final TextView unavailableText) {
+        if (!toggle) {
+            availableText.setTypeface(null, Typeface.BOLD);
+            availableText.setTextColor(getResources().getColor(R.color.colorGreen));
+            unavailableText.setTextColor(getResources().getColor(R.color.colorGrey));
+            unavailableText.setTypeface(null, Typeface.NORMAL);
+        } else {
+            availableText.setTypeface(null, Typeface.NORMAL);
+            unavailableText.setTextColor(getResources().getColor(R.color.colorPrimary));
+            availableText.setTextColor(getResources().getColor(R.color.colorGrey));
+            unavailableText.setTypeface(null, Typeface.BOLD);
+        }
     }
 
     public void setOnDataChangedListener(DataListener dr) {
