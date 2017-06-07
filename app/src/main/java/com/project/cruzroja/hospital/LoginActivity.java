@@ -44,10 +44,10 @@ public class LoginActivity extends AppCompatActivity {
 
     private String username;
     private String password;
-    private String user_error = "Please input a valid username.\nField cannot be left blank";
-    private String pass_error = "Please input a valid password.\nField cannot be left blank";
-    private String invalid_creds = "Please input valid login credentials.";
-    private String no_hospital_error = "No hospitals associated with this account!";
+    private String user_error = "Por favor introduzca un nombre de usuario valido.\nCampo no puede ser dejado en blanco";
+    private String pass_error = "Por favor introduzca una contraseña valida.\nCampo no puede ser dejado en blanco";
+    private String invalid_creds = "Pr favor introduzca credenciales validas.";
+    private String no_hospital_error = "Ningun hospital esta asociado con esta cuenta!";
 
     private ProgressDialog progressDialog;
 
@@ -165,7 +165,7 @@ public class LoginActivity extends AppCompatActivity {
 
     public void showLoadingScreen(){
         progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-        progressDialog.setMessage("Please wait...");
+        progressDialog.setMessage("Por favor espere...");
         progressDialog.setIndeterminate(true);
         progressDialog.setCanceledOnTouchOutside(false);
         progressDialog.show();

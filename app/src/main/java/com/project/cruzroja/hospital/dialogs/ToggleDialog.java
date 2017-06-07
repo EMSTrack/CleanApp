@@ -86,9 +86,9 @@ public class ToggleDialog extends DialogFragment {
         // Check if the resource is available and set the title to account for it
         System.out.println("Data = " + oldData);
         if (oldData.equals("1")) {
-            alertBuilder.setTitle((title + " - Currently Available"));
+            alertBuilder.setTitle((title + " - Disponible"));
         } else {
-            alertBuilder.setTitle((title + " - Not Currently Available"));
+            alertBuilder.setTitle((title + " - No Disponible"));
         }
         alertBuilder.setMessage(message);
 
@@ -99,7 +99,7 @@ public class ToggleDialog extends DialogFragment {
                         LinearLayout.LayoutParams.WRAP_CONTENT, 1f);
 
         // Set YesButton traits
-        yesButton.setText("YES");
+        yesButton.setText("SI");
         yesButton.setTag("yesButton");
         yesButton.setHighlightColor(getResources().getColor(R.color.colorPrimaryDark));
         yesButton.setLayoutParams(params);
@@ -133,7 +133,7 @@ public class ToggleDialog extends DialogFragment {
 
         alertBuilder.setView(ll);
 
-        alertBuilder.setNeutralButton("Update", new DialogInterface.OnClickListener() {
+        alertBuilder.setNeutralButton("Actualizar", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 System.out.println("Update Button Clicked");
@@ -153,7 +153,7 @@ public class ToggleDialog extends DialogFragment {
             }
         });
 
-        alertBuilder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+        alertBuilder.setNegativeButton("Cancelar", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 updatedData = "";
