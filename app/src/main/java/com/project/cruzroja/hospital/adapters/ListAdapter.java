@@ -76,7 +76,7 @@ public class ListAdapter extends ArrayAdapter<Equipment> {
                         System.out.println("Value ListItem onClick");
 
                         String title = ((TextView) row.findViewById(R.id.valueTextView)).getText().toString();
-                        String message = "How many units are available?";
+                        String message = "¿Cuántas unidades hay disponibles?";
                         String data = ((TextView) row.findViewById(R.id.valueData)).getText().toString();
 
                         ValueDialog vd = ValueDialog.newInstance(title, message, data);
@@ -103,7 +103,7 @@ public class ListAdapter extends ArrayAdapter<Equipment> {
                         System.out.println("Toggle ListItem onClick");
 
                         String title = ((TextView) row.findViewById(R.id.toggleTextView)).getText().toString();
-                        String message = "Is this resource available?";
+                        String message = "Este recurso está disponible?";
                         String data = Integer.toString(equipmentItem.getQuantity());
                         // Set the isToggled to the correct value
                         boolean isToggled = (data.equals("1"));
