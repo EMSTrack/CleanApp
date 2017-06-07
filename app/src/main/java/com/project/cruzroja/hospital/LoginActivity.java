@@ -5,7 +5,6 @@ import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.graphics.Bitmap;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -14,12 +13,9 @@ import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
-import android.widget.ImageButton;
-import android.widget.Toast;
 import android.widget.ImageView;
 
 import com.google.gson.Gson;
@@ -30,14 +26,7 @@ import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
 import org.eclipse.paho.client.mqttv3.MqttCallbackExtended;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
-import java.io.ByteArrayOutputStream;
-import java.security.SecureRandom;
 import java.util.*;
-
-import javax.crypto.Cipher;
-import javax.crypto.KeyGenerator;
-import javax.crypto.SecretKey;
-import javax.crypto.spec.SecretKeySpec;
 
 public class LoginActivity extends AppCompatActivity {
     private SharedPreferences creds_prefs = null;
@@ -52,9 +41,9 @@ public class LoginActivity extends AppCompatActivity {
 
     private String username;
     private String password;
-    private String user_error = "Por favor introduzca un nombre de usuario valido.\nCampo no puede ser dejado en blanco";
-    private String pass_error = "Por favor introduzca una contraseña valida.\nCampo no puede ser dejado en blanco";
-    private String invalid_creds = "Pr favor introduzca credenciales validas.";
+    private String user_error = "Por favor introduzca un nombre de usuario valido.  Campo no puede ser dejado en blanco";
+    private String pass_error = "Por favor introduzca una contraseña valida.  Campo no puede ser dejado en blanco";
+    private String invalid_creds = "Por favor introduzca credenciales validas.";
     private String no_hospital_error = "Ningun hospital esta asociado con esta cuenta!";
 
     private ProgressDialog progressDialog;
@@ -68,6 +57,9 @@ public class LoginActivity extends AppCompatActivity {
         getSupportActionBar().setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM);
         getSupportActionBar().setDisplayShowCustomEnabled(true);
         getSupportActionBar().setCustomView(R.layout.maintitlebar);
+        View view = getSupportActionBar().getCustomView();
+        ImageView imageButton= (ImageView) view.findViewById(R.id.LogoutBtn);
+        imageButton.setVisibility(View.GONE);
 
         progressDialog = new ProgressDialog(LoginActivity.this);
 
@@ -82,23 +74,13 @@ public class LoginActivity extends AppCompatActivity {
 
         // Check if credentials are cached
         if (rememberUserEnabled()){
-            //showLoadingScreen();
             Log.d(TAG_CHECK, "Remember user enabled, using credentials" + rememberUserEnabled());
             username = getStoredUser();
             usernameField.setText(username);
             savedUsernameCheck.setChecked(true);
-            //password = getStoredPassword();
-            //Log.d(TAG_CHECK, "User: " + username + " Password: " + password);
-            //loginHospital(username, password);
         } else{
             Log.d(TAG_CHECK, "Remember user not enabled, asking for credentials");
         }
-
-
-
-        View view = getSupportActionBar().getCustomView();
-        ImageView imageButton= (ImageView) view.findViewById(R.id.LogoutBtn);
-        imageButton.setVisibility(View.GONE);
 
         // Submit button's click listener
         Button login_submit = (Button) findViewById(R.id.submit_login);
@@ -151,13 +133,11 @@ public class LoginActivity extends AppCompatActivity {
         editor.putString(PASS, pass);
         editor.putBoolean(CHECKBOX, true);
         editor.commit();
-        //creds_prefs.edit().apply();
     }
 
     private void clearStoredCredentials(){
         editor.clear();
         editor.commit();
-        //creds_prefs.edit().apply();
     }
 
     public void alertEmptyLogin(Activity activity, String msg) {
@@ -180,8 +160,6 @@ public class LoginActivity extends AppCompatActivity {
         progressDialog.setCanceledOnTouchOutside(false);
         progressDialog.show();
     }
-
-
 
     public void loginHospital(final String username, final String password) {
         client = MqttClient.getInstance(getApplicationContext()); // Use application context to tie service to app
@@ -248,11 +226,7 @@ public class LoginActivity extends AppCompatActivity {
                 // Clear the password field
                 EditText passwordField = (EditText) findViewById(R.id.password);
                 passwordField.setText("");
-
                 clearFieldFocus();
-
-
-
             }
 
             @Override
