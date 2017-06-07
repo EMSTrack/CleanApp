@@ -62,6 +62,13 @@ public class LoginActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_login);
+
+        // Action bar
+        getSupportActionBar().setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM);
+        getSupportActionBar().setDisplayShowCustomEnabled(true);
+        getSupportActionBar().setCustomView(R.layout.maintitlebar);
+
         progressDialog = new ProgressDialog(LoginActivity.this);
 
         // Find username and password from layout
@@ -85,20 +92,11 @@ public class LoginActivity extends AppCompatActivity {
             Log.d(TAG_CHECK, "Remember user not enabled, asking for credentials");
         }
 
-        setContentView(R.layout.activity_login);
 
-        // Action bar
-        getSupportActionBar().setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM);
-        getSupportActionBar().setDisplayShowCustomEnabled(true);
-        getSupportActionBar().setCustomView(R.layout.maintitlebar);
 
         View view = getSupportActionBar().getCustomView();
         ImageView imageButton= (ImageView) view.findViewById(R.id.LogoutBtn);
         imageButton.setVisibility(View.GONE);
-
-
-
-        // this = YourActivity
 
         // Submit button's click listener
         Button login_submit = (Button) findViewById(R.id.submit_login);
@@ -132,7 +130,6 @@ public class LoginActivity extends AppCompatActivity {
             }
         });
     }
-
 
     private boolean rememberUserEnabled(){
         return creds_prefs.getBoolean(CHECKBOX, false);
