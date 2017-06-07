@@ -48,10 +48,10 @@ public class LogoutDialog extends DialogFragment {
                 MqttClient client = MqttClient.getInstance(getActivity().getApplicationContext());
                 client.disconnect();
 
-                SharedPreferences creds_prefs = getActivity().getSharedPreferences("com.project.cruzroja.hospital", MODE_PRIVATE);
+                /*SharedPreferences creds_prefs = getActivity().getSharedPreferences("com.project.cruzroja.hospital", MODE_PRIVATE);
                 SharedPreferences.Editor editor = creds_prefs.edit();
                 editor.clear();
-                editor.commit();
+                editor.commit(); */
 
                 Intent rootIntent = new Intent(getActivity(), LoginActivity.class);
                 rootIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);

@@ -5,6 +5,7 @@ import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -29,7 +30,14 @@ import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
 import org.eclipse.paho.client.mqttv3.MqttCallbackExtended;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
+import java.io.ByteArrayOutputStream;
+import java.security.SecureRandom;
 import java.util.*;
+
+import javax.crypto.Cipher;
+import javax.crypto.KeyGenerator;
+import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
 
 public class LoginActivity extends AppCompatActivity {
     private SharedPreferences creds_prefs = null;
@@ -56,18 +64,23 @@ public class LoginActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         progressDialog = new ProgressDialog(LoginActivity.this);
 
+        // Find username and password from layout
+        final EditText usernameField = (EditText) findViewById(R.id.username);
+        final EditText passwordField = (EditText) findViewById(R.id.password);
+
         // Get credentials
         creds_prefs = getSharedPreferences("com.project.cruzroja.hospital", MODE_PRIVATE);
         editor = creds_prefs.edit();
 
         // Check if credentials are cached
         if(rememberUserEnabled()){
-            showLoadingScreen();
+            //showLoadingScreen();
             Log.d(TAG_CHECK, "Remember user enabled, using credentials" + rememberUserEnabled());
             username = getStoredUser();
-            password = getStoredPassword();
-            Log.d(TAG_CHECK, "User: " + username + " Password: " + password);
-            loginHospital(username, password);
+            usernameField.setText(username);
+            //password = getStoredPassword();
+            //Log.d(TAG_CHECK, "User: " + username + " Password: " + password);
+            //loginHospital(username, password);
         } else{
             Log.d(TAG_CHECK, "Remember user not enabled, asking for credentials");
         }
@@ -83,9 +96,7 @@ public class LoginActivity extends AppCompatActivity {
         ImageView imageButton= (ImageView) view.findViewById(R.id.LogoutBtn);
         imageButton.setVisibility(View.GONE);
 
-        // Find username and password from layout
-        final EditText usernameField = (EditText) findViewById(R.id.username);
-        final EditText passwordField = (EditText) findViewById(R.id.password);
+
 
         // this = YourActivity
 
@@ -171,6 +182,8 @@ public class LoginActivity extends AppCompatActivity {
         progressDialog.show();
     }
 
+
+
     public void loginHospital(final String username, final String password) {
         client = MqttClient.getInstance(getApplicationContext()); // Use application context to tie service to app
 
@@ -199,11 +212,14 @@ public class LoginActivity extends AppCompatActivity {
 
             @Override
             public void messageArrived(String topic, MqttMessage message) throws Exception {
+
                 // Check if remember me enabled
                 CheckBox remember_box = (CheckBox) findViewById(R.id.checkBox);
                 if(remember_box.isChecked()){
                     Log.d(TAG_CHECK, "Checkbox checked, storing credentials");
                     setStoredCredentials(username, password);
+                } else {
+                    clearStoredCredentials();
                 }
 
                 String json = new String(message.getPayload());
