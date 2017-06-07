@@ -107,6 +107,26 @@ public class ToggleDialog extends DialogFragment {
         toggleSwitch.setChecked(!isToggled);
         toggleText(!isToggled, availableText, unavailableText);
 
+        /**
+         * OnClicks for the elements of the dialog
+         */
+
+        availableText.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                toggleSwitch.setChecked(false);
+                toggleText(false, availableText, unavailableText);
+            }
+        });
+
+        unavailableText.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                toggleSwitch.setChecked(true);
+                toggleText(true, availableText, unavailableText);
+            }
+        });
+
         toggleSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {

@@ -16,6 +16,7 @@
         android:layout_weight="1"
         android:textAlignment="center"
         android:textSize="18sp"
+        android:clickable="true"
         />
 
     <Switch
@@ -33,6 +34,7 @@
         android:layout_weight="1"
         android:textAlignment="center"
         android:textSize="18sp"
+        android:clickable="true"
         />
 
 </LinearLayout>
