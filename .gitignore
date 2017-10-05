@@ -44,6 +44,8 @@ app/.DS_Store
 gradle/.DS_Store
 .DS_Store
 
-
 # Keystore files
 *.jks
+
+# Backup files
+*~
