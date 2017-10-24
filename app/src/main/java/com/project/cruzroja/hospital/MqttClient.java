@@ -1,20 +1,13 @@
 package com.project.cruzroja.hospital;
 
-import android.app.Activity;
 import android.content.Context;
-import android.content.DialogInterface;
-import android.content.Intent;
-import android.icu.text.LocaleDisplayNames;
-import android.support.v7.app.AlertDialog;
-import android.text.Html;
 import android.util.Log;
-import android.widget.EditText;
-import android.widget.Toast;
+
+import com.project.cruzroja.hospital.interfaces.MqttConnectCallback;
 
 import org.eclipse.paho.android.service.MqttAndroidClient;
 import org.eclipse.paho.client.mqttv3.DisconnectedBufferOptions;
 import org.eclipse.paho.client.mqttv3.IMqttActionListener;
-import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
 import org.eclipse.paho.client.mqttv3.IMqttToken;
 import org.eclipse.paho.client.mqttv3.MqttCallback;
 import org.eclipse.paho.client.mqttv3.MqttCallbackExtended;

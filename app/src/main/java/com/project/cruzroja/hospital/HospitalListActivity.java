@@ -27,6 +27,7 @@ import java.util.ArrayList;
 
 public class HospitalListActivity extends AppCompatActivity {
 
+    // TODO instantiate this just in case?
     public static ArrayList<Hospital> hospitalList;
 
     @Override
@@ -49,7 +50,7 @@ public class HospitalListActivity extends AppCompatActivity {
         });
 
         // No hospitals associated with this account
-        if(hospitalList.size() < 1) {
+        if (hospitalList.size() < 1) {
             Toast toast = new Toast(this);
             toast.setText("This account has no hospitals associated with it!");
             toast.setDuration(Toast.LENGTH_LONG);

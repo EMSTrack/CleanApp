@@ -1,23 +1,20 @@
 package com.project.cruzroja.hospital;
 
-import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.ActionBar;
-import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
-import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ListView;
 
 import com.google.gson.Gson;
 import com.project.cruzroja.hospital.adapters.ListAdapter;
 import com.project.cruzroja.hospital.dialogs.LogoutDialog;
+import com.project.cruzroja.hospital.interfaces.DataListener;
 import com.project.cruzroja.hospital.models.Equipment;
 import com.project.cruzroja.hospital.models.Hospital;
 
-import java.util.ArrayList;
 import android.view.Window;
 
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;

@@ -20,6 +20,7 @@ import android.widget.ImageView;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import com.project.cruzroja.hospital.interfaces.MqttConnectCallback;
 import com.project.cruzroja.hospital.models.Hospital;
 
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;

@@ -1,4 +1,4 @@
-package com.project.cruzroja.hospital;
+package com.project.cruzroja.hospital.interfaces;
 
 /**
  * Created by Fabian Choi on 5/30/2017.
