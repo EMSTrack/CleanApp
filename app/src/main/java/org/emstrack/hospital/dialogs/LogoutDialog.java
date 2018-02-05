@@ -1,18 +1,15 @@
-package com.project.cruzroja.hospital.dialogs;
+package org.emstrack.hospital.dialogs;
 
 import android.app.Dialog;
 import android.app.DialogFragment;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AlertDialog;
 
-import com.project.cruzroja.hospital.LoginActivity;
-import com.project.cruzroja.hospital.MqttClient;
-
-import static android.content.Context.MODE_PRIVATE;
+import org.emstrack.hospital.LoginActivity;
+import org.emstrack.hospital.MqttClient;
 
 /**
  * Created by devinhickey on 5/24/17.
@@ -48,7 +45,7 @@ public class LogoutDialog extends DialogFragment {
                 MqttClient client = MqttClient.getInstance(getActivity().getApplicationContext());
                 client.disconnect();
 
-                /*SharedPreferences creds_prefs = getActivity().getSharedPreferences("com.project.cruzroja.hospital", MODE_PRIVATE);
+                /*SharedPreferences creds_prefs = getActivity().getSharedPreferences("org.emstrack.hospital", MODE_PRIVATE);
                 SharedPreferences.Editor editor = creds_prefs.edit();
                 editor.clear();
                 editor.commit(); */

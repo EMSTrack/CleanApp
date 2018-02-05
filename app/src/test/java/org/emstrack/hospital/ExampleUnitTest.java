@@ -1,4 +1,4 @@
-package com.project.cruzroja.hospital;
+package org.emstrack.hospital;
 
 import org.junit.Test;
 

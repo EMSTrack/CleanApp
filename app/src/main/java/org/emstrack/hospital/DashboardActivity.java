@@ -1,4 +1,4 @@
-package com.project.cruzroja.hospital;
+package org.emstrack.hospital;
 
 import android.os.Bundle;
 import android.support.v7.app.ActionBar;
@@ -9,11 +9,11 @@ import android.widget.ImageView;
 import android.widget.ListView;
 
 import com.google.gson.Gson;
-import com.project.cruzroja.hospital.adapters.ListAdapter;
-import com.project.cruzroja.hospital.dialogs.LogoutDialog;
-import com.project.cruzroja.hospital.interfaces.DataListener;
-import com.project.cruzroja.hospital.models.Equipment;
-import com.project.cruzroja.hospital.models.Hospital;
+import org.emstrack.hospital.adapters.ListAdapter;
+import org.emstrack.hospital.dialogs.LogoutDialog;
+import org.emstrack.hospital.interfaces.DataListener;
+import org.emstrack.hospital.models.Equipment;
+import org.emstrack.hospital.models.Hospital;
 
 import android.view.Window;
 

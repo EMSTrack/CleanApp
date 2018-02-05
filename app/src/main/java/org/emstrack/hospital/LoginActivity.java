@@ -1,4 +1,4 @@
-package com.project.cruzroja.hospital;
+package org.emstrack.hospital;
 
 import android.app.Activity;
 import android.app.ProgressDialog;
@@ -20,8 +20,8 @@ import android.widget.ImageView;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-import com.project.cruzroja.hospital.interfaces.MqttConnectCallback;
-import com.project.cruzroja.hospital.models.Hospital;
+import org.emstrack.hospital.interfaces.MqttConnectCallback;
+import org.emstrack.hospital.models.Hospital;
 
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
 import org.eclipse.paho.client.mqttv3.MqttCallbackExtended;

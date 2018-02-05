@@ -1,9 +1,9 @@
-package com.project.cruzroja.hospital;
+package org.emstrack.hospital;
 
 import android.content.Context;
 import android.util.Log;
 
-import com.project.cruzroja.hospital.interfaces.MqttConnectCallback;
+import org.emstrack.hospital.interfaces.MqttConnectCallback;
 
 import org.eclipse.paho.android.service.MqttAndroidClient;
 import org.eclipse.paho.client.mqttv3.DisconnectedBufferOptions;

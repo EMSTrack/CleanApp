@@ -1,4 +1,4 @@
-package com.project.cruzroja.hospital.adapters;
+package org.emstrack.hospital.adapters;
 
 import android.content.Context;
 import android.support.annotation.NonNull;
@@ -11,12 +11,12 @@ import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-//import com.project.cruzroja.hospital.CustomDialog;
-import com.project.cruzroja.hospital.interfaces.DataListener;
-import com.project.cruzroja.hospital.R;
-import com.project.cruzroja.hospital.dialogs.ToggleDialog;
-import com.project.cruzroja.hospital.dialogs.ValueDialog;
-import com.project.cruzroja.hospital.models.Equipment;
+//import org.emstrack.hospital.CustomDialog;
+import org.emstrack.hospital.interfaces.DataListener;
+import org.emstrack.hospital.R;
+import org.emstrack.hospital.dialogs.ToggleDialog;
+import org.emstrack.hospital.dialogs.ValueDialog;
+import org.emstrack.hospital.models.Equipment;
 
 import java.util.ArrayList;
 

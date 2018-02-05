@@ -1,4 +1,4 @@
-package com.project.cruzroja.hospital.interfaces;
+package org.emstrack.hospital.interfaces;
 
 /**
  * Created by Fabian Choi on 5/30/2017.

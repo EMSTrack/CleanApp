@@ -1,4 +1,4 @@
-package com.project.cruzroja.hospital.dialogs;
+package org.emstrack.hospital.dialogs;
 
 import android.app.Dialog;
 import android.support.annotation.NonNull;
@@ -11,8 +11,8 @@ import android.view.Gravity;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 
-import com.project.cruzroja.hospital.interfaces.DataListener;
-import com.project.cruzroja.hospital.R;
+import org.emstrack.hospital.interfaces.DataListener;
+import org.emstrack.hospital.R;
 
 /**
  * Created by devinhickey on 6/5/17.

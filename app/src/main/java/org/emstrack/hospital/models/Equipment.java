@@ -1,4 +1,4 @@
-package com.project.cruzroja.hospital.models;
+package org.emstrack.hospital.models;
 
 /**
  * Created by Fabian Choi on 5/4/2017.

@@ -1,4 +1,4 @@
-package com.project.cruzroja.hospital.dialogs;
+package org.emstrack.hospital.dialogs;
 
 import android.app.Dialog;
 import android.graphics.Typeface;
@@ -14,8 +14,8 @@ import android.widget.CompoundButton;
 import android.widget.Switch;
 import android.widget.TextView;
 
-import com.project.cruzroja.hospital.interfaces.DataListener;
-import com.project.cruzroja.hospital.R;
+import org.emstrack.hospital.interfaces.DataListener;
+import org.emstrack.hospital.R;
 
 /**
  * Created by devinhickey on 6/5/17.

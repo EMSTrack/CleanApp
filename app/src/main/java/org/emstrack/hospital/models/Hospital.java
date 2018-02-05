@@ -1,4 +1,4 @@
-package com.project.cruzroja.hospital.models;
+package org.emstrack.hospital.models;
 
 import java.util.ArrayList;
 
