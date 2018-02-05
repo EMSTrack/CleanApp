@@ -180,7 +180,7 @@ public class LoginActivity extends AppCompatActivity {
                     Log.d(TAG, "Reconnected to broker");
                 else
                     Log.d(TAG, "Connected to broker");
-                client.subscribeToTopic("user/" + username + "/hospital");
+                client.subscribeToTopic("user/" + username + "/profile");
             }
 
             @Override
