@@ -21,7 +21,9 @@ import android.widget.ImageView;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import org.emstrack.hospital.interfaces.MqttConnectCallback;
-import org.emstrack.hospital.models.Hospital;
+import org.emstrack.hospital.models.HospitalPermission;
+import org.emstrack.hospital.models.AmbulancePermission;
+import org.emstrack.hospital.models.Profile;
 
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
 import org.eclipse.paho.client.mqttv3.MqttCallbackExtended;
@@ -205,18 +207,17 @@ public class LoginActivity extends AppCompatActivity {
 
                 // Parse message into list of hospitals
                 Gson gson = new Gson();
-                final ArrayList<Hospital> hospitalList = gson.fromJson(json,
-                        new TypeToken<List<Hospital>>(){}.getType());
+                Profile profile = gson.fromJson(json, Profile.class);
 
                 // Error parsing or no hospitals
-                if (hospitalList == null || hospitalList.size() == 0) {
+                if (profile == null) {
                     progressDialog.dismiss();
                     Log.d(TAG, "Error parsing array");
                     return;
                 }
 
                 // Set the static list and start the new Hospital Intent
-                HospitalListActivity.hospitalList = hospitalList;
+                HospitalListActivity.hospitalList = profile.getHospitals();
 
                 Intent hospitalIntent = new Intent(getApplicationContext(), HospitalListActivity.class);
                 startActivity(hospitalIntent);

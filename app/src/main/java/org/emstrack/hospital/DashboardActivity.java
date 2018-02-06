@@ -20,6 +20,7 @@ import android.view.Window;
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
 import org.eclipse.paho.client.mqttv3.MqttCallbackExtended;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
+import org.emstrack.hospital.models.HospitalPermission;
 
 /**
  * Created by devinhickey on 4/20/17.
@@ -29,7 +30,7 @@ public class DashboardActivity extends AppCompatActivity {
     private static final String TAG = DashboardActivity.class.getSimpleName();
 
     private MqttClient client;
-    public static Hospital selectedHospital; // We know...
+    public static HospitalPermission selectedHospital; // We know...
 
     private ListAdapter adapter;
 
@@ -58,7 +59,7 @@ public class DashboardActivity extends AppCompatActivity {
         });
 
         // Get data from Login and place it into the hospital
-        hospitalId = selectedHospital.getId();
+        hospitalId = selectedHospital.getHospitalId();
 
         // Set adapter
         ListView lv = (ListView) findViewById(R.id.dashboardListView);

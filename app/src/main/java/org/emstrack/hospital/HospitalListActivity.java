@@ -16,9 +16,10 @@ import android.widget.Toast;
 
 import org.emstrack.hospital.dialogs.LogoutDialog;
 import org.emstrack.hospital.models.Hospital;
+import org.emstrack.hospital.models.HospitalPermission;
 
 import java.util.ArrayList;
-
+import java.util.List;
 
 /**
  * Created by devinhickey on 5/24/17.
@@ -27,7 +28,7 @@ import java.util.ArrayList;
 public class HospitalListActivity extends AppCompatActivity {
 
     // TODO instantiate this just in case?
-    public static ArrayList<Hospital> hospitalList;
+    public static List<HospitalPermission> hospitalList;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -60,7 +61,7 @@ public class HospitalListActivity extends AppCompatActivity {
         // Creates string arraylist of hospital names
         ArrayList<String> listObjects = new ArrayList<>();
         for (int i = 0; i < hospitalList.size(); i++) {
-            listObjects.add(hospitalList.get(i).getName());
+            listObjects.add(hospitalList.get(i).getHospitalName());
         }
 
         // Create the Spinner connection
@@ -92,15 +93,14 @@ public class HospitalListActivity extends AppCompatActivity {
             public void onClick(View v) {
                 System.out.println("Hospital Submit Button Clicked");
 
-                Intent dashboard = new Intent(HospitalListActivity.this, DashboardActivity.class);
                 int position = hospitalSpinner.getSelectedItemPosition();
                 System.out.println("Position Selected: " + position);
-                Hospital selectedHospital = hospitalList.get(position);
+                HospitalPermission selectedHospital = hospitalList.get(position);
                 System.out.println("Selected Hospital: " + selectedHospital.getName());
 
                 // Set the static list of Equipment in Dashboard
+                Intent dashboard = new Intent(HospitalListActivity.this, DashboardActivity.class);
                 DashboardActivity.selectedHospital = selectedHospital;
-
                 startActivity(dashboard);
             }
         });
