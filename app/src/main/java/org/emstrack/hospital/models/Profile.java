@@ -6,7 +6,6 @@ package org.emstrack.hospital.models;
  * http://www.jsonschema2pojo.org/
  */
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class Profile {

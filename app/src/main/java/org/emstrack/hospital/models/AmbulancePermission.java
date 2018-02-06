@@ -13,6 +13,14 @@ public class AmbulancePermission {
     private boolean canRead;
     private boolean canWrite;
 
+    public AmbulancePermission(int ambulanceId, String ambulanceIdentifier,
+                               Boolean canRead, Boolean canWrite) {
+        this.ambulanceId = ambulanceId;
+        this.ambulanceIdentifier = ambulanceIdentifier;
+        this.canRead = canRead;
+        this.canWrite = canWrite;
+    }
+
     public int getAmbulanceId() {
         return ambulanceId;
     }

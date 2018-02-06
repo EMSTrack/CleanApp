@@ -13,6 +13,14 @@ public class HospitalPermission {
     private boolean canRead;
     private boolean canWrite;
 
+    public HospitalPermission(int hospitalId, String hospitalName,
+                               Boolean canRead, Boolean canWrite) {
+        this.hospitalId = hospitalId;
+        this.hospitalName = hospitalName;
+        this.canRead = canRead;
+        this.canWrite = canWrite;
+    }
+
     public int getHospitalId() {
         return hospitalId;
     }
