@@ -15,7 +15,6 @@ import android.widget.Spinner;
 import android.widget.Toast;
 
 import org.emstrack.hospital.dialogs.LogoutDialog;
-import org.emstrack.hospital.models.Hospital;
 import org.emstrack.hospital.models.HospitalPermission;
 
 import java.util.ArrayList;
@@ -91,14 +90,14 @@ public class HospitalListActivity extends AppCompatActivity {
         submitHospitalButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                System.out.println("Hospital Submit Button Clicked");
+                System.out.println("HospitalEquipmentMetadata Submit Button Clicked");
 
                 int position = hospitalSpinner.getSelectedItemPosition();
                 System.out.println("Position Selected: " + position);
                 HospitalPermission selectedHospital = hospitalList.get(position);
-                System.out.println("Selected Hospital: " + selectedHospital.getName());
+                System.out.println("Selected HospitalEquipmentMetadata: " + selectedHospital.getHospitalName());
 
-                // Set the static list of Equipment in Dashboard
+                // Set the static list of HospitalEquipment in Dashboard
                 Intent dashboard = new Intent(HospitalListActivity.this, DashboardActivity.class);
                 DashboardActivity.selectedHospital = selectedHospital;
                 startActivity(dashboard);

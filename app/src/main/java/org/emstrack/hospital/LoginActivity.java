@@ -216,7 +216,7 @@ public class LoginActivity extends AppCompatActivity {
                     return;
                 }
 
-                // Set the static list and start the new Hospital Intent
+                // Set the static list and start the new HospitalEquipmentMetadata Intent
                 HospitalListActivity.hospitalList = profile.getHospitals();
 
                 Intent hospitalIntent = new Intent(getApplicationContext(), HospitalListActivity.class);

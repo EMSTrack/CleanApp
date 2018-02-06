@@ -79,7 +79,7 @@ public class ToggleDialog extends DialogFragment {
         // Set the data elements
         // Check if the resource is available and set the title to account for it
         System.out.println("Data = " + oldData);
-        if (oldData.equals("1")) {
+        if (oldData.equals("True")) {
             alertBuilder.setTitle((title + " - Disponible"));
         } else {
             alertBuilder.setTitle((title + " - No Disponible"));
@@ -129,9 +129,9 @@ public class ToggleDialog extends DialogFragment {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 if (!toggleSwitch.isChecked()) {
-                    updatedData = "1";
+                    updatedData = "True";
                 } else {
-                    updatedData = "0";
+                    updatedData = "False";
                 }
 
                 // Update the data

@@ -1,25 +1,27 @@
 package org.emstrack.hospital;
 
+import java.util.ArrayList;
+
 import android.os.Bundle;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
+import android.view.Window;
 import android.widget.ImageView;
 import android.widget.ListView;
 
 import com.google.gson.Gson;
-import org.emstrack.hospital.adapters.ListAdapter;
-import org.emstrack.hospital.dialogs.LogoutDialog;
-import org.emstrack.hospital.interfaces.DataListener;
-import org.emstrack.hospital.models.Equipment;
-import org.emstrack.hospital.models.Hospital;
-
-import android.view.Window;
 
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
 import org.eclipse.paho.client.mqttv3.MqttCallbackExtended;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
+
+import org.emstrack.hospital.adapters.ListAdapter;
+import org.emstrack.hospital.dialogs.LogoutDialog;
+import org.emstrack.hospital.interfaces.DataListener;
+import org.emstrack.hospital.models.HospitalEquipment;
+import org.emstrack.hospital.models.HospitalEquipmentMetadata;
 import org.emstrack.hospital.models.HospitalPermission;
 
 /**
@@ -27,10 +29,12 @@ import org.emstrack.hospital.models.HospitalPermission;
  * The Dashboard
  */
 public class DashboardActivity extends AppCompatActivity {
+
     private static final String TAG = DashboardActivity.class.getSimpleName();
 
     private MqttClient client;
-    public static HospitalPermission selectedHospital; // We know...
+    public static HospitalPermission selectedHospital;
+    public static HospitalEquipmentMetadata[] equipmentMetadata;
 
     private ListAdapter adapter;
 
@@ -61,10 +65,9 @@ public class DashboardActivity extends AppCompatActivity {
         // Get data from Login and place it into the hospital
         hospitalId = selectedHospital.getHospitalId();
 
-        // Set adapter
+        // Set list adapter
         ListView lv = (ListView) findViewById(R.id.dashboardListView);
-        adapter = new ListAdapter(this, selectedHospital.getEquipment(),
-                getSupportFragmentManager());
+        adapter = new ListAdapter(this, new ArrayList<HospitalEquipment>(), getSupportFragmentManager());
         adapter.setOnDataChangedListener(new DataListener() {
             @Override
             public void onDataChanged(String name, String data) {
@@ -94,26 +97,23 @@ public class DashboardActivity extends AppCompatActivity {
             public void messageArrived(String topic, MqttMessage message) throws Exception {
                 String text = new String(message.getPayload());
                 Log.d(TAG, "Received data " + text + " at topic " + topic);
+
                 // Message from receiving metadata; subscribe to equipments
                 if (topic.contains("metadata")) {
                     Log.d(TAG, "Message arrived: " + text);
                     // Parse to hospital object
-                    selectedHospital = new Gson().fromJson(text, Hospital.class);
-                    for (Equipment equipment : selectedHospital.getEquipment()) {
-                        client.subscribeToTopic("hospital/" + hospitalId + "/equipment/" + equipment.getName());
+                    equipmentMetadata = new Gson().fromJson(text, HospitalEquipmentMetadata[].class);
+                    for (HospitalEquipmentMetadata equipment : equipmentMetadata) {
+                        client.subscribeToTopic("hospital/" + hospitalId + "/equipment/" + equipment.getName() +"/data");
                     }
                 }
-                // Update equipment values
-                else {
-                    for (Equipment equipment : selectedHospital.getEquipment()) {
-                        if(topic.contains(equipment.getName())) {
-                            // Found item in the hospital equipments object
-                            equipment.setQuantity(Integer.parseInt(text));
-                            Log.d(TAG, "Message arrived: " +  equipment.getName() + "@" + equipment.getQuantity());
-                            refreshOrAddItem(equipment);
-                            break; // Break since we found the equipment
-                        }
-                    }
+
+                // Add or update equipment values
+                else if (topic.contains("equipment")) {
+                    // Found item in the hospital equipments object
+                    HospitalEquipment equipment = new Gson().fromJson(text, HospitalEquipment.class);
+                    Log.d(TAG, "Message arrived: " +  equipment.getEquipmentName() + "@" + equipment.getValue());
+                    refreshOrAddItem(equipment);
                 }
             }
 
@@ -131,11 +131,10 @@ public class DashboardActivity extends AppCompatActivity {
      * Add or refresh equipment to the list
      * @param equipment The updated or new equipment to reflect in the ui
      */
-    private void refreshOrAddItem(Equipment equipment) {
+    private void refreshOrAddItem(HospitalEquipment equipment) {
         System.out.println("Inside Refresh Or Add Item");
-        adapter.clear();
-        adapter.addAll(selectedHospital.getEquipment());
-        adapter.notifyDataSetChanged(); // Update UI
+        adapter.add(equipment);
+        // adapter.notifyDataSetChanged(); // Update UI
         System.out.println("After Refresh Or Add Item");
     }
 
