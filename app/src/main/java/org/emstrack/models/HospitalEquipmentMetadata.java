@@ -1,6 +1,4 @@
-package org.emstrack.hospital.models;
-
-import java.util.ArrayList;
+package org.emstrack.models;
 
 /**
  * Created by Fabian Choi on 5/4/2017.

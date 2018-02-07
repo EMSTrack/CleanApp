@@ -1,4 +1,4 @@
-package org.emstrack.hospital.models;
+package org.emstrack.models;
 
 /**
  * Created by mauricio on 2/5/18.
@@ -29,4 +29,14 @@ public class Profile {
         this.hospitals = hospitals;
     }
 
+    public String toString() {
+        String retval = "Profile with " + this.ambulances.size() + " ambulance(s) and " + this.hospitals.size() + " hospital(s)";
+        for (AmbulancePermission ambulance: this.ambulances) {
+            retval += "\n> Ambulance: " + ambulance.getAmbulanceIdentifier();
+        }
+        for (HospitalPermission hospital: this.hospitals) {
+            retval += "\n> Hospital: " + hospital.getHospitalName();
+        }
+        return retval;
+    }
 }

@@ -1,4 +1,4 @@
-package org.emstrack.hospital.models;
+package org.emstrack.models;
 
 /**
  * Created by mauricio on 2/5/18.

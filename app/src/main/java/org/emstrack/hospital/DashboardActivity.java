@@ -11,18 +11,21 @@ import android.view.Window;
 import android.widget.ImageView;
 import android.widget.ListView;
 
+import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
 import org.eclipse.paho.client.mqttv3.MqttCallbackExtended;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
+import org.emstrack.mqtt.MqttClient;
 import org.emstrack.hospital.adapters.ListAdapter;
 import org.emstrack.hospital.dialogs.LogoutDialog;
 import org.emstrack.hospital.interfaces.DataListener;
-import org.emstrack.hospital.models.HospitalEquipment;
-import org.emstrack.hospital.models.HospitalEquipmentMetadata;
-import org.emstrack.hospital.models.HospitalPermission;
+import org.emstrack.models.HospitalEquipment;
+import org.emstrack.models.HospitalEquipmentMetadata;
+import org.emstrack.models.HospitalPermission;
 
 /**
  * Created by devinhickey on 4/20/17.
@@ -95,14 +98,19 @@ public class DashboardActivity extends AppCompatActivity {
 
             @Override
             public void messageArrived(String topic, MqttMessage message) throws Exception {
+
                 String text = new String(message.getPayload());
                 Log.d(TAG, "Received data " + text + " at topic " + topic);
+
+                GsonBuilder gsonBuilder = new GsonBuilder();
+                gsonBuilder.setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES);
+                Gson gson = gsonBuilder.create();
 
                 // Message from receiving metadata; subscribe to equipments
                 if (topic.contains("metadata")) {
                     Log.d(TAG, "Message arrived: " + text);
                     // Parse to hospital object
-                    equipmentMetadata = new Gson().fromJson(text, HospitalEquipmentMetadata[].class);
+                    equipmentMetadata = gson.fromJson(text, HospitalEquipmentMetadata[].class);
                     for (HospitalEquipmentMetadata equipment : equipmentMetadata) {
                         client.subscribeToTopic("hospital/" + hospitalId + "/equipment/" + equipment.getName() +"/data");
                     }
@@ -111,7 +119,7 @@ public class DashboardActivity extends AppCompatActivity {
                 // Add or update equipment values
                 else if (topic.contains("equipment")) {
                     // Found item in the hospital equipments object
-                    HospitalEquipment equipment = new Gson().fromJson(text, HospitalEquipment.class);
+                    HospitalEquipment equipment = gson.fromJson(text, HospitalEquipment.class);
                     Log.d(TAG, "Message arrived: " +  equipment.getEquipmentName() + "@" + equipment.getValue());
                     refreshOrAddItem(equipment);
                 }

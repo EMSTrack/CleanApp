@@ -18,18 +18,16 @@ import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ImageView;
 
+import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
-import org.emstrack.hospital.interfaces.MqttConnectCallback;
-import org.emstrack.hospital.models.HospitalPermission;
-import org.emstrack.hospital.models.AmbulancePermission;
-import org.emstrack.hospital.models.Profile;
+import com.google.gson.GsonBuilder;
 
-import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
-import org.eclipse.paho.client.mqttv3.MqttCallbackExtended;
+import org.emstrack.mqtt.MqttClient;
+import org.emstrack.mqtt.MqttCallback;
+import org.emstrack.mqtt.MqttConnectCallback;
+import org.emstrack.models.Profile;
+
 import org.eclipse.paho.client.mqttv3.MqttMessage;
-
-import java.util.*;
 
 public class LoginActivity extends AppCompatActivity {
     private SharedPreferences creds_prefs = null;
@@ -38,6 +36,7 @@ public class LoginActivity extends AppCompatActivity {
 
     private static final String TAG = MqttClient.class.getSimpleName();
     private static final String TAG_CHECK = "shared_preferences";
+
     private final String USER = "username";
     private final String PASS = "password";
     private final String CHECKBOX = "remember_me";
@@ -72,7 +71,7 @@ public class LoginActivity extends AppCompatActivity {
         final CheckBox savedUsernameCheck = (CheckBox) findViewById(R.id.checkBox);
 
         // Get credentials
-        creds_prefs = getSharedPreferences("com.project.cruzroja.hospital", MODE_PRIVATE);
+        creds_prefs = getSharedPreferences("org.emstrack.hospital", MODE_PRIVATE);
         editor = creds_prefs.edit();
 
         // Check if credentials are cached
@@ -165,6 +164,7 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     public void loginHospital(final String username, final String password) {
+
         client = MqttClient.getInstance(getApplicationContext()); // Use application context to tie service to app
 
         MqttConnectCallback connectCallback = new MqttConnectCallback() {
@@ -175,19 +175,13 @@ public class LoginActivity extends AppCompatActivity {
             }
         };
 
-        client.connect(username, password, connectCallback, new MqttCallbackExtended() {
-            @Override
-            public void connectComplete(boolean reconnect, String serverURI) {
-                if(reconnect)
-                    Log.d(TAG, "Reconnected to broker");
-                else
-                    Log.d(TAG, "Connected to broker");
-                client.subscribeToTopic("user/" + username + "/profile");
-            }
+        client.connect(username, password, connectCallback, new MqttCallback() {
 
             @Override
-            public void connectionLost(Throwable cause) {
-                Log.d(TAG, "Connection to broker lost");
+            public void connectComplete(boolean reconnect, String serverURI) {
+                super.connectComplete(reconnect, serverURI);
+                Log.d(TAG, "Subscribing to user/" + username + "/profile");
+                client.subscribeToTopic("user/" + username + "/profile");
             }
 
             @Override
@@ -203,11 +197,15 @@ public class LoginActivity extends AppCompatActivity {
                 }
 
                 String json = new String(message.getPayload());
-                Log.d(TAG, "Message received: " + json);
+                Log.d(TAG, "Message received: '" + json + "'");
 
                 // Parse message into list of hospitals
-                Gson gson = new Gson();
+                GsonBuilder gsonBuilder = new GsonBuilder();
+                gsonBuilder.setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES);
+                Gson gson = gsonBuilder.create();
+
                 Profile profile = gson.fromJson(json, Profile.class);
+                Log.d(TAG, "Parsed profile: " + profile);
 
                 // Error parsing or no hospitals
                 if (profile == null) {
@@ -217,7 +215,7 @@ public class LoginActivity extends AppCompatActivity {
                 }
 
                 // Set the static list and start the new HospitalEquipmentMetadata Intent
-                HospitalListActivity.hospitalList = profile.getHospitals();
+                HospitalListActivity.hospitals = profile.getHospitals();
 
                 Intent hospitalIntent = new Intent(getApplicationContext(), HospitalListActivity.class);
                 startActivity(hospitalIntent);
@@ -228,22 +226,14 @@ public class LoginActivity extends AppCompatActivity {
                 // Clear the password field
                 EditText passwordField = (EditText) findViewById(R.id.password);
                 passwordField.setText("");
-                clearFieldFocus();
-            }
-
-            @Override
-            public void deliveryComplete(IMqttDeliveryToken token) {
-                Log.d(TAG, "Message sent successfully");
-            }
-
-            public void clearFieldFocus() {
-                System.out.println("Inside ClearFieldFocus");
-                EditText usernameField = (EditText) findViewById(R.id.username);
-                EditText passwordField = (EditText) findViewById(R.id.password);
-
-                usernameField.clearFocus();
                 passwordField.clearFocus();
+
+                EditText usernameField = (EditText) findViewById(R.id.username);
+                usernameField.clearFocus();
+
+                System.out.println("Done with LoginActivity::messageArrived");
             }
+
         });
     }
 }

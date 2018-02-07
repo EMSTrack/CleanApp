@@ -9,7 +9,7 @@ import android.support.annotation.NonNull;
 import android.support.v7.app.AlertDialog;
 
 import org.emstrack.hospital.LoginActivity;
-import org.emstrack.hospital.MqttClient;
+import org.emstrack.mqtt.MqttClient;
 
 /**
  * Created by devinhickey on 5/24/17.
@@ -22,8 +22,7 @@ public class LogoutDialog extends DialogFragment {
 
 
     public static LogoutDialog newInstance() {
-        LogoutDialog ld = new LogoutDialog();
-        return ld;
+        return new LogoutDialog();
     }
 
 

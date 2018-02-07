@@ -1,6 +1,8 @@
 package org.emstrack.hospital;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.FieldNamingPolicy;
 
 import org.junit.Test;
 import static org.junit.Assert.assertEquals;
@@ -10,11 +12,11 @@ import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.ArrayList;
 
-import org.emstrack.hospital.models.AmbulancePermission;
-import org.emstrack.hospital.models.HospitalPermission;
-import org.emstrack.hospital.models.Profile;
-import org.emstrack.hospital.models.HospitalEquipmentMetadata;
-import org.emstrack.hospital.models.HospitalEquipment;
+import org.emstrack.models.AmbulancePermission;
+import org.emstrack.models.HospitalPermission;
+import org.emstrack.models.Profile;
+import org.emstrack.models.HospitalEquipmentMetadata;
+import org.emstrack.models.HospitalEquipment;
 
 /**
  * Example local unit test, which will execute on the development machine (host).
@@ -26,26 +28,28 @@ public class JSONUnitTest {
     @Test
     public void test_profile() throws Exception {
 
-        List<AmbulancePermission> ambulances = new ArrayList<AmbulancePermission>();
+        List<AmbulancePermission> ambulances = new ArrayList<>();
         ambulances.add(new AmbulancePermission(1,"BUD1234", true, true));
         ambulances.add(new AmbulancePermission(2,"BUH4321", true, false));
 
-        List<HospitalPermission> hospitals = new ArrayList<HospitalPermission>();
-        hospitals.add(new HospitalPermission(34,"HospitalEquipmentMetadata Nuevo", true, false));
-        hospitals.add(new HospitalPermission(35,"HospitalEquipmentMetadata Viejo", true, true));
+        List<HospitalPermission> hospitals = new ArrayList<>();
+        hospitals.add(new HospitalPermission(34,"Hospital Nuevo", true, false));
+        hospitals.add(new HospitalPermission(35,"Hospital Viejo", true, true));
 
         Profile profile = new Profile();
         profile.setAmbulances(ambulances);
         profile.setHospitals(hospitals);
 
-        Gson gson = new Gson();
+        GsonBuilder gsonBuilder = new GsonBuilder();
+        gsonBuilder.setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES);
+        Gson gson = gsonBuilder.create();
 
         String to_json = gson.toJson(profile);
 
         Profile from_json = gson.fromJson(to_json, Profile.class);
 
         // Check hospital permissions
-        for (int i = 0; i < 2; i++) {
+        for (int i = 0; i < hospitals.size(); i++) {
 
             Integer expectedId = profile.getHospitals().get(i).getHospitalId();
             Integer answerId = from_json.getHospitals().get(i).getHospitalId();
@@ -66,7 +70,7 @@ public class JSONUnitTest {
         }
 
         // Check ambulance permissions
-        for (int i = 0; i < 2; i++) {
+        for (int i = 0; i < ambulances.size(); i++) {
 
             Integer expectedId = profile.getAmbulances().get(i).getAmbulanceId();
             Integer answerId = from_json.getAmbulances().get(i).getAmbulanceId();
@@ -85,12 +89,70 @@ public class JSONUnitTest {
             assertEquals(expectedCanWrite, answerCanWrite);
 
         }
+
+        to_json = "{\"ambulances\":[{\"ambulance_id\":1,\"can_write\":true,\"can_read\":true,\"ambulance_identifier\":\"BUC1234\"},{\"ambulance_id\":2,\"can_write\":true,\"can_read\":true,\"ambulance_identifier\":\"BUC4321\"}],\"hospitals\":[{\"hospital_name\":\"General Hospital\",\"can_write\":true,\"can_read\":true,\"hospital_id\":1}]}";
+
+        from_json = gson.fromJson(to_json, Profile.class);
+
+        ambulances = new ArrayList<>();
+        ambulances.add(new AmbulancePermission(1,"BUC1234", true, true));
+        ambulances.add(new AmbulancePermission(2,"BUC4321", true, true));
+
+        hospitals = new ArrayList<>();
+        hospitals.add(new HospitalPermission(1,"General Hospital", true, true));
+
+        profile = new Profile();
+        profile.setAmbulances(ambulances);
+        profile.setHospitals(hospitals);
+
+        // Check hospital permissions
+        for (int i = 0; i < hospitals.size(); i++) {
+
+            Integer expectedId = profile.getHospitals().get(i).getHospitalId();
+            Integer answerId = from_json.getHospitals().get(i).getHospitalId();
+            assertEquals(expectedId, answerId);
+
+            String expectedName = profile.getHospitals().get(i).getHospitalName();
+            String answerName = from_json.getHospitals().get(i).getHospitalName();
+            assertEquals(expectedName, answerName);
+
+            boolean expectedCanRead = profile.getHospitals().get(i).isCanRead();
+            boolean answerCanRead = from_json.getHospitals().get(i).isCanRead();
+            assertEquals(expectedCanRead, answerCanRead);
+
+            boolean expectedCanWrite = profile.getHospitals().get(i).isCanWrite();
+            boolean answerCanWrite = from_json.getHospitals().get(i).isCanWrite();
+            assertEquals(expectedCanWrite, answerCanWrite);
+
+        }
+
+        // Check ambulance permissions
+        for (int i = 0; i < ambulances.size(); i++) {
+
+            Integer expectedId = profile.getAmbulances().get(i).getAmbulanceId();
+            Integer answerId = from_json.getAmbulances().get(i).getAmbulanceId();
+            assertEquals(expectedId, answerId);
+
+            String expectedIdentifier = profile.getAmbulances().get(i).getAmbulanceIdentifier();
+            String answerIdentifier = from_json.getAmbulances().get(i).getAmbulanceIdentifier();
+            assertEquals(expectedIdentifier, answerIdentifier);
+
+            boolean expectedCanRead = profile.getAmbulances().get(i).isCanRead();
+            boolean answerCanRead = from_json.getAmbulances().get(i).isCanRead();
+            assertEquals(expectedCanRead, answerCanRead);
+
+            boolean expectedCanWrite = profile.getAmbulances().get(i).isCanWrite();
+            boolean answerCanWrite = from_json.getAmbulances().get(i).isCanWrite();
+            assertEquals(expectedCanWrite, answerCanWrite);
+
+        }
+        
     }
 
     @Test
     public void test_hospital_equipment_metadata() throws Exception {
 
-        List<HospitalEquipmentMetadata> metadata = new ArrayList<HospitalEquipmentMetadata>();
+        List<HospitalEquipmentMetadata> metadata = new ArrayList<>();
         metadata.add(new HospitalEquipmentMetadata(1,"beds", 'I', true));
         metadata.add(new HospitalEquipmentMetadata(2,"x-ray", 'B', true));
 

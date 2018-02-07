@@ -1,5 +1,8 @@
 package org.emstrack.hospital;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -8,17 +11,13 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
-
-
 import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.Toast;
+import android.util.Log;
 
 import org.emstrack.hospital.dialogs.LogoutDialog;
-import org.emstrack.hospital.models.HospitalPermission;
-
-import java.util.ArrayList;
-import java.util.List;
+import org.emstrack.models.HospitalPermission;
 
 /**
  * Created by devinhickey on 5/24/17.
@@ -27,10 +26,15 @@ import java.util.List;
 public class HospitalListActivity extends AppCompatActivity {
 
     // TODO instantiate this just in case?
-    public static List<HospitalPermission> hospitalList;
+    public static List<HospitalPermission> hospitals;
+
+    private static final String TAG = "HospitalListActivity";
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
+
+        Log.d(TAG, "onCreate");
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_hospital_list);
 
@@ -49,7 +53,7 @@ public class HospitalListActivity extends AppCompatActivity {
         });
 
         // No hospitals associated with this account
-        if (hospitalList.size() < 1) {
+        if (hospitals.size() < 1) {
             Toast toast = new Toast(this);
             toast.setText("This account has no hospitals associated with it!");
             toast.setDuration(Toast.LENGTH_LONG);
@@ -57,10 +61,13 @@ public class HospitalListActivity extends AppCompatActivity {
             return;
         }
 
+        Log.d(TAG, "Creating hospital list...");
+
         // Creates string arraylist of hospital names
         ArrayList<String> listObjects = new ArrayList<>();
-        for (int i = 0; i < hospitalList.size(); i++) {
-            listObjects.add(hospitalList.get(i).getHospitalName());
+        for (HospitalPermission hospital : hospitals) {
+            Log.d(TAG, "Adding hospital " + hospital.getHospitalName());
+            listObjects.add(hospital.getHospitalName());
         }
 
         // Create the Spinner connection
@@ -78,7 +85,7 @@ public class HospitalListActivity extends AppCompatActivity {
         });
 
         // Create the basic adapter
-        ArrayAdapter<String> hospitalListAdapter = new ArrayAdapter<String>(this,
+        ArrayAdapter<String> hospitalListAdapter = new ArrayAdapter<>(this,
                 android.R.layout.simple_spinner_item, listObjects);
         hospitalListAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 
@@ -94,7 +101,7 @@ public class HospitalListActivity extends AppCompatActivity {
 
                 int position = hospitalSpinner.getSelectedItemPosition();
                 System.out.println("Position Selected: " + position);
-                HospitalPermission selectedHospital = hospitalList.get(position);
+                HospitalPermission selectedHospital = hospitals.get(position);
                 System.out.println("Selected HospitalEquipmentMetadata: " + selectedHospital.getHospitalName());
 
                 // Set the static list of HospitalEquipment in Dashboard

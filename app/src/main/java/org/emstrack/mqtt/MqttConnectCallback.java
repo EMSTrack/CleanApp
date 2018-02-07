@@ -1,4 +1,4 @@
-package org.emstrack.hospital.interfaces;
+package org.emstrack.mqtt;
 
 /**
  * Created by Fabian Choi on 5/31/2017.

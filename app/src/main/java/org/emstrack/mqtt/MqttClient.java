@@ -1,11 +1,10 @@
-package org.emstrack.hospital;
+package org.emstrack.mqtt;
 
 import android.content.Context;
 import android.util.Log;
 
-import org.emstrack.hospital.interfaces.MqttConnectCallback;
-
 import org.eclipse.paho.android.service.MqttAndroidClient;
+
 import org.eclipse.paho.client.mqttv3.DisconnectedBufferOptions;
 import org.eclipse.paho.client.mqttv3.IMqttActionListener;
 import org.eclipse.paho.client.mqttv3.IMqttToken;
@@ -20,6 +19,7 @@ import org.eclipse.paho.client.mqttv3.MqttMessage;
  * Singleton that connects to the Mqtt broker.
  */
 public class MqttClient {
+
     private static final String TAG = MqttClient.class.getSimpleName();
     private static MqttClient instance;
     private static Context context;
@@ -28,13 +28,35 @@ public class MqttClient {
 
     private final String serverUri = "ssl://cruzroja.ucsd.edu:8883";
     private String clientId = "HospitalAppClient-";
+    private boolean connected = false;
+
+    /* MQTT Client is a thread-safe singleton
+     * see: https://www.javaworld.com/article/2073352/core-java/simply-singleton.html
+     */
 
     private MqttClient(Context context) {
         MqttClient.context = context;
-        clientId += System.currentTimeMillis();
+        this.clientId += System.currentTimeMillis();
+        this.connected = false;
 
         // Initialize the client
-        mqttClient = new MqttAndroidClient(context, serverUri, clientId);
+        this.mqttClient = new MqttAndroidClient(context, serverUri, clientId);
+    }
+
+    /**
+     * Returns existing instance or creates if none exist
+     * @param context Context
+     * @return Existing or new instance of the client
+     */
+    public static synchronized MqttClient getInstance(Context context) {
+        if(instance == null) {
+            instance = new MqttClient(context);
+        }
+        return instance;
+    }
+
+    public boolean isConnected() {
+        return connected;
     }
 
     /**
@@ -44,8 +66,15 @@ public class MqttClient {
      * @param password Password
      * @param callback Actions to complete on connection
      */
-    public void connect(String username, String password, final MqttConnectCallback connectCallback,
+    public void connect(String username, String password,
+                        final MqttConnectCallback connectCallback,
                         final MqttCallbackExtended callback) {
+
+        // if connected, disconnect first
+        if (isConnected()) {
+            disconnect();
+        }
+
         // Set callback options
         mqttClient.setCallback(callback);
 
@@ -58,6 +87,7 @@ public class MqttClient {
 
         try {
             mqttClient.connect(mqttConnectOptions, null, new IMqttActionListener() {
+
                 @Override
                 public void onSuccess(IMqttToken asyncActionToken) {
                     Log.d(TAG, "Connection to broker successful as clientId = " + clientId);
@@ -67,12 +97,14 @@ public class MqttClient {
                     disconnectedBufferOptions.setPersistBuffer(false);
                     disconnectedBufferOptions.setDeleteOldestMessages(false);
                     mqttClient.setBufferOpts(disconnectedBufferOptions);
+                    connected = true;
                 }
 
                 @Override
                 public void onFailure(IMqttToken asyncActionToken, Throwable exception) {
                     Log.d(TAG, "Connection to broker failed");
                     Log.e(TAG, exception.getMessage());
+                    connected = false;
 
                     // Set alert if login is wrong
                     //Toast.makeText(context, "Wrong login information!", Toast.LENGTH_LONG).show();
@@ -83,6 +115,7 @@ public class MqttClient {
         } catch (MqttException ex) {
             ex.printStackTrace();
         }
+
     }
 
     /**
@@ -97,9 +130,9 @@ public class MqttClient {
      * Subscribe to a topic
      * @param topic Topic to subscribe
      */
-    public void subscribeToTopic(final String topic) {
+    public void subscribeToTopic(final String topic, int qos) {
         try {
-            mqttClient.subscribe(topic, 0, null, new IMqttActionListener() {
+            mqttClient.subscribe(topic, qos, null, new IMqttActionListener() {
                 @Override
                 public void onSuccess(IMqttToken asyncActionToken) {
                     Log.d(TAG, "Subscribed to " + topic + " successfully");
@@ -115,19 +148,25 @@ public class MqttClient {
             ex.printStackTrace();
         }
     }
+    public void subscribeToTopic(final String topic) {
+        this.subscribeToTopic(topic, 1);
+    }
 
     /**
      * Subscribe to a topic with callback
      * @param topic Topic to subscribe
      * @param callback Callback
      */
-    public void subscribeToTopic(final String topic, IMqttActionListener callback) {
+    public void subscribeToTopic(final String topic, int qos, IMqttActionListener callback) {
         try {
-            mqttClient.subscribe(topic, 0, null, callback);
+            mqttClient.subscribe(topic, qos, null, callback);
         } catch (MqttException ex){
             Log.e(TAG, "Error while subscribing to " + topic);
             ex.printStackTrace();
         }
+    }
+    public void subscribeToTopic(final String topic, IMqttActionListener callback) {
+        this.subscribeToTopic(topic, 1, callback);
     }
 
     public void publishMessage(String topic, String message) {
@@ -151,20 +190,4 @@ public class MqttClient {
         }
     }
 
-    /**
-     * Returns existing instance or creates if none exist
-     * @param context Context
-     * @return Existing or new instance of the client
-     */
-    public static synchronized MqttClient getInstance(Context context) {
-        if(instance == null) {
-            instance = new MqttClient(context);
-        }
-        return instance;
-    }
-
-    public static synchronized MqttClient getOnlyInstance(Context context) {
-        instance = new MqttClient(context);
-        return instance;
-    }
 }

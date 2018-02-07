@@ -16,7 +16,7 @@ import org.emstrack.hospital.interfaces.DataListener;
 import org.emstrack.hospital.R;
 import org.emstrack.hospital.dialogs.ToggleDialog;
 import org.emstrack.hospital.dialogs.ValueDialog;
-import org.emstrack.hospital.models.HospitalEquipment;
+import org.emstrack.models.HospitalEquipment;
 
 import java.util.ArrayList;
 
@@ -108,7 +108,7 @@ public class ListAdapter extends ArrayAdapter<HospitalEquipment> {
                         String title = ((TextView) row.findViewById(R.id.toggleTextView)).getText().toString();
                         String message = "¿Está disponible este recurso?";
                         String value = equipmentItem.getValue();
-                        boolean toggled = (value == "True");
+                        boolean toggled = (value.equals("True"));
 
                         ToggleDialog td = ToggleDialog.newInstance(title, message, toggled, value);
                         td.setOnDataChangedListener(dr);
@@ -118,7 +118,7 @@ public class ListAdapter extends ArrayAdapter<HospitalEquipment> {
                 });
 
                 // Check which image to set
-                if (equipmentItem.getValue() == "True") {
+                if (equipmentItem.getValue().equals("True")) {
                     image.setImageResource(R.drawable.green_check);
                 } else {
                     image.setImageResource(R.drawable.redx);
