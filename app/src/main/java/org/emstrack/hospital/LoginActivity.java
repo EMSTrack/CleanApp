@@ -43,15 +43,27 @@ public class LoginActivity extends AppCompatActivity {
 
     private String username;
     private String password;
-    private String user_error = "Por favor introduzca un nombre de usuario valido.  Campo no puede ser dejado en blanco";
-    private String pass_error = "Por favor introduzca una contraseña válida.  Campo no puede ser dejado en blanco";
-    private String invalid_creds = "Por favor introduzca credenciales válidas.";
-    private String no_hospital_error = "Ningun hospital esta asociado con esta cuenta!";
+
+    /* strings */
+    private String alert_error_title;
+    private String alert_button_positive_text;
+    private String please_wait;
+    private String user_error;
+    private String pass_error;
+    private String invalid_creds;
 
     private ProgressDialog progressDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
+        alert_error_title = getResources().getString(R.string.alert_error_title);
+        alert_button_positive_text = getResources().getString(R.string.alert_button_positive_text);
+        please_wait = getResources().getString(R.string.please_wait);
+        user_error = getResources().getString(R.string.user_error);
+        pass_error = getResources().getString(R.string.pass_error);
+        invalid_creds = getResources().getString(R.string.invalid_creds);
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
@@ -144,9 +156,9 @@ public class LoginActivity extends AppCompatActivity {
 
     public void alertEmptyLogin(Activity activity, String msg) {
         AlertDialog alertDialog = new AlertDialog.Builder(activity).create();
-        alertDialog.setTitle("Error");
+        alertDialog.setTitle(alert_error_title);
         alertDialog.setMessage(msg);
-        alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, "OK",
+        alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, alert_button_positive_text,
                 new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int which) {
                         dialog.dismiss();
@@ -157,7 +169,7 @@ public class LoginActivity extends AppCompatActivity {
 
     public void showLoadingScreen(){
         progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-        progressDialog.setMessage("Por favor espere...");
+        progressDialog.setMessage(please_wait);
         progressDialog.setIndeterminate(true);
         progressDialog.setCanceledOnTouchOutside(false);
         progressDialog.show();
@@ -231,7 +243,7 @@ public class LoginActivity extends AppCompatActivity {
                 EditText usernameField = (EditText) findViewById(R.id.username);
                 usernameField.clearFocus();
 
-                System.out.println("Done with LoginActivity::messageArrived");
+                Log.d(TAG, "Done with LoginActivity::messageArrived");
             }
 
         });

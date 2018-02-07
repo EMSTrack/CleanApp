@@ -16,16 +16,19 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
-import org.eclipse.paho.client.mqttv3.MqttCallbackExtended;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
-import org.emstrack.mqtt.MqttClient;
 import org.emstrack.hospital.adapters.ListAdapter;
 import org.emstrack.hospital.dialogs.LogoutDialog;
 import org.emstrack.hospital.interfaces.DataListener;
+
+import org.emstrack.mqtt.MqttClient;
+import org.emstrack.mqtt.MqttCallback;
+
 import org.emstrack.models.HospitalEquipment;
 import org.emstrack.models.HospitalEquipmentMetadata;
 import org.emstrack.models.HospitalPermission;
+
 
 /**
  * Created by devinhickey on 4/20/17.
@@ -35,12 +38,9 @@ public class DashboardActivity extends AppCompatActivity {
 
     private static final String TAG = DashboardActivity.class.getSimpleName();
 
+    private ListAdapter adapter;
     private MqttClient client;
     public static HospitalPermission selectedHospital;
-    public static HospitalEquipmentMetadata[] equipmentMetadata;
-
-    private ListAdapter adapter;
-
     private int hospitalId;
 
     @Override
@@ -82,19 +82,7 @@ public class DashboardActivity extends AppCompatActivity {
 
         // Mqtt
         client = MqttClient.getInstance(this);
-        client.setCallback(new MqttCallbackExtended() {
-            @Override
-            public void connectComplete(boolean reconnect, String serverURI) {
-                if(reconnect)
-                    Log.d(TAG, "Reconnected to broker");
-                else
-                    Log.d(TAG, "Connected to broker");
-            }
-
-            @Override
-            public void connectionLost(Throwable cause) {
-                Log.d(TAG, "Connection to broker lost");
-            }
+        client.setCallback(new MqttCallback() {
 
             @Override
             public void messageArrived(String topic, MqttMessage message) throws Exception {
@@ -108,9 +96,8 @@ public class DashboardActivity extends AppCompatActivity {
 
                 // Message from receiving metadata; subscribe to equipments
                 if (topic.contains("metadata")) {
-                    Log.d(TAG, "Message arrived: " + text);
                     // Parse to hospital object
-                    equipmentMetadata = gson.fromJson(text, HospitalEquipmentMetadata[].class);
+                    HospitalEquipmentMetadata[] equipmentMetadata = gson.fromJson(text, HospitalEquipmentMetadata[].class);
                     for (HospitalEquipmentMetadata equipment : equipmentMetadata) {
                         client.subscribeToTopic("hospital/" + hospitalId + "/equipment/" + equipment.getName() +"/data");
                     }
@@ -120,7 +107,6 @@ public class DashboardActivity extends AppCompatActivity {
                 else if (topic.contains("equipment")) {
                     // Found item in the hospital equipments object
                     HospitalEquipment equipment = gson.fromJson(text, HospitalEquipment.class);
-                    Log.d(TAG, "Message arrived: " +  equipment.getEquipmentName() + "@" + equipment.getValue());
                     refreshOrAddItem(equipment);
                 }
             }
@@ -140,10 +126,9 @@ public class DashboardActivity extends AppCompatActivity {
      * @param equipment The updated or new equipment to reflect in the ui
      */
     private void refreshOrAddItem(HospitalEquipment equipment) {
-        System.out.println("Inside Refresh Or Add Item");
+        Log.d(TAG, "Inside Refresh Or Add Item");
         adapter.add(equipment);
-        // adapter.notifyDataSetChanged(); // Update UI
-        System.out.println("After Refresh Or Add Item");
+        Log.d(TAG, "After Refresh Or Add Item");
     }
 
     @Override

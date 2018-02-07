@@ -22,7 +22,6 @@ public class MqttClient {
 
     private static final String TAG = MqttClient.class.getSimpleName();
     private static MqttClient instance;
-    private static Context context;
 
     private MqttAndroidClient mqttClient;
 
@@ -35,7 +34,6 @@ public class MqttClient {
      */
 
     private MqttClient(Context context) {
-        MqttClient.context = context;
         this.clientId += System.currentTimeMillis();
         this.connected = false;
 

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="alert_error_title">Error</string>
+    <string name="alert_button_positive_text">OK</string>
+    <string name="please_wait">Por favor espere...</string>
+
+    <string name="username">Usuário</string>
+    <string name="password">Contraseña</string>
+    <string name="remember_user">Recordar usuário</string>
+    <string name="login">Acceder</string>
+
+    <string name="user_error">Por favor introduzca un nombre de usuario válido.</string>
+    <string name="pass_error">Por favor introduzca una contraseña válida.</string>
+    <string name="invalid_creds">Por favor introduzca credenciales válidas.</string>
+
+    <string name="no_hospital_error">Ningún hospital esta asociado con esta cuenta.</string>
+
+</resources>

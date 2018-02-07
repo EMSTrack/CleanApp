@@ -61,9 +61,8 @@ public class HospitalListActivity extends AppCompatActivity {
             return;
         }
 
-        Log.d(TAG, "Creating hospital list...");
-
         // Creates string arraylist of hospital names
+        Log.d(TAG, "Creating hospital list...");
         ArrayList<String> listObjects = new ArrayList<>();
         for (HospitalPermission hospital : hospitals) {
             Log.d(TAG, "Adding hospital " + hospital.getHospitalName());
@@ -75,12 +74,12 @@ public class HospitalListActivity extends AppCompatActivity {
         hospitalSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                System.out.println("OnItemSelected Called");
+                Log.d(TAG, "OnItemSelected Called");
             }
 
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
-                System.out.println("OnNothingSelected Called");
+                Log.d(TAG, "OnNothingSelected Called");
             }
         });
 
@@ -97,12 +96,12 @@ public class HospitalListActivity extends AppCompatActivity {
         submitHospitalButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                System.out.println("HospitalEquipmentMetadata Submit Button Clicked");
+                Log.d(TAG, "HospitalEquipmentMetadata Submit Button Clicked");
 
                 int position = hospitalSpinner.getSelectedItemPosition();
-                System.out.println("Position Selected: " + position);
+                Log.d(TAG, "Position Selected: " + position);
                 HospitalPermission selectedHospital = hospitals.get(position);
-                System.out.println("Selected HospitalEquipmentMetadata: " + selectedHospital.getHospitalName());
+                Log.d(TAG, "Selected HospitalEquipmentMetadata: " + selectedHospital.getHospitalName());
 
                 // Set the static list of HospitalEquipment in Dashboard
                 Intent dashboard = new Intent(HospitalListActivity.this, DashboardActivity.class);

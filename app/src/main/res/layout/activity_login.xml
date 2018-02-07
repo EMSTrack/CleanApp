@@ -63,7 +63,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="0.8"
-            android:hint="Usuario"
+            android:hint="@string/username"
             android:inputType="text"
             android:textAlignment="center" />
 
@@ -94,7 +94,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="0.8"
             android:ems="10"
-            android:hint="Contrasena"
+            android:hint="@string/password"
             android:inputType="textPassword"
             android:textAlignment="center" />
 
@@ -126,8 +126,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="0.0"
-                android:text="Recordar usuario"
-                android:textAlignment="center"/>
+                android:text="@string/remember_user"
+                android:textAlignment="center" />
 
             <TextView
                 android:layout_width="wrap_content"
@@ -154,7 +154,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="0.4"
-            android:text="ACCEDER" />
+            android:text="@string/login" />
 
         <TextView
             android:layout_width="wrap_content"

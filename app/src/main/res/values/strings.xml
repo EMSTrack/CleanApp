@@ -1,5 +1,22 @@
 <resources>
-    <string name="app_name">    Hospital</string>
-    <string name="imageDescr">    Toggle image description</string>
-    <string name="textDescr">    Value text description</string>
+
+    <string name="app_name">Hospital</string>
+    <string name="imageDescr">Toggle image description</string>
+    <string name="textDescr">Value text description</string>
+
+    <string name="alert_error_title">Error</string>
+    <string name="alert_button_positive_text">OK</string>
+    <string name="please_wait">Please wait...</string>
+
+    <string name="username">Username</string>
+    <string name="password">Password</string>
+    <string name="remember_user">Remember user</string>
+    <string name="login">LOGIN</string>
+
+    <string name="user_error">Please provide a valid user name.</string>
+    <string name="pass_error">Please provide a valid password.</string>
+    <string name="invalid_creds">Please provide valide credentials.</string>
+
+    <string name="no_hospital_error">No hospitals are associated with this account.</string>
+
 </resources>

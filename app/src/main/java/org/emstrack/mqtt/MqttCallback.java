@@ -31,4 +31,4 @@ public abstract class MqttCallback implements MqttCallbackExtended {
         Log.d(TAG, "Message sent successfully");
     }
 
-};
+}
