@@ -30,6 +30,7 @@ import org.emstrack.models.Profile;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
 public class LoginActivity extends AppCompatActivity {
+
     private SharedPreferences creds_prefs = null;
     SharedPreferences.Editor editor = null;
     private MqttClient client;
@@ -191,6 +192,7 @@ public class LoginActivity extends AppCompatActivity {
 
             @Override
             public void connectComplete(boolean reconnect, String serverURI) {
+                // Call supper
                 super.connectComplete(reconnect, serverURI);
                 Log.d(TAG, "Subscribing to user/" + username + "/profile");
                 client.subscribeToTopic("user/" + username + "/profile");

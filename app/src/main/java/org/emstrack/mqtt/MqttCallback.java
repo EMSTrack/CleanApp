@@ -15,6 +15,7 @@ public abstract class MqttCallback implements MqttCallbackExtended {
 
     @Override
     public void connectComplete(boolean reconnect, String serverURI) {
+        // TODO: Handle reconnection properly
         if (reconnect)
             Log.d(TAG, "Reconnected to broker");
         else
@@ -23,6 +24,7 @@ public abstract class MqttCallback implements MqttCallbackExtended {
 
     @Override
     public void connectionLost(Throwable cause) {
+        // TODO: Handle reconnection properly
         Log.d(TAG, "Connection to broker lost");
     }
 
