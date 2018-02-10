@@ -4,6 +4,7 @@ package org.emstrack.models;
  * Created by mauricio on 2/7/18.
  */
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -59,5 +60,13 @@ public class Settings {
         this.defaults = defaults;
     }
 
+    @Override
+    public String toString() {
+        return "settings:" +
+               "\nambulanceCapability = " + Arrays.toString(ambulanceCapability.entrySet().toArray()) +
+               "\nambulanceStatus = " + Arrays.toString(ambulanceStatus.entrySet().toArray()) +
+               "\nequipmentType = " + Arrays.toString(equipmentType.entrySet().toArray()) +
+               "\ndefaults = " + defaults;
+    }
 }
 

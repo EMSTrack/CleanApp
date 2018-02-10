@@ -257,7 +257,7 @@ public class ModelsUnitTest {
 
         Defaults defaults = new Defaults(new Location(32.5149,-117.0382),"BC","Tijuana","MX");
 
-        Settings settings = new Settings(ambulanceStatus, ambulanceCapability, equipmentType, defaults);
+        Settings settings = new Settings(ambulanceCapability, ambulanceStatus, equipmentType, defaults);
 
         GsonBuilder gsonBuilder = new GsonBuilder();
         gsonBuilder.setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES);
@@ -270,29 +270,80 @@ public class ModelsUnitTest {
         double epsilon = 1e-4;
 
         Defaults expectedDefaults = settings.getDefaults();
-        Defaults answerDefaults  = from_json.getDefaults();
+        Defaults answerDefaults = from_json.getDefaults();
         assertEquals(expectedDefaults.getCity(), answerDefaults.getCity());
         assertEquals(expectedDefaults.getState(), answerDefaults.getState());
         assertEquals(expectedDefaults.getCountry(), answerDefaults.getCountry());
         assertEquals(expectedDefaults.getLocation().getLatitude(), answerDefaults.getLocation().getLatitude(), epsilon);
         assertEquals(expectedDefaults.getLocation().getLongitude(), answerDefaults.getLocation().getLongitude(), epsilon);
 
+        Map<String,String> expectedAmbulanceCapability = settings.getAmbulanceCapability();
+        Map<String,String> answerAmbulanceCapability = from_json.getAmbulanceCapability();
+        for (Map.Entry<String,String> entry : expectedAmbulanceCapability.entrySet()) {
+            assertEquals(entry.getValue(), answerAmbulanceCapability.get(entry.getKey()));
+        }
+
         Map<String,String> expectedAmbulanceStatus = settings.getAmbulanceStatus();
-        Map<String,String> answerAmbulanceStatus = settings.getAmbulanceStatus();
+        Map<String,String> answerAmbulanceStatus = from_json.getAmbulanceStatus();
         for (Map.Entry<String,String> entry : expectedAmbulanceStatus.entrySet()) {
             assertEquals(entry.getValue(), answerAmbulanceStatus.get(entry.getKey()));
         }
 
         Map<String,String> expectedEquipmentType = settings.getEquipmentType();
-        Map<String,String> answerEquipmentType = settings.getEquipmentType();
+        Map<String,String> answerEquipmentType = from_json.getEquipmentType();
         for (Map.Entry<String,String> entry : expectedEquipmentType.entrySet()) {
             assertEquals(entry.getValue(), answerEquipmentType.get(entry.getKey()));
         }
 
-        Map<String,String> expectedAmbulanceCapability = settings.getAmbulanceCapability();
-        Map<String,String> answerAmbulanceCapability = settings.getAmbulanceCapability();
+        to_json = "{\"ambulance_status\":{\"PB\":\"Patient bound\",\"HB\":\"Hospital bound\",\"UK\":\"Unknown\",\"AH\":\"At hospital\",\"AV\":\"Available\",\"AP\":\"At patient\",\"OS\":\"Out of service\"},\"defaults\":{\"state\":\"BC\",\"location\":{\"latitude\":\"32.5149\",\"longitude\":\"-117.0382\"},\"city\":\"Tijuana\",\"country\":\"MX\"},\"equipment_type\":{\"I\":\"Integer\",\"S\":\"String\",\"B\":\"Boolean\"},\"ambulance_capability\":{\"R\":\"Rescue\",\"B\":\"Basic\",\"A\":\"Advanced\"}}";
+
+        from_json = gson.fromJson(to_json, Settings.class);
+
+        ambulanceStatus = new HashMap<String,String>();
+        ambulanceStatus.put("UK", "Unknown");
+        ambulanceStatus.put("AV", "Available");
+        ambulanceStatus.put("OS", "Out of service");
+        ambulanceStatus.put("AH", "At hospital");
+        ambulanceStatus.put("HB", "Hospital bound");
+        ambulanceStatus.put("PB", "Patient bound");
+        ambulanceStatus.put("AP", "At patient");
+
+        ambulanceCapability = new HashMap<String,String>();
+        ambulanceCapability.put("B", "Basic");
+        ambulanceCapability.put("A", "Advanced");
+        ambulanceCapability.put("R", "Rescue");
+
+        equipmentType = new HashMap<String,String>();
+        equipmentType.put("B", "Boolean");
+        equipmentType.put("I", "Integer");
+        equipmentType.put("S", "String");
+
+        settings = new Settings(ambulanceCapability, ambulanceStatus, equipmentType, defaults);
+
+        expectedDefaults = settings.getDefaults();
+        answerDefaults = from_json.getDefaults();
+        assertEquals(expectedDefaults.getCity(), answerDefaults.getCity());
+        assertEquals(expectedDefaults.getState(), answerDefaults.getState());
+        assertEquals(expectedDefaults.getCountry(), answerDefaults.getCountry());
+        assertEquals(expectedDefaults.getLocation().getLatitude(), answerDefaults.getLocation().getLatitude(), epsilon);
+        assertEquals(expectedDefaults.getLocation().getLongitude(), answerDefaults.getLocation().getLongitude(), epsilon);
+
+        expectedAmbulanceCapability = settings.getAmbulanceCapability();
+        answerAmbulanceCapability = from_json.getAmbulanceCapability();
         for (Map.Entry<String,String> entry : expectedAmbulanceCapability.entrySet()) {
             assertEquals(entry.getValue(), answerAmbulanceCapability.get(entry.getKey()));
+        }
+
+        expectedAmbulanceStatus = settings.getAmbulanceStatus();
+        answerAmbulanceStatus = from_json.getAmbulanceStatus();
+        for (Map.Entry<String,String> entry : expectedAmbulanceStatus.entrySet()) {
+            assertEquals(entry.getValue(), answerAmbulanceStatus.get(entry.getKey()));
+        }
+
+        expectedEquipmentType = settings.getEquipmentType();
+        answerEquipmentType = from_json.getEquipmentType();
+        for (Map.Entry<String,String> entry : expectedEquipmentType.entrySet()) {
+            assertEquals(entry.getValue(), answerEquipmentType.get(entry.getKey()));
         }
 
 
