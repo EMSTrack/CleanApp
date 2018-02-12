@@ -45,6 +45,7 @@ dependencies {
     compile 'com.daimajia.swipelayout:library:1.2.0@aar'
 
     compile project(':models')
+    compile project (':mqtt')
 
     testCompile 'junit:junit:4.12'
 }

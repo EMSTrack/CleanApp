@@ -39,12 +39,12 @@ public class MqttInstrumentedTest {
 
         // Test login
         profileClient.connect(username, password);
-        Thread.sleep(1000);
+        Thread.sleep(2000);
         assertEquals(true, profileClient.isConnected());
 
         // Test logout
         profileClient.disconnect();
-        Thread.sleep(1000);
+        Thread.sleep(2000);
         assertEquals(false, profileClient.isConnected());
 
         // Test login
@@ -73,8 +73,13 @@ public class MqttInstrumentedTest {
 
         assertEquals("org.emstrack.mqtt.test", appContext.getPackageName());
 
+        final String username = "admin";
+        final String password = "cruzrojaadmin";
 
-
+        MqttAndroidClientModule clientModule = new MqttAndroidClientModule(appContext, username, password);
+        MqttAndroidClientComponent component = DaggerMqttAndroidClientComponent.builder()
+                .mqttAndroidClientModule(clientModule)
+                .build();
 
     }
 }

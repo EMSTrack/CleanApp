@@ -172,6 +172,7 @@ public class MqttClient {
             MqttMessage mqttMessage = new MqttMessage();
             mqttMessage.setPayload(message.getBytes());
             mqttMessage.setRetained(true);
+            Log.e(TAG, "Publishing message '" + message + "' to topic '" + topic + "'");
             mqttClient.publish(topic, mqttMessage);
         } catch (MqttException e) {
             Log.e(TAG, "Failed to publish to " + topic);

@@ -15,14 +15,16 @@ public class MqttAndroidClientModule {
 
     private final String host;
     private final String clientId;
+    private final Context context;
 
-    public MqttAndroidClientModule(String host, String clientId) {
+    public MqttAndroidClientModule(Context context, String host, String clientId) {
         this.host = host;
         this.clientId = clientId;
+        this.context = context;
     }
 
     @Provides
-    MqttAndroidClient provideMqttAndroidClient(Context context) {
+    MqttAndroidClient provideMqttAndroidClient() {
         return new MqttAndroidClient(context, host, clientId);
     }
 

@@ -75,6 +75,7 @@ public class DashboardActivity extends AppCompatActivity {
             @Override
             public void onDataChanged(String name, String data) {
                 Log.d(TAG, "onDataChanged: " + name + "@" + data);
+                // TODO: Fix publication to "/user/{username}/hospital/{id}/equipment/{name}/data"
                 client.publishMessage("hospital/" + hospitalId + "/equipment/" + name, data);
             }
         });
