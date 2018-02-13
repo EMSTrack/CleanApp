@@ -38,7 +38,17 @@ public class MqttInstrumentedTest {
         MqttProfileClient profileClient = new MqttProfileClient(client);
 
         // Test login
-        profileClient.connect(username, password);
+        profileClient.connect(username, password, new MqttProfileCallback() {
+            @Override
+            public void onSuccess() {
+                assertEquals(true, true);
+            }
+
+            @Override
+            public void onFailure(Throwable exception) {
+                assertEquals(true, false);
+            }
+        });
         Thread.sleep(2000);
         assertEquals(true, profileClient.isConnected());
 
@@ -48,7 +58,28 @@ public class MqttInstrumentedTest {
         assertEquals(false, profileClient.isConnected());
 
         // Test login
-        profileClient.connect(username, password);
+        profileClient.setCallback(new MqttProfileCallback() {
+            @Override
+            public void onSuccess() {
+                assertEquals(true, true);
+            }
+
+            @Override
+            public void onFailure(Throwable exception) {
+                assertEquals(true, false);
+            }
+        });
+        profileClient.connect(username, password, new MqttProfileCallback() {
+            @Override
+            public void onSuccess() {
+                assertEquals(true, true);
+            }
+
+            @Override
+            public void onFailure(Throwable exception) {
+                assertEquals(true, false);
+            }
+        });
         Thread.sleep(2000);
         assertEquals(true, profileClient.isConnected());
 
@@ -64,22 +95,4 @@ public class MqttInstrumentedTest {
 
     }
 
-    @Test
-    public void testDaggerMqttProfileClient() throws Exception {
-
-        // Context of the app under test.
-        Context appContext = InstrumentationRegistry.getTargetContext();
-        Thread.sleep(1000);
-
-        assertEquals("org.emstrack.mqtt.test", appContext.getPackageName());
-
-        final String username = "admin";
-        final String password = "cruzrojaadmin";
-
-        MqttAndroidClientModule clientModule = new MqttAndroidClientModule(appContext, username, password);
-        MqttAndroidClientComponent component = DaggerMqttAndroidClientComponent.builder()
-                .mqttAndroidClientModule(clientModule)
-                .build();
-
-    }
 }

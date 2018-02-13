@@ -15,15 +15,15 @@ import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
-import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
+import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
 import org.emstrack.hospital.adapters.ListAdapter;
 import org.emstrack.hospital.dialogs.LogoutDialog;
 import org.emstrack.hospital.interfaces.DataListener;
 
-import org.emstrack.mqtt.MqttClient;
-import org.emstrack.mqtt.MqttCallback;
+import org.emstrack.mqtt.MqttProfileClient;
+import org.emstrack.mqtt.MqttProfileMessageCallback;
 
 import org.emstrack.models.HospitalEquipment;
 import org.emstrack.models.HospitalEquipmentMetadata;
@@ -37,9 +37,8 @@ import org.emstrack.models.HospitalPermission;
 public class DashboardActivity extends AppCompatActivity {
 
     private static final String TAG = DashboardActivity.class.getSimpleName();
-
     private ListAdapter adapter;
-    private MqttClient client;
+
     public static HospitalPermission selectedHospital;
     private int hospitalId;
 
@@ -55,7 +54,7 @@ public class DashboardActivity extends AppCompatActivity {
         getSupportActionBar().setCustomView(R.layout.maintitlebar);
 
         View view = getSupportActionBar().getCustomView();
-        ImageView imageButton= (ImageView)view.findViewById(R.id.LogoutBtn);
+        ImageView imageButton= view.findViewById(R.id.LogoutBtn);
         imageButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -68,58 +67,76 @@ public class DashboardActivity extends AppCompatActivity {
         // Get data from Login and place it into the hospital
         hospitalId = selectedHospital.getHospitalId();
 
+        // Retrieve client
+        final MqttProfileClient profileClient = ((HospitalApp) getApplication()).getProfileClient();
+
         // Set list adapter
-        ListView lv = (ListView) findViewById(R.id.dashboardListView);
+        ListView lv = findViewById(R.id.dashboardListView);
         adapter = new ListAdapter(this, new ArrayList<HospitalEquipment>(), getSupportFragmentManager());
         adapter.setOnDataChangedListener(new DataListener() {
             @Override
             public void onDataChanged(String name, String data) {
                 Log.d(TAG, "onDataChanged: " + name + "@" + data);
-                // TODO: Fix publication to "/user/{username}/hospital/{id}/equipment/{name}/data"
-                client.publishMessage("hospital/" + hospitalId + "/equipment/" + name, data);
+                try {
+                    profileClient.publish("user/" + profileClient.getUsername() +
+                            "/hospital/" + hospitalId +
+                            "/equipment/" + name + "/data", data, 2, false);
+                } catch (MqttException e) {
+                    Log.d(TAG, "Failed to publish updated equipment");
+                }
             }
         });
         lv.setAdapter(adapter);
 
-        // Mqtt
-        client = MqttClient.getInstance(this);
-        client.setCallback(new MqttCallback() {
 
-            @Override
-            public void messageArrived(String topic, MqttMessage message) throws Exception {
+        try {
 
-                String text = new String(message.getPayload());
-                Log.d(TAG, "Received data " + text + " at topic " + topic);
+            // Start retrieving data
+            profileClient.subscribe("hospital/" + hospitalId + "/metadata", 1, new MqttProfileMessageCallback() {
 
-                GsonBuilder gsonBuilder = new GsonBuilder();
-                gsonBuilder.setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES);
-                Gson gson = gsonBuilder.create();
+                @Override
+                public void messageArrived(String topic, MqttMessage message) {
 
-                // Message from receiving metadata; subscribe to equipments
-                if (topic.contains("metadata")) {
-                    // Parse to hospital object
-                    HospitalEquipmentMetadata[] equipmentMetadata = gson.fromJson(text, HospitalEquipmentMetadata[].class);
-                    for (HospitalEquipmentMetadata equipment : equipmentMetadata) {
-                        client.subscribeToTopic("hospital/" + hospitalId + "/equipment/" + equipment.getName() +"/data");
+                    // Parse to hospital metadata
+                    GsonBuilder gsonBuilder = new GsonBuilder();
+                    gsonBuilder.setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES);
+                    Gson gson = gsonBuilder.create();
+
+                    try {
+                        // Subscribe to all hospital equipment topics
+                        profileClient.subscribe("hospital/" + hospitalId + "/equipment/+/data", 1, new MqttProfileMessageCallback() {
+                            @Override
+                            public void messageArrived(String topic, MqttMessage message) {
+
+                                // Parse to hospital equipment
+                                GsonBuilder gsonBuilder = new GsonBuilder();
+                                gsonBuilder.setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES);
+                                Gson gson = gsonBuilder.create();
+
+                                // Found item in the hospital equipments object
+                                HospitalEquipment equipment = gson.fromJson(new String(message.getPayload()), HospitalEquipment.class);
+                                refreshOrAddItem(equipment);
+
+                            }
+                        });
+
+                        HospitalEquipmentMetadata[] equipmentMetadata = gson.fromJson(new String(message.getPayload()), HospitalEquipmentMetadata[].class);
+                        for (HospitalEquipmentMetadata equipment : equipmentMetadata) {
+                            // Subscribe without a callback
+                            profileClient.subscribe("hospital/" + hospitalId + "/equipment/" + equipment.getName() + "/data", 1, null);
+                        }
+
+                    } catch (MqttException e) {
+                        Log.d(TAG, "Could no subscribe to hospital equipment topics");
                     }
                 }
 
-                // Add or update equipment values
-                else if (topic.contains("equipment")) {
-                    // Found item in the hospital equipments object
-                    HospitalEquipment equipment = gson.fromJson(text, HospitalEquipment.class);
-                    refreshOrAddItem(equipment);
-                }
-            }
+            });
 
-            @Override
-            public void deliveryComplete(IMqttDeliveryToken token) {
-                Log.d(TAG, "Message sent successfully");
-            }
-        });
+        } catch (MqttException e) {
+            Log.d(TAG, "Could no subscribe to hospital metadata");
+        }
 
-        // Start retrieving data
-        client.subscribeToTopic("hospital/" + hospitalId + "/metadata");
     }
 
     /**

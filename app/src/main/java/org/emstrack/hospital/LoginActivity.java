@@ -18,32 +18,24 @@ import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ImageView;
 
-import com.google.gson.FieldNamingPolicy;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
+import org.eclipse.paho.client.mqttv3.MqttException;
 
-import org.emstrack.mqtt.MqttClient;
-import org.emstrack.mqtt.MqttCallback;
-import org.emstrack.mqtt.MqttConnectCallback;
-import org.emstrack.models.Profile;
-
-import org.eclipse.paho.client.mqttv3.MqttMessage;
+import org.emstrack.mqtt.MqttProfileCallback;
+import org.emstrack.mqtt.MqttProfileClient;
 
 public class LoginActivity extends AppCompatActivity {
 
-    private SharedPreferences creds_prefs = null;
-    SharedPreferences.Editor editor = null;
-    private MqttClient client;
-
-    private static final String TAG = MqttClient.class.getSimpleName();
+    private static final String TAG = "LoginActvity";
     private static final String TAG_CHECK = "shared_preferences";
 
-    private final String USER = "username";
-    private final String PASS = "password";
-    private final String CHECKBOX = "remember_me";
+    private SharedPreferences creds_prefs = null;
+    SharedPreferences.Editor editor = null;
 
-    private String username;
-    private String password;
+    private final String PREFERENCES_USERNAME = "username";
+    private final String PREFERENCES_PASSWORD = "password";
+    private final String PREFERENCES_REMEMBER_ME = "remember_me";
+
+    private ProgressDialog progressDialog;
 
     /* strings */
     private String alert_error_title;
@@ -52,8 +44,6 @@ public class LoginActivity extends AppCompatActivity {
     private String user_error;
     private String pass_error;
     private String invalid_creds;
-
-    private ProgressDialog progressDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -73,15 +63,15 @@ public class LoginActivity extends AppCompatActivity {
         getSupportActionBar().setDisplayShowCustomEnabled(true);
         getSupportActionBar().setCustomView(R.layout.maintitlebar);
         View view = getSupportActionBar().getCustomView();
-        ImageView imageButton= (ImageView) view.findViewById(R.id.LogoutBtn);
+        ImageView imageButton= view.findViewById(R.id.LogoutBtn);
         imageButton.setVisibility(View.GONE);
 
         progressDialog = new ProgressDialog(LoginActivity.this);
 
         // Find username and password from layout
-        final EditText usernameField = (EditText) findViewById(R.id.username);
-        final EditText passwordField = (EditText) findViewById(R.id.password);
-        final CheckBox savedUsernameCheck = (CheckBox) findViewById(R.id.checkBox);
+        final EditText usernameField = findViewById(R.id.username);
+        final EditText passwordField = findViewById(R.id.password);
+        final CheckBox savedUsernameCheck = findViewById(R.id.checkBox);
 
         // Get credentials
         creds_prefs = getSharedPreferences("org.emstrack.hospital", MODE_PRIVATE);
@@ -90,22 +80,21 @@ public class LoginActivity extends AppCompatActivity {
         // Check if credentials are cached
         if (rememberUserEnabled()){
             Log.d(TAG_CHECK, "Remember user enabled, using credentials" + rememberUserEnabled());
-            username = getStoredUser();
-            usernameField.setText(username);
+            usernameField.setText(getStoredUser());
             savedUsernameCheck.setChecked(true);
         } else{
             Log.d(TAG_CHECK, "Remember user not enabled, asking for credentials");
         }
 
         // Submit button's click listener
-        Button login_submit = (Button) findViewById(R.id.submit_login);
+        Button login_submit = findViewById(R.id.submit_login);
         login_submit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
 
                 // Get user info & remove whitspace
-                username = usernameField.getText().toString().replace(" ", "");
-                password = passwordField.getText().toString().replace(" ", "");
+                String username = usernameField.getText().toString().trim();
+                String password = passwordField.getText().toString().trim();
 
                 if (username == null || username.isEmpty()) {
                     alertEmptyLogin(LoginActivity.this, user_error);
@@ -131,22 +120,21 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private boolean rememberUserEnabled(){
-        return creds_prefs.getBoolean(CHECKBOX, false);
-
+        return creds_prefs.getBoolean(PREFERENCES_REMEMBER_ME, false);
     }
 
     private String getStoredUser(){
-        return creds_prefs.getString(USER, null);
+        return creds_prefs.getString(PREFERENCES_USERNAME, null);
     }
 
     private String getStoredPassword(){
-        return creds_prefs.getString(PASS, null);
+        return creds_prefs.getString(PREFERENCES_PASSWORD, null);
     }
 
-    private void setStoredCredentials(String user, String pass){
-        editor.putString(USER, user);
-        editor.putString(PASS, pass);
-        editor.putBoolean(CHECKBOX, true);
+    private void setStoredCredentials(String username, String password){
+        editor.putString(PREFERENCES_USERNAME, username);
+        editor.putString(PREFERENCES_PASSWORD, password);
+        editor.putBoolean(PREFERENCES_REMEMBER_ME, true);
         editor.commit();
     }
 
@@ -178,76 +166,70 @@ public class LoginActivity extends AppCompatActivity {
 
     public void loginHospital(final String username, final String password) {
 
-        client = MqttClient.getInstance(getApplicationContext()); // Use application context to tie service to app
+        // Retrieve client
+        final MqttProfileClient profileClient = ((HospitalApp) getApplication()).getProfileClient();
+        try {
 
-        MqttConnectCallback connectCallback = new MqttConnectCallback() {
-            @Override
-            public void onFailure() {
-                progressDialog.dismiss();
-                alertEmptyLogin(LoginActivity.this, invalid_creds);
-            }
-        };
+            profileClient.setCallback(new MqttProfileCallback() {
+                @Override
+                public void onSuccess() {
 
-        client.connect(username, password, connectCallback, new MqttCallback() {
+                    // Check if remember me enabled
+                    CheckBox remember_box = findViewById(R.id.checkBox);
+                    if(remember_box.isChecked()){
+                        Log.d(TAG_CHECK, "Checkbox checked, storing credentials");
+                        setStoredCredentials(username, password);
+                    } else {
+                        clearStoredCredentials();
+                    }
 
-            @Override
-            public void connectComplete(boolean reconnect, String serverURI) {
-                // Call supper
-                super.connectComplete(reconnect, serverURI);
-                Log.d(TAG, "Subscribing to user/" + username + "/profile");
-                client.subscribeToTopic("user/" + username + "/profile");
-            }
+                    // Set the static list and start the new HospitalEquipmentMetadata Intent
+                    HospitalListActivity.hospitals = profileClient.getProfile().getHospitals();
 
-            @Override
-            public void messageArrived(String topic, MqttMessage message) throws Exception {
+                    Intent hospitalIntent = new Intent(getApplicationContext(), HospitalListActivity.class);
+                    startActivity(hospitalIntent);
 
-                // Check if remember me enabled
-                CheckBox remember_box = (CheckBox) findViewById(R.id.checkBox);
-                if(remember_box.isChecked()){
-                    Log.d(TAG_CHECK, "Checkbox checked, storing credentials");
-                    setStoredCredentials(username, password);
-                } else {
-                    clearStoredCredentials();
-                }
-
-                String json = new String(message.getPayload());
-                Log.d(TAG, "Message received: '" + json + "'");
-
-                // Parse message into list of hospitals
-                GsonBuilder gsonBuilder = new GsonBuilder();
-                gsonBuilder.setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES);
-                Gson gson = gsonBuilder.create();
-
-                Profile profile = gson.fromJson(json, Profile.class);
-                Log.d(TAG, "Parsed profile: " + profile);
-
-                // Error parsing or no hospitals
-                if (profile == null) {
+                    // Clear the loading screen
                     progressDialog.dismiss();
-                    Log.d(TAG, "Error parsing array");
-                    return;
+
+                    // Clear the password field
+                    EditText passwordField = findViewById(R.id.password);
+                    passwordField.setText("");
+                    passwordField.clearFocus();
+
+                    EditText usernameField = findViewById(R.id.username);
+                    usernameField.clearFocus();
+
+                    Log.d(TAG, "Done with LoginActivity.");
+
                 }
 
-                // Set the static list and start the new HospitalEquipmentMetadata Intent
-                HospitalListActivity.hospitals = profile.getHospitals();
+                @Override
+                public void onFailure(Throwable exception) {
 
-                Intent hospitalIntent = new Intent(getApplicationContext(), HospitalListActivity.class);
-                startActivity(hospitalIntent);
+                    // TODO: Handle failure
 
-                // Clear the loading screen
-                progressDialog.dismiss();
+                }
+            });
+            profileClient.connect(username, password, new MqttProfileCallback() {
 
-                // Clear the password field
-                EditText passwordField = (EditText) findViewById(R.id.password);
-                passwordField.setText("");
-                passwordField.clearFocus();
+                @Override
+                public void onSuccess() {
+                    Log.d(TAG, "Successfully connected to broker.");
+                }
 
-                EditText usernameField = (EditText) findViewById(R.id.username);
-                usernameField.clearFocus();
+                @Override
+                public void onFailure(Throwable exception) {
+                    progressDialog.dismiss();
+                    alertEmptyLogin(LoginActivity.this, invalid_creds);
+                    Log.d(TAG, "Failed to connected to broker.");
+                }
 
-                Log.d(TAG, "Done with LoginActivity::messageArrived");
-            }
+            });
 
-        });
+        } catch (MqttException e) {
+            Log.d(TAG, "Could not retrieve profile");
+        }
+
     }
 }

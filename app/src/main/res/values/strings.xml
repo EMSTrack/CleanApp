@@ -5,8 +5,12 @@
     <string name="textDescr">Value text description</string>
 
     <string name="alert_error_title">Error</string>
+    <string name="alert_warning">Warning</string>
     <string name="alert_button_positive_text">OK</string>
-    <string name="please_wait">Please wait...</string>
+    <string name="alert_button_negative_text">Cancel</string>
+
+    <string name="please_wait">Please wait…</string>
+    <string name="logout_confirm">Are you sure that you want to logout?</string>
 
     <string name="username">Username</string>
     <string name="password">Password</string>
@@ -18,5 +22,7 @@
     <string name="invalid_creds">Please provide valide credentials.</string>
 
     <string name="no_hospital_error">No hospitals are associated with this account.</string>
+
+    <string name="hospital_edit_hospital">OK</string>
 
 </resources>

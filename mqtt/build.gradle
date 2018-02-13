@@ -33,10 +33,5 @@ dependencies {
     compile 'org.eclipse.paho:org.eclipse.paho.client.mqttv3:1.1.0'
     compile 'org.eclipse.paho:org.eclipse.paho.android.service:1.1.1'
 
-    compileOnly 'com.google.dagger:dagger-android:2.11'
-    compileOnly 'com.google.dagger:dagger-android-support:2.11' // if you use the support libraries
-    annotationProcessor 'com.google.dagger:dagger-android-processor:2.11'
-    annotationProcessor 'com.google.dagger:dagger-compiler:2.11'
-
     compile project(':models')
 }

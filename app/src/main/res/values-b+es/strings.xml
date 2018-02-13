@@ -2,8 +2,12 @@
 <resources>
 
     <string name="alert_error_title">Error</string>
+    <string name="alert_warning">¡Advertencia!</string>
     <string name="alert_button_positive_text">OK</string>
-    <string name="please_wait">Por favor espere...</string>
+    <string name="alert_button_negative_text">Cancelar</string>
+
+    <string name="please_wait">Por favor espere…</string>
+    <string name="logout_confirm">¿Seguro que desea cerrar sesión?</string>
 
     <string name="username">Usuário</string>
     <string name="password">Contraseña</string>
@@ -15,5 +19,7 @@
     <string name="invalid_creds">Por favor introduzca credenciales válidas.</string>
 
     <string name="no_hospital_error">Ningún hospital esta asociado con esta cuenta.</string>
+
+    <string name="hospital_edit_hospital">MANEJAR HOSPITAL</string>
 
 </resources>

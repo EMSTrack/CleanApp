@@ -4,6 +4,9 @@ package org.emstrack.mqtt;
  * Created by mauricio on 2/7/18.
  */
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import android.util.Log;
@@ -26,9 +29,25 @@ import org.eclipse.paho.client.mqttv3.MqttCallbackExtended;
 import org.emstrack.models.Profile;
 import org.emstrack.models.Settings;
 
-import javax.inject.Inject;
-
 public class MqttProfileClient implements MqttCallbackExtended {
+
+    class CallbackTuple {
+        private MqttProfileMessageCallback callback;
+        private Pattern pattern;
+
+        public CallbackTuple(Pattern pattern, MqttProfileMessageCallback callback) {
+            this.pattern = pattern;
+            this.callback = callback;
+        }
+
+        public MqttProfileMessageCallback getCallback() {
+            return callback;
+        }
+
+        public Pattern getPattern() {
+            return pattern;
+        }
+    }
 
     // regex for parsing message topics
     private static final Pattern profilePattern = Pattern.compile("user/[\\w]+/profile");
@@ -44,9 +63,12 @@ public class MqttProfileClient implements MqttCallbackExtended {
 
     private MqttAndroidClient mqttClient;
 
-    @Inject
+    private Map<String,CallbackTuple> subscribedTopics;
+    private MqttProfileCallback callback;
+
     public MqttProfileClient(MqttAndroidClient mqttClient) {
         this.mqttClient = mqttClient;
+        this.subscribedTopics = new HashMap<>();
     }
 
     public void setUsername(String username) {
@@ -73,11 +95,11 @@ public class MqttProfileClient implements MqttCallbackExtended {
      * @param username Username
      * @param password Password
      */
-    public void connect(final String username, String password) throws MqttException {
+    public void connect(final String username, String password, final MqttProfileCallback callback) throws MqttException {
 
         // if connected, disconnect first
-        if (mqttClient.isConnected()) {
-            mqttClient.disconnect();
+        if (isConnected()) {
+            disconnect();
         }
 
         // set new username
@@ -106,12 +128,20 @@ public class MqttProfileClient implements MqttCallbackExtended {
                         disconnectedBufferOptions.setPersistBuffer(false);
                         disconnectedBufferOptions.setDeleteOldestMessages(false);
                         mqttClient.setBufferOpts(disconnectedBufferOptions);
+
+                        // Forward callback
+                        if (callback != null)
+                            callback.onSuccess();
                     }
 
                     @Override
                     public void onFailure(IMqttToken asyncActionToken, Throwable exception) {
                         Log.d(TAG, "Connection to broker failed");
                         Log.e(TAG, exception.getMessage());
+
+                        // Forward callback
+                        if (callback != null)
+                            callback.onFailure(exception);
                     }
                 });
 
@@ -119,10 +149,66 @@ public class MqttProfileClient implements MqttCallbackExtended {
 
     public void disconnect() throws MqttException {
         mqttClient.disconnect();
+        subscribedTopics = new HashMap<>();
     }
 
     public boolean isConnected() {
         return mqttClient.isConnected();
+    }
+
+    public void setCallback(MqttProfileCallback callback) {
+        this.callback = callback;
+    }
+
+    public void publish(String topic, String payload, int qos, boolean retained) throws MqttException {
+        mqttClient.publish(topic, payload.getBytes(), qos, retained);
+    }
+
+    public void subscribe(String topic, int qos) throws MqttException {
+        subscribe(topic, qos, null);
+    }
+
+    public void subscribe(String topic, int qos, MqttProfileMessageCallback callback) throws MqttException {
+
+        // Subscribe to topic
+        Log.d(TAG, "Subscribing to '" + topic + "'");
+        mqttClient.subscribe(topic, qos);
+
+        // Register callback
+        if (callback != null) {
+
+            // Parse topic
+            String regex = topic;
+            if (regex.indexOf('+') >= 0) {
+                regex = regex.replace("+", "[^/]+");
+            }
+            if (regex.indexOf('#') == regex.length() - 1) {
+                regex = regex.replace("#", "[a-zA-Z0-9_/ ]+");
+            }
+            // Invalid topic
+            if (regex.indexOf('#') >= 0) {
+                throw new MqttException(new Exception("Invalid topic '" + topic + "'"));
+            }
+
+            Pattern pattern = Pattern.compile(regex);
+            Log.d(TAG, "Registering callback '" + topic + " -> " + pattern + "'");
+            subscribedTopics.put(topic,
+                    new CallbackTuple(pattern, callback));
+
+        } else {
+            Log.d(TAG, "No callback was registered");
+        }
+
+    }
+
+    public void unsubscribe(String topic) throws MqttException {
+
+        // Unsubscribe
+        mqttClient.unsubscribe(topic);
+
+        // Remove callback
+        subscribedTopics.remove(topic);
+
     }
 
     @Override
@@ -137,8 +223,82 @@ public class MqttProfileClient implements MqttCallbackExtended {
         try {
 
             // Subscribe to username/{username}/profile
-            Log.d(TAG, "Subscribing to 'user/" + username + "/profile'");
-            mqttClient.subscribe("user/" + username + "/profile", 2);
+            subscribe("user/" + username + "/profile", 2, new MqttProfileMessageCallback() {
+
+                @Override
+                public void messageArrived(String topic, MqttMessage message) {
+
+                    if (profile != null) {
+                        // Should never happen
+                        Log.d(TAG, "Profile already exists!");
+                        return;
+                    }
+
+                    // Parse profile
+                    GsonBuilder gsonBuilder = new GsonBuilder();
+                    gsonBuilder.setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES);
+                    Gson gson = gsonBuilder.create();
+
+                    profile = gson.fromJson(new String(message.getPayload()), Profile.class);
+
+                    // Error parsing profile
+                    if (profile == null) {
+                        Log.d(TAG,"Could not parse profile");
+                    }
+                    Log.d(TAG, "Parsed profile: " + profile);
+
+                    // Unsubscribe from profile
+                    try {
+                        unsubscribe(topic);
+                    } catch (MqttException e) {
+                        Log.d(TAG,"Failed to unsubscribe to '" + topic + "'");
+                    }
+
+                    try {
+
+                        // Subscribe to error
+                        subscribe("user/" + username + "/error", 1);
+
+                        // Subscribe to settings
+                        subscribe("settings", 1, new MqttProfileMessageCallback() {
+
+                            @Override
+                            public void messageArrived(String topic, MqttMessage message) {
+
+                                // Parse settings
+                                GsonBuilder gsonBuilder = new GsonBuilder();
+                                gsonBuilder.setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES);
+                                Gson gson = gsonBuilder.create();
+
+                                settings = gson.fromJson(new String(message.getPayload()), Settings.class);
+
+                                if (settings == null) {
+                                    Log.d(TAG, "Could not parse settings");
+                                }
+                                Log.d(TAG, "Got settings = " + settings);
+
+                                // Unsubscribe from settings
+                                try {
+                                    unsubscribe(topic);
+                                } catch (MqttException e) {
+                                    Log.d(TAG,"Failed to unsubscribe to '" + topic + "'");
+                                }
+
+                                if (callback != null) {
+                                    callback.onSuccess();
+                                }
+
+                            }
+
+                        });
+
+                    } catch (MqttException e) {
+                        Log.d(TAG,"Failed to unsubscribe to '" + topic + "'");
+                    }
+
+                }
+
+            });
 
         } catch (MqttException e) {
             Log.d(TAG, "Failed to subscribe to 'user/" + username + "/profile'");
@@ -158,81 +318,30 @@ public class MqttProfileClient implements MqttCallbackExtended {
     }
 
     @Override
-    public void messageArrived(String topic, MqttMessage message) throws Exception {
+    public void messageArrived(String topic, MqttMessage message) throws MqttException {
 
         String json = new String(message.getPayload());
         Log.d(TAG, "Message received: topic = '" + topic + "', message = '" + json + "'");
 
-        // Create Gson parser
-        GsonBuilder gsonBuilder = new GsonBuilder();
-        gsonBuilder.setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES);
-        Gson gson = gsonBuilder.create();
+        // Does message have registered callback?
+        for (Map.Entry<String, CallbackTuple> entry: subscribedTopics.entrySet()) {
 
-        if (profile == null) {
+            Pattern pattern = entry.getValue().getPattern();
+            MqttProfileMessageCallback callback = entry.getValue().getCallback();
 
-            Log.d(TAG, "Null profile");
-
-            // Just connected, no profile
-            if (profilePattern.matcher(topic).matches()) {
-
-                // Parse profile
-                profile = gson.fromJson(json, Profile.class);
-
-                // Error parsing profile
-                if (profile == null) {
-                    throw new Exception("Could not parse profile");
-                }
-                Log.d(TAG, "Parsed profile: " + profile);
-
-                // Unsubscribe from profile
-                Log.d(TAG, "Unsubscribing from 'user/" + username + "/profile'");
-                mqttClient.unsubscribe("user/" + username + "/profile");
-
-                // Subscribe to error and settings
-                Log.d(TAG, "Subscribing to 'user/" + username + "/error' and 'settings'");
-                mqttClient.subscribe("user/" + username + "/error",1);
-                mqttClient.subscribe("settings",1);
-
-            } else {
-                throw new Exception("Expected profile, got " + topic);
-            }
-
-        } else {
-
-            // Already connected
-            Log.d(TAG, "Got topic '" + topic + "'");
-
-            if (topic.equals("settings")) {
-
-                // Parse settings
-                settings = gson.fromJson(json, Settings.class);
-                if (settings == null) {
-                    throw new Exception("Could not parse settings");
-                }
-                Log.d(TAG,"Got settings = " + settings);
-
-                // Unsubscribe from settings
-                Log.d(TAG, "Unsubscribing from 'settings'");
-                mqttClient.unsubscribe("settings");
-
-            } else if (errorPattern.matcher(topic).matches()) {
-
-                // Parse error
-
-            } else if (hospitalMetadataPattern.matcher(topic).matches()) {
-
-                // Parse hospital metadata
-
-            } else if (hospitalEquipmentPattern.matcher(topic).matches()) {
-
-                // Parse hospital equipment
-            } else {
-
-                throw new Exception("Unexpected topic " + topic);
-
+            Matcher m = pattern.matcher(topic);
+            if (m.matches()) {
+                // Perform callback
+                Log.d(TAG, "Found match. Calling back...");
+                callback.messageArrived(topic, message);
+                return;
             }
 
         }
+
+        Log.d(TAG, "Did not find match. Mishandled topic.");
+
+        throw new MqttException(new Exception("Unexpected topic " + topic));
 
     }
 

@@ -18,19 +18,16 @@
             android:screenOrientation="nosensor">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
 
         <activity android:name="org.emstrack.hospital.HospitalListActivity"
             android:screenOrientation="nosensor">
-
         </activity>
 
         <activity android:name="org.emstrack.hospital.DashboardActivity"
             android:screenOrientation="nosensor">
-
         </activity>
 
         <service android:name="org.eclipse.paho.android.service.MqttService"/>
