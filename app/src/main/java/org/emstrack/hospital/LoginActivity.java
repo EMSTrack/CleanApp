@@ -183,9 +183,7 @@ public class LoginActivity extends AppCompatActivity {
                         clearStoredCredentials();
                     }
 
-                    // Set the static list and start the new HospitalEquipmentMetadata Intent
-                    HospitalListActivity.hospitals = profileClient.getProfile().getHospitals();
-
+                    // Initiate new activity
                     Intent hospitalIntent = new Intent(getApplicationContext(), HospitalListActivity.class);
                     startActivity(hospitalIntent);
 

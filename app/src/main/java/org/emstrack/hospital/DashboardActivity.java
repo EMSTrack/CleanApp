@@ -39,9 +39,6 @@ public class DashboardActivity extends AppCompatActivity {
     private static final String TAG = DashboardActivity.class.getSimpleName();
     private ListAdapter adapter;
 
-    public static HospitalPermission selectedHospital;
-    private int hospitalId;
-
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -65,7 +62,7 @@ public class DashboardActivity extends AppCompatActivity {
         });
 
         // Get data from Login and place it into the hospital
-        hospitalId = selectedHospital.getHospitalId();
+        final int hospitalId = Integer.parseInt(getIntent().getStringExtra("SELECTED_HOSPITAL_ID"));
 
         // Retrieve client
         final MqttProfileClient profileClient = ((HospitalApp) getApplication()).getProfileClient();

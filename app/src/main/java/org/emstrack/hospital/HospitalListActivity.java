@@ -18,15 +18,13 @@ import android.util.Log;
 
 import org.emstrack.hospital.dialogs.LogoutDialog;
 import org.emstrack.models.HospitalPermission;
+import org.emstrack.mqtt.MqttProfileClient;
 
 /**
  * Created by devinhickey on 5/24/17.
  */
 
 public class HospitalListActivity extends AppCompatActivity {
-
-    // TODO instantiate this just in case?
-    public static List<HospitalPermission> hospitals;
 
     private static final String TAG = "HospitalListActivity";
 
@@ -51,6 +49,10 @@ public class HospitalListActivity extends AppCompatActivity {
                 ld.show(getFragmentManager(), "logout_dialog");
             }
         });
+
+        // Retrieve hospitals
+        final MqttProfileClient profileClient = ((HospitalApp) getApplication()).getProfileClient();
+        final List<HospitalPermission> hospitals = profileClient.getProfile().getHospitals();
 
         // No hospitals associated with this account
         if (hospitals.size() < 1) {
@@ -104,9 +106,9 @@ public class HospitalListActivity extends AppCompatActivity {
                 Log.d(TAG, "Selected HospitalEquipmentMetadata: " + selectedHospital.getHospitalName());
 
                 // Set the static list of HospitalEquipment in Dashboard
-                Intent dashboard = new Intent(HospitalListActivity.this, DashboardActivity.class);
-                DashboardActivity.selectedHospital = selectedHospital;
-                startActivity(dashboard);
+                Intent intent = new Intent(HospitalListActivity.this, DashboardActivity.class);
+                intent.putExtra("SELECTED_HOSPITAL_ID", Integer.toString(selectedHospital.getHospitalId()));
+                startActivity(intent);
             }
         });
 
