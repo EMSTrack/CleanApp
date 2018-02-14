@@ -1,5 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">    Hospital</string>
-    <string name="imageDescr">    Toggle image description</string>
-    <string name="textDescr">    Value text description</string>
+
+    <string name="app_name">Hospital</string>
+
+    <string name="alert_error_title">Error</string>
+    <string name="alert_warning">Warning</string>
+    <string name="alert_button_positive_text">OK</string>
+    <string name="alert_button_negative_text">Cancel</string>
+
+    <string name="message_please_wait">Please wait…</string>
+
+    <string name="logout_confirm">Are you sure that you want to logout?</string>
+
+    <string name="login_username_hint">Username</string>
+    <string name="login_password_hint">Password</string>
+    <string name="login_remember_user_text">Remember user</string>
+    <string name="login_button_text">LOGIN</string>
+
+    <string name="error_empty_username">Please provide a valid user name.</string>
+    <string name="error_empty_password">Please provide a valid password.</string>
+    <string name="error_invalid_credentials">Please provide valide credentials.</string>
+    <string name="error_connection_failed">Connection failed. Reason: \'%1$s\'</string>
+    <string name="error_no_hospitals">No hospitals are associated with this account.</string>
+
+    <string name="hospital_button_text">OK</string>
+
+    <string name="equipment_boolean_image">Checkbox</string>
+    <string name="equipment_bolean_button_positive_text">Update</string>
+    <string name="equipment_bolean_button_negative_text">Cancel</string>
+    <string name="equipment_boolean_message">Is this equipment available?</string>
+    <string name="equipment_boolean_true">Available</string>
+    <string name="equipment_boolean_false">Not available</string>
+
+    <string name="equipment_integer_text">Value</string>
+    <string name="equipment_integer_button_positive_text">Update</string>
+    <string name="equipment_integer_button_negative_text">Cancel</string>
+    <string name="equipment_integer_message">How many units are available?</string>
+
+    <string name="equipment_string_text">Text</string>
+    <string name="equipment_string_button_positive_text">Update</string>
+    <string name="equipment_string_button_negative_text">Cancel</string>
+    <string name="equipment_string_message">Value</string>
+
 </resources>
