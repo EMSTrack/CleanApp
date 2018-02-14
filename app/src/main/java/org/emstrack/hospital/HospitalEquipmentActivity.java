@@ -26,8 +26,6 @@ import org.emstrack.mqtt.MqttProfileClient;
 import org.emstrack.mqtt.MqttProfileMessageCallback;
 
 import org.emstrack.models.HospitalEquipment;
-import org.emstrack.models.HospitalEquipmentMetadata;
-
 
 /**
  * Created by devinhickey on 4/20/17.
@@ -37,6 +35,7 @@ public class HospitalEquipmentActivity extends AppCompatActivity {
 
     private static final String TAG = HospitalEquipmentActivity.class.getSimpleName();
     private ListAdapter adapter;
+    int hospitalId = -1;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -51,6 +50,7 @@ public class HospitalEquipmentActivity extends AppCompatActivity {
         getSupportActionBar().setDisplayShowCustomEnabled(true);
         getSupportActionBar().setCustomView(R.layout.maintitlebar);
 
+        // Connect logout dialog
         View view = getSupportActionBar().getCustomView();
         ImageView imageButton= view.findViewById(R.id.LogoutBtn);
         imageButton.setOnClickListener(new View.OnClickListener() {
@@ -63,7 +63,7 @@ public class HospitalEquipmentActivity extends AppCompatActivity {
         });
 
         // Get data from Login and place it into the hospital
-        final int hospitalId = Integer
+        hospitalId = Integer
                 .parseInt(getIntent().getStringExtra("SELECTED_HOSPITAL_ID"));
 
         // Retrieve client
@@ -105,6 +105,17 @@ public class HospitalEquipmentActivity extends AppCompatActivity {
                 @Override
                 public void messageArrived(String topic, MqttMessage message) {
 
+                    try {
+
+                        // Unsubscribe to metadata
+                        profileClient.unsubscribe("hospital/" + hospitalId + "/metadata");
+
+                    } catch ( MqttException exception ) {
+
+                        Log.d(TAG,"Could not unsubscribe to 'hospital/" + hospitalId + "/metadata'");
+                        return;
+                    }
+
                     // Parse to hospital metadata
                     GsonBuilder gsonBuilder = new GsonBuilder();
                     gsonBuilder.setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES);
@@ -128,10 +139,16 @@ public class HospitalEquipmentActivity extends AppCompatActivity {
                                 HospitalEquipment equipment = gson
                                         .fromJson(new String(message.getPayload()),
                                                 HospitalEquipment.class);
-                                refreshOrAddItem(equipment);
+
+                                // add equipment to list
+                                adapter.add(equipment);
 
                             }
                         });
+
+                        /*
+
+                        // NOT NECESSARY: Already subscribed to all equipment topics
 
                         HospitalEquipmentMetadata[] equipmentMetadata = gson
                                 .fromJson(new String(message.getPayload()),
@@ -144,27 +161,40 @@ public class HospitalEquipmentActivity extends AppCompatActivity {
                                     1, null);
                         }
 
+                        */
+
                     } catch (MqttException e) {
-                        Log.d(TAG, "Could no subscribe to hospital equipment topics");
+                        Log.d(TAG, "Could not subscribe to hospital equipment topics");
                     }
                 }
 
             });
 
         } catch (MqttException e) {
-            Log.d(TAG, "Could no subscribe to hospital metadata");
+            Log.d(TAG, "Could not subscribe to hospital metadata");
         }
 
     }
 
-    /**
-     * Add or refresh equipment to the list
-     * @param equipment The updated or new equipment to reflect in the ui
-     */
-    private void refreshOrAddItem(HospitalEquipment equipment) {
-        Log.d(TAG, "Inside Refresh Or Add Item");
-        adapter.add(equipment);
-        Log.d(TAG, "After Refresh Or Add Item");
+    @Override
+    public void onBackPressed() {
+
+        try {
+
+            // Retrieve client
+            final MqttProfileClient profileClient = ((HospitalApp) getApplication()).getProfileClient();
+
+            // unsubscribe to current hospital equipment data
+            profileClient.unsubscribe("hospital/" + hospitalId + "/equipment/+/data");
+
+        } catch ( MqttException exception ) {
+
+            Log.d(TAG,"Could not unsubscribe to 'hospital/" + hospitalId + "/equipment/+/data'");
+
+        }
+
+        // go back
+        super.onBackPressed();
     }
 
 }

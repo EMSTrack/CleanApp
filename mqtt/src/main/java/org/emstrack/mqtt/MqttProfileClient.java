@@ -32,8 +32,8 @@ import org.emstrack.models.Settings;
 public class MqttProfileClient implements MqttCallbackExtended {
 
     class CallbackTuple {
-        private MqttProfileMessageCallback callback;
-        private Pattern pattern;
+        private final MqttProfileMessageCallback callback;
+        private final Pattern pattern;
 
         public CallbackTuple(Pattern pattern, MqttProfileMessageCallback callback) {
             this.pattern = pattern;
@@ -49,19 +49,13 @@ public class MqttProfileClient implements MqttCallbackExtended {
         }
     }
 
-    // regex for parsing message topics
-    private static final Pattern profilePattern = Pattern.compile("user/[\\w]+/profile");
-    private static final Pattern errorPattern = Pattern.compile("user/[\\w]+/error");
-    private static final Pattern hospitalMetadataPattern = Pattern.compile("hospital/[\\w]+/metadata");
-    private static final Pattern hospitalEquipmentPattern = Pattern.compile("hospital/[\\w]+/equipment/[\\w]+/data");
-
-    private static final String TAG = "MqttProfileClient";
+   private static final String TAG = "MqttProfileClient";
 
     private String username;
     private Profile profile;
     private Settings settings;
 
-    private MqttAndroidClient mqttClient;
+    private final MqttAndroidClient mqttClient;
 
     private Map<String,CallbackTuple> subscribedTopics;
     private MqttProfileCallback callback;
@@ -100,6 +94,20 @@ public class MqttProfileClient implements MqttCallbackExtended {
 
     public void setCallback(MqttProfileCallback callback) {
         this.callback = callback;
+    }
+
+    public void callOnSuccess() {
+        if (callback != null) {
+            callback.onSuccess();
+        }
+    }
+
+    public void callOnFailure(Throwable exception) {
+        if (callback != null) {
+            callback.onFailure(exception);
+        } else {
+            Log.d(TAG, "Unhandled exception '" + exception + "'");
+        }
     }
 
     public void publish(String topic, String payload, int qos, boolean retained) throws MqttException {
@@ -159,7 +167,8 @@ public class MqttProfileClient implements MqttCallbackExtended {
      * @param username Username
      * @param password Password
      */
-    public void connect(final String username, String password, final MqttProfileCallback callback) throws MqttException {
+    public void connect(final String username, final String password,
+                        final MqttProfileCallback connectCallback) throws MqttException {
 
         // if connected, disconnect first
         if (isConnected()) {
@@ -185,6 +194,7 @@ public class MqttProfileClient implements MqttCallbackExtended {
 
                     @Override
                     public void onSuccess(IMqttToken asyncActionToken) {
+
                         Log.d(TAG, "Connection to broker successful as clientId = " + mqttClient.getClientId());
                         DisconnectedBufferOptions disconnectedBufferOptions = new DisconnectedBufferOptions();
                         disconnectedBufferOptions.setBufferEnabled(true);
@@ -194,18 +204,17 @@ public class MqttProfileClient implements MqttCallbackExtended {
                         mqttClient.setBufferOpts(disconnectedBufferOptions);
 
                         // Forward callback
-                        if (callback != null)
-                            callback.onSuccess();
+                        if (connectCallback != null) connectCallback.onSuccess();
                     }
 
                     @Override
                     public void onFailure(IMqttToken asyncActionToken, Throwable exception) {
+
                         Log.d(TAG, "Connection to broker failed");
                         Log.e(TAG, exception.getMessage());
 
                         // Forward callback
-                        if (callback != null)
-                            callback.onFailure(exception);
+                        if (connectCallback != null) connectCallback.onFailure(exception);
                     }
                 });
 
@@ -230,7 +239,7 @@ public class MqttProfileClient implements MqttCallbackExtended {
 
                     if (profile != null) {
                         // Should never happen
-                        Log.d(TAG, "Profile already exists!");
+                        callOnFailure(new Exception("Profile already exists!"));
                         return;
                     }
 
@@ -243,7 +252,8 @@ public class MqttProfileClient implements MqttCallbackExtended {
 
                     // Error parsing profile
                     if (profile == null) {
-                        Log.d(TAG,"Could not parse profile");
+                        callOnFailure(new Exception("Could not parse profile"));
+                        return;
                     }
                     Log.d(TAG, "Parsed profile: " + profile);
 
@@ -251,13 +261,21 @@ public class MqttProfileClient implements MqttCallbackExtended {
                     try {
                         unsubscribe(topic);
                     } catch (MqttException e) {
-                        Log.d(TAG,"Failed to unsubscribe to '" + topic + "'");
+                        callOnFailure(new Exception("Failed to unsubscribe to '" + topic + "'"));
+                        return;
                     }
 
                     try {
 
                         // Subscribe to error
                         subscribe("user/" + username + "/error", 1);
+
+                    } catch (MqttException e) {
+                        callOnFailure(new Exception("Failed to subscribe to 'user/" + username + "/error'"));
+                        return;
+                    }
+
+                    try {
 
                         // Subscribe to settings
                         subscribe("settings", 1, new MqttProfileMessageCallback() {
@@ -273,7 +291,8 @@ public class MqttProfileClient implements MqttCallbackExtended {
                                 settings = gson.fromJson(new String(message.getPayload()), Settings.class);
 
                                 if (settings == null) {
-                                    Log.d(TAG, "Could not parse settings");
+                                    callOnFailure(new Exception("Could not parse settings"));
+                                    return;
                                 }
                                 Log.d(TAG, "Got settings = " + settings);
 
@@ -281,19 +300,19 @@ public class MqttProfileClient implements MqttCallbackExtended {
                                 try {
                                     unsubscribe(topic);
                                 } catch (MqttException e) {
-                                    Log.d(TAG,"Failed to unsubscribe to '" + topic + "'");
+                                    callOnFailure(new Exception("Failed to unsubscribe to '" + topic + "'"));
+                                    return;
                                 }
 
-                                if (callback != null) {
-                                    callback.onSuccess();
-                                }
+                                // Call on success
+                                callOnSuccess();
 
                             }
 
                         });
 
                     } catch (MqttException e) {
-                        Log.d(TAG,"Failed to unsubscribe to '" + topic + "'");
+                        callOnFailure(new Exception("Failed to subscribe to 'settings'"));
                     }
 
                 }
@@ -301,7 +320,7 @@ public class MqttProfileClient implements MqttCallbackExtended {
             });
 
         } catch (MqttException e) {
-            Log.d(TAG, "Failed to subscribe to 'user/" + username + "/profile'");
+            callOnFailure(new Exception("Failed to subscribe to 'user/" + username + "/profile'"));
         }
 
     }
@@ -339,9 +358,8 @@ public class MqttProfileClient implements MqttCallbackExtended {
 
         }
 
-        Log.d(TAG, "Did not find match. Mishandled topic.");
-
-        throw new MqttException(new Exception("Unexpected topic " + topic));
+        // Report failure to handle topic
+        callOnFailure(new Exception("Mishandled topic '" + topic + "'"));
 
     }
 

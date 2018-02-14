@@ -40,5 +40,6 @@
     <string name="equipment_string_text">Text</string>
     <string name="equipment_string_button_positive_text">Update</string>
     <string name="equipment_string_button_negative_text">Cancel</string>
+    <string name="equipment_string_message">Value</string>
 
 </resources>

@@ -127,28 +127,30 @@ public class EquipmentBooleanDialog extends DialogFragment {
             }
         });
 
-        alertBuilder.setNeutralButton(getResources().getString(R.string.equipment_bolean_button_positive_text), new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                if (!toggleSwitch.isChecked()) {
-                    updatedData = "True";
-                } else {
-                    updatedData = "False";
-                }
+        alertBuilder.setNeutralButton(getResources().getString(R.string.equipment_bolean_button_positive_text),
+                new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        if (!toggleSwitch.isChecked()) {
+                            updatedData = "True";
+                        } else {
+                            updatedData = "False";
+                        }
 
-                // Update the data
-                onDataChanged(title, updatedData);
-                dialog.dismiss();
-            }
-        });
+                        // Update the data
+                        onDataChanged(title, updatedData);
+                        dialog.dismiss();
+                    }
+                });
 
-        alertBuilder.setNegativeButton(getResources().getString(R.string.equipment_bolean_button_positive_text), new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                updatedData = "";
-                dialog.dismiss();
-            }
-        });
+        alertBuilder.setNegativeButton(getResources().getString(R.string.equipment_bolean_button_negative_text),
+                new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        updatedData = "";
+                        dialog.dismiss();
+                    }
+                });
 
         return alertBuilder.create();
 

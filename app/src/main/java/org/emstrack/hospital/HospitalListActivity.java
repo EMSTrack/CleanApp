@@ -36,12 +36,14 @@ public class HospitalListActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_hospital_list);
 
+        // Action bar
         getSupportActionBar().setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM);
         getSupportActionBar().setDisplayShowCustomEnabled(true);
         getSupportActionBar().setCustomView(R.layout.maintitlebar);
         View view = getSupportActionBar().getCustomView();
 
-        ImageView imageButton = (ImageView) view.findViewById(R.id.LogoutBtn);
+        // Connect logout dialog
+        ImageView imageButton = view.findViewById(R.id.LogoutBtn);
         imageButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -72,7 +74,7 @@ public class HospitalListActivity extends AppCompatActivity {
         }
 
         // Create the Spinner connection
-        final Spinner hospitalSpinner = (Spinner) findViewById(R.id.hospitalSpinner);
+        final Spinner hospitalSpinner = findViewById(R.id.hospitalSpinner);
         hospitalSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
@@ -94,7 +96,7 @@ public class HospitalListActivity extends AppCompatActivity {
         hospitalSpinner.setAdapter(hospitalListAdapter);
 
         // Create the hospital button
-        Button submitHospitalButton = (Button) findViewById(R.id.submitHospitalButton);
+        Button submitHospitalButton = findViewById(R.id.submitHospitalButton);
         submitHospitalButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

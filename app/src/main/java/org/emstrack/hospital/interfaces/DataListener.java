@@ -5,5 +5,5 @@ package org.emstrack.hospital.interfaces;
  */
 
 public interface DataListener {
-    public void onDataChanged(String name, String data);
+    void onDataChanged(String name, String data);
 }

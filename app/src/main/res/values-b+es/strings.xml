@@ -40,5 +40,6 @@
     <string name="equipment_string_text">Texto</string>
     <string name="equipment_string_button_positive_text">Actualizar</string>
     <string name="equipment_sting_button_negative_text">Cancelar</string>
+    <string name="equipment_string_message">Valor</string>
 
 </resources>

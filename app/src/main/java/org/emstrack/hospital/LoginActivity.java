@@ -25,16 +25,13 @@ import org.emstrack.mqtt.MqttProfileClient;
 
 public class LoginActivity extends AppCompatActivity {
 
-    private static final String TAG = "LoginActvity";
-    private static final String TAG_CHECK = "shared_preferences";
-
-    private SharedPreferences creds_prefs = null;
-    SharedPreferences.Editor editor = null;
-
     private final String PREFERENCES_USERNAME = "username";
     private final String PREFERENCES_PASSWORD = "password";
     private final String PREFERENCES_REMEMBER_ME = "remember_me";
 
+    private static final String TAG = "LoginActvity";
+
+    private SharedPreferences creds_prefs;
     private ProgressDialog progressDialog;
 
     @Override
@@ -61,17 +58,16 @@ public class LoginActivity extends AppCompatActivity {
 
         // Get credentials
         creds_prefs = getSharedPreferences("org.emstrack.hospital", MODE_PRIVATE);
-        editor = creds_prefs.edit();
 
         // Check if credentials are cached
         if (creds_prefs.getBoolean(PREFERENCES_REMEMBER_ME, false)) {
 
-            Log.d(TAG_CHECK, "Remember user enabled, using credentials");
+            Log.d(TAG, "Remember user enabled, using credentials");
             usernameField.setText(creds_prefs.getString(PREFERENCES_USERNAME, null));
             savedUsernameCheck.setChecked(true);
 
         } else{
-            Log.d(TAG_CHECK, "Remember user not enabled, asking for credentials");
+            Log.d(TAG, "Remember user not enabled, asking for credentials");
         }
 
         // Submit button's click listener
@@ -84,16 +80,24 @@ public class LoginActivity extends AppCompatActivity {
                 String username = usernameField.getText().toString().trim();
                 String password = passwordField.getText().toString().trim();
 
-                if (username == null || username.isEmpty()) {
+                if (username.isEmpty()) {
                     alertDialog(LoginActivity.this,
                             getResources().getString(R.string.alert_error_title),
                             getResources().getString(R.string.error_empty_username));
-                } else if (password == null || password.isEmpty()) {
+                } else if (password.isEmpty()) {
                     alertDialog(LoginActivity.this,
                             getResources().getString(R.string.alert_error_title),
                             getResources().getString(R.string.error_empty_password));
                 } else {
-                    showLoadingScreen();
+
+                    // Show progress dialog
+                    progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+                    progressDialog.setMessage(getResources().getString(R.string.message_please_wait));
+                    progressDialog.setIndeterminate(true);
+                    progressDialog.setCanceledOnTouchOutside(false);
+                    progressDialog.show();
+
+                    // while attempting to login
                     loginHospital(username, password);
                 }
 
@@ -115,62 +119,71 @@ public class LoginActivity extends AppCompatActivity {
 
         // Retrieve client
         final MqttProfileClient profileClient = ((HospitalApp) getApplication()).getProfileClient();
+
+        // Set callback to be called after profile is retrieved
+        profileClient.setCallback(new MqttProfileCallback() {
+
+            @Override
+            public void onSuccess() {
+
+                // Get preferences editor
+                SharedPreferences.Editor editor = creds_prefs.edit();
+
+                // Check if remember me enabled
+                CheckBox remember_box = findViewById(R.id.checkBox);
+                if (remember_box.isChecked()) {
+
+                    Log.d(TAG, "Checkbox checked, storing credentials");
+                    editor.putString(PREFERENCES_USERNAME, username);
+                    editor.putString(PREFERENCES_PASSWORD, password);
+                    editor.putBoolean(PREFERENCES_REMEMBER_ME, true);
+
+                } else {
+
+                    editor.clear();
+
+                }
+
+                editor.apply();
+
+                // Initiate new activity
+                Intent hospitalIntent = new Intent(getApplicationContext(), HospitalListActivity.class);
+                startActivity(hospitalIntent);
+
+                // Clear the loading screen
+                progressDialog.dismiss();
+
+                // Clear the password field
+                EditText passwordField = findViewById(R.id.password);
+                passwordField.setText("");
+                passwordField.clearFocus();
+
+                // Clear the username field
+                EditText usernameField = findViewById(R.id.username);
+                usernameField.clearFocus();
+
+                Log.d(TAG, "Done with LoginActivity.");
+
+            }
+
+            @Override
+            public void onFailure(Throwable exception) {
+
+                // Dismiss dialog
+                progressDialog.dismiss();
+
+                Log.d(TAG, "Failed to retrieve profile.");
+                alertDialog(LoginActivity.this,
+                        getResources().getString(R.string.alert_error_title),
+                        exception.toString());
+
+            }
+
+        });
+
         try {
 
-            profileClient.setCallback(new MqttProfileCallback() {
-                @Override
-                public void onSuccess() {
-
-                    // Check if remember me enabled
-                    CheckBox remember_box = findViewById(R.id.checkBox);
-                    if(remember_box.isChecked()){
-
-                        Log.d(TAG_CHECK, "Checkbox checked, storing credentials");
-                        editor.putString(PREFERENCES_USERNAME, username);
-                        editor.putString(PREFERENCES_PASSWORD, password);
-                        editor.putBoolean(PREFERENCES_REMEMBER_ME, true);
-                        editor.commit();
-
-                    } else {
-
-                        editor.clear();
-
-                    }
-
-                    editor.commit();
-
-                    // Initiate new activity
-                    Intent hospitalIntent = new Intent(getApplicationContext(), HospitalListActivity.class);
-                    startActivity(hospitalIntent);
-
-                    // Clear the loading screen
-                    progressDialog.dismiss();
-
-                    // Clear the password field
-                    EditText passwordField = findViewById(R.id.password);
-                    passwordField.setText("");
-                    passwordField.clearFocus();
-
-                    EditText usernameField = findViewById(R.id.username);
-                    usernameField.clearFocus();
-
-                    Log.d(TAG, "Done with LoginActivity.");
-
-                }
-
-                @Override
-                public void onFailure(Throwable exception) {
-
-                    // Dismiss dialog
-                    progressDialog.dismiss();
-
-                    Log.d(TAG, "Failed to retrieve profile.");
-                    alertDialog(LoginActivity.this,
-                            getResources().getString(R.string.alert_error_title),
-                            exception.toString());
-
-                }
-            });
+            // Attempt to connect
             profileClient.connect(username, password, new MqttProfileCallback() {
 
                 @Override
@@ -189,14 +202,17 @@ public class LoginActivity extends AppCompatActivity {
                     if (exception instanceof MqttException) {
                         int reason = ((MqttException) exception).getReasonCode();
                         if (reason == MqttException.REASON_CODE_FAILED_AUTHENTICATION ||
+                                reason == MqttException.REASON_CODE_NOT_AUTHORIZED ||
                                 reason == MqttException.REASON_CODE_INVALID_CLIENT_ID)
                             message = getResources().getString(R.string.error_invalid_credentials);
                         else
-                            message = getResources().getString(R.string.error_connection_failed).format(exception.toString());
+                            message = String.format(getResources().getString(R.string.error_connection_failed),
+                                    exception.toString());
                     } else {
                         message = exception.toString();
                     }
 
+                    // Alert user
                     alertDialog(LoginActivity.this,
                             getResources().getString(R.string.alert_error_title),
                             message);
@@ -204,19 +220,15 @@ public class LoginActivity extends AppCompatActivity {
 
             });
 
-        } catch (MqttException e) {
-            Log.d(TAG, "Could not retrieve profile");
+        } catch (MqttException exception) {
+
+            // Alert user
+            alertDialog(LoginActivity.this,
+                    getResources().getString(R.string.alert_error_title),
+                    String.format(getResources().getString(R.string.error_connection_failed),
+                            exception.toString()));
+
         }
-
-    }
-
-    public void showLoadingScreen(){
-
-        progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-        progressDialog.setMessage(getResources().getString(R.string.message_please_wait));
-        progressDialog.setIndeterminate(true);
-        progressDialog.setCanceledOnTouchOutside(false);
-        progressDialog.show();
 
     }
 

@@ -3,7 +3,6 @@ package org.emstrack.hospital.adapters;
 import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.v4.app.FragmentManager;
-import android.support.v7.app.AlertDialog;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,7 +14,7 @@ import android.widget.TextView;
 import org.emstrack.hospital.interfaces.DataListener;
 import org.emstrack.hospital.R;
 import org.emstrack.hospital.dialogs.EquipmentBooleanDialog;
-import org.emstrack.hospital.dialogs.EquipmentIntegerDialog;
+import org.emstrack.hospital.dialogs.EquipmentValueDialog;
 import org.emstrack.models.HospitalEquipment;
 
 import java.util.ArrayList;
@@ -26,25 +25,29 @@ import java.util.ArrayList;
 public class ListAdapter extends ArrayAdapter<HospitalEquipment> {
 
     private final Context context;
-    private ArrayList<HospitalEquipment> objects;
-    private AlertDialog.Builder alertBuilder;
-    private FragmentManager fragmentManager;
+    private final ArrayList<HospitalEquipment> objects;
+    private final FragmentManager fragmentManager;
     private DataListener dr;
 
     public ListAdapter(Context context, ArrayList<HospitalEquipment> objects, FragmentManager fm) {
         super(context, -1, objects);
-        System.out.println("Inside ListAdapter Constructor");
         this.context = context;
         this.objects = objects;
-        this.alertBuilder = new AlertDialog.Builder(this.context);
         this.fragmentManager = fm;
+    }
+
+    public void setOnDataChangedListener(DataListener dr) {
+        this.dr = dr;
     }
 
     @Override
     @NonNull
     public View getView(int position, View convertView, ViewGroup parent) {
+
         // Get the object, and the type
         // Inflate the correct view based on the type and update the parts of the layout -> set onClicks
+
+        // TODO: This needs a revamp; the different equipment types should know how to convert to view
 
         System.out.println("GETVIEW - Position: " + position);
         final HospitalEquipment equipmentItem = objects.get(position);
@@ -53,15 +56,15 @@ public class ListAdapter extends ArrayAdapter<HospitalEquipment> {
 
         final View row;
 
-        Character equipmentEtype = equipmentItem.getEquipmentEtype();
+        final Character equipmentEtype = equipmentItem.getEquipmentEtype();
 
         try {
 
             // Integer type
-            if (equipmentEtype == 'I') {
+            if (equipmentEtype == 'I' || equipmentEtype == 'S') {
 
                 System.out.println("Adding Value to List");
-                row = inflater.inflate(R.layout.list_item_integer, parent, false);
+                row = inflater.inflate(R.layout.list_item_value, parent, false);
 
                 // Grab the elements of the Value ListItem
                 System.out.println("Grabbing Elements from Row");
@@ -71,27 +74,36 @@ public class ListAdapter extends ArrayAdapter<HospitalEquipment> {
                 // Set the elements of the ListItem
                 System.out.println("Setting Elements in Row");
                 text.setText(equipmentItem.getEquipmentName());
-                value.setText(equipmentItem.getValue());
+                if (equipmentEtype == 'I')
+                    value.setText(equipmentItem.getValue());
+                else
+                    value.setText("...");
+                // Store value in a tag
+                row.setTag(equipmentItem.getValue());
 
                 System.out.println("Setting row onClick Listener");
                 row.setOnClickListener(new View.OnClickListener() {
+
                     @Override
                     public void onClick(View v) {
 
-                        System.out.println("Value ListItem onClick");
-
                         String title = ((TextView) row.findViewById(R.id.valueTextView)).getText().toString();
-                        String message = context.getResources().getString(R.string.equipment_integer_message);
-                        String value = ((TextView) row.findViewById(R.id.valueData)).getText().toString();
+                        String value = v.getTag().toString();
+                        Character equipmentType =
+                                ((TextView) row.findViewById(R.id.valueData)).getText()
+                                        .equals("...") ? 'S' : 'I';
+                        String message;
+                        if (equipmentEtype == 'I')
+                            message = context.getResources().getString(R.string.equipment_integer_message);
+                        else
+                            message = context.getResources().getString(R.string.equipment_string_message);
 
-                        EquipmentIntegerDialog vd = EquipmentIntegerDialog.newInstance(title, message, value);
+                        EquipmentValueDialog vd = EquipmentValueDialog.newInstance(title, message, value);
                         vd.setOnDataChangedListener(dr);
                         vd.show(fragmentManager,
                                 "integer_dialog");
-
-                        System.out.println("After Show----------------");
-
                     }
+
                 });
 
             } else if (equipmentEtype == 'B') {
@@ -108,8 +120,6 @@ public class ListAdapter extends ArrayAdapter<HospitalEquipment> {
                 row.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-
-                        System.out.println("Toggle ListItem onClick");
 
                         String title = ((TextView) row.findViewById(R.id.toggleTextView)).getText().toString();
                         String message = context.getResources().getString(R.string.equipment_boolean_message);
@@ -143,7 +153,4 @@ public class ListAdapter extends ArrayAdapter<HospitalEquipment> {
         return row;
     }  // end getView
 
-    public void setOnDataChangedListener(DataListener dr) {
-        this.dr = dr;
-    }
 }

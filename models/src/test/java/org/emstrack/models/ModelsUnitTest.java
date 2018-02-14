@@ -243,15 +243,15 @@ public class ModelsUnitTest {
     @Test
     public void test_settings() throws Exception {
 
-        Map<String,String> ambulanceStatus = new HashMap<String,String>();
+        Map<String,String> ambulanceStatus = new HashMap<>();
         ambulanceStatus.put("UK", "Unknown");
         ambulanceStatus.put("AV", "Available");
 
-        Map<String,String> ambulanceCapability = new HashMap<String,String>();
+        Map<String,String> ambulanceCapability = new HashMap<>();
         ambulanceCapability.put("B", "Basic");
         ambulanceCapability.put("A", "Advanced");
 
-        Map<String,String> equipmentType = new HashMap<String,String>();
+        Map<String,String> equipmentType = new HashMap<>();
         equipmentType.put("B", "Boolean");
         equipmentType.put("I", "Integer");
 
@@ -299,7 +299,7 @@ public class ModelsUnitTest {
 
         from_json = gson.fromJson(to_json, Settings.class);
 
-        ambulanceStatus = new HashMap<String,String>();
+        ambulanceStatus = new HashMap<>();
         ambulanceStatus.put("UK", "Unknown");
         ambulanceStatus.put("AV", "Available");
         ambulanceStatus.put("OS", "Out of service");
@@ -308,12 +308,12 @@ public class ModelsUnitTest {
         ambulanceStatus.put("PB", "Patient bound");
         ambulanceStatus.put("AP", "At patient");
 
-        ambulanceCapability = new HashMap<String,String>();
+        ambulanceCapability = new HashMap<>();
         ambulanceCapability.put("B", "Basic");
         ambulanceCapability.put("A", "Advanced");
         ambulanceCapability.put("R", "Rescue");
 
-        equipmentType = new HashMap<String,String>();
+        equipmentType = new HashMap<>();
         equipmentType.put("B", "Boolean");
         equipmentType.put("I", "Integer");
         equipmentType.put("S", "String");

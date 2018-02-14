@@ -10,11 +10,11 @@ import java.util.Map;
 
 public class Settings {
 
-    public Map<String, String> ambulanceCapability = new HashMap<String, String>();
+    public Map<String, String> ambulanceCapability = new HashMap<>();
 
-    public Map<String, String> ambulanceStatus =  new HashMap<String, String>();
+    public Map<String, String> ambulanceStatus = new HashMap<>();
 
-    public Map<String, String> equipmentType =  new HashMap<String, String>();
+    public Map<String, String> equipmentType = new HashMap<>();
 
     private Defaults defaults;
 
