@@ -23,13 +23,13 @@
         android:id="@+id/valueData"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:layout_centerVertical="true"
-        android:layout_alignParentRight="true"
         android:layout_alignParentEnd="true"
+        android:layout_alignParentRight="true"
+        android:layout_centerVertical="true"
+        android:layout_gravity="center"
+        android:contentDescription="@string/equipment_integer_text"
         android:paddingEnd="28dp"
         android:paddingRight="28dp"
-        android:contentDescription="@string/textDescr"
         android:textColor="@color/colorPrimaryDark"
         android:textSize="30sp" />
 

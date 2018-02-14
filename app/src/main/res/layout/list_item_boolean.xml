@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="?android:attr/listPreferredItemHeight"
+    android:padding="6dp">
+
+        <TextView
+            android:id="@+id/toggleTextView"
+            android:layout_width="300dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:text="Toggle Placement"
+            android:paddingLeft="20dp"
+            android:paddingStart="20dp"
+            android:textSize="30sp"
+            android:textColor="@color/colorPrimaryDark"
+            android:layout_centerVertical="true"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true" />
+
+        <!--ImageSwitcher for animations?-->
+        <ImageView
+            android:id="@+id/toggleImage"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="true"
+            android:layout_centerVertical="true"
+            android:contentDescription="@string/equipment_boolean_image"
+            android:padding="15dp"
+            android:paddingEnd="-30dp"
+            android:paddingRight="-30dp"
+            android:src="@android:drawable/star_on" />
+
+        <!--Add contentDescription?? -->
+
+</RelativeLayout>

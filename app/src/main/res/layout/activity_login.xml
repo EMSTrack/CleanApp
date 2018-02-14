@@ -10,7 +10,7 @@
     android:focusableInTouchMode="true"
 
 
-    tools:context="com.project.cruzroja.hospital.LoginActivity">
+    tools:context="org.emstrack.hospital.LoginActivity">
 
 
     <LinearLayout
@@ -63,7 +63,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="0.8"
-            android:hint="Usuario"
+            android:hint="@string/login_username_hint"
             android:inputType="text"
             android:textAlignment="center" />
 
@@ -94,7 +94,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="0.8"
             android:ems="10"
-            android:hint="Contrasena"
+            android:hint="@string/login_password_hint"
             android:inputType="textPassword"
             android:textAlignment="center" />
 
@@ -126,8 +126,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="0.0"
-                android:text="Recordar usuario"
-                android:textAlignment="center"/>
+                android:text="@string/login_remember_user_text"
+                android:textAlignment="center" />
 
             <TextView
                 android:layout_width="wrap_content"
@@ -154,7 +154,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="0.4"
-            android:text="ACCEDER" />
+            android:text="@string/login_button_text" />
 
         <TextView
             android:layout_width="wrap_content"
