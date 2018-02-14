@@ -18,7 +18,7 @@ import org.emstrack.hospital.R;
  * Created by devinhickey on 6/5/17.
  */
 
-public class ValueDialog extends DialogFragment {
+public class EquipmentIntegerDialog extends DialogFragment {
 
     private String title;
     private String message;
@@ -29,7 +29,7 @@ public class ValueDialog extends DialogFragment {
     /**
      * Empty Constructor
      */
-    public ValueDialog() {
+    public EquipmentIntegerDialog() {
 
     }
 
@@ -39,8 +39,8 @@ public class ValueDialog extends DialogFragment {
      * @param message
      * @return
      */
-    public static ValueDialog newInstance(String title, String message, String data) {
-        ValueDialog vd = new ValueDialog();
+    public static EquipmentIntegerDialog newInstance(String title, String message, String data) {
+        EquipmentIntegerDialog vd = new EquipmentIntegerDialog();
 
         Bundle args = new Bundle();
         args.putString("Title", title);
@@ -56,6 +56,7 @@ public class ValueDialog extends DialogFragment {
     @Override
     @NonNull
     public Dialog onCreateDialog(Bundle savedInstanceState) {
+
         title = getArguments().getString("Title");
         message = getArguments().getString("Message");
         oldData = getArguments().getString("Data");
@@ -91,7 +92,7 @@ public class ValueDialog extends DialogFragment {
 
         alertBuilder.setView(valueText);
 
-        alertBuilder.setNeutralButton("Actualizar", new DialogInterface.OnClickListener() {
+        alertBuilder.setNeutralButton(getResources().getString(R.string.equipment_integer_button_positive_text), new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 System.out.println("Update Button Clicked");
@@ -105,7 +106,7 @@ public class ValueDialog extends DialogFragment {
             }
         });
 
-        alertBuilder.setNegativeButton("Cancelar", new DialogInterface.OnClickListener() {
+        alertBuilder.setNegativeButton(getResources().getString(R.string.equipment_integer_button_negative_text), new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 updatedData = "";

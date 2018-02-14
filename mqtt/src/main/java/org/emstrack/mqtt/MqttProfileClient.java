@@ -89,64 +89,6 @@ public class MqttProfileClient implements MqttCallbackExtended {
         return settings;
     }
 
-    /**
-     * Connect the client to the broker with a username and password.
-     * To reset the callback, use the setCallback function instead.
-     * @param username Username
-     * @param password Password
-     */
-    public void connect(final String username, String password, final MqttProfileCallback callback) throws MqttException {
-
-        // if connected, disconnect first
-        if (isConnected()) {
-            disconnect();
-        }
-
-        // set new username
-        setUsername(username);
-
-        // Set callback to handle connectComplete
-        mqttClient.setCallback(this);
-
-        // Set client options
-        MqttConnectOptions mqttConnectOptions = new MqttConnectOptions();
-        mqttConnectOptions.setAutomaticReconnect(true);
-        mqttConnectOptions.setCleanSession(false);
-        mqttConnectOptions.setUserName(username);
-        mqttConnectOptions.setPassword(password.toCharArray());
-
-        mqttClient.connect(mqttConnectOptions,
-                null,
-                new IMqttActionListener() {
-
-                    @Override
-                    public void onSuccess(IMqttToken asyncActionToken) {
-                        Log.d(TAG, "Connection to broker successful as clientId = " + mqttClient.getClientId());
-                        DisconnectedBufferOptions disconnectedBufferOptions = new DisconnectedBufferOptions();
-                        disconnectedBufferOptions.setBufferEnabled(true);
-                        disconnectedBufferOptions.setBufferSize(100);
-                        disconnectedBufferOptions.setPersistBuffer(false);
-                        disconnectedBufferOptions.setDeleteOldestMessages(false);
-                        mqttClient.setBufferOpts(disconnectedBufferOptions);
-
-                        // Forward callback
-                        if (callback != null)
-                            callback.onSuccess();
-                    }
-
-                    @Override
-                    public void onFailure(IMqttToken asyncActionToken, Throwable exception) {
-                        Log.d(TAG, "Connection to broker failed");
-                        Log.e(TAG, exception.getMessage());
-
-                        // Forward callback
-                        if (callback != null)
-                            callback.onFailure(exception);
-                    }
-                });
-
-    }
-
     public void disconnect() throws MqttException {
         mqttClient.disconnect();
         subscribedTopics = new HashMap<>();
@@ -208,6 +150,64 @@ public class MqttProfileClient implements MqttCallbackExtended {
 
         // Remove callback
         subscribedTopics.remove(topic);
+
+    }
+
+    /**
+     * Connect the client to the broker with a username and password.
+     * To reset the callback, use the setCallback function instead.
+     * @param username Username
+     * @param password Password
+     */
+    public void connect(final String username, String password, final MqttProfileCallback callback) throws MqttException {
+
+        // if connected, disconnect first
+        if (isConnected()) {
+            disconnect();
+        }
+
+        // set new username
+        setUsername(username);
+
+        // Set callback to handle connectComplete
+        mqttClient.setCallback(this);
+
+        // Set client options
+        MqttConnectOptions mqttConnectOptions = new MqttConnectOptions();
+        mqttConnectOptions.setAutomaticReconnect(true);
+        mqttConnectOptions.setCleanSession(false);
+        mqttConnectOptions.setUserName(username);
+        mqttConnectOptions.setPassword(password.toCharArray());
+
+        mqttClient.connect(mqttConnectOptions,
+                null,
+                new IMqttActionListener() {
+
+                    @Override
+                    public void onSuccess(IMqttToken asyncActionToken) {
+                        Log.d(TAG, "Connection to broker successful as clientId = " + mqttClient.getClientId());
+                        DisconnectedBufferOptions disconnectedBufferOptions = new DisconnectedBufferOptions();
+                        disconnectedBufferOptions.setBufferEnabled(true);
+                        disconnectedBufferOptions.setBufferSize(100);
+                        disconnectedBufferOptions.setPersistBuffer(false);
+                        disconnectedBufferOptions.setDeleteOldestMessages(false);
+                        mqttClient.setBufferOpts(disconnectedBufferOptions);
+
+                        // Forward callback
+                        if (callback != null)
+                            callback.onSuccess();
+                    }
+
+                    @Override
+                    public void onFailure(IMqttToken asyncActionToken, Throwable exception) {
+                        Log.d(TAG, "Connection to broker failed");
+                        Log.e(TAG, exception.getMessage());
+
+                        // Forward callback
+                        if (callback != null)
+                            callback.onFailure(exception);
+                    }
+                });
 
     }
 

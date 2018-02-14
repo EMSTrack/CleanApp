@@ -37,23 +37,8 @@ public class LoginActivity extends AppCompatActivity {
 
     private ProgressDialog progressDialog;
 
-    /* strings */
-    private String alert_error_title;
-    private String alert_button_positive_text;
-    private String please_wait;
-    private String user_error;
-    private String pass_error;
-    private String invalid_creds;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-
-        alert_error_title = getResources().getString(R.string.alert_error_title);
-        alert_button_positive_text = getResources().getString(R.string.alert_button_positive_text);
-        please_wait = getResources().getString(R.string.please_wait);
-        user_error = getResources().getString(R.string.user_error);
-        pass_error = getResources().getString(R.string.pass_error);
-        invalid_creds = getResources().getString(R.string.invalid_creds);
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
@@ -66,6 +51,7 @@ public class LoginActivity extends AppCompatActivity {
         ImageView imageButton= view.findViewById(R.id.LogoutBtn);
         imageButton.setVisibility(View.GONE);
 
+        // Create progress dialog
         progressDialog = new ProgressDialog(LoginActivity.this);
 
         // Find username and password from layout
@@ -78,10 +64,12 @@ public class LoginActivity extends AppCompatActivity {
         editor = creds_prefs.edit();
 
         // Check if credentials are cached
-        if (rememberUserEnabled()){
-            Log.d(TAG_CHECK, "Remember user enabled, using credentials" + rememberUserEnabled());
-            usernameField.setText(getStoredUser());
+        if (creds_prefs.getBoolean(PREFERENCES_REMEMBER_ME, false)) {
+
+            Log.d(TAG_CHECK, "Remember user enabled, using credentials");
+            usernameField.setText(creds_prefs.getString(PREFERENCES_USERNAME, null));
             savedUsernameCheck.setChecked(true);
+
         } else{
             Log.d(TAG_CHECK, "Remember user not enabled, asking for credentials");
         }
@@ -97,9 +85,13 @@ public class LoginActivity extends AppCompatActivity {
                 String password = passwordField.getText().toString().trim();
 
                 if (username == null || username.isEmpty()) {
-                    alertEmptyLogin(LoginActivity.this, user_error);
+                    alertDialog(LoginActivity.this,
+                            getResources().getString(R.string.alert_error_title),
+                            getResources().getString(R.string.error_empty_username));
                 } else if (password == null || password.isEmpty()) {
-                    alertEmptyLogin(LoginActivity.this, pass_error);
+                    alertDialog(LoginActivity.this,
+                            getResources().getString(R.string.alert_error_title),
+                            getResources().getString(R.string.error_empty_password));
                 } else {
                     showLoadingScreen();
                     loginHospital(username, password);
@@ -119,51 +111,6 @@ public class LoginActivity extends AppCompatActivity {
         });
     }
 
-    private boolean rememberUserEnabled(){
-        return creds_prefs.getBoolean(PREFERENCES_REMEMBER_ME, false);
-    }
-
-    private String getStoredUser(){
-        return creds_prefs.getString(PREFERENCES_USERNAME, null);
-    }
-
-    private String getStoredPassword(){
-        return creds_prefs.getString(PREFERENCES_PASSWORD, null);
-    }
-
-    private void setStoredCredentials(String username, String password){
-        editor.putString(PREFERENCES_USERNAME, username);
-        editor.putString(PREFERENCES_PASSWORD, password);
-        editor.putBoolean(PREFERENCES_REMEMBER_ME, true);
-        editor.commit();
-    }
-
-    private void clearStoredCredentials(){
-        editor.clear();
-        editor.commit();
-    }
-
-    public void alertEmptyLogin(Activity activity, String msg) {
-        AlertDialog alertDialog = new AlertDialog.Builder(activity).create();
-        alertDialog.setTitle(alert_error_title);
-        alertDialog.setMessage(msg);
-        alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, alert_button_positive_text,
-                new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int which) {
-                        dialog.dismiss();
-                    }
-                });
-        alertDialog.show();
-    }
-
-    public void showLoadingScreen(){
-        progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-        progressDialog.setMessage(please_wait);
-        progressDialog.setIndeterminate(true);
-        progressDialog.setCanceledOnTouchOutside(false);
-        progressDialog.show();
-    }
-
     public void loginHospital(final String username, final String password) {
 
         // Retrieve client
@@ -177,11 +124,20 @@ public class LoginActivity extends AppCompatActivity {
                     // Check if remember me enabled
                     CheckBox remember_box = findViewById(R.id.checkBox);
                     if(remember_box.isChecked()){
+
                         Log.d(TAG_CHECK, "Checkbox checked, storing credentials");
-                        setStoredCredentials(username, password);
+                        editor.putString(PREFERENCES_USERNAME, username);
+                        editor.putString(PREFERENCES_PASSWORD, password);
+                        editor.putBoolean(PREFERENCES_REMEMBER_ME, true);
+                        editor.commit();
+
                     } else {
-                        clearStoredCredentials();
+
+                        editor.clear();
+
                     }
+
+                    editor.commit();
 
                     // Initiate new activity
                     Intent hospitalIntent = new Intent(getApplicationContext(), HospitalListActivity.class);
@@ -205,7 +161,13 @@ public class LoginActivity extends AppCompatActivity {
                 @Override
                 public void onFailure(Throwable exception) {
 
-                    // TODO: Handle failure
+                    // Dismiss dialog
+                    progressDialog.dismiss();
+
+                    Log.d(TAG, "Failed to retrieve profile.");
+                    alertDialog(LoginActivity.this,
+                            getResources().getString(R.string.alert_error_title),
+                            exception.toString());
 
                 }
             });
@@ -218,9 +180,26 @@ public class LoginActivity extends AppCompatActivity {
 
                 @Override
                 public void onFailure(Throwable exception) {
+
+                    // Dismiss dialog
                     progressDialog.dismiss();
-                    alertEmptyLogin(LoginActivity.this, invalid_creds);
+
                     Log.d(TAG, "Failed to connected to broker.");
+                    String message;
+                    if (exception instanceof MqttException) {
+                        int reason = ((MqttException) exception).getReasonCode();
+                        if (reason == MqttException.REASON_CODE_FAILED_AUTHENTICATION ||
+                                reason == MqttException.REASON_CODE_INVALID_CLIENT_ID)
+                            message = getResources().getString(R.string.error_invalid_credentials);
+                        else
+                            message = getResources().getString(R.string.error_connection_failed).format(exception.toString());
+                    } else {
+                        message = exception.toString();
+                    }
+
+                    alertDialog(LoginActivity.this,
+                            getResources().getString(R.string.alert_error_title),
+                            message);
                 }
 
             });
@@ -230,4 +209,30 @@ public class LoginActivity extends AppCompatActivity {
         }
 
     }
+
+    public void showLoadingScreen(){
+
+        progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+        progressDialog.setMessage(getResources().getString(R.string.message_please_wait));
+        progressDialog.setIndeterminate(true);
+        progressDialog.setCanceledOnTouchOutside(false);
+        progressDialog.show();
+
+    }
+
+    public void alertDialog(Activity activity, String title, String message) {
+
+        AlertDialog alertDialog = new AlertDialog.Builder(activity).create();
+        alertDialog.setTitle(title);
+        alertDialog.setMessage(message);
+        alertDialog.setButton(AlertDialog.BUTTON_POSITIVE,
+                getResources().getString(R.string.alert_button_positive_text),
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                    }
+                });
+        alertDialog.show();
+    }
+
 }

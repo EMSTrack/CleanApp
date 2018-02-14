@@ -27,21 +27,22 @@ import org.emstrack.mqtt.MqttProfileMessageCallback;
 
 import org.emstrack.models.HospitalEquipment;
 import org.emstrack.models.HospitalEquipmentMetadata;
-import org.emstrack.models.HospitalPermission;
 
 
 /**
  * Created by devinhickey on 4/20/17.
  * The Dashboard
  */
-public class DashboardActivity extends AppCompatActivity {
+public class HospitalEquipmentActivity extends AppCompatActivity {
 
-    private static final String TAG = DashboardActivity.class.getSimpleName();
+    private static final String TAG = HospitalEquipmentActivity.class.getSimpleName();
     private ListAdapter adapter;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
+
         super.onCreate(savedInstanceState);
+
         this.requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.activity_dashboard);
 
@@ -62,34 +63,44 @@ public class DashboardActivity extends AppCompatActivity {
         });
 
         // Get data from Login and place it into the hospital
-        final int hospitalId = Integer.parseInt(getIntent().getStringExtra("SELECTED_HOSPITAL_ID"));
+        final int hospitalId = Integer
+                .parseInt(getIntent().getStringExtra("SELECTED_HOSPITAL_ID"));
 
         // Retrieve client
         final MqttProfileClient profileClient = ((HospitalApp) getApplication()).getProfileClient();
 
         // Set list adapter
         ListView lv = findViewById(R.id.dashboardListView);
-        adapter = new ListAdapter(this, new ArrayList<HospitalEquipment>(), getSupportFragmentManager());
+        adapter = new ListAdapter(this,
+                new ArrayList<HospitalEquipment>(),
+                getSupportFragmentManager());
         adapter.setOnDataChangedListener(new DataListener() {
+
             @Override
-            public void onDataChanged(String name, String data) {
-                Log.d(TAG, "onDataChanged: " + name + "@" + data);
+            public void onDataChanged(String equipmentName, String data) {
+
+                Log.d(TAG, "onDataChanged: " + equipmentName + "@" + data);
+                String format = "{\"hospital_id\":%1$s,\"equipment_name\":\"%2$s\",\"value\":%3$s}";
+
                 try {
                     profileClient.publish("user/" + profileClient.getUsername() +
                             "/hospital/" + hospitalId +
-                            "/equipment/" + name + "/data", data, 2, false);
+                            "/equipment/" + equipmentName + "/data",
+                            String.format(format, hospitalId, equipmentName, data),
+                            2, false);
                 } catch (MqttException e) {
                     Log.d(TAG, "Failed to publish updated equipment");
                 }
             }
+
         });
         lv.setAdapter(adapter);
-
 
         try {
 
             // Start retrieving data
-            profileClient.subscribe("hospital/" + hospitalId + "/metadata", 1, new MqttProfileMessageCallback() {
+            profileClient.subscribe("hospital/" + hospitalId + "/metadata",
+                    1, new MqttProfileMessageCallback() {
 
                 @Override
                 public void messageArrived(String topic, MqttMessage message) {
@@ -101,26 +112,36 @@ public class DashboardActivity extends AppCompatActivity {
 
                     try {
                         // Subscribe to all hospital equipment topics
-                        profileClient.subscribe("hospital/" + hospitalId + "/equipment/+/data", 1, new MqttProfileMessageCallback() {
+                        profileClient.subscribe(
+                                "hospital/" + hospitalId + "/equipment/+/data",
+                                1, new MqttProfileMessageCallback() {
                             @Override
                             public void messageArrived(String topic, MqttMessage message) {
 
                                 // Parse to hospital equipment
                                 GsonBuilder gsonBuilder = new GsonBuilder();
-                                gsonBuilder.setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES);
+                                gsonBuilder.setFieldNamingPolicy(
+                                        FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES);
                                 Gson gson = gsonBuilder.create();
 
                                 // Found item in the hospital equipments object
-                                HospitalEquipment equipment = gson.fromJson(new String(message.getPayload()), HospitalEquipment.class);
+                                HospitalEquipment equipment = gson
+                                        .fromJson(new String(message.getPayload()),
+                                                HospitalEquipment.class);
                                 refreshOrAddItem(equipment);
 
                             }
                         });
 
-                        HospitalEquipmentMetadata[] equipmentMetadata = gson.fromJson(new String(message.getPayload()), HospitalEquipmentMetadata[].class);
+                        HospitalEquipmentMetadata[] equipmentMetadata = gson
+                                .fromJson(new String(message.getPayload()),
+                                        HospitalEquipmentMetadata[].class);
                         for (HospitalEquipmentMetadata equipment : equipmentMetadata) {
                             // Subscribe without a callback
-                            profileClient.subscribe("hospital/" + hospitalId + "/equipment/" + equipment.getName() + "/data", 1, null);
+                            profileClient.subscribe(
+                                    "hospital/" + hospitalId +
+                                            "/equipment/" + equipment.getName() + "/data",
+                                    1, null);
                         }
 
                     } catch (MqttException e) {
@@ -146,8 +167,4 @@ public class DashboardActivity extends AppCompatActivity {
         Log.d(TAG, "After Refresh Or Add Item");
     }
 
-    @Override
-    public void onBackPressed() {
-        super.onBackPressed();
-    }
 }

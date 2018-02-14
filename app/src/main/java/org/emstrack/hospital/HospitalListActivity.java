@@ -106,7 +106,7 @@ public class HospitalListActivity extends AppCompatActivity {
                 Log.d(TAG, "Selected HospitalEquipmentMetadata: " + selectedHospital.getHospitalName());
 
                 // Set the static list of HospitalEquipment in Dashboard
-                Intent intent = new Intent(HospitalListActivity.this, DashboardActivity.class);
+                Intent intent = new Intent(HospitalListActivity.this, HospitalEquipmentActivity.class);
                 intent.putExtra("SELECTED_HOSPITAL_ID", Integer.toString(selectedHospital.getHospitalId()));
                 startActivity(intent);
             }

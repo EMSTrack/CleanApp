@@ -21,7 +21,7 @@ import org.emstrack.hospital.R;
  * Created by devinhickey on 6/5/17.
  */
 
-public class ToggleDialog extends DialogFragment {
+public class EquipmentBooleanDialog extends DialogFragment {
 
     private String title;
     private String message;
@@ -33,7 +33,7 @@ public class ToggleDialog extends DialogFragment {
     /**
      * Empty Constructor
      */
-    public ToggleDialog() {
+    public EquipmentBooleanDialog() {
 
     }
 
@@ -43,8 +43,9 @@ public class ToggleDialog extends DialogFragment {
      * @param message
      * @return
      */
-    public static ToggleDialog newInstance(String title, String message, boolean isToggled, String data) {
-        ToggleDialog td = new ToggleDialog();
+    public static EquipmentBooleanDialog newInstance(String title, String message, boolean isToggled, String data) {
+
+        EquipmentBooleanDialog td = new EquipmentBooleanDialog();
 
         Bundle args = new Bundle();
         args.putString("Title", title);
@@ -61,6 +62,7 @@ public class ToggleDialog extends DialogFragment {
     @Override
     @NonNull
     public Dialog onCreateDialog(Bundle savedInstanceState) {
+
         title = getArguments().getString("Title");
         message = getArguments().getString("Message");
         isToggled = getArguments().getBoolean("Toggle");
@@ -80,9 +82,9 @@ public class ToggleDialog extends DialogFragment {
         // Check if the resource is available and set the title to account for it
         System.out.println("Data = " + oldData);
         if (oldData.equals("True")) {
-            alertBuilder.setTitle((title + " - Disponible"));
+            alertBuilder.setTitle((title + " - " + getResources().getString(R.string.equipment_boolean_true)));
         } else {
-            alertBuilder.setTitle((title + " - No Disponible"));
+            alertBuilder.setTitle((title + " - " + getResources().getString(R.string.equipment_boolean_false)));
         }
         alertBuilder.setMessage(message);
 
@@ -91,9 +93,9 @@ public class ToggleDialog extends DialogFragment {
         View v = inflater.inflate(R.layout.toggle_dialog, null, false);
         alertBuilder.setView(v.findViewById(R.id.toggleDialogLayout));
 
-        final Switch toggleSwitch = (Switch) v.findViewById(R.id.availableSwitch);
-        final TextView availableText = (TextView) v.findViewById(R.id.availableText);
-        final TextView unavailableText = (TextView) v.findViewById(R.id.unavailableText);
+        final Switch toggleSwitch = v.findViewById(R.id.availableSwitch);
+        final TextView availableText = v.findViewById(R.id.availableText);
+        final TextView unavailableText = v.findViewById(R.id.unavailableText);
 
         toggleSwitch.setChecked(!isToggled);
         toggleText(!isToggled, availableText, unavailableText);
@@ -125,7 +127,7 @@ public class ToggleDialog extends DialogFragment {
             }
         });
 
-        alertBuilder.setNeutralButton("Actualizar", new DialogInterface.OnClickListener() {
+        alertBuilder.setNeutralButton(getResources().getString(R.string.equipment_bolean_button_positive_text), new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 if (!toggleSwitch.isChecked()) {
@@ -140,7 +142,7 @@ public class ToggleDialog extends DialogFragment {
             }
         });
 
-        alertBuilder.setNegativeButton("Cancelar", new DialogInterface.OnClickListener() {
+        alertBuilder.setNegativeButton(getResources().getString(R.string.equipment_bolean_button_positive_text), new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 updatedData = "";

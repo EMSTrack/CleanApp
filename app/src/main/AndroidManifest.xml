@@ -26,7 +26,7 @@
             android:screenOrientation="nosensor">
         </activity>
 
-        <activity android:name="org.emstrack.hospital.DashboardActivity"
+        <activity android:name="org.emstrack.hospital.HospitalEquipmentActivity"
             android:screenOrientation="nosensor">
         </activity>
 

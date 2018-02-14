@@ -14,8 +14,8 @@ import android.widget.TextView;
 //import org.emstrack.hospital.CustomDialog;
 import org.emstrack.hospital.interfaces.DataListener;
 import org.emstrack.hospital.R;
-import org.emstrack.hospital.dialogs.ToggleDialog;
-import org.emstrack.hospital.dialogs.ValueDialog;
+import org.emstrack.hospital.dialogs.EquipmentBooleanDialog;
+import org.emstrack.hospital.dialogs.EquipmentIntegerDialog;
 import org.emstrack.models.HospitalEquipment;
 
 import java.util.ArrayList;
@@ -56,34 +56,38 @@ public class ListAdapter extends ArrayAdapter<HospitalEquipment> {
         Character equipmentEtype = equipmentItem.getEquipmentEtype();
 
         try {
+
             // Integer type
             if (equipmentEtype == 'I') {
+
                 System.out.println("Adding Value to List");
-                row = inflater.inflate(R.layout.list_item_value, parent, false);
+                row = inflater.inflate(R.layout.list_item_integer, parent, false);
 
-                System.out.println("Grabbing Elements from Row");
                 // Grab the elements of the Value ListItem
-                TextView text = (TextView) row.findViewById(R.id.valueTextView);
-                TextView value = (TextView) row.findViewById(R.id.valueData);
+                System.out.println("Grabbing Elements from Row");
+                TextView text = row.findViewById(R.id.valueTextView);
+                TextView value = row.findViewById(R.id.valueData);
 
-                System.out.println("Setting Elements in Row");
                 // Set the elements of the ListItem
+                System.out.println("Setting Elements in Row");
                 text.setText(equipmentItem.getEquipmentName());
-                value.setText(equipmentItem.getValue() + "");
+                value.setText(equipmentItem.getValue());
 
                 System.out.println("Setting row onClick Listener");
                 row.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
+
                         System.out.println("Value ListItem onClick");
 
                         String title = ((TextView) row.findViewById(R.id.valueTextView)).getText().toString();
-                        String message = "¿Cuántas unidades hay disponibles?";
+                        String message = context.getResources().getString(R.string.equipment_integer_message);
                         String value = ((TextView) row.findViewById(R.id.valueData)).getText().toString();
 
-                        ValueDialog vd = ValueDialog.newInstance(title, message, value);
+                        EquipmentIntegerDialog vd = EquipmentIntegerDialog.newInstance(title, message, value);
                         vd.setOnDataChangedListener(dr);
-                        vd.show(fragmentManager, "value_dialog");
+                        vd.show(fragmentManager,
+                                "integer_dialog");
 
                         System.out.println("After Show----------------");
 
@@ -91,29 +95,32 @@ public class ListAdapter extends ArrayAdapter<HospitalEquipment> {
                 });
 
             } else if (equipmentEtype == 'B') {
+
                 System.out.println("Adding Toggle to List");
-                row = inflater.inflate(R.layout.list_item_toggle, parent, false);
+                row = inflater.inflate(R.layout.list_item_boolean, parent, false);
 
                 // Grab the elements of the Toggle ListItem
-                TextView text = (TextView) row.findViewById(R.id.toggleTextView);
-                ImageView image = (ImageView) row.findViewById(R.id.toggleImage);
+                TextView text = row.findViewById(R.id.toggleTextView);
+                ImageView image = row.findViewById(R.id.toggleImage);
 
                 // Set the elements of the ListItem
                 text.setText(equipmentItem.getEquipmentName());
                 row.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
+
                         System.out.println("Toggle ListItem onClick");
 
                         String title = ((TextView) row.findViewById(R.id.toggleTextView)).getText().toString();
-                        String message = "¿Está disponible este recurso?";
+                        String message = context.getResources().getString(R.string.equipment_boolean_message);
                         String value = equipmentItem.getValue();
                         boolean toggled = (value.equals("True"));
 
-                        ToggleDialog td = ToggleDialog.newInstance(title, message, toggled, value);
+                        EquipmentBooleanDialog td = EquipmentBooleanDialog.newInstance(title, message, toggled, value);
                         td.setOnDataChangedListener(dr);
 
-                        td.show(fragmentManager, "toggle_dialog");
+                        td.show(fragmentManager,
+                                "boolean_dialog");
                     }
                 });
 
