@@ -10,7 +10,7 @@ import android.support.v7.app.AlertDialog;
 import android.util.Log;
 
 import org.eclipse.paho.client.mqttv3.MqttException;
-import org.emstrack.hospital.HospitalApp;
+import org.emstrack.hospital.AmbulanceApp;
 import org.emstrack.hospital.LoginActivity;
 import org.emstrack.hospital.R;
 import org.emstrack.mqtt.MqttProfileClient;
@@ -46,7 +46,7 @@ public class LogoutDialog extends DialogFragment {
                 System.out.println("OK Button Clicked");
 
                 // Retrieve client
-                final MqttProfileClient profileClient = ((HospitalApp) getActivity().getApplication()).getProfileClient();
+                final MqttProfileClient profileClient = ((AmbulanceApp) getActivity().getApplication()).getProfileClient();
                 try {
                     profileClient.disconnect();
                 } catch (MqttException e) {
