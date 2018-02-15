@@ -118,7 +118,7 @@ public class LoginActivity extends AppCompatActivity {
     public void loginHospital(final String username, final String password) {
 
         // Retrieve client
-        final MqttProfileClient profileClient = ((HospitalApp) getApplication()).getProfileClient();
+        final MqttProfileClient profileClient = ((AmbulanceApp) getApplication()).getProfileClient();
 
         // Set callback to be called after profile is retrieved
         profileClient.setCallback(new MqttProfileCallback() {
@@ -147,7 +147,7 @@ public class LoginActivity extends AppCompatActivity {
                 editor.apply();
 
                 // Initiate new activity
-                Intent hospitalIntent = new Intent(getApplicationContext(), HospitalListActivity.class);
+                Intent hospitalIntent = new Intent(getApplicationContext(), AmbulanceListActivity.class);
                 startActivity(hospitalIntent);
 
                 // Clear the loading screen

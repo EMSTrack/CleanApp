@@ -11,7 +11,7 @@ import java.util.UUID;
  * Created by mauri on 2/10/2018.
  */
 
-public class HospitalApp extends Application {
+public class AmbulanceApp extends Application {
 
     final String serverUri = "ssl://cruzroja.ucsd.edu:8883";
     final String clientId = "HospitalAppClient_" + UUID.randomUUID().toString();
