@@ -40,6 +40,7 @@ public class LoginActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
+/*
         // Action bar
         getSupportActionBar().setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM);
         getSupportActionBar().setDisplayShowCustomEnabled(true);
@@ -47,6 +48,7 @@ public class LoginActivity extends AppCompatActivity {
         View view = getSupportActionBar().getCustomView();
         ImageView imageButton= view.findViewById(R.id.LogoutBtn);
         imageButton.setVisibility(View.GONE);
+*/
 
         // Create progress dialog
         progressDialog = new ProgressDialog(LoginActivity.this);

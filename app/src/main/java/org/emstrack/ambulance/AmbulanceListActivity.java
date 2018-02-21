@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -37,6 +38,7 @@ public class AmbulanceListActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_hospital_list);
 
+/*
         // Action bar
         getSupportActionBar().setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM);
         getSupportActionBar().setDisplayShowCustomEnabled(true);
@@ -52,6 +54,7 @@ public class AmbulanceListActivity extends AppCompatActivity {
                 ld.show(getFragmentManager(), "logout_dialog");
             }
         });
+*/
 
         // Retrieve ambulances
         final MqttProfileClient profileClient = ((AmbulanceApp) getApplication()).getProfileClient();
@@ -111,18 +114,10 @@ public class AmbulanceListActivity extends AppCompatActivity {
 
                 int ambulanceId = selectedAmbulance.getAmbulanceId();
 
-                // START GPS
-                AlertDialog alertDialog = new AlertDialog.Builder(AmbulanceListActivity.this).create();
-                alertDialog.setTitle("GPS");
-                alertDialog.setMessage("Start GPS");
-                alertDialog.setButton(AlertDialog.BUTTON_POSITIVE,
-                        getResources().getString(R.string.alert_button_positive_text),
-                        new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int which) {
-                                dialog.dismiss();
-                            }
-                        });
-                alertDialog.show();
+                // Set the static list of HospitalEquipment in Dashboard
+                Intent intent = new Intent(AmbulanceListActivity.this, MainActivity.class);
+                intent.putExtra("SELECTED_AMBULANCE_ID", Integer.toString(selectedAmbulance.getAmbulanceId()));
+                startActivity(intent);
 
             }
         });

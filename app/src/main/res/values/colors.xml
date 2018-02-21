@@ -5,4 +5,8 @@
     <color name="colorAccent">#536DFE</color> <!-- #FF4081 -->
     <color name="colorGreen">#00ff00</color> <!-- #00ff00 -->
     <color name="colorGrey">#D3D3D3</color> <!-- #00ff00 -->
+
+    <color name="colorWhite">#ffffffff</color>
+    <color name="colorBlack">#000000</color>
+
 </resources>
