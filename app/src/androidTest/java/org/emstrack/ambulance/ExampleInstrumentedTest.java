@@ -1,4 +1,4 @@
-package org.emstrack.hospital;
+package org.emstrack.ambulance;
 
 import android.content.Context;
 import android.support.test.InstrumentationRegistry;

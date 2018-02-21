@@ -1,4 +1,4 @@
-package org.emstrack.hospital;
+package org.emstrack.ambulance;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,7 +17,7 @@ import android.widget.Spinner;
 import android.widget.Toast;
 import android.util.Log;
 
-import org.emstrack.hospital.dialogs.LogoutDialog;
+import org.emstrack.ambulance.dialogs.LogoutDialog;
 import org.emstrack.models.AmbulancePermission;
 import org.emstrack.mqtt.MqttProfileClient;
 
