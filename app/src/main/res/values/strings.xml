@@ -1,7 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="app_name">Hospital</string>
+    <string name="app_name">EMSTrack</string>
+
+    <string name="drawer_open">Open navigation drawer</string>
+    <string name="drawer_close">Close navigation drawer</string>
 
     <string name="alert_error_title">Error</string>
     <string name="alert_warning">Warning</string>
@@ -41,5 +44,7 @@
     <string name="equipment_string_button_positive_text">Update</string>
     <string name="equipment_string_button_negative_text">Cancel</string>
     <string name="equipment_string_message">Value</string>
+
+    <string name="action_settings">Settings</string>
 
 </resources>
