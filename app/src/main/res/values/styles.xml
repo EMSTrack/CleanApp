@@ -6,28 +6,25 @@
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
-        <item name="android:spinnerItemStyle">@style/spinnerItemStyle</item>
-        <item name="android:spinnerDropDownItemStyle">
-            @style/spinnerDropDownItemStyle
-        </item>
     </style>
 
-    <style name="CustomTheme" parent="Theme.AppCompat.Light">
-        <item name="colorPrimary">@color/colorPrimary</item>
-        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
-        <item name="colorAccent">@color/colorAccent</item>
-        <item name="contentInsetStart">0dp</item>
-        <item name="contentInsetEnd">0dp</item>
+    <style name="CustomTabLayoutStyle" parent="Base.Widget.Design.TabLayout">
+        <item name="tabTextAppearance">@style/CustomTabTextStyle</item>
+        <item name="tabSelectedTextColor">@color/colorPrimaryDark</item>
     </style>
 
-    <color name="redDark">#d32f2f</color>
-
-    <style name="spinnerItemStyle">
-        <item name="android:gravity">center</item>
+    <style name="CustomTabTextStyle" parent="TextAppearance.Design.Tab">
+        <item name="android:textSize">14sp</item>
+        <item name="android:textColor">@color/colorAccent</item>
     </style>
 
-    <style name="spinnerDropDownItemStyle">
-        <item name="android:gravity">center</item>
+    <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
+
+    <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
+
+    <style name="drawer_menu_theme">navatormenu
+        <item name="android:textSize">20sp</item><!-- text size in menu-->
+        <item name="android:listPreferredItemHeightSmall">40dp</item><!-- item size in menu-->
     </style>
 
 </resources>

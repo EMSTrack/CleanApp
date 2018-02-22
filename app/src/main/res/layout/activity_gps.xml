@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/activity_gps"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingTop="@dimen/activity_vertical_margin"
+    tools:context="org.emstrack.ambulance.tab.fragments.GPSActivity">
+
+    <TextView
+        android:id="@+id/LatLongText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Longitude:\n\nLatitude:\n\nLast Recorded Time: \n\nLast Transmitted Time:\n\n"
+        android:textAppearance="@style/TextAppearance.AppCompat.Small"
+        android:layout_marginTop="28dp"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true" />
+
+
+    <Switch
+        android:text="Track by time:"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/trackByTimeSwitch"
+        android:switchTextAppearance="@style/TextAppearance.AppCompat.Widget.Switch"
+        android:checked="false"
+        android:layout_centerVertical="true"
+        android:layout_centerHorizontal="true" />
+
+
+    <Switch
+        android:text="Track by distance "
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/trackByDistanceSwitch"
+        android:checked = "false"
+        android:layout_marginTop="34dp"
+        android:layout_below="@+id/trackByTimeSwitch"
+        android:layout_centerHorizontal="true" />
+
+
+</RelativeLayout>
+
+
