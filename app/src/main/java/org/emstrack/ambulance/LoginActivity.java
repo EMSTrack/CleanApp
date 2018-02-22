@@ -26,8 +26,6 @@ import org.emstrack.mqtt.MqttProfileClient;
 public class LoginActivity extends AppCompatActivity {
 
     private final String PREFERENCES_USERNAME = "username";
-    private final String PREFERENCES_PASSWORD = "password";
-    private final String PREFERENCES_REMEMBER_ME = "remember_me";
 
     private static final String TAG = "LoginActvity";
 
@@ -40,37 +38,18 @@ public class LoginActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
-/*
-        // Action bar
-        getSupportActionBar().setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM);
-        getSupportActionBar().setDisplayShowCustomEnabled(true);
-        getSupportActionBar().setCustomView(R.layout.maintitlebar);
-        View view = getSupportActionBar().getCustomView();
-        ImageView imageButton= view.findViewById(R.id.LogoutBtn);
-        imageButton.setVisibility(View.GONE);
-*/
-
         // Create progress dialog
         progressDialog = new ProgressDialog(LoginActivity.this);
 
         // Find username and password from layout
         final EditText usernameField = findViewById(R.id.editUserName);
         final EditText passwordField = findViewById(R.id.editPassword);
-        //final CheckBox savedUsernameCheck = findViewById(R.id.checkBox);
 
-        // Get credentials
+        // Retrieving credentials
         creds_prefs = getSharedPreferences("org.emstrack.hospital", MODE_PRIVATE);
 
-        // Check if credentials are cached
-        if (creds_prefs.getBoolean(PREFERENCES_REMEMBER_ME, false)) {
-
-            Log.d(TAG, "Remember user enabled, using credentials");
-            usernameField.setText(creds_prefs.getString(PREFERENCES_USERNAME, null));
-            //savedUsernameCheck.setChecked(true);
-
-        } else{
-            Log.d(TAG, "Remember user not enabled, asking for credentials");
-        }
+        // Retrieve past credentials
+        usernameField.setText(creds_prefs.getString(PREFERENCES_USERNAME, null));
 
         // Submit button's click listener
         Button login_submit = (Button) findViewById(R.id.buttonLogin);
@@ -106,15 +85,6 @@ public class LoginActivity extends AppCompatActivity {
             }
         });
 
-        // TODO: ADD BACK? Code to hide keyboard if user clicks out of window
-//        findViewById(R.id.relativeLayout).setOnTouchListener(new View.OnTouchListener() {
-//            @Override
-//            public boolean onTouch(View v, MotionEvent event) {
-//                InputMethodManager imm = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
-//                imm.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), 0);
-//                return true;
-//            }
-//        });
     }
 
     public void loginHospital(final String username, final String password) {
@@ -131,21 +101,9 @@ public class LoginActivity extends AppCompatActivity {
                 // Get preferences editor
                 SharedPreferences.Editor editor = creds_prefs.edit();
 
-                // Check if remember me enabled
-                //CheckBox remember_box = findViewById(R.id.checkBox);
-//                if (remember_box.isChecked()) {
-//
-//                    Log.d(TAG, "Checkbox checked, storing credentials");
-//                    editor.putString(PREFERENCES_USERNAME, username);
-//                    editor.putString(PREFERENCES_PASSWORD, password);
-//                    editor.putBoolean(PREFERENCES_REMEMBER_ME, true);
-//
-//                } else {
-//
-//                    editor.clear();
-//
-//                }
-
+                // Save credentials
+                Log.d(TAG, "Storing credentials");
+                editor.putString(PREFERENCES_USERNAME, username);
                 editor.apply();
 
                 // Initiate new activity
