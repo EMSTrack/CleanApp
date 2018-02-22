@@ -1,4 +1,4 @@
-package org.emstrack.ambulance.tab.fragments;
+package org.emstrack.ambulance.fragments;
 
 import android.content.Intent;
 import android.net.Uri;
@@ -10,26 +10,26 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
-import org.emstrack.ambulance.AmbulanceApp;
-import org.emstrack.ambulance.DispatcherCall;
-import org.emstrack.ambulance.GPSTracker;
-import org.emstrack.ambulance.LocationPoint;
+
 import org.emstrack.ambulance.R;
 
 import static android.content.ContentValues.TAG;
-import static org.emstrack.ambulance.DispatcherCall.getLong;
-import static org.emstrack.ambulance.DispatcherCall.getLatitude;
 
 /**
  * Created by justingil1748 on 4/26/17.
  */
 
 public class DispatcherActivity extends Fragment implements View.OnClickListener {
+
     View rootView;
-    GPSTracker gps;
     Button mapButton;
     static TextView addressText;
+
+/*
+    GPSTracker gps;
     DispatcherCall dCall;
+*/
+
     //GoogleMap mGoogleMap;
     //Button addressButton;
     //EditText addressSearchText;
@@ -38,14 +38,15 @@ public class DispatcherActivity extends Fragment implements View.OnClickListener
 
     //Dispatcher page
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+
         rootView = inflater.inflate(R.layout.activity_dispatcher, container, false);
 
         mapButton = (Button) rootView.findViewById(R.id.gmap);
         mapButton.setOnClickListener(this);
 
-        //
         addressText = ((TextView) rootView.findViewById(R.id.address));
-        // TODO: add back? addressText.setText(AmbulanceApp.globalAddress);
+        // addressText.setText(AmbulanceApp.globalAddress);
+
         /*
         addressButton = (Button) rootView.findViewById(R.id.addressButton);
         addressButton.setOnClickListener(this);
@@ -64,7 +65,7 @@ public class DispatcherActivity extends Fragment implements View.OnClickListener
 
     public static void updateAddress(String msg) {
         Log.d(TAG, "updateAddress: message re1");
-        // TODO: FIX addressText.setText(AmbulanceApp.globalAddress);
+        // addressText.setText(AmbulanceApp.globalAddress);
         Log.d(TAG, "updateAddress: message re2");
     }
 
@@ -73,7 +74,10 @@ public class DispatcherActivity extends Fragment implements View.OnClickListener
      */
     @Override
     public void onClick(View v) {
+
         if(v == mapButton){
+
+/*
             gps = new GPSTracker(rootView.getContext(), 500, -1);
             gps.getLastKnownLocationIfAllowed();
             gps.getLocation();
@@ -89,6 +93,8 @@ public class DispatcherActivity extends Fragment implements View.OnClickListener
             String geoUri = "http://maps.google.com/maps?q=loc:" + dispatchLat + "," + dispatchLong + " (" + loc + ")";
             Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(geoUri));
             startActivity(intent);
+*/
+
         }
         /*
         else if(v == addressButton){

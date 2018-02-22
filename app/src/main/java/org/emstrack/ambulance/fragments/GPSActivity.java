@@ -1,7 +1,7 @@
-package org.emstrack.ambulance.tab.fragments;
+package org.emstrack.ambulance.fragments;
 
-import android.support.v4.app.Fragment;
 import android.os.Bundle;
+import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -9,9 +9,8 @@ import android.widget.CompoundButton;
 import android.widget.Switch;
 import android.widget.TextView;
 
-
-import org.emstrack.ambulance.GPSTracker;
 import org.emstrack.ambulance.R;
+
 
 /**
  * Java Class AND ACTIVITY
@@ -32,10 +31,12 @@ import org.emstrack.ambulance.R;
  * return a new JSONObject.
  */
 public class GPSActivity extends Fragment implements CompoundButton.OnCheckedChangeListener{
-    GPSTracker gpsTracker;
+
     Switch trackByTime;             // The switch for clock enable.
     Switch trackByDistance;
     View rootView;
+
+    // GPSTracker gpsTracker;
 
     /*
      * Default method
@@ -48,8 +49,9 @@ public class GPSActivity extends Fragment implements CompoundButton.OnCheckedCha
         rootView = inflater.inflate(R.layout.activity_gps, container, false);
 
         //checkLocationPermission(); //Might be needed, might not.
-        gpsTracker = new GPSTracker(rootView.getContext(), 500, -1);
-        gpsTracker.setLatLongTextView((TextView) rootView.findViewById(R.id.LatLongText));
+
+        // gpsTracker = new GPSTracker(rootView.getContext(), 500, -1);
+        // gpsTracker.setLatLongTextView((TextView) rootView.findViewById(R.id.LatLongText));
 
         //Determine whether to listen by dist changed or time changed
         trackByTime = (Switch) rootView.findViewById(R.id.trackByTimeSwitch);
@@ -57,6 +59,7 @@ public class GPSActivity extends Fragment implements CompoundButton.OnCheckedCha
 
         trackByDistance = (Switch) rootView.findViewById(R.id.trackByDistanceSwitch);
         trackByDistance.setOnCheckedChangeListener(this);
+
         return rootView;
     }
 
@@ -66,6 +69,7 @@ public class GPSActivity extends Fragment implements CompoundButton.OnCheckedCha
         System.err.println("onPause: GPSActivity");
         super.onPause(); // This is required for some reason.
     }
+
     @Override
     public void onStop(){
         System.err.println("onStop: GPSActivity");
@@ -80,17 +84,15 @@ public class GPSActivity extends Fragment implements CompoundButton.OnCheckedCha
         super.onDestroy(); // Same.
     }
 
-    /** checks to see if any buttons were switched on or off.
-     * If DistanceSwitch or TimeSwitch is turned off or on, update the listener
-     * @param buttonView
-     * @param isChecked
-     */
-
     @Override
     public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+
         if (isChecked) {
+
             //determine what was turned on
             switch (buttonView.getId()) {
+
+/*
                 case R.id.trackByTimeSwitch: //turn on tracking by time
                     //gpsTracker.turnOff();
                     long currDistanceTracking = gpsTracker.getMinDistanceChangeForUpdates();
@@ -103,11 +105,15 @@ public class GPSActivity extends Fragment implements CompoundButton.OnCheckedCha
                     gpsTracker = new GPSTracker(rootView.getContext(), -1, currTimeTracking);
                     gpsTracker.setLatLongTextView((TextView) rootView.findViewById(R.id.LatLongText));
                     break;
+*/
                 default:
 
             }
+
         } else { // something was turned off
+
             switch (buttonView.getId()) {
+/*
                 case R.id.trackByTimeSwitch: //turn off tracking by time
                     gpsTracker.turnOff();
                     long currDistanceTracking = gpsTracker.getMinDistanceChangeForUpdates();
@@ -120,9 +126,11 @@ public class GPSActivity extends Fragment implements CompoundButton.OnCheckedCha
                     //continue tracking by time
                     gpsTracker = new GPSTracker(rootView.getContext(), currTimeTracking, 0);
                     break;
+*/
                 default:
             }
         }
+
     }
 }
 

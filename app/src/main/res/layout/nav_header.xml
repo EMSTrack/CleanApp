@@ -14,7 +14,7 @@
         android:layout_height="wrap_content"
         android:text="Welcome to Cruz Roja!"
         android:textAppearance="@style/TextAppearance.AppCompat.Body1"
-        android:textColor="@color/black"
+        android:textColor="@color/colorBlack"
         android:textColorLink="@color/common_action_bar_splitter" />
 
 </LinearLayout>

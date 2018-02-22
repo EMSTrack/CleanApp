@@ -13,7 +13,7 @@
         android:layout_centerHorizontal="true"
         android:layout_marginTop="16dp"
         android:text="Request"
-        android:textColor="@color/black"
+        android:textColor="@color/colorBlack"
         android:textSize="25dp" />
 
     <TextView
@@ -60,7 +60,7 @@
         android:layout_marginLeft="15dp"
         android:layout_marginRight="15dp"
         android:text="No Location Description Received"
-        android:textColor="@color/black"
+        android:textColor="@color/colorBlack"
         android:textSize="18dp" />
 
     <Button
