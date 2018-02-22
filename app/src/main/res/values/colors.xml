@@ -5,5 +5,5 @@
     <color name="colorAccent">#f65050</color>
     <color name="colorWhite">#ffffffff</color>
     <color name="colorBlack">#000000</color>
-
+    <color name="common_action_bar_splitter">#000000</color>
 </resources>

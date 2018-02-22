@@ -85,6 +85,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
 
         // Find our drawer view
         nvDrawer = (NavigationView) findViewById(R.id.nvView);
+
         // Setup drawer view
         setupDrawerContent(nvDrawer);
 
@@ -92,7 +93,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         TabLayout tabLayout = (TabLayout) findViewById(R.id.tab_layout_home);
         tabLayout.addTab(tabLayout.newTab().setText("Dispatcher"));
         tabLayout.addTab(tabLayout.newTab().setText("Hospital"));
-//        tabLayout.addTab(tabLayout.newTab().setText("GPS"));
+        tabLayout.addTab(tabLayout.newTab().setText("GPS"));
 
         //pager
         final ViewPager viewPager = (ViewPager) findViewById(R.id.pager);
@@ -101,7 +102,6 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         //Setup Adapter for tabLayout
         final Pager adapter = new Pager(getSupportFragmentManager(), tabLayout.getTabCount());
         viewPager.setAdapter(adapter);
-
 
         viewPager.addOnPageChangeListener(new TabLayout.TabLayoutOnPageChangeListener(tabLayout));
         tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
@@ -159,11 +159,10 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                     });
 
         } catch (MqttException e) {
-            Log.d(TAG, "Could not subscribe to hospital metadata");
+            Log.d(TAG, "Could not subscribe to ambulance data");
         }
 
     }
-
 
     //Hamburger Menu setup
     private ActionBarDrawerToggle setupDrawerToggle() {
@@ -264,7 +263,8 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
 
     @Override
     public void onRequestPermissionsResult(int requestCode,
-                                           String permissions[], int[] grantResults) {
+                                           String permissions[],
+                                           int[] grantResults) {
         switch (requestCode) {
             case GPSTracker.REQUEST_FINE_LOCATION: {
                 // If request is cancelled, the result arrays are empty.

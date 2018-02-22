@@ -25,7 +25,7 @@
         android:layout_marginLeft="15dp"
         android:layout_marginTop="10dp"
         android:text="Address"
-        android:textColor="@color/common_plus_signin_btn_text_light_default"
+        android:textColor="@color/colorWhite"
         android:textSize="15dp" />
 
     <TextView
@@ -37,7 +37,7 @@
         android:layout_marginLeft="15dp"
         android:layout_marginRight="15dp"
         android:text="No Address Received"
-        android:textColor="@color/common_google_signin_btn_text_dark_focused"
+        android:textColor="@color/colorBlack"
         android:textSize="18dp" />
 
     <TextView
@@ -49,7 +49,7 @@
         android:layout_below="@+id/address"
         android:layout_marginBottom="5dp"
         android:text="Description"
-        android:textColor="@color/common_plus_signin_btn_text_light_default"
+        android:textColor="@color/colorWhite"
         android:textSize="15dp" />
 
     <TextView
