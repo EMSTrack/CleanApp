@@ -1,12 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="org.emstrack.hospital">
+    package="org.emstrack.ambulance">
+
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
     <application
-        android:name=".AmbulanceApp"
+        android:name="org.emstrack.ambulance.AmbulanceApp"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher2"
         android:label="@string/app_name"
@@ -14,7 +16,7 @@
         android:supportsRtl="true"
         android:theme="@style/CustomTheme">
 
-        <activity android:name="org.emstrack.hospital.LoginActivity"
+        <activity android:name="org.emstrack.ambulance.LoginActivity"
             android:screenOrientation="nosensor">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -22,7 +24,7 @@
             </intent-filter>
         </activity>
 
-        <activity android:name="org.emstrack.hospital.AmbulanceListActivity"
+        <activity android:name="org.emstrack.ambulance.AmbulanceListActivity"
             android:screenOrientation="nosensor">
         </activity>
 

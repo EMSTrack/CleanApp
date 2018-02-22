@@ -1,4 +1,4 @@
-package org.emstrack.hospital;
+package org.emstrack.ambulance;
 
 import android.app.Activity;
 import android.app.ProgressDialog;
@@ -38,6 +38,8 @@ public class LoginActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
 
         super.onCreate(savedInstanceState);
+
+        // This shows the UI for the login page
         setContentView(R.layout.activity_login);
 
         // Action bar
@@ -57,7 +59,8 @@ public class LoginActivity extends AppCompatActivity {
         final CheckBox savedUsernameCheck = findViewById(R.id.checkBox);
 
         // Get credentials
-        creds_prefs = getSharedPreferences("org.emstrack.hospital", MODE_PRIVATE);
+        // Android Newbie Note - this loads preferences from the 'org.emstrack.ambulance' file
+        creds_prefs = getSharedPreferences("org.emstrack.ambulance", MODE_PRIVATE);
 
         // Check if credentials are cached
         if (creds_prefs.getBoolean(PREFERENCES_REMEMBER_ME, false)) {
@@ -98,7 +101,7 @@ public class LoginActivity extends AppCompatActivity {
                     progressDialog.show();
 
                     // while attempting to login
-                    loginHospital(username, password);
+                    loginAmbulance(username, password);
                 }
 
             }
@@ -115,7 +118,7 @@ public class LoginActivity extends AppCompatActivity {
         });
     }
 
-    public void loginHospital(final String username, final String password) {
+    public void loginAmbulance(final String username, final String password) {
 
         // Retrieve client
         final MqttProfileClient profileClient = ((AmbulanceApp) getApplication()).getProfileClient();
@@ -147,8 +150,8 @@ public class LoginActivity extends AppCompatActivity {
                 editor.apply();
 
                 // Initiate new activity
-                Intent hospitalIntent = new Intent(getApplicationContext(), AmbulanceListActivity.class);
-                startActivity(hospitalIntent);
+                Intent ambulanceIntent = new Intent(getApplicationContext(), AmbulanceListActivity.class);
+                startActivity(ambulanceIntent);
 
                 // Clear the loading screen
                 progressDialog.dismiss();

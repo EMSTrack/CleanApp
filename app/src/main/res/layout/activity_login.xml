@@ -10,7 +10,7 @@
     android:focusableInTouchMode="true"
 
 
-    tools:context="org.emstrack.hospital.LoginActivity">
+    tools:context="org.emstrack.ambulance.LoginActivity">
 
 
     <LinearLayout
