@@ -1,4 +1,4 @@
-package org.emstrack.hospital;
+package org.emstrack.ambulance;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,7 +17,7 @@ import android.widget.Spinner;
 import android.widget.Toast;
 import android.util.Log;
 
-import org.emstrack.hospital.dialogs.LogoutDialog;
+import org.emstrack.ambulance.dialogs.LogoutDialog;
 import org.emstrack.models.AmbulancePermission;
 import org.emstrack.mqtt.MqttProfileClient;
 
@@ -38,6 +38,7 @@ public class AmbulanceListActivity extends AppCompatActivity {
         setContentView(R.layout.activity_hospital_list);
 
         // Action bar
+        // TODO - switch to ambulance UI
         getSupportActionBar().setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM);
         getSupportActionBar().setDisplayShowCustomEnabled(true);
         getSupportActionBar().setCustomView(R.layout.maintitlebar);

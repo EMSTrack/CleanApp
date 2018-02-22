@@ -1,4 +1,4 @@
-package org.emstrack.hospital.interfaces;
+package org.emstrack.ambulance.interfaces;
 
 /**
  * Created by Fabian Choi on 5/30/2017.
