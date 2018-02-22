@@ -5,7 +5,6 @@ import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.os.Parcelable;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -41,13 +40,15 @@ public class LoginActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
+/*
         // Action bar
-//        getSupportActionBar().setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM);
- //       getSupportActionBar().setDisplayShowCustomEnabled(true);
-        //getSupportActionBar().setCustomView(R.layout.maintitlebar);
- //       View view = getSupportActionBar().getCustomView();
-        //ImageView imageButton= view.findViewById(R.id.LogoutBtn);
-        //imageButton.setVisibility(View.GONE);
+        getSupportActionBar().setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM);
+        getSupportActionBar().setDisplayShowCustomEnabled(true);
+        getSupportActionBar().setCustomView(R.layout.maintitlebar);
+        View view = getSupportActionBar().getCustomView();
+        ImageView imageButton= view.findViewById(R.id.LogoutBtn);
+        imageButton.setVisibility(View.GONE);
+*/
 
         // Create progress dialog
         progressDialog = new ProgressDialog(LoginActivity.this);
@@ -147,6 +148,10 @@ public class LoginActivity extends AppCompatActivity {
 
                 editor.apply();
 
+                // Initiate new activity
+                Intent hospitalIntent = new Intent(getApplicationContext(), AmbulanceListActivity.class);
+                startActivity(hospitalIntent);
+
                 // Clear the loading screen
                 progressDialog.dismiss();
 
@@ -160,13 +165,6 @@ public class LoginActivity extends AppCompatActivity {
                 usernameField.clearFocus();
 
                 Log.d(TAG, "Done with LoginActivity.");
-
-                // Initiate new activity
-                Intent ambulanceListIntent = new Intent(getApplicationContext(), AmbulanceListActivity.class);
-                Log.d(TAG, "Here1");
-                //ambulanceListIntent.putExtra("AmbulanceList", profileClient.getProfile().getAmbulances());
-                Log.d(TAG, "Here2");
-                startActivity(ambulanceListIntent);
 
             }
 

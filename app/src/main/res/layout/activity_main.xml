@@ -25,7 +25,8 @@
                 android:layout_alignParentTop="true"
                 android:background="?attr/colorPrimary"
                 android:minHeight="?attr/actionBarSize"
-                android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar">
+                android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+                android:textColor="@android:color/black">
 
                 <ImageButton
                     android:id="@+id/panicButton"
@@ -49,7 +50,7 @@
                 android:layout_alignParentLeft="true"
                 android:layout_alignParentStart="true"
                 android:layout_below="@+id/toolbar"
-                android:background="@color/white"
+                android:background="@color/colorWhite"
                 android:minHeight="?attr/actionBarSize"
                 android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
                 app:tabGravity="fill"

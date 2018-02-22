@@ -9,6 +9,7 @@ import android.support.design.widget.NavigationView;
 import android.support.design.widget.TabLayout;
 import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -16,15 +17,30 @@ import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageButton;
+import android.widget.ImageView;
+import android.widget.ListView;
 import android.widget.TextView;
 
-import org.emstrack.models.AmbulancePermission;
+import com.google.gson.FieldNamingPolicy;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
+import org.eclipse.paho.client.mqttv3.MqttException;
+import org.eclipse.paho.client.mqttv3.MqttMessage;
+import org.emstrack.models.Ambulance;
+import org.emstrack.models.HospitalEquipment;
+import org.emstrack.mqtt.MqttProfileClient;
+import org.emstrack.mqtt.MqttProfileMessageCallback;
+
+import java.util.ArrayList;
 
 /**
  * This is the main activity -- the default screen
  */
 public class MainActivity extends AppCompatActivity {
+
+    private static final String TAG = MainActivity.class.getSimpleName();
+    private int ambulanceId = -1;
 
     private DrawerLayout mDrawer;
     private NavigationView nvDrawer;
@@ -32,33 +48,21 @@ public class MainActivity extends AppCompatActivity {
     private Toolbar toolbar;
     static TextView statusText;
     private ImageButton panicButton;
-    private String titleText;
-    private static AmbulancePermission currAmbulance;
-    AmbulanceApp ambulanceApp;
-    private static final String TAG = MainActivity.class.getSimpleName();
 
     /**
      * @param savedInstanceState
      */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.activity_main);
-        ambulanceApp = ((AmbulanceApp) this.getApplication());
 
+        // Get data from Login and place it into the ambulance
+        ambulanceId = Integer
+                .parseInt(getIntent().getStringExtra("SELECTED_AMBULANCE_ID"));
 
-        // Test that Ambulance class made it through
-        currAmbulance = (AmbulancePermission) getIntent().getSerializableExtra("AmbulanceClass");
-        if(currAmbulance != null) {
-            Log.d("MAIN_ACTIVITY", "AmbulancePassed: " + currAmbulance.getAmbulanceIdentifier()
-                    + " ID: " + currAmbulance.getAmbulanceId());
-
-            // titleText = currAmbulance.getAmbulanceIdentifier() + " - " + ambulanceApp.getCurrStatus();
-            Log.d("MAIN_TITLE", titleText);
-        }
-
-        statusText = (TextView) findViewById(R.id.statusText);
-        statusText.setText(titleText);
         panicButton = (ImageButton) findViewById(R.id.panicButton);
         panicButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -70,7 +74,7 @@ public class MainActivity extends AppCompatActivity {
         // Set a Toolbar to replace the ActionBar.
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        getSupportActionBar().setDisplayShowTitleEnabled(false);
+        // getSupportActionBar().setDisplayShowTitleEnabled(false);
 
         // Find our drawer view
         mDrawer = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -93,10 +97,12 @@ public class MainActivity extends AppCompatActivity {
         tabLayout.setTabGravity(TabLayout.GRAVITY_FILL);
 
         //Setup Adapter for tabLayout
-        final PagerAdapter adapter = new PagerAdapter(getSupportFragmentManager(), tabLayout.getTabCount());
+        final Pager adapter = new Pager(getSupportFragmentManager(), tabLayout.getTabCount());
         viewPager.setAdapter(adapter);
+
+
         viewPager.addOnPageChangeListener(new TabLayout.TabLayoutOnPageChangeListener(tabLayout));
-        tabLayout.setOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
+        tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
             public void onTabSelected(TabLayout.Tab tab) {
                 viewPager.setCurrentItem(tab.getPosition());
@@ -111,14 +117,54 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        //ambulanceApp.client.();
-//        titleText = currAmbulance.getLicensePlate() + " - " + ambulanceApp.getCurrStatus();
-//        statusText.setText(titleText);
+        // Retrieve client
+        final MqttProfileClient profileClient = ((AmbulanceApp) getApplication()).getProfileClient();
+
+        try {
+
+            // Start retrieving data
+            profileClient.subscribe("ambulance/" + ambulanceId + "/data",
+                    1, new MqttProfileMessageCallback() {
+
+                        @Override
+                        public void messageArrived(String topic, MqttMessage message) {
+
+                            try {
+
+                                // Unsubscribe to metadata
+                                profileClient.unsubscribe("ambulance/" + ambulanceId + "/data");
+
+                            } catch (MqttException exception) {
+
+                                Log.d(TAG, "Could not unsubscribe to 'ambulance/" + ambulanceId + "/data'");
+                                return;
+                            }
+
+                            // Parse to hospital metadata
+                            GsonBuilder gsonBuilder = new GsonBuilder();
+                            gsonBuilder.setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES);
+                            Gson gson = gsonBuilder.create();
+
+                            // / Found item in the hospital equipments object
+                            Ambulance ambulance = gson
+                                    .fromJson(new String(message.getPayload()),
+                                            Ambulance.class);
+
+                            statusText = (TextView) findViewById(R.id.statusText);
+                            statusText.setText(ambulance.getIdentifier());
+                        }
+
+                    });
+
+        } catch (MqttException e) {
+            Log.d(TAG, "Could not subscribe to hospital metadata");
+        }
+
     }
 
 
     //Hamburger Menu setup
-    private ActionBarDrawerToggle setupDrawerToggle(){
+    private ActionBarDrawerToggle setupDrawerToggle() {
         return new ActionBarDrawerToggle(this, mDrawer, toolbar, R.string.drawer_open, R.string.drawer_close);
     }
 
@@ -136,16 +182,17 @@ public class MainActivity extends AppCompatActivity {
 
     //Start selected activity in Hamburger
     public void selectDrawerItem(MenuItem menuItem) {
+
         Class activityClass;
-        switch(menuItem.getItemId()) {
+        switch (menuItem.getItemId()) {
             case R.id.home:
                 activityClass = MainActivity.class;
                 break;
- //           case R.id.logout:
-// TODO ADD BACK?                ambulanceApp.setUserLoggedIn(false);
-//                ambulanceApp.logout();
-//                activityClass = Login.class;
- //               break;
+            case R.id.logout:
+                //ambulanceApp.setUserLoggedIn(false);
+                //ambulanceApp.logout();
+                activityClass = LoginActivity.class;
+                break;
             default:
                 activityClass = MainActivity.class;
         }
@@ -156,7 +203,7 @@ public class MainActivity extends AppCompatActivity {
         Intent i = new Intent(this, activityClass);
         //i.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 
-        if(menuItem.getItemId() == R.id.logout){
+        if (menuItem.getItemId() == R.id.logout) {
             finish();
             startActivity(i);
         }
@@ -182,7 +229,7 @@ public class MainActivity extends AppCompatActivity {
         drawerToggle.onConfigurationChanged(newConfig);
     }
 
-    public void panicPopUp(){
+    public void panicPopUp() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setCancelable(true);
         builder.setTitle("PANIC!");
@@ -203,9 +250,10 @@ public class MainActivity extends AppCompatActivity {
         dialog.show();
     }
 
-    static void updateStatus(String newStatus){
-        statusText.setText(currAmbulance.getAmbulanceIdentifier() + " - " + newStatus);
+    static void updateStatus(String newStatus) {
+        // statusText.setText(currAmbulance.getAmulanceIdentifier() + " - " + newStatus);
     }
+
     @Override
     public void onBackPressed() {
         finish();

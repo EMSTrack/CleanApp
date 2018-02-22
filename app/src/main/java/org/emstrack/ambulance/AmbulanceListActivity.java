@@ -114,17 +114,10 @@ public class AmbulanceListActivity extends AppCompatActivity {
 
                 int ambulanceId = selectedAmbulance.getAmbulanceId();
 
-                Log.d("AMBULANCE_LIST", "Selected Ambulance: " + selectedAmbulance.getAmbulanceIdentifier()
-                        + " ID: " + selectedAmbulance.getAmbulanceId());
-
-                // TODO  Set the AmbulanceApp ID?
-                // TODO push the selected id to user/@username/ambulance
-                //ambulanceApp.publishAmbulanceID(selectedAmbulance.getId());
-
-                Intent dashboardIntent = new Intent(getApplicationContext(), MainActivity.class);
-
-                // Add Serialized Ambulance Class
-                startActivity(dashboardIntent);
+                // Set the static list of HospitalEquipment in Dashboard
+                Intent intent = new Intent(AmbulanceListActivity.this, MainActivity.class);
+                intent.putExtra("SELECTED_AMBULANCE_ID", Integer.toString(selectedAmbulance.getAmbulanceId()));
+                startActivity(intent);
 
             }
         });
