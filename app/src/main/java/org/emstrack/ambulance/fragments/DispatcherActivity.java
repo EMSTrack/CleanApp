@@ -48,9 +48,9 @@ public class DispatcherActivity extends Fragment implements View.OnClickListener
         // addressText.setText(AmbulanceApp.globalAddress);
 
         /*
-        addressButton = (Button) rootView.findViewById(R.id.addressButton);
+        addressButton = (Button) view.findViewById(R.id.addressButton);
         addressButton.setOnClickListener(this);
-        addressSearchText = (EditText) rootView.findViewById(R.id.addressSearch);
+        addressSearchText = (EditText) view.findViewById(R.id.addressSearch);
         marker = null;
 
         if (googleService()) {
@@ -78,7 +78,7 @@ public class DispatcherActivity extends Fragment implements View.OnClickListener
         if(v == mapButton){
 
 /*
-            gps = new GPSTracker(rootView.getContext(), 500, -1);
+            gps = new GPSTracker(view.getContext(), 500, -1);
             gps.getLastKnownLocationIfAllowed();
             gps.getLocation();
 

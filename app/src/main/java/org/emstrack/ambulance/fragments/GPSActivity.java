@@ -2,6 +2,7 @@ package org.emstrack.ambulance.fragments;
 
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -9,7 +10,11 @@ import android.widget.CompoundButton;
 import android.widget.Switch;
 import android.widget.TextView;
 
+import org.emstrack.ambulance.GPSTracker;
+import org.emstrack.ambulance.MainActivity;
 import org.emstrack.ambulance.R;
+
+import java.util.Date;
 
 
 /**
@@ -32,11 +37,16 @@ import org.emstrack.ambulance.R;
  */
 public class GPSActivity extends Fragment implements CompoundButton.OnCheckedChangeListener{
 
-    Switch trackByTime;             // The switch for clock enable.
-    Switch trackByDistance;
-    View rootView;
+    private static final String TAG = GPSActivity.class.getSimpleName();;
 
-    // GPSTracker gpsTracker;
+    private View view;
+
+    private TextView latitudeText;
+    private TextView longitudeText;
+    private TextView timestampText;
+    private TextView orientationText;
+
+    private Switch startTrackingSwitch;
 
     /*
      * Default method
@@ -46,41 +56,70 @@ public class GPSActivity extends Fragment implements CompoundButton.OnCheckedCha
 
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
-        rootView = inflater.inflate(R.layout.activity_gps, container, false);
+        // inflate view
+        view = inflater.inflate(R.layout.activity_gps, container, false);
 
-        //checkLocationPermission(); //Might be needed, might not.
+        // Retrieve texts
+        latitudeText = (TextView) view.findViewById(R.id.latitudeText);
+        longitudeText = (TextView) view.findViewById(R.id.longitudeText);
+        timestampText = (TextView) view.findViewById(R.id.timestampText);
+        orientationText = (TextView) view.findViewById(R.id.orientationText);
 
-        // gpsTracker = new GPSTracker(rootView.getContext(), 500, -1);
-        // gpsTracker.setLatLongTextView((TextView) rootView.findViewById(R.id.LatLongText));
+        // To track or not to track?
+        startTrackingSwitch = (Switch) view.findViewById(R.id.startTrackingSwitch);
+        startTrackingSwitch.setOnCheckedChangeListener(this);
 
-        //Determine whether to listen by dist changed or time changed
-        trackByTime = (Switch) rootView.findViewById(R.id.trackByTimeSwitch);
-        trackByTime.setOnCheckedChangeListener(this);
+        // Retrieve last location and update
+        android.location.Location lastLocation = ((MainActivity) getActivity()).getLastLocation();
+        if (lastLocation != null) {
+            updateLocation(lastLocation);
+        }
 
-        trackByDistance = (Switch) rootView.findViewById(R.id.trackByDistanceSwitch);
-        trackByDistance.setOnCheckedChangeListener(this);
-
-        return rootView;
+        return view;
     }
 
+    public void setLatitudeText(String latitudeText) {
+        this.latitudeText.setText(latitudeText);
+    }
+
+    public void setLongitudeText(String longitudeText) {
+        this.longitudeText.setText(longitudeText);
+    }
+
+    public void setTimestampText(String timestampText) {
+        this.timestampText.setText(timestampText);
+    }
+
+    public void setOrientationText(String orientationText) {
+        this.orientationText.setText(orientationText);
+    }
+
+    public void updateLocation(android.location.Location lastLocation) {
+
+        setLatitudeText(Double.toString(lastLocation.getLatitude()));
+        setLongitudeText(Double.toString(lastLocation.getLongitude()));
+        setOrientationText(Double.toString(lastLocation.getBearing()));
+        setTimestampText(new Date(lastLocation.getTime()).toString());
+
+    }
 
     @Override
     public void onPause() {
-        System.err.println("onPause: GPSActivity");
+        Log.i(TAG, "onPause: GPSActivity");
         super.onPause(); // This is required for some reason.
     }
 
     @Override
     public void onStop(){
-        System.err.println("onStop: GPSActivity");
-        trackByTime.setChecked(false);
+        Log.i(TAG, "onStop: GPSActivity");
+        // startTrackingSwitch.setChecked(false);
         super.onStop(); // Same.
     }
 
     @Override
     public void onDestroy() {
-        System.err.print("onDestroy: GPSActivity");
-        trackByTime.setChecked(false);
+        Log.i(TAG, "onDestroy: GPSActivity");
+        // startTrackingSwitch.setChecked(false);
         super.onDestroy(); // Same.
     }
 
@@ -89,46 +128,14 @@ public class GPSActivity extends Fragment implements CompoundButton.OnCheckedCha
 
         if (isChecked) {
 
-            //determine what was turned on
-            switch (buttonView.getId()) {
+            // turn on tracking
+            ((MainActivity) getActivity()).startLocationUpdates();
 
-/*
-                case R.id.trackByTimeSwitch: //turn on tracking by time
-                    //gpsTracker.turnOff();
-                    long currDistanceTracking = gpsTracker.getMinDistanceChangeForUpdates();
-                    gpsTracker = new GPSTracker(rootView.getContext(), currDistanceTracking, -1);
-                    gpsTracker.setLatLongTextView((TextView) rootView.findViewById(R.id.LatLongText));
-                    break;
-                case R.id.trackByDistanceSwitch: //turn on tracking by distance
-                    //gpsTracker.turnOff();
-                    long currTimeTracking = gpsTracker.getMinTimeBWUpdates();
-                    gpsTracker = new GPSTracker(rootView.getContext(), -1, currTimeTracking);
-                    gpsTracker.setLatLongTextView((TextView) rootView.findViewById(R.id.LatLongText));
-                    break;
-*/
-                default:
+        } else {
 
-            }
+            // turn off tracking
+            ((MainActivity) getActivity()).stopLocationUpdates();
 
-        } else { // something was turned off
-
-            switch (buttonView.getId()) {
-/*
-                case R.id.trackByTimeSwitch: //turn off tracking by time
-                    gpsTracker.turnOff();
-                    long currDistanceTracking = gpsTracker.getMinDistanceChangeForUpdates();
-                    //continue tracking by distance
-                    gpsTracker = new GPSTracker(rootView.getContext(), 0, currDistanceTracking);
-                    break;
-                case R.id.trackByDistanceSwitch: //turn off tracking by distance
-                    gpsTracker.turnOff();
-                    long currTimeTracking = gpsTracker.getMinTimeBWUpdates();
-                    //continue tracking by time
-                    gpsTracker = new GPSTracker(rootView.getContext(), currTimeTracking, 0);
-                    break;
-*/
-                default:
-            }
         }
 
     }

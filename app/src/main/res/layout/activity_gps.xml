@@ -11,38 +11,72 @@
     tools:context="org.emstrack.ambulance.fragments.GPSActivity">
 
     <TextView
-        android:id="@+id/LatLongText"
-        android:layout_width="match_parent"
+        android:id="@+id/latitudeLabel"
         android:layout_height="wrap_content"
-        android:text="Longitude:\n\nLatitude:\n\nLast Recorded Time: \n\nLast Transmitted Time:\n\n"
-        android:textAppearance="@style/TextAppearance.AppCompat.Small"
-        android:layout_marginTop="28dp"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true" />
+        android:layout_width="100dp"
+        android:text="Latitude:"
+        android:layout_alignParentTop="true"/>
 
+    <TextView
+        android:id="@+id/latitudeText"
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:text="@string/unknown"
+        android:layout_toRightOf="@+id/latitudeLabel"/>
+
+    <TextView
+        android:id="@+id/longitudeLabel"
+        android:layout_height="wrap_content"
+        android:layout_width="100dp"
+        android:text="@string/gpsLongitudeLabel"
+        android:layout_below="@+id/latitudeLabel"/>
+
+    <TextView
+        android:id="@+id/longitudeText"
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:text="@string/unknown"
+        android:layout_toRightOf="@+id/longitudeLabel"
+        android:layout_below="@+id/latitudeText"/>
+
+    <TextView
+        android:id="@+id/orientationLabel"
+        android:layout_height="wrap_content"
+        android:layout_width="100dp"
+        android:text="@string/gpsOrientationLabel"
+        android:layout_below="@+id/longitudeLabel"/>
+
+    <TextView
+        android:id="@+id/orientationText"
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:text="@string/unknown"
+        android:layout_toRightOf="@+id/orientationLabel"
+        android:layout_below="@+id/longitudeText"/>
+    
+    <TextView
+        android:id="@+id/timestampLabel"
+        android:layout_height="wrap_content"
+        android:layout_width="100dp"
+        android:text="@string/gpsTimestampLabel"
+        android:layout_below="@+id/orientationLabel"/>
+
+    <TextView
+        android:id="@+id/timestampText"
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:text="@string/unknown"
+        android:layout_toRightOf="@+id/timestampLabel"
+        android:layout_below="@+id/orientationText"/>
 
     <Switch
-        android:text="Track by time:"
+        android:id="@+id/startTrackingSwitch"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/trackByTimeSwitch"
-        android:switchTextAppearance="@style/TextAppearance.AppCompat.Widget.Switch"
         android:checked="false"
-        android:layout_centerVertical="true"
-        android:layout_centerHorizontal="true" />
-
-
-    <Switch
-        android:text="Track by distance "
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/trackByDistanceSwitch"
-        android:checked = "false"
-        android:layout_marginTop="34dp"
-        android:layout_below="@+id/trackByTimeSwitch"
-        android:layout_centerHorizontal="true" />
-
+        android:switchTextAppearance="@style/TextAppearance.AppCompat.Widget.Switch"
+        android:text="@string/gps_startTrackingSwitchText"
+        android:layout_below="@+id/timestampLabel"/>
 
 </RelativeLayout>
 
