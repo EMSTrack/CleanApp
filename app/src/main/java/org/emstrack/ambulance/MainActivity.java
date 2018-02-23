@@ -3,9 +3,12 @@ package org.emstrack.ambulance;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentSender;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
+import android.location.Location;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.ActivityCompat;
@@ -23,6 +26,14 @@ import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationListener;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.LocationSettingsRequest;
+import com.google.android.gms.location.SettingsClient;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -39,10 +50,19 @@ import java.util.ArrayList;
 /**
  * This is the main activity -- the default screen
  */
-public class MainActivity extends AppCompatActivity implements ActivityCompat.OnRequestPermissionsResultCallback{
+public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = MainActivity.class.getSimpleName();
+    private static final int REQUEST_PERMISSIONS_REQUEST_CODE = 34;
+
     private int ambulanceId = -1;
+    private Ambulance ambulance;
+
+    private LocationRequest locationRequest;
+    private FusedLocationProviderClient fusedLocationClient;
+    private SettingsClient settingsClient;
+    private LocationSettingsRequest locationSettingsRequest;
+
 
     private DrawerLayout mDrawer;
     private NavigationView nvDrawer;
@@ -162,6 +182,21 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
             Log.d(TAG, "Could not subscribe to ambulance data");
         }
 
+        // Setup fused location client
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+        settingsClient = LocationServices.getSettingsClient(this);
+
+        // Request permission for location services
+        locationRequest = LocationRequest.create()
+                .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
+                .setInterval(10 * 1000)        // 10 seconds, in milliseconds
+                .setFastestInterval(1 * 1000); // 1 second, in milliseconds
+
+        // Build location setting request
+        LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder();
+        builder.addLocationRequest(locationRequest);
+        locationSettingsRequest = builder.build();
+
     }
 
     //Hamburger Menu setup
@@ -265,26 +300,24 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     public void onRequestPermissionsResult(int requestCode,
                                            String permissions[],
                                            int[] grantResults) {
-        switch (requestCode) {
-            case GPSTracker.REQUEST_FINE_LOCATION: {
-                // If request is cancelled, the result arrays are empty.
-                if (grantResults.length > 0
-                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
 
-                    Log.e("GPSTracker", "permissiongranted!");
-
-
-
-                } else {
-                    // TODO: Permission denied -> keep requesting permission?
-                    // permission denied, boo! Disable the
-                    // functionality that depends on this permission.
+        Log.i(TAG, "onRequestPermissionResult");
+        if (requestCode == REQUEST_PERMISSIONS_REQUEST_CODE) {
+            if (grantResults.length <= 0) {
+                // If user interaction was interrupted, the permission request is cancelled and you
+                // receive empty arrays.
+                Log.i(TAG, "User interaction was cancelled.");
+            } else if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+/*
+                if (requestingLocationUpdates) {
+                    Log.i(TAG, "Permission granted, updates requested, starting location updates");
+                    startLocationUpdates();
                 }
-                return;
-            }
+*/
+            } else {
+                // Permission denied.
 
-            // other 'case' lines to check for other
-            // permissions this app might request.
+            }
         }
     }
 }
