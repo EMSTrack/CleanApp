@@ -40,11 +40,11 @@ public class HospitalActivity extends Fragment {
         hospitalList = Hospital.getHospitals();
 
         if (hospitalList == null) {
-            return rootView;
+            return view;
         }
 
-        HospitalAdapter adapter = new HospitalAdapter(rootView.getContext(), hospitalList);
-        hospitalExpandableList = (ExpandableListView) rootView.findViewById(R.id.equipment_listview);
+        HospitalAdapter adapter = new HospitalAdapter(view.getContext(), hospitalList);
+        hospitalExpandableList = (ExpandableListView) view.findViewById(R.id.equipment_listview);
         hospitalExpandableList.setAdapter(adapter);
 */
 

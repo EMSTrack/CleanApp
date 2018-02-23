@@ -43,7 +43,7 @@ public class LogoutDialog extends DialogFragment {
         alertBuilder.setNeutralButton(getResources().getString(R.string.alert_button_positive_text), new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                System.out.println("OK Button Clicked");
+                Log.i(TAG,"LogoutDialog: OK Button Clicked");
 
                 // Retrieve client
                 final MqttProfileClient profileClient = ((AmbulanceApp) getActivity().getApplication()).getProfileClient();
@@ -53,9 +53,10 @@ public class LogoutDialog extends DialogFragment {
                     Log.d(TAG,"Failed to disconnect.");
                 }
 
-                Intent rootIntent = new Intent(getActivity(), LoginActivity.class);
-                rootIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                startActivity(rootIntent);
+                // Start login activity
+                Intent intent = new Intent(getActivity(), LoginActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                startActivity(intent);
 
             }
         });
@@ -64,7 +65,9 @@ public class LogoutDialog extends DialogFragment {
         alertBuilder.setNegativeButton(getResources().getString(R.string.alert_button_negative_text), new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                System.out.println("Cancel Button Clicked");
+                Log.i(TAG, "LogoutDialog: Cancel Button Clicked");
+
+                // dismiss
                 dialog.dismiss();
             }
         });

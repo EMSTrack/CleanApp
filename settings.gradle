@@ -1,1 +1,1 @@
-include ':app', ':models', ':mqtt', ':gps'
+include ':app', ':models', ':mqtt'
