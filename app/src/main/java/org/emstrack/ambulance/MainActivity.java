@@ -121,6 +121,9 @@ public class MainActivity extends AppCompatActivity {
         drawerToggle = setupDrawerToggle();
         mDrawer.addDrawerListener(drawerToggle);
 
+        // set hamburger color to be black
+        drawerToggle.getDrawerArrowDrawable().setColor(getResources().getColor(R.color.colorBlack));
+
         // Find our drawer view
         nvDrawer = (NavigationView) findViewById(R.id.nvView);
 
