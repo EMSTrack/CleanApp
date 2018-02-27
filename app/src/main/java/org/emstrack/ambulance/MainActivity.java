@@ -19,10 +19,8 @@ import android.support.design.widget.NavigationView;
 import android.support.design.widget.Snackbar;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.Fragment;
 import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
-import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -30,18 +28,13 @@ import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageButton;
-import android.widget.ImageView;
-import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.ApiException;
-import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.ResolvableApiException;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
-import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
@@ -60,14 +53,10 @@ import com.google.gson.GsonBuilder;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.emstrack.ambulance.dialogs.LogoutDialog;
-import org.emstrack.ambulance.fragments.GPSActivity;
+import org.emstrack.ambulance.fragments.GPSFragment;
 import org.emstrack.models.Ambulance;
-import org.emstrack.models.HospitalEquipment;
 import org.emstrack.mqtt.MqttProfileClient;
 import org.emstrack.mqtt.MqttProfileMessageCallback;
-
-import java.util.ArrayList;
-import java.util.Date;
 
 /**
  * This is the main activity -- the default screen
@@ -228,9 +217,9 @@ public class MainActivity extends AppCompatActivity {
 
                 // update UI
                 Log.i(TAG, "lastLocation = " + lastLocation);
-                GPSActivity gpsActivity = (GPSActivity) adapter.getRegisteredFragment(2);
-                if (gpsActivity != null) {
-                    gpsActivity.updateLocation(lastLocation);
+                GPSFragment gpsFragment = (GPSFragment) adapter.getRegisteredFragment(2);
+                if (gpsFragment != null) {
+                    gpsFragment.updateLocation(lastLocation);
                 }
             }
 

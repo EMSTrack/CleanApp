@@ -23,7 +23,7 @@ import java.util.ArrayList;
  *
  *
  */
-public class HospitalActivity extends Fragment {
+public class HospitalFragment extends Fragment {
 
     View rootView;
     ListView listView;
@@ -34,7 +34,7 @@ public class HospitalActivity extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
-        rootView = inflater.inflate(R.layout.activity_hospital, container, false);
+        rootView = inflater.inflate(R.layout.fragment_hospital, container, false);
 
 /*
         hospitalList = Hospital.getHospitals();
