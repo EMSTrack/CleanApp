@@ -5,9 +5,9 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.view.ViewGroup;
 
-import org.emstrack.ambulance.fragments.DispatcherActivity;
-import org.emstrack.ambulance.fragments.GPSActivity;
-import org.emstrack.ambulance.fragments.HospitalActivity;
+import org.emstrack.ambulance.fragments.DispatcherFragment;
+import org.emstrack.ambulance.fragments.GPSFragment;
+import org.emstrack.ambulance.fragments.HospitalFragment;
 
 /**
  * Created by mauricio on 2/21/18.
@@ -33,13 +33,13 @@ public class Pager extends FragmentStatePagerAdapter {
         switch (position) {
 
             case 0:
-                return new DispatcherActivity();
+                return new DispatcherFragment();
 
             case 1:
-                return new HospitalActivity();
+                return new HospitalFragment();
 
             case 2:
-                return new GPSActivity();
+                return new GPSFragment();
 
             default:
                 return null;

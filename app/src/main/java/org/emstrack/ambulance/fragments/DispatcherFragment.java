@@ -1,7 +1,5 @@
 package org.emstrack.ambulance.fragments;
 
-import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.util.Log;
@@ -19,7 +17,7 @@ import static android.content.ContentValues.TAG;
  * Created by justingil1748 on 4/26/17.
  */
 
-public class DispatcherActivity extends Fragment implements View.OnClickListener {
+public class DispatcherFragment extends Fragment implements View.OnClickListener {
 
     View rootView;
     Button mapButton;
@@ -39,7 +37,7 @@ public class DispatcherActivity extends Fragment implements View.OnClickListener
     //Dispatcher page
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
-        rootView = inflater.inflate(R.layout.activity_dispatcher, container, false);
+        rootView = inflater.inflate(R.layout.fragment_dispatcher, container, false);
 
         mapButton = (Button) rootView.findViewById(R.id.gmap);
         mapButton.setOnClickListener(this);

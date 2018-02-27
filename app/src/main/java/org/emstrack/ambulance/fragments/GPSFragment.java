@@ -10,7 +10,6 @@ import android.widget.CompoundButton;
 import android.widget.Switch;
 import android.widget.TextView;
 
-import org.emstrack.ambulance.GPSTracker;
 import org.emstrack.ambulance.MainActivity;
 import org.emstrack.ambulance.R;
 
@@ -19,7 +18,7 @@ import java.util.Date;
 
 /**
  * Java Class AND ACTIVITY
- * implements code for the GPSActivity Activity
+ * implements code for the GPSFragment Activity
  * Methods for lists and buttons are here.
  *
  * TODO
@@ -35,9 +34,9 @@ import java.util.Date;
  * data to the server might use the LP's method that will
  * return a new JSONObject.
  */
-public class GPSActivity extends Fragment implements CompoundButton.OnCheckedChangeListener{
+public class GPSFragment extends Fragment implements CompoundButton.OnCheckedChangeListener{
 
-    private static final String TAG = GPSActivity.class.getSimpleName();;
+    private static final String TAG = GPSFragment.class.getSimpleName();;
 
     private View view;
 
@@ -57,7 +56,7 @@ public class GPSActivity extends Fragment implements CompoundButton.OnCheckedCha
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
         // inflate view
-        view = inflater.inflate(R.layout.activity_gps, container, false);
+        view = inflater.inflate(R.layout.fragment_gps, container, false);
 
         // Retrieve texts
         latitudeText = (TextView) view.findViewById(R.id.latitudeText);
@@ -105,20 +104,20 @@ public class GPSActivity extends Fragment implements CompoundButton.OnCheckedCha
 
     @Override
     public void onPause() {
-        Log.i(TAG, "onPause: GPSActivity");
+        Log.i(TAG, "onPause: GPSFragment");
         super.onPause(); // This is required for some reason.
     }
 
     @Override
     public void onStop(){
-        Log.i(TAG, "onStop: GPSActivity");
+        Log.i(TAG, "onStop: GPSFragment");
         // startTrackingSwitch.setChecked(false);
         super.onStop(); // Same.
     }
 
     @Override
     public void onDestroy() {
-        Log.i(TAG, "onDestroy: GPSActivity");
+        Log.i(TAG, "onDestroy: GPSFragment");
         // startTrackingSwitch.setChecked(false);
         super.onDestroy(); // Same.
     }
