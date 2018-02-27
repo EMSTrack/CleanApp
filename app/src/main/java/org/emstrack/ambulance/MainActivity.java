@@ -76,7 +76,7 @@ public class MainActivity extends AppCompatActivity {
     private FusedLocationProviderClient fusedLocationClient;
     private SettingsClient settingsClient;
     private LocationSettingsRequest locationSettingsRequest;
-    private LocationCallback locationCallback;
+//    private LocationCallback locationCallback;
     private boolean requestingLocationUpdates;
 
     private ViewPager viewPager;
@@ -205,25 +205,25 @@ public class MainActivity extends AppCompatActivity {
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
         settingsClient = LocationServices.getSettingsClient(this);
 
-        // Setup callback
-        locationCallback = new LocationCallback() {
-
-            @Override
-            public void onLocationResult(LocationResult locationResult) {
-                super.onLocationResult(locationResult);
-
-                // set last location and update time
-                lastLocation = locationResult.getLastLocation();
-
-                // update UI
-                Log.i(TAG, "lastLocation = " + lastLocation);
-                GPSFragment gpsFragment = (GPSFragment) adapter.getRegisteredFragment(2);
-                if (gpsFragment != null) {
-                    gpsFragment.updateLocation(lastLocation);
-                }
-            }
-
-        };
+//        // Setup callback
+//        locationCallback = new LocationCallback() {
+//
+//            @Override
+//            public void onLocationResult(LocationResult locationResult) {
+//                super.onLocationResult(locationResult);
+//
+//                // set last location and update time
+//                lastLocation = locationResult.getLastLocation();
+//
+//                // update UI
+//                Log.i(TAG, "lastLocation = " + lastLocation);
+//                GPSFragment gpsFragment = (GPSFragment) adapter.getRegisteredFragment(2);
+//                if (gpsFragment != null) {
+//                    gpsFragment.updateLocation(lastLocation);
+//                }
+//            }
+//
+//        };
 
         // Request permission for location services
         locationRequest = LocationRequest.create()
@@ -242,12 +242,12 @@ public class MainActivity extends AppCompatActivity {
     public void onResume() {
         super.onResume();
         // Within {@code onPause()}, we remove location updates. Here, we resume receiving
-        // location updates if the user has requested them.
-        if (requestingLocationUpdates && checkPermissions()) {
-            startLocationUpdates();
-        } else if (!checkPermissions()) {
-            requestPermissions();
-        }
+//        // location updates if the user has requested them.
+//        if (requestingLocationUpdates && checkPermissions()) {
+//            startLocationUpdates();
+//        } else if (!checkPermissions()) {
+//            requestPermissions();
+//        }
     }
 
     @Override
@@ -255,7 +255,7 @@ public class MainActivity extends AppCompatActivity {
         super.onPause();
 
         // Remove location updates to save battery.
-        stopLocationUpdates();
+//        stopLocationUpdates();
     }
 
     /**
@@ -271,80 +271,80 @@ public class MainActivity extends AppCompatActivity {
      * Requests location updates from the FusedLocationApi. Note: we don't call this unless location
      * runtime permission has been granted.
      */
-    public void startLocationUpdates() {
+//    public void startLocationUpdates() {
+//
+//        if (requestingLocationUpdates) {
+//            Log.d(TAG, "startLocationUpdates: updates already requested, no-op.");
+//            return;
+//        }
+//
+//        // Begin by checking if the device has the necessary location settings.
+//        settingsClient.checkLocationSettings(locationSettingsRequest)
+//                .addOnSuccessListener(this, new OnSuccessListener<LocationSettingsResponse>() {
+//                    @SuppressLint("MissingPermission")
+//                    @Override
+//                    public void onSuccess(LocationSettingsResponse locationSettingsResponse) {
+//                        Log.i(TAG, "All location settings are satisfied. Starting location updates.");
+//
+//                        //noinspection MissingPermission
+//                        fusedLocationClient.requestLocationUpdates(locationRequest,
+//                                locationCallback, Looper.myLooper());
+//                        requestingLocationUpdates = true;
+//
+//                    }
+//                })
+//                .addOnFailureListener(this, new OnFailureListener() {
+//                    @Override
+//                    public void onFailure(@NonNull Exception e) {
+//                        int statusCode = ((ApiException) e).getStatusCode();
+//                        switch (statusCode) {
+//                            case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
+//                                Log.i(TAG, "Location settings are not satisfied. Attempting to upgrade " +
+//                                        "location settings ");
+//                                try {
+//                                    // Show the dialog by calling startResolutionForResult(), and check the
+//                                    // result in onActivityResult().
+//                                    ResolvableApiException rae = (ResolvableApiException) e;
+//                                    rae.startResolutionForResult(MainActivity.this, REQUEST_CHECK_SETTINGS);
+//                                } catch (IntentSender.SendIntentException sie) {
+//                                    Log.i(TAG, "PendingIntent unable to execute request.");
+//                                }
+//                                break;
+//                            case LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:
+//                                String errorMessage = "Location settings are inadequate, and cannot be " +
+//                                        "fixed here. Fix in Settings.";
+//                                Log.e(TAG, errorMessage);
+//                                Toast.makeText(MainActivity.this, errorMessage, Toast.LENGTH_LONG).show();
+//                                requestingLocationUpdates = false;
+//                        }
+//
+//                        // updateUI();
+//                    }
+//                });
+//    }
 
-        if (requestingLocationUpdates) {
-            Log.d(TAG, "startLocationUpdates: updates already requested, no-op.");
-            return;
-        }
-
-        // Begin by checking if the device has the necessary location settings.
-        settingsClient.checkLocationSettings(locationSettingsRequest)
-                .addOnSuccessListener(this, new OnSuccessListener<LocationSettingsResponse>() {
-                    @SuppressLint("MissingPermission")
-                    @Override
-                    public void onSuccess(LocationSettingsResponse locationSettingsResponse) {
-                        Log.i(TAG, "All location settings are satisfied. Starting location updates.");
-
-                        //noinspection MissingPermission
-                        fusedLocationClient.requestLocationUpdates(locationRequest,
-                                locationCallback, Looper.myLooper());
-                        requestingLocationUpdates = true;
-
-                    }
-                })
-                .addOnFailureListener(this, new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        int statusCode = ((ApiException) e).getStatusCode();
-                        switch (statusCode) {
-                            case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
-                                Log.i(TAG, "Location settings are not satisfied. Attempting to upgrade " +
-                                        "location settings ");
-                                try {
-                                    // Show the dialog by calling startResolutionForResult(), and check the
-                                    // result in onActivityResult().
-                                    ResolvableApiException rae = (ResolvableApiException) e;
-                                    rae.startResolutionForResult(MainActivity.this, REQUEST_CHECK_SETTINGS);
-                                } catch (IntentSender.SendIntentException sie) {
-                                    Log.i(TAG, "PendingIntent unable to execute request.");
-                                }
-                                break;
-                            case LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:
-                                String errorMessage = "Location settings are inadequate, and cannot be " +
-                                        "fixed here. Fix in Settings.";
-                                Log.e(TAG, errorMessage);
-                                Toast.makeText(MainActivity.this, errorMessage, Toast.LENGTH_LONG).show();
-                                requestingLocationUpdates = false;
-                        }
-
-                        // updateUI();
-                    }
-                });
-    }
-
-    /**
-     * Removes location updates from the FusedLocationApi.
-     */
-    public void stopLocationUpdates() {
-
-        if (!requestingLocationUpdates) {
-            Log.d(TAG, "stopLocationUpdates: updates never requested, no-op.");
-            return;
-        }
-
-        // It is a good practice to remove location requests when the activity is in a paused or
-        // stopped state. Doing so helps battery performance and is especially
-        // recommended in applications that request frequent location updates.
-        fusedLocationClient.removeLocationUpdates(locationCallback)
-                .addOnCompleteListener(this, new OnCompleteListener<Void>() {
-                    @Override
-                    public void onComplete(@NonNull Task<Void> task) {
-                        Log.d(TAG, "Stoping location updates.");
-                        requestingLocationUpdates = false;
-                    }
-                });
-    }
+//    /**
+//     * Removes location updates from the FusedLocationApi.
+//     */
+//    public void stopLocationUpdates() {
+//
+//        if (!requestingLocationUpdates) {
+//            Log.d(TAG, "stopLocationUpdates: updates never requested, no-op.");
+//            return;
+//        }
+//
+//        // It is a good practice to remove location requests when the activity is in a paused or
+//        // stopped state. Doing so helps battery performance and is especially
+//        // recommended in applications that request frequent location updates.
+//        fusedLocationClient.removeLocationUpdates(locationCallback)
+//                .addOnCompleteListener(this, new OnCompleteListener<Void>() {
+//                    @Override
+//                    public void onComplete(@NonNull Task<Void> task) {
+//                        Log.d(TAG, "Stoping location updates.");
+//                        requestingLocationUpdates = false;
+//                    }
+//                });
+//    }
 
     private void requestPermissions() {
         boolean shouldProvideRationale =
@@ -411,7 +411,7 @@ public class MainActivity extends AppCompatActivity {
             } else if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 if (requestingLocationUpdates) {
                     Log.i(TAG, "Permission granted, updates requested, starting location updates");
-                    startLocationUpdates();
+//                    startLocationUpdates();
                 }
             } else {
                 // Permission denied.
