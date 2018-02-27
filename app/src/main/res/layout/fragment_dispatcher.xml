@@ -63,24 +63,17 @@
         android:textColor="@color/colorBlack"
         android:textSize="18dp" />
 
-    <Button
+    <ImageButton
         android:id="@+id/gmap"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
         android:layout_alignParentBottom="true"
-        android:layout_alignParentEnd="true"
-        android:layout_alignParentRight="true"
-        android:layout_marginBottom="21dp"
-        android:adjustViewBounds="true"
+        android:layout_marginBottom="88dp"
+        android:layout_toEndOf="@+id/addressText"
+        android:layout_toRightOf="@+id/addressText"
         android:background="@android:color/transparent"
-        android:drawableLeft="@drawable/nav_img"
-        android:paddingBottom="16dp"
-        android:paddingLeft="36dp"
-        android:paddingRight="16dp"
-        android:paddingTop="15dp"
-        android:scaleType="fitCenter"
-        android:textColor="#e8e9e9"
-        android:textSize="25dp" />
+        android:scaleType="fitXY"
+        app:srcCompat="@drawable/nav_img" />
 
 
 </RelativeLayout>
