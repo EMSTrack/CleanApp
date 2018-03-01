@@ -15,6 +15,7 @@ import org.emstrack.ambulance.HospitalAdapter;
 import org.emstrack.models.Hospital;
 import org.emstrack.mqtt.MqttProfileClient;
 import org.emstrack.ambulance.R;
+import org.emstrack.models.Hospital;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,7 +28,7 @@ import java.util.List;
  *
  *
  */
-public class HospitalActivity extends Fragment {
+public class HospitalFragment extends Fragment {
 
     View rootView;
     ListView listView;

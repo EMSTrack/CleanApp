@@ -16,6 +16,9 @@ import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import org.emstrack.ambulance.R;
 
+import org.emstrack.ambulance.fragments.GPSFragment;
+import org.emstrack.ambulance.fragments.GPSLocation;
+
 
 /**
  * Created by Yitzchak on 2/19/2018.
@@ -24,10 +27,10 @@ import org.emstrack.ambulance.R;
 public class GPSTracker extends Service implements LocationListener {
 
     public static final int REQUEST_FINE_LOCATION = 998;
+    private GPSLocation gpsLocation;
 
     private long MIN_UPDATE_DISTANCE = 0;
     private long MIN_UPDATE_TIME = 0;
-
 
     /**
      * Constructor for GPSTracker
@@ -35,8 +38,10 @@ public class GPSTracker extends Service implements LocationListener {
      * @param minTime the minimum time that must pass between getting location update from GPS
      * @param minDistance the minimum distance the ambulance must travel to get location update from GPS
      */
-    public GPSTracker(Context context, long minTime, long minDistance) {
+    public GPSTracker(GPSFragment gpsFragment, Context context, long minTime, long minDistance) {
         Log.e("GPSTracker", "Creating new GPSTracker");
+        gpsLocation = new GPSLocation();
+        gpsLocation.addObserver(gpsFragment);
 
         // If have permission to access location, request location updates, otherwise request permission
         if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) ==
@@ -59,6 +64,8 @@ public class GPSTracker extends Service implements LocationListener {
 
     @Override
     public void onLocationChanged(Location location) {
+        gpsLocation.setLocation(location);
+        gpsLocation.notifyObservers();
         Log.e("ONLOCATIONCHANGED", "Updated GPS Location Received");
         Log.e("New Location", location.toString());
         //TODO: Push to mqtt
@@ -84,4 +91,7 @@ public class GPSTracker extends Service implements LocationListener {
         return null;
     }
 
+    public GPSLocation getGPSLocation() {
+        return gpsLocation;
+    }
 }
