@@ -348,4 +348,74 @@ public class ModelsUnitTest {
 
 
     }
+
+    @Test
+    public void test_ambulance() throws Exception {
+
+        double epsilon = 1e-4;
+
+        Ambulance ambulance = new Ambulance(1,"1SDH2345","B");
+        
+        ambulance.setStatus("UK");
+        ambulance.setOrientation(12.0);
+        ambulance.setLocation(new Location(32.5149,-117.0382));
+        ambulance.setTimestamp(new Date());
+        ambulance.setUpdatedOn(new Date());
+
+        Gson gson = new Gson();
+
+        String to_json = gson.toJson(ambulance);
+
+        Ambulance from_json = gson.fromJson(to_json, Ambulance.class);
+
+        Integer expectedId = ambulance.getId();
+        Integer answerId = from_json.getId();
+        assertEquals(expectedId, answerId);
+
+        String expectedName = ambulance.getIdentifier();
+        String answerName = from_json.getIdentifier();
+        assertEquals(expectedName, answerName);
+
+        expectedName = ambulance.getCapability();
+        answerName = from_json.getCapability();
+        assertEquals(expectedName, answerName);
+
+        expectedName = ambulance.getStatus();
+        answerName = from_json.getStatus();
+        assertEquals(expectedName, answerName);
+
+        double expectedDouble = ambulance.getOrientation();
+        double answerDouble = from_json.getOrientation();
+        assertEquals(expectedDouble, answerDouble, epsilon);
+
+        Location expectedLocation = ambulance.getLocation();
+        Location answerLocation = from_json.getLocation();
+        assertEquals(expectedLocation.getLatitude(),answerLocation.getLatitude(),epsilon);
+        assertEquals(expectedLocation.getLongitude(),answerLocation.getLongitude(),epsilon);
+
+        Date expectedDate = ambulance.getTimestamp();
+        Date answerDate = from_json.getTimestamp();
+        SimpleDateFormat df = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
+        assertEquals(df.format(expectedDate), df.format(answerDate));
+
+        expectedId = ambulance.getUpdatedBy();
+        answerId = from_json.getUpdatedBy();
+        assertEquals(expectedId, answerId);
+
+        expectedDate = ambulance.getUpdatedOn();
+        answerDate = ambulance.getUpdatedOn();
+        assertEquals(df.format(expectedDate), df.format(answerDate));
+
+        // Test partial serialization
+        gson = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().create();
+
+        to_json = gson.toJson(ambulance);
+
+        df = new SimpleDateFormat("MMM d, y K:mm:ss a");
+        String expected_to_json = "{\"status\":\"UK\",\"orientation\":12.0,\"location\":{\"latitude\":32.5149,\"longitude\":-117.0382},\"timestamp\":\"" + df.format(ambulance.getTimestamp()) + "\"}";
+
+        assertEquals(expected_to_json, to_json);
+
+    }
+
 }
