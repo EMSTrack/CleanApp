@@ -9,7 +9,6 @@ import android.content.Intent;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
-import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Looper;
@@ -55,8 +54,11 @@ import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.emstrack.ambulance.dialogs.LogoutDialog;
 import org.emstrack.ambulance.fragments.GPSFragment;
 import org.emstrack.models.Ambulance;
+import org.emstrack.models.Location;
 import org.emstrack.mqtt.MqttProfileClient;
 import org.emstrack.mqtt.MqttProfileMessageCallback;
+
+import java.util.Date;
 
 /**
  * This is the main activity -- the default screen
@@ -217,15 +219,22 @@ public class MainActivity extends AppCompatActivity {
             public void onLocationResult(LocationResult locationResult) {
                 super.onLocationResult(locationResult);
 
-                // set last location and update time
+                // set last location
                 lastLocation = locationResult.getLastLocation();
+                Log.i(TAG, "lastLocation = " + lastLocation);
+
+                // Update ambulance
+                ambulance.update(lastLocation);
 
                 // update UI
-                Log.i(TAG, "lastLocation = " + lastLocation);
                 GPSFragment gpsFragment = (GPSFragment) adapter.getRegisteredFragment(2);
                 if (gpsFragment != null) {
+                    // TODO: make updateLocation take Ambulance instead of Location
                     gpsFragment.updateLocation(lastLocation);
                 }
+
+                // TODO: PUBLISH TO MQTT
+
             }
 
         };
@@ -542,7 +551,7 @@ public class MainActivity extends AppCompatActivity {
     }
 */
 
-    public Location getLastLocation() {
+    public android.location.Location getLastLocation() {
         return lastLocation;
     }
 

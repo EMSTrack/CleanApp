@@ -49,6 +49,15 @@ public class Ambulance {
         this.updatedOn = null;
     }
 
+    public void update(android.location.Location lastLocation) {
+
+        // Update ambulance
+        location = new Location(lastLocation.getLatitude(),lastLocation.getLongitude());
+        orientation = lastLocation.getBearing();
+        timestamp = new Date(lastLocation.getTime());
+
+    }
+
     public int getId() {
         return id;
     }
