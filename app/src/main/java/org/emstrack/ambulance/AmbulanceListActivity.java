@@ -3,24 +3,20 @@ package org.emstrack.ambulance;
 import java.util.ArrayList;
 import java.util.List;
 
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.app.ActionBar;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.Toast;
 import android.util.Log;
 
 import org.emstrack.ambulance.dialogs.LogoutDialog;
-import org.emstrack.models.AmbulancePermission;
-import org.emstrack.models.HospitalPermission;
+import org.emstrack.models.Ambulance;
+import org.emstrack.models.Hospital;
 import org.emstrack.mqtt.MqttProfileClient;
 
 /**
@@ -57,8 +53,8 @@ public class AmbulanceListActivity extends AppCompatActivity {
 
         // Retrieve ambulances
         final MqttProfileClient profileClient = ((AmbulanceApp) getApplication()).getProfileClient();
-        final List<AmbulancePermission> ambulances = profileClient.getProfile().getAmbulances();
-        final List<HospitalPermission> hospitals = profileClient.getProfile().getHospitals();
+        final List<Ambulance> ambulances = profileClient.getProfile().getAmbulances();
+        final List<Hospital> hospitals = profileClient.getProfile().getHospitals();
 
         // No ambulances associated with this account
         if (ambulances.size() < 1) {
@@ -72,7 +68,7 @@ public class AmbulanceListActivity extends AppCompatActivity {
         // Creates string arraylist of ambulance names
         Log.d(TAG, "Creating ambulance list...");
         ArrayList<String> listObjects = new ArrayList<>();
-        for (AmbulancePermission ambulance : ambulances) {
+        for (Ambulance ambulance : ambulances) {
             Log.d(TAG, "Adding ambulance " + ambulance.getAmbulanceIdentifier());
             listObjects.add(ambulance.getAmbulanceIdentifier());
         }
@@ -109,14 +105,14 @@ public class AmbulanceListActivity extends AppCompatActivity {
                 int position = ambulanceSpinner.getSelectedItemPosition();
                 Log.d(TAG, "Position Selected: " + position);
 
-                AmbulancePermission selectedAmbulance = ambulances.get(position);
+                Ambulance selectedAmbulance = ambulances.get(position);
                 Log.d(TAG, "Selected AmbulanceEquipmentMetadata: " + selectedAmbulance.getAmbulanceIdentifier());
 
                 int ambulanceId = selectedAmbulance.getAmbulanceId();
 
                 // Set the static list of HospitalEquipment in Dashboard
                 Intent intent = new Intent(AmbulanceListActivity.this, MainActivity.class);
-                intent.putExtra("SELECTED_AMBULANCE_ID", Integer.toString(selectedAmbulance.getAmbulanceId()));
+                intent.putExtra("SELECTED_AMBULANCE_ID", Integer.toString(ambulanceId));
                 startActivity(intent);
 
             }

@@ -10,10 +10,14 @@ import android.widget.ExpandableListView;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import org.emstrack.ambulance.AmbulanceApp;
+import org.emstrack.ambulance.HospitalAdapter;
+import org.emstrack.models.Hospital;
+import org.emstrack.mqtt.MqttProfileClient;
 import org.emstrack.ambulance.R;
-import org.emstrack.models.HospitalPermission;
 
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * This class is purely meant to demonstrate that the information is able to send
@@ -28,25 +32,23 @@ public class HospitalActivity extends Fragment {
     View rootView;
     ListView listView;
 
-    private ArrayList<HospitalPermission> hospitalList;
     private ExpandableListView hospitalExpandableList;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
         rootView = inflater.inflate(R.layout.activity_hospital, container, false);
+        final MqttProfileClient profileClient = ((AmbulanceApp) getActivity().getApplication()).getProfileClient();
+        final List<Hospital> hospitals = profileClient.getProfile().getHospitals();
 
-/*
-        hospitalList = Hospital.getHospitals();
-
-        if (hospitalList == null) {
-            return view;
+        if (hospitals == null) {
+            return rootView;
         }
 
-        HospitalAdapter adapter = new HospitalAdapter(view.getContext(), hospitalList);
-        hospitalExpandableList = (ExpandableListView) view.findViewById(R.id.equipment_listview);
+        HospitalAdapter adapter = new HospitalAdapter(rootView.getContext(), hospitals);
+        hospitalExpandableList = (ExpandableListView) rootView.findViewById(R.id.equipment_listview);
         hospitalExpandableList.setAdapter(adapter);
-*/
+
 
         return rootView;
     }

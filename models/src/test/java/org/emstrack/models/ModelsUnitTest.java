@@ -14,12 +14,6 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Map;
 
-import org.emstrack.models.AmbulancePermission;
-import org.emstrack.models.HospitalPermission;
-import org.emstrack.models.Profile;
-import org.emstrack.models.HospitalEquipmentMetadata;
-import org.emstrack.models.HospitalEquipment;
-
 /**
  * Example local unit test, which will execute on the development machine (host).
  *
@@ -30,13 +24,13 @@ public class ModelsUnitTest {
     @Test
     public void test_profile() throws Exception {
 
-        List<AmbulancePermission> ambulances = new ArrayList<>();
-        ambulances.add(new AmbulancePermission(1,"BUD1234", true, true));
-        ambulances.add(new AmbulancePermission(2,"BUH4321", true, false));
+        List<Ambulance> ambulances = new ArrayList<>();
+        ambulances.add(new Ambulance(1,"BUD1234", true, true));
+        ambulances.add(new Ambulance(2,"BUH4321", true, false));
 
-        List<HospitalPermission> hospitals = new ArrayList<>();
-        hospitals.add(new HospitalPermission(34,"Hospital Nuevo", true, false));
-        hospitals.add(new HospitalPermission(35,"Hospital Viejo", true, true));
+        List<Hospital> hospitals = new ArrayList<>();
+        hospitals.add(new Hospital(34,"Hospital Nuevo", true, false));
+        hospitals.add(new Hospital(35,"Hospital Viejo", true, true));
 
         Profile profile = new Profile();
         profile.setAmbulances(ambulances);
@@ -97,11 +91,11 @@ public class ModelsUnitTest {
         from_json = gson.fromJson(to_json, Profile.class);
 
         ambulances = new ArrayList<>();
-        ambulances.add(new AmbulancePermission(1,"BUC1234", true, true));
-        ambulances.add(new AmbulancePermission(2,"BUC4321", true, true));
+        ambulances.add(new Ambulance(1,"BUC1234", true, true));
+        ambulances.add(new Ambulance(2,"BUC4321", true, true));
 
         hospitals = new ArrayList<>();
-        hospitals.add(new HospitalPermission(1,"General Hospital", true, true));
+        hospitals.add(new Hospital(1,"General Hospital", true, true));
 
         profile = new Profile();
         profile.setAmbulances(ambulances);
