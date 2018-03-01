@@ -19,10 +19,8 @@ import android.support.design.widget.NavigationView;
 import android.support.design.widget.Snackbar;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.Fragment;
 import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
-import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -30,18 +28,13 @@ import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageButton;
-import android.widget.ImageView;
-import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.ApiException;
-import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.ResolvableApiException;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
-import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
@@ -61,13 +54,10 @@ import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.emstrack.ambulance.dialogs.LogoutDialog;
 import org.emstrack.ambulance.fragments.GPSActivity;
-import org.emstrack.models.Ambulance;
-import org.emstrack.models.HospitalEquipment;
+import org.emstrack.models.AmbulanceData;
 import org.emstrack.mqtt.MqttProfileClient;
 import org.emstrack.mqtt.MqttProfileMessageCallback;
-
-import java.util.ArrayList;
-import java.util.Date;
+import org.emstrack.ambulance.viewModels.HospitalViewModel;
 
 /**
  * This is the main activity -- the default screen
@@ -79,7 +69,7 @@ public class MainActivity extends AppCompatActivity {
     private static final int REQUEST_CHECK_SETTINGS = 0x1;
 
     private int ambulanceId = -1;
-    private Ambulance ambulance;
+    private AmbulanceData ambulanceData;
 
     private android.location.Location lastLocation;
 
@@ -110,7 +100,7 @@ public class MainActivity extends AppCompatActivity {
 
         setContentView(R.layout.activity_main);
 
-        // Get data from Login and place it into the ambulance
+        // Get data from Login and place it into the ambulanceData
         ambulanceId = Integer
                 .parseInt(getIntent().getStringExtra("SELECTED_AMBULANCE_ID"));
 
@@ -141,7 +131,7 @@ public class MainActivity extends AppCompatActivity {
         //set up TabLayout Structure
         TabLayout tabLayout = (TabLayout) findViewById(R.id.tab_layout_home);
         tabLayout.addTab(tabLayout.newTab().setText("Dispatcher"));
-        tabLayout.addTab(tabLayout.newTab().setText("Hospital"));
+        tabLayout.addTab(tabLayout.newTab().setText("Hospitals"));
         tabLayout.addTab(tabLayout.newTab().setText("GPS"));
 
         //pager
@@ -191,18 +181,19 @@ public class MainActivity extends AppCompatActivity {
                                 return;
                             }
 
-                            // Parse to hospital metadata
+                            // Parse to ambulanceData metadata
                             GsonBuilder gsonBuilder = new GsonBuilder();
                             gsonBuilder.setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES);
                             Gson gson = gsonBuilder.create();
 
-                            // / Found item in the hospital equipments object
-                            Ambulance ambulance = gson
+                            // / Found item in the ambulanceData equipments object
+                            AmbulanceData ambulanceData = gson
                                     .fromJson(new String(message.getPayload()),
-                                            Ambulance.class);
+                                            AmbulanceData.class);
 
                             statusText = (TextView) findViewById(R.id.statusText);
-                            statusText.setText(ambulance.getIdentifier());
+                            statusText.setText(ambulanceData.getIdentifier() + " - "
+                                    + profileClient.getSettings().getAmbulanceStatus().get(ambulanceData.getStatus()));
                         }
 
                     });
@@ -210,6 +201,9 @@ public class MainActivity extends AppCompatActivity {
         } catch (MqttException e) {
             Log.d(TAG, "Could not subscribe to ambulance data");
         }
+
+        HospitalViewModel hospitalViewModel = new HospitalViewModel(profileClient);
+        hospitalViewModel.getHospitalMetadata();
 
         // Setup fused location client
         requestingLocationUpdates = false;

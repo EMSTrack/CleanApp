@@ -10,31 +10,31 @@ import java.util.List;
 
 public class Profile {
 
-    private List<AmbulancePermission> ambulances = null;
-    private List<HospitalPermission> hospitals = null;
+    private List<Ambulance> ambulances = null;
+    private List<Hospital> hospitals = null;
 
-    public List<AmbulancePermission> getAmbulances() {
+    public List<Ambulance> getAmbulances() {
         return ambulances;
     }
 
-    public void setAmbulances(List<AmbulancePermission> ambulances) {
+    public void setAmbulances(List<Ambulance> ambulances) {
         this.ambulances = ambulances;
     }
 
-    public List<HospitalPermission> getHospitals() {
+    public List<Hospital> getHospitals() {
         return hospitals;
     }
 
-    public void setHospitals(List<HospitalPermission> hospitals) {
+    public void setHospitals(List<Hospital> hospitals) {
         this.hospitals = hospitals;
     }
 
     public String toString() {
         String retval = "Profile with " + this.ambulances.size() + " ambulance(s) and " + this.hospitals.size() + " hospital(s)";
-        for (AmbulancePermission ambulance: this.ambulances) {
-            retval += "\n> Ambulance: " + ambulance.getAmbulanceIdentifier();
+        for (Ambulance ambulance: this.ambulances) {
+            retval += "\n> AmbulanceData: " + ambulance.getAmbulanceIdentifier();
         }
-        for (HospitalPermission hospital: this.hospitals) {
+        for (Hospital hospital: this.hospitals) {
             retval += "\n> Hospital: " + hospital.getHospitalName();
         }
         return retval;
