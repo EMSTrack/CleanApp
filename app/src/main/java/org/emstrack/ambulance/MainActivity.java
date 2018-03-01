@@ -169,29 +169,34 @@ public class MainActivity extends AppCompatActivity {
                         @Override
                         public void messageArrived(String topic, MqttMessage message) {
 
-                            try {
+                            // Keep subscription to ambulance to make sure we receive
+                            // the latest updates.
 
-                                // Unsubscribe to metadata
-                                profileClient.unsubscribe("ambulance/" + ambulanceId + "/data");
+                            if (ambulance == null) {
 
-                            } catch (MqttException exception) {
+                                Log.d(TAG, "Setting ambulance.");
 
-                                Log.d(TAG, "Could not unsubscribe to 'ambulance/" + ambulanceId + "/data'");
-                                return;
+                                // first time we receive ambulance data
+                                GsonBuilder gsonBuilder = new GsonBuilder();
+                                gsonBuilder.setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES);
+                                Gson gson = gsonBuilder.create();
+
+                                // Parse and set ambulance
+                                // TODO: Check for potential errors
+                                ambulance = gson
+                                        .fromJson(new String(message.getPayload()),
+                                                Ambulance.class);
+
+                                // Update UI
+                                statusText = (TextView) findViewById(R.id.statusText);
+                                statusText.setText(ambulance.getIdentifier());
+
+                            } else {
+
+                                Log.d(TAG, "Received ambulance update.");
+
+                                // TODO: process update
                             }
-
-                            // Parse to hospital metadata
-                            GsonBuilder gsonBuilder = new GsonBuilder();
-                            gsonBuilder.setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES);
-                            Gson gson = gsonBuilder.create();
-
-                            // / Found item in the hospital equipments object
-                            Ambulance ambulance = gson
-                                    .fromJson(new String(message.getPayload()),
-                                            Ambulance.class);
-
-                            statusText = (TextView) findViewById(R.id.statusText);
-                            statusText.setText(ambulance.getIdentifier());
                         }
 
                     });
