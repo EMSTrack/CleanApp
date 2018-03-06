@@ -1,4 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">EMSTrack</string>
+    <string name="drawer_open">"cajón de navegación abierto "</string>
+    <string name="drawer_close">cerrar cajón de navegación</string>
+    <string name="alert_error_title">El error</string>
+    <string name="alert_warning">" El aviso"</string>
+    <string name="alert_button_positive_text">"Está bien "</string>
+    <string name="alert_button_negative_text">Anular</string>
+    <string name="message_please_wait">p\\Por favor espera</string>
+    <string name="logout_confirm">" el cierre de sesión?"</string>
 </resources>

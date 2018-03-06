@@ -15,6 +15,7 @@ import android.os.Bundle;
 import android.os.Looper;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
+import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.Snackbar;
 import android.support.design.widget.TabLayout;
@@ -88,6 +89,7 @@ public class MainActivity extends AppCompatActivity {
     private Toolbar toolbar;
     static TextView statusText;
     private ImageButton panicButton;
+    private FloatingActionButton navButton;
 
     /**
      * @param savedInstanceState
@@ -108,6 +110,14 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 panicPopUp();
+            }
+        });
+
+        navButton = (FloatingActionButton) findViewById(R.id.navBtn);
+        navButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //
             }
         });
 
@@ -149,6 +159,11 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onTabSelected(TabLayout.Tab tab) {
                 viewPager.setCurrentItem(tab.getPosition());
+                if (tab.getPosition() == 0 ) {
+                    navButton.show();
+                } else {
+                    navButton.hide();
+                }
             }
 
             @Override
@@ -159,6 +174,7 @@ public class MainActivity extends AppCompatActivity {
             public void onTabReselected(TabLayout.Tab tab) {
             }
         });
+
 
         // Retrieve client
         final MqttProfileClient profileClient = ((AmbulanceApp) getApplication()).getProfileClient();
