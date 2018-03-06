@@ -233,7 +233,15 @@ public class MainActivity extends AppCompatActivity {
                     gpsFragment.updateLocation(lastLocation);
                 }
 
-                // TODO: PUBLISH TO MQTT
+                // PUBLISH TO MQTT
+                String updateString = getUpdateString(lastLocation);
+
+                try {
+                    profileClient.publish("user/" + profileClient.getUsername() + "/ambulance/" + ambulanceId + "/data", updateString,1, false );
+                    Log.e("LocationChangeUpdate", "onLocationChanged: update sent to server\n" + updateString);
+                } catch (MqttException e) {
+                    e.printStackTrace();
+                }
 
             }
 
@@ -522,7 +530,18 @@ public class MainActivity extends AppCompatActivity {
         // Pass any configuration change to the drawer toggles
         drawerToggle.onConfigurationChanged(newConfig);
     }
+    
+    public String getUpdateString(android.location.Location lastLocation) {
+        double latitude = lastLocation.getLatitude();
+        double longitude = lastLocation.getLongitude();
+        double orientation = lastLocation.getBearing();
+        String timestamp = new Date(lastLocation.getTime()).toString();
 
+        String updateString =  "{\"orientation\" :" + orientation + ",\"location\":{" +
+                "\"latitude\":"+ latitude + ",\"longitude\":" + longitude +"},\"location_timestamp\":\"" + timestamp + "\"}";
+        return updateString;
+
+    }
     public void panicPopUp() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setCancelable(true);
