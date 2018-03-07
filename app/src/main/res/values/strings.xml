@@ -62,4 +62,13 @@
     <string name="unknown">unknown</string>
     <string name="gpsOrientationLabel">Orientation:</string>
 
+    <string name="dispatch">Dispatch</string>
+    <string name="hospital">Hospital</string>
+    <string name="gps">GPS</string>
+
+    <string-array name="spinner_list_item_array">
+        <item>@string/dispatch</item>
+        <item>@string/hospital</item>
+        <item>@string/gps</item>
+    </string-array>
 </resources>

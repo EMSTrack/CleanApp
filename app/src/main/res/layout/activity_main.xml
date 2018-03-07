@@ -23,10 +23,16 @@
                 android:layout_alignParentLeft="true"
                 android:layout_alignParentStart="true"
                 android:layout_alignParentTop="true"
-                android:background="?attr/colorPrimary"
                 android:minHeight="?attr/actionBarSize"
-                android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+                android:theme="@style/Theme.AppCompat.Light.NoActionBar"
                 android:textColor="@android:color/black">
+
+                <Spinner
+                    android:id="@+id/spinner_nav"
+                    android:layout_gravity="center_horizontal"
+                    android:background="@null"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
 
                 <ImageButton
                     android:id="@+id/panicButton"
@@ -42,41 +48,11 @@
 
             </android.support.v7.widget.Toolbar>
 
-
-            <android.support.design.widget.TabLayout
-                android:id="@+id/tab_layout_home"
+            <FrameLayout
+                android:id="@+id/root"
+                android:layout_below="@id/toolbar"
                 android:layout_width="match_parent"
-                android:layout_height="?attr/actionBarSize"
-                android:layout_alignParentLeft="true"
-                android:layout_alignParentStart="true"
-                android:layout_below="@+id/toolbar"
-                android:background="@color/colorWhite"
-                android:minHeight="?attr/actionBarSize"
-                android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
-                app:tabGravity="fill"
-
-                app:tabMode="fixed"
-                app:tabSelectedTextColor="@android:color/black"
-                app:tabTextColor="@android:color/black" />
-
-            <android.support.v4.view.ViewPager
-                android:id="@+id/pager"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_alignParentBottom="true"
-                android:layout_alignParentLeft="true"
-                android:layout_alignParentStart="true"
-                android:layout_below="@+id/tab_layout_home" />
-
-            <TextView
-                android:id="@+id/statusText"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_above="@+id/tab_layout_home"
-                android:layout_centerHorizontal="true"
-                android:layout_marginBottom="11dp"
-                android:textColor="@android:color/black"
-                android:textSize="25sp" />
+                android:layout_height="match_parent" />
 
         </RelativeLayout>
 
