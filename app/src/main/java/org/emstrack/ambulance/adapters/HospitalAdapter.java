@@ -1,4 +1,4 @@
-package org.emstrack.ambulance;
+package org.emstrack.ambulance.adapters;
 
 import android.content.Context;
 import android.view.LayoutInflater;
@@ -7,6 +7,7 @@ import android.view.ViewGroup;
 import android.widget.BaseExpandableListAdapter;
 import android.widget.TextView;
 
+import org.emstrack.ambulance.R;
 import org.emstrack.models.Hospital;
 import org.emstrack.models.HospitalEquipment;
 

@@ -13,15 +13,11 @@ import android.widget.ListView;
 import android.widget.Toast;
 
 import org.emstrack.ambulance.AmbulanceApp;
-import org.emstrack.ambulance.HospitalAdapter;
-import org.emstrack.ambulance.HospitalRVAdapter;
-import org.emstrack.ambulance.MainActivity;
+import org.emstrack.ambulance.R;
+import org.emstrack.ambulance.adapters.HospitalRVAdapter;
 import org.emstrack.models.Hospital;
 import org.emstrack.mqtt.MqttProfileClient;
-import org.emstrack.ambulance.R;
-import org.emstrack.models.Hospital;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -52,7 +48,7 @@ public class HospitalFragment extends Fragment {
 
         RecyclerView recyclerView = rootView.findViewById(R.id.rv);
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getContext());
-        HospitalRVAdapter adapter = new HospitalRVAdapter(getContext(), hospitals);
+        HospitalRVAdapter adapter = new HospitalRVAdapter(hospitals);
         recyclerView.setLayoutManager(linearLayoutManager);
         recyclerView.setAdapter(adapter);
 

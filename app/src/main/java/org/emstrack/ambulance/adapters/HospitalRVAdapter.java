@@ -1,6 +1,9 @@
-package org.emstrack.ambulance;
+package org.emstrack.ambulance.adapters;
 
-import android.content.Context;
+import android.os.Bundle;
+import android.os.Parcelable;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -10,9 +13,13 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import org.emstrack.ambulance.MainActivity;
+import org.emstrack.ambulance.R;
+import org.emstrack.ambulance.fragments.HospitalEquipmentFragment;
 import org.emstrack.models.Hospital;
 import org.emstrack.models.HospitalEquipment;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -21,12 +28,10 @@ import java.util.List;
 
 public class HospitalRVAdapter extends RecyclerView.Adapter<HospitalRVAdapter.HospitalViewHolder> {
     private static String TAG = HospitalRVAdapter.class.getSimpleName();
-    private Context context;
     private List<Hospital> hospitals;
 
 
-    public HospitalRVAdapter(Context context, List<Hospital> hospitals) {
-        this.context = context;
+    public HospitalRVAdapter(List<Hospital> hospitals) {
         this.hospitals = hospitals;
     }
 
@@ -53,6 +58,7 @@ public class HospitalRVAdapter extends RecyclerView.Adapter<HospitalRVAdapter.Ho
         CardView cardView;
         ImageView hospitalImageIV;
         TextView hospitalNameTV;
+        String hospitalName;
 
         private HospitalViewHolder(View itemView) {
             super(itemView);
@@ -62,17 +68,42 @@ public class HospitalRVAdapter extends RecyclerView.Adapter<HospitalRVAdapter.Ho
         }
 
         private void setHospitalName(String hospitalName) {
+            this.hospitalName = hospitalName;
             hospitalNameTV.setText(hospitalName);
         }
 
         private void setHospitalImageIV() {
         }
 
-        private void setClickListener(final int hospitalId, List<HospitalEquipment> hospitalEquipment) {
+        private void setClickListener(final int hospitalId, final List<HospitalEquipment> hospitalEquipment) {
             cardView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
                     Log.e(TAG, "Clicked Hospital: " + hospitalNameTV.getText().toString());
+
+                    String fragmentTag = String.valueOf(hospitalId);
+                    FragmentManager fragmentManager = ((MainActivity) cardView.getContext())
+                            .getSupportFragmentManager();
+                    Fragment equipmentFragment = fragmentManager.findFragmentByTag(fragmentTag);
+
+                    if (equipmentFragment == null) {
+                        Log.e(TAG, "New Fragment");
+                        equipmentFragment = new HospitalEquipmentFragment();
+                        Bundle arguments = new Bundle();
+                        arguments.putParcelableArrayList("hospitalEquipment", (ArrayList<? extends Parcelable>) hospitalEquipment);
+                        arguments.putString("hospitalName", hospitalName);
+                        equipmentFragment.setArguments(arguments);
+                        fragmentManager.beginTransaction()
+                                .add(R.id.root, equipmentFragment, fragmentTag)
+                                .addToBackStack(fragmentTag)
+                                .commit();
+                    } else {
+                        Log.e(TAG, "Old Fragment");
+                        fragmentManager.beginTransaction()
+                                .replace(R.id.root, equipmentFragment, fragmentTag)
+                                .addToBackStack(fragmentTag)
+                                .commit();
+                    }
                 }
             });
         }

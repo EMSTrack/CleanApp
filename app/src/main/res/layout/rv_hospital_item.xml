@@ -2,7 +2,6 @@
 <android.support.v7.widget.CardView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:card_view="http://schemas.android.com/apk/res-auto"
-    android:background="@null"
     android:id="@+id/cv"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
@@ -19,7 +18,12 @@
             android:id="@+id/hospital_image"
             android:src="@drawable/ambulancelogo"
             android:layout_width="match_parent"
-            android:layout_height="100dp" />
+            android:layout_height="125dp" />
+
+        <View
+            android:layout_width="fill_parent"
+            android:layout_height="1dip"
+            android:background="#DCDCDC" />
 
         <TextView
             android:id="@+id/hospital_name"
