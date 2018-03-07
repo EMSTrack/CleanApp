@@ -3,6 +3,8 @@ package org.emstrack.ambulance.fragments;
 
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,6 +14,8 @@ import android.widget.Toast;
 
 import org.emstrack.ambulance.AmbulanceApp;
 import org.emstrack.ambulance.HospitalAdapter;
+import org.emstrack.ambulance.HospitalRVAdapter;
+import org.emstrack.ambulance.MainActivity;
 import org.emstrack.models.Hospital;
 import org.emstrack.mqtt.MqttProfileClient;
 import org.emstrack.ambulance.R;
@@ -42,13 +46,15 @@ public class HospitalFragment extends Fragment {
         final MqttProfileClient profileClient = ((AmbulanceApp) getActivity().getApplication()).getProfileClient();
         final List<Hospital> hospitals = profileClient.getProfile().getHospitals();
 
-        if (hospitals == null) {
-            return rootView;
-        }
+//        HospitalAdapter adapter = new HospitalAdapter(rootView.getContext(), hospitals);
+//        hospitalExpandableList = (ExpandableListView) rootView.findViewById(R.id.equipment_listview);
+//        hospitalExpandableList.setAdapter(adapter);
 
-        HospitalAdapter adapter = new HospitalAdapter(rootView.getContext(), hospitals);
-        hospitalExpandableList = (ExpandableListView) rootView.findViewById(R.id.equipment_listview);
-        hospitalExpandableList.setAdapter(adapter);
+        RecyclerView recyclerView = rootView.findViewById(R.id.rv);
+        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getContext());
+        HospitalRVAdapter adapter = new HospitalRVAdapter(getContext(), hospitals);
+        recyclerView.setLayoutManager(linearLayoutManager);
+        recyclerView.setAdapter(adapter);
 
 
         return rootView;
