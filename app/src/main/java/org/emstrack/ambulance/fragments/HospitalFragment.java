@@ -3,6 +3,8 @@ package org.emstrack.ambulance.fragments;
 
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -10,10 +12,16 @@ import android.widget.ExpandableListView;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import org.emstrack.ambulance.AmbulanceApp;
 import org.emstrack.ambulance.R;
-import org.emstrack.models.HospitalPermission;
+import org.emstrack.ambulance.adapters.HospitalAdapter;
+import org.emstrack.ambulance.adapters.HospitalRVAdapter;
+import org.emstrack.models.Hospital;
+import org.emstrack.mqtt.MqttProfileClient;
 
-import java.util.ArrayList;
+import java.util.List;
+
+import static org.emstrack.ambulance.FeatureFlags.OLD_HOSPITAL_UI;
 
 /**
  * This class is purely meant to demonstrate that the information is able to send
@@ -28,25 +36,26 @@ public class HospitalFragment extends Fragment {
     View rootView;
     ListView listView;
 
-    private ArrayList<HospitalPermission> hospitalList;
     private ExpandableListView hospitalExpandableList;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
         rootView = inflater.inflate(R.layout.fragment_hospital, container, false);
+        final MqttProfileClient profileClient = ((AmbulanceApp) getActivity().getApplication()).getProfileClient();
+        final List<Hospital> hospitals = profileClient.getProfile().getHospitals();
 
-/*
-        hospitalList = Hospital.getHospitals();
-
-        if (hospitalList == null) {
-            return view;
+        if (OLD_HOSPITAL_UI) {
+            HospitalAdapter adapter = new HospitalAdapter(rootView.getContext(), hospitals);
+            hospitalExpandableList = (ExpandableListView) rootView.findViewById(R.id.equipment_listview);
+            hospitalExpandableList.setAdapter(adapter);
+        } else {
+            RecyclerView recyclerView = rootView.findViewById(R.id.rv);
+            LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getContext());
+            HospitalRVAdapter adapter = new HospitalRVAdapter(hospitals);
+            recyclerView.setLayoutManager(linearLayoutManager);
+            recyclerView.setAdapter(adapter);
         }
-
-        HospitalAdapter adapter = new HospitalAdapter(view.getContext(), hospitalList);
-        hospitalExpandableList = (ExpandableListView) view.findViewById(R.id.equipment_listview);
-        hospitalExpandableList.setAdapter(adapter);
-*/
 
         return rootView;
     }

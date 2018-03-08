@@ -1,4 +1,4 @@
-package org.emstrack.ambulance;
+package org.emstrack.ambulance.adapters;
 
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;

@@ -19,6 +19,9 @@ import android.support.design.widget.NavigationView;
 import android.support.design.widget.Snackbar;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
@@ -27,7 +30,10 @@ import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.ImageButton;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -52,14 +58,21 @@ import com.google.gson.GsonBuilder;
 
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
+import org.emstrack.ambulance.adapters.Pager;
 import org.emstrack.ambulance.dialogs.LogoutDialog;
+import org.emstrack.ambulance.fragments.DispatcherFragment;
 import org.emstrack.ambulance.fragments.GPSFragment;
-import org.emstrack.models.Ambulance;
-import org.emstrack.models.Location;
+import org.emstrack.ambulance.fragments.HospitalFragment;
+import org.emstrack.models.AmbulanceData;
 import org.emstrack.mqtt.MqttProfileClient;
 import org.emstrack.mqtt.MqttProfileMessageCallback;
 
+import org.emstrack.ambulance.viewModels.HospitalViewModel;
+
 import java.util.Date;
+
+import static org.emstrack.ambulance.FeatureFlags.ADMIN;
+import static org.emstrack.ambulance.FeatureFlags.OLD_HOSPITAL_UI;
 
 /**
  * This is the main activity -- the default screen
@@ -71,7 +84,7 @@ public class MainActivity extends AppCompatActivity {
     private static final int REQUEST_CHECK_SETTINGS = 0x1;
 
     private int ambulanceId = -1;
-    private Ambulance ambulance;
+    private AmbulanceData ambulanceData;
 
     private android.location.Location lastLocation;
 
@@ -101,9 +114,13 @@ public class MainActivity extends AppCompatActivity {
 
         super.onCreate(savedInstanceState);
 
-        setContentView(R.layout.activity_main);
+        if (OLD_HOSPITAL_UI) {
+            setContentView(R.layout.activity_main_old);
+        } else {
+            setContentView(R.layout.activity_main);
+        }
 
-        // Get data from Login and place it into the ambulance
+        // Get data from Login and place it into the ambulanceData
         ambulanceId = Integer
                 .parseInt(getIntent().getStringExtra("SELECTED_AMBULANCE_ID"));
 
@@ -126,7 +143,9 @@ public class MainActivity extends AppCompatActivity {
         // Set a Toolbar to replace the ActionBar.
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        // getSupportActionBar().setDisplayShowTitleEnabled(false);
+        getSupportActionBar().setDisplayShowTitleEnabled(false); // No text in title bar
+
+
 
         // Find our drawer view
         mDrawer = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -142,41 +161,45 @@ public class MainActivity extends AppCompatActivity {
         // Setup drawer view
         setupDrawerContent(nvDrawer);
 
-        //set up TabLayout Structure
-        TabLayout tabLayout = (TabLayout) findViewById(R.id.tab_layout_home);
-        tabLayout.addTab(tabLayout.newTab().setText("Dispatcher"));
-        tabLayout.addTab(tabLayout.newTab().setText("Hospital"));
-        tabLayout.addTab(tabLayout.newTab().setText("GPS"));
+        if (OLD_HOSPITAL_UI) {
+            //set up TabLayout Structure
+            TabLayout tabLayout = (TabLayout) findViewById(R.id.tab_layout_home);
+            tabLayout.addTab(tabLayout.newTab().setText("Dispatcher"));
+            tabLayout.addTab(tabLayout.newTab().setText("Hospitals"));
+            if (ADMIN) tabLayout.addTab(tabLayout.newTab().setText("GPS"));
 
-        //pager
-        viewPager = (ViewPager) findViewById(R.id.pager);
-        tabLayout.setTabGravity(TabLayout.GRAVITY_FILL);
 
-        //Setup Adapter for tabLayout
-        adapter = new Pager(getSupportFragmentManager(), tabLayout.getTabCount());
-        viewPager.setAdapter(adapter);
+            //pager
+            viewPager = (ViewPager) findViewById(R.id.pager);
+            tabLayout.setTabGravity(TabLayout.GRAVITY_FILL);
 
-        viewPager.addOnPageChangeListener(new TabLayout.TabLayoutOnPageChangeListener(tabLayout));
-        tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
-            @Override
-            public void onTabSelected(TabLayout.Tab tab) {
-                viewPager.setCurrentItem(tab.getPosition());
-                if (tab.getPosition() == 0 ) {
-                    navButton.show();
-                } else {
-                    navButton.hide();
+            //Setup Adapter for tabLayout
+            adapter = new Pager(getSupportFragmentManager(), tabLayout.getTabCount());
+            viewPager.setAdapter(adapter);
+
+            viewPager.addOnPageChangeListener(new TabLayout.TabLayoutOnPageChangeListener(tabLayout));
+            tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
+                @Override
+                public void onTabSelected(TabLayout.Tab tab) {
+                    viewPager.setCurrentItem(tab.getPosition());
+                    if (tab.getPosition() == 0) {
+                        navButton.show();
+                    } else {
+                        navButton.hide();
+                    }
                 }
-            }
 
-            @Override
-            public void onTabUnselected(TabLayout.Tab tab) {
-            }
+                @Override
+                public void onTabUnselected(TabLayout.Tab tab) {
+                }
 
-            @Override
-            public void onTabReselected(TabLayout.Tab tab) {
-            }
-        });
-
+                @Override
+                public void onTabReselected(TabLayout.Tab tab) {
+                }
+            });
+        } else {
+            setupSpinner();
+        }
 
         // Retrieve client
         final MqttProfileClient profileClient = ((AmbulanceApp) getApplication()).getProfileClient();
@@ -193,7 +216,7 @@ public class MainActivity extends AppCompatActivity {
                             // Keep subscription to ambulance to make sure we receive
                             // the latest updates.
 
-                            if (ambulance == null) {
+                            if (ambulanceData == null) {
 
                                 Log.d(TAG, "Setting ambulance.");
 
@@ -204,14 +227,13 @@ public class MainActivity extends AppCompatActivity {
 
                                 // Parse and set ambulance
                                 // TODO: Check for potential errors
-                                ambulance = gson
+                                ambulanceData = gson
                                         .fromJson(new String(message.getPayload()),
-                                                Ambulance.class);
+                                                AmbulanceData.class);
 
-                                // Update UI
                                 statusText = (TextView) findViewById(R.id.statusText);
-                                statusText.setText(ambulance.getIdentifier());
-
+                                statusText.setText(ambulanceData.getIdentifier() + " - "
+                                        + profileClient.getSettings().getAmbulanceStatus().get(ambulanceData.getStatus()));
                             } else {
 
                                 Log.d(TAG, "Received ambulance update.");
@@ -225,6 +247,9 @@ public class MainActivity extends AppCompatActivity {
         } catch (MqttException e) {
             Log.d(TAG, "Could not subscribe to ambulance data");
         }
+
+        HospitalViewModel hospitalViewModel = new HospitalViewModel(profileClient);
+        hospitalViewModel.getHospitalMetadata();
 
         // Setup fused location client
         requestingLocationUpdates = false;
@@ -243,10 +268,16 @@ public class MainActivity extends AppCompatActivity {
                 Log.i(TAG, "lastLocation = " + lastLocation);
 
                 // Update ambulance
-                ambulance.update(lastLocation);
+                ambulanceData.update(lastLocation);
 
                 // update UI
-                GPSFragment gpsFragment = (GPSFragment) adapter.getRegisteredFragment(2);
+                GPSFragment gpsFragment;
+                if (OLD_HOSPITAL_UI) {
+                    gpsFragment = (GPSFragment) adapter.getRegisteredFragment(2);
+                } else {
+                    String gpsTag = getResources().getString(R.string.gps);
+                    gpsFragment = (GPSFragment) getSupportFragmentManager().findFragmentByTag(gpsTag);
+                }
                 if (gpsFragment != null) {
                     // TODO: make updateLocation take Ambulance instead of Location
                     gpsFragment.updateLocation(lastLocation);
@@ -277,6 +308,73 @@ public class MainActivity extends AppCompatActivity {
         builder.addLocationRequest(locationRequest);
         locationSettingsRequest = builder.build();
 
+    }
+
+    private void setupSpinner() {
+        Spinner spinner = findViewById(R.id.spinner_nav);
+        ArrayAdapter<CharSequence> spinnerAdapter = ArrayAdapter.createFromResource(this,
+                ADMIN ? R.array.spinner_list_item_array_admin : R.array.spinner_list_item_array, R.layout.custom_spinner);
+        spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinner.setAdapter(spinnerAdapter);
+        spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> adapterView, View view, int position, long l) {
+                FragmentManager fragmentManager = getSupportFragmentManager();
+                FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+
+                /* When clicking on a new page,
+                 * clear the entire back stack of fragments
+                 * so pressing back goes to select ambulance
+                 */
+                fragmentManager.popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
+                switch(position) {
+                    case 0:
+                        String dispatchTag = getResources().getString(R.string.dispatch);
+                        Fragment dispatchFragment = fragmentManager.findFragmentByTag(dispatchTag);
+
+                        if (dispatchFragment == null) {
+                            fragmentTransaction
+                                    .add(R.id.root, new DispatcherFragment(), dispatchTag)
+                                    .commit();
+                        } else {
+                            fragmentTransaction
+                                    .replace(R.id.root, dispatchFragment, dispatchTag)
+                                    .commit();
+                        }
+                        break;
+                    case 1:
+                        String hospitalTag = getResources().getString(R.string.hospital);
+                        Fragment hospitalFragment = fragmentManager.findFragmentByTag(hospitalTag);
+                        if (hospitalFragment == null) {
+                            getSupportFragmentManager().beginTransaction()
+                                    .add(R.id.root, new HospitalFragment(), hospitalTag)
+                                    .commit();
+                        } else {
+                            fragmentTransaction
+                                    .replace(R.id.root, hospitalFragment, hospitalTag)
+                                    .commit();
+                        }
+                        break;
+                    case 2:
+                        String gpsTag = getResources().getString(R.string.gps);
+                        Fragment gpsFragment = fragmentManager.findFragmentByTag(gpsTag);
+                        if (gpsFragment == null) {
+                            getSupportFragmentManager().beginTransaction()
+                                    .add(R.id.root, new GPSFragment(), gpsTag)
+                                    .commit();
+                        } else {
+                            fragmentTransaction
+                                    .replace(R.id.root, gpsFragment, gpsTag)
+                                    .commit();
+                        }
+                        break;
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> adapterView) {}
+        });
+        spinner.setSelection(0);
     }
 
     @Override
@@ -549,7 +647,7 @@ public class MainActivity extends AppCompatActivity {
         // Pass any configuration change to the drawer toggles
         drawerToggle.onConfigurationChanged(newConfig);
     }
-    
+
     public String getUpdateString(android.location.Location lastLocation) {
         double latitude = lastLocation.getLatitude();
         double longitude = lastLocation.getLongitude();

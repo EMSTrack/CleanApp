@@ -23,16 +23,10 @@
                 android:layout_alignParentLeft="true"
                 android:layout_alignParentStart="true"
                 android:layout_alignParentTop="true"
+                android:background="?attr/colorPrimary"
                 android:minHeight="?attr/actionBarSize"
-                android:theme="@style/Theme.AppCompat.Light.NoActionBar"
-                android:textColor="@android:color/black">
-
-                <Spinner
-                    android:id="@+id/spinner_nav"
-                    android:layout_gravity="center_horizontal"
-                    android:background="@null"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content" />
+                android:textColor="@android:color/black"
+                android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar">
 
                 <ImageButton
                     android:id="@+id/panicButton"
@@ -48,28 +42,63 @@
 
             </android.support.v7.widget.Toolbar>
 
-            <FrameLayout
-                android:id="@+id/root"
-                android:layout_below="@id/toolbar"
+
+            <android.support.design.widget.TabLayout
+                android:id="@+id/tab_layout_home"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent" />
+                android:layout_height="?attr/actionBarSize"
+                android:layout_alignParentLeft="true"
+                android:layout_alignParentStart="true"
+                android:layout_below="@+id/toolbar"
+                android:background="@color/colorWhite"
+                android:minHeight="?attr/actionBarSize"
+                android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+                app:tabGravity="fill"
+
+                app:tabMode="fixed"
+                app:tabSelectedTextColor="@android:color/black"
+                app:tabTextColor="@android:color/black" />
+
+            <android.support.v4.view.ViewPager
+                android:id="@+id/pager"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_alignParentBottom="true"
+                android:layout_alignParentLeft="true"
+                android:layout_alignParentStart="true"
+                android:layout_below="@+id/tab_layout_home">
+
+            </android.support.v4.view.ViewPager>
+
+            <TextView
+                android:id="@+id/statusText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_above="@+id/tab_layout_home"
+                android:layout_centerHorizontal="true"
+                android:layout_marginBottom="11dp"
+                android:textColor="@android:color/black"
+                android:textSize="25sp" />
 
             <android.support.design.widget.FloatingActionButton
                 android:id="@+id/navBtn"
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_alignBottom="@id/pager"
-                android:layout_marginRight="15dp"
-                android:layout_marginBottom="15dp"
+                android:layout_alignParentEnd="true"
                 android:layout_alignParentRight="true"
+                android:layout_below="@+id/toolbar"
+                android:layout_marginEnd="15dp"
+                android:layout_marginRight="15dp"
+                android:layout_marginTop="430dp"
                 android:clickable="true"
+                android:gravity="bottom|right"
+                android:scaleType="fitXY"
                 android:tint="@android:color/transparent"
                 app:backgroundTint="@android:color/transparent"
                 app:fabSize="normal"
                 app:rippleColor="@android:color/transparent"
                 app:srcCompat="@drawable/nav_img"
-                app:useCompatPadding="false"
-                android:layout_alignParentEnd="true" />
+                app:useCompatPadding="false" />
 
         </RelativeLayout>
 
