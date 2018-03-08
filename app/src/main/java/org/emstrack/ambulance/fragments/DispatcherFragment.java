@@ -7,6 +7,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.TextView;
 
 import org.emstrack.ambulance.R;
@@ -20,7 +21,7 @@ import static android.content.ContentValues.TAG;
 public class DispatcherFragment extends Fragment implements View.OnClickListener {
 
     View rootView;
-    Button mapButton;
+    ImageButton mapButton;
     static TextView addressText;
 
 /*
@@ -39,7 +40,7 @@ public class DispatcherFragment extends Fragment implements View.OnClickListener
 
         rootView = inflater.inflate(R.layout.fragment_dispatcher, container, false);
 
-        mapButton = (Button) rootView.findViewById(R.id.gmap);
+        mapButton = (ImageButton) rootView.findViewById(R.id.gmap);
         mapButton.setOnClickListener(this);
 
         addressText = ((TextView) rootView.findViewById(R.id.address));
