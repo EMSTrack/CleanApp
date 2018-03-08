@@ -1,6 +1,5 @@
 package org.emstrack.ambulance.fragments;
 
-import android.location.Location;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.util.Log;
@@ -11,13 +10,10 @@ import android.widget.CompoundButton;
 import android.widget.Switch;
 import android.widget.TextView;
 
-import org.emstrack.ambulance.GPSTracker;
 import org.emstrack.ambulance.MainActivity;
 import org.emstrack.ambulance.R;
 
 import java.util.Date;
-import java.util.Observable;
-import java.util.Observer;
 
 
 /**
@@ -38,51 +34,109 @@ import java.util.Observer;
  * data to the server might use the LP's method that will
  * return a new JSONObject.
  */
-public class GPSFragment extends Fragment implements Observer {
+public class GPSFragment extends Fragment implements CompoundButton.OnCheckedChangeListener{
 
     private static final String TAG = GPSFragment.class.getSimpleName();;
+
+    private View view;
 
     private TextView latitudeText;
     private TextView longitudeText;
     private TextView timestampText;
     private TextView orientationText;
 
-    private GPSTracker gpsTracker;
+    private Switch startTrackingSwitch;
+
+    /*
+     * Default method
+     * Always called when an activity is created.
+     * @param savedInstanceState
+     */    @Override
 
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        final View view = inflater.inflate(R.layout.fragment_gps, container, false);
-        final GPSFragment gpsFragment = this;
 
-        latitudeText = view.findViewById(R.id.latitudeText);
-        longitudeText = view.findViewById(R.id.longitudeText);
-        timestampText = view.findViewById(R.id.timestampText);
-        orientationText = view.findViewById(R.id.orientationText);
+        // inflate view
+        view = inflater.inflate(R.layout.fragment_gps, container, false);
 
-        Switch startTrackingSwitch = view.findViewById(R.id.startTrackingSwitch);
-        startTrackingSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton compoundButton, boolean isChecked) {
-                if (isChecked) {
+        // Retrieve texts
+        latitudeText = (TextView) view.findViewById(R.id.latitudeText);
+        longitudeText = (TextView) view.findViewById(R.id.longitudeText);
+        timestampText = (TextView) view.findViewById(R.id.timestampText);
+        orientationText = (TextView) view.findViewById(R.id.orientationText);
 
-                    gpsTracker = new GPSTracker(gpsFragment, view.getContext(), 500, -1);
+        // To track or not to track?
+        startTrackingSwitch = (Switch) view.findViewById(R.id.startTrackingSwitch);
+        startTrackingSwitch.setOnCheckedChangeListener(this);
 
-                } else {
+        // Retrieve last location and update
+        android.location.Location lastLocation = ((MainActivity) getActivity()).getLastLocation();
+        if (lastLocation != null) {
+            updateLocation(lastLocation);
+        }
 
-                    // TODO: turn off tracking
-
-                }
-            }
-        });
         return view;
     }
 
+    public void setLatitudeText(String latitudeText) {
+        this.latitudeText.setText(latitudeText);
+    }
+
+    public void setLongitudeText(String longitudeText) {
+        this.longitudeText.setText(longitudeText);
+    }
+
+    public void setTimestampText(String timestampText) {
+        this.timestampText.setText(timestampText);
+    }
+
+    public void setOrientationText(String orientationText) {
+        this.orientationText.setText(orientationText);
+    }
+
+    public void updateLocation(android.location.Location lastLocation) {
+
+        setLatitudeText(Double.toString(lastLocation.getLatitude()));
+        setLongitudeText(Double.toString(lastLocation.getLongitude()));
+        setOrientationText(Double.toString(lastLocation.getBearing()));
+        setTimestampText(new Date(lastLocation.getTime()).toString());
+
+    }
+
     @Override
-    public void update(Observable observable, Object o) {
-        Log.e("GPSFRAGMENT", "update called");
-        GPSLocation location = gpsTracker.getGPSLocation();
-        latitudeText.setText(location.getLatitude());
-        longitudeText.setText(location.getLongitude());
-        timestampText.setText(location.getTime());
+    public void onPause() {
+        Log.i(TAG, "onPause: GPSFragment");
+        super.onPause(); // This is required for some reason.
+    }
+
+    @Override
+    public void onStop(){
+        Log.i(TAG, "onStop: GPSFragment");
+        // startTrackingSwitch.setChecked(false);
+        super.onStop(); // Same.
+    }
+
+    @Override
+    public void onDestroy() {
+        Log.i(TAG, "onDestroy: GPSFragment");
+        // startTrackingSwitch.setChecked(false);
+        super.onDestroy(); // Same.
+    }
+
+    @Override
+    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+
+        if (isChecked) {
+
+            // turn on tracking
+            ((MainActivity) getActivity()).startLocationUpdates();
+
+        } else {
+
+            // turn off tracking
+            ((MainActivity) getActivity()).stopLocationUpdates();
+
+        }
+
     }
 }
 

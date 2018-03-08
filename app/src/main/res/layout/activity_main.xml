@@ -25,8 +25,8 @@
                 android:layout_alignParentTop="true"
                 android:background="?attr/colorPrimary"
                 android:minHeight="?attr/actionBarSize"
-                android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
-                android:textColor="@android:color/black">
+                android:textColor="@android:color/black"
+                android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar">
 
                 <ImageButton
                     android:id="@+id/panicButton"
@@ -66,7 +66,9 @@
                 android:layout_alignParentBottom="true"
                 android:layout_alignParentLeft="true"
                 android:layout_alignParentStart="true"
-                android:layout_below="@+id/tab_layout_home" />
+                android:layout_below="@+id/tab_layout_home">
+
+            </android.support.v4.view.ViewPager>
 
             <TextView
                 android:id="@+id/statusText"
@@ -78,10 +80,31 @@
                 android:textColor="@android:color/black"
                 android:textSize="25sp" />
 
+            <android.support.design.widget.FloatingActionButton
+                android:id="@+id/navBtn"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:layout_alignParentRight="true"
+                android:layout_below="@+id/toolbar"
+                android:layout_marginEnd="15dp"
+                android:layout_marginRight="15dp"
+                android:layout_marginTop="430dp"
+                android:clickable="true"
+                android:gravity="bottom|right"
+                android:scaleType="fitXY"
+                android:tint="@android:color/transparent"
+                app:backgroundTint="@android:color/transparent"
+                app:fabSize="normal"
+                app:rippleColor="@android:color/transparent"
+                app:srcCompat="@drawable/nav_img"
+                app:useCompatPadding="false" />
+
         </RelativeLayout>
 
         <!-- The navigation drawer that comes from the left -->
         <!-- Note that `android:layout_gravity` needs to be set to 'start' -->
+
         <android.support.design.widget.NavigationView
             android:id="@+id/nvView"
             android:layout_width="wrap_content"
@@ -90,7 +113,9 @@
             android:background="@android:color/white"
             app:headerLayout="@layout/nav_header"
             app:theme="@style/drawer_menu_theme"
-            app:menu="@menu/drawer_view" />
+            app:menu="@menu/drawer_view" >
+
+        </android.support.design.widget.NavigationView>
 
     </android.support.v4.widget.DrawerLayout>
 

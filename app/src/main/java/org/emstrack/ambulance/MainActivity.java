@@ -9,12 +9,12 @@ import android.content.Intent;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
-import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Looper;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
+import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.Snackbar;
 import android.support.design.widget.TabLayout;
@@ -60,6 +60,11 @@ import org.emstrack.mqtt.MqttProfileClient;
 import org.emstrack.mqtt.MqttProfileMessageCallback;
 
 import org.emstrack.ambulance.viewModels.HospitalViewModel;
+import org.emstrack.models.Location;
+import org.emstrack.mqtt.MqttProfileClient;
+import org.emstrack.mqtt.MqttProfileMessageCallback;
+
+import java.util.Date;
 
 /**
  * This is the main activity -- the default screen
@@ -79,7 +84,7 @@ public class MainActivity extends AppCompatActivity {
     private FusedLocationProviderClient fusedLocationClient;
     private SettingsClient settingsClient;
     private LocationSettingsRequest locationSettingsRequest;
-//    private LocationCallback locationCallback;
+    private LocationCallback locationCallback;
     private boolean requestingLocationUpdates;
 
     private ViewPager viewPager;
@@ -91,6 +96,7 @@ public class MainActivity extends AppCompatActivity {
     private Toolbar toolbar;
     static TextView statusText;
     private ImageButton panicButton;
+    private FloatingActionButton navButton;
 
     /**
      * @param savedInstanceState
@@ -114,6 +120,14 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        navButton = (FloatingActionButton) findViewById(R.id.navBtn);
+        navButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //
+            }
+        });
+
         // Set a Toolbar to replace the ActionBar.
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -123,6 +137,9 @@ public class MainActivity extends AppCompatActivity {
         mDrawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawerToggle = setupDrawerToggle();
         mDrawer.addDrawerListener(drawerToggle);
+
+        // set hamburger color to be black
+        drawerToggle.getDrawerArrowDrawable().setColor(getResources().getColor(R.color.colorBlack));
 
         // Find our drawer view
         nvDrawer = (NavigationView) findViewById(R.id.nvView);
@@ -149,6 +166,11 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onTabSelected(TabLayout.Tab tab) {
                 viewPager.setCurrentItem(tab.getPosition());
+                if (tab.getPosition() == 0 ) {
+                    navButton.show();
+                } else {
+                    navButton.hide();
+                }
             }
 
             @Override
@@ -159,6 +181,7 @@ public class MainActivity extends AppCompatActivity {
             public void onTabReselected(TabLayout.Tab tab) {
             }
         });
+
 
         // Retrieve client
         final MqttProfileClient profileClient = ((AmbulanceApp) getApplication()).getProfileClient();
@@ -172,30 +195,33 @@ public class MainActivity extends AppCompatActivity {
                         @Override
                         public void messageArrived(String topic, MqttMessage message) {
 
-                            try {
+                            // Keep subscription to ambulance to make sure we receive
+                            // the latest updates.
 
-                                // Unsubscribe to metadata
-                                profileClient.unsubscribe("ambulance/" + ambulanceId + "/data");
+                            if (ambulanceData == null) {
 
-                            } catch (MqttException exception) {
+                                Log.d(TAG, "Setting ambulance.");
 
-                                Log.d(TAG, "Could not unsubscribe to 'ambulance/" + ambulanceId + "/data'");
-                                return;
+                                // first time we receive ambulance data
+                                GsonBuilder gsonBuilder = new GsonBuilder();
+                                gsonBuilder.setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES);
+                                Gson gson = gsonBuilder.create();
+
+                                // Parse and set ambulance
+                                // TODO: Check for potential errors
+                                ambulanceData = gson
+                                        .fromJson(new String(message.getPayload()),
+                                                AmbulanceData.class);
+
+                                statusText = (TextView) findViewById(R.id.statusText);
+                                statusText.setText(ambulanceData.getIdentifier() + " - "
+                                        + profileClient.getSettings().getAmbulanceStatus().get(ambulanceData.getStatus()));
+                            } else {
+
+                                Log.d(TAG, "Received ambulance update.");
+
+                                // TODO: process update
                             }
-
-                            // Parse to ambulanceData metadata
-                            GsonBuilder gsonBuilder = new GsonBuilder();
-                            gsonBuilder.setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES);
-                            Gson gson = gsonBuilder.create();
-
-                            // / Found item in the ambulanceData equipments object
-                            AmbulanceData ambulanceData = gson
-                                    .fromJson(new String(message.getPayload()),
-                                            AmbulanceData.class);
-
-                            statusText = (TextView) findViewById(R.id.statusText);
-                            statusText.setText(ambulanceData.getIdentifier() + " - "
-                                    + profileClient.getSettings().getAmbulanceStatus().get(ambulanceData.getStatus()));
                         }
 
                     });
@@ -212,25 +238,40 @@ public class MainActivity extends AppCompatActivity {
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
         settingsClient = LocationServices.getSettingsClient(this);
 
-//        // Setup callback
-//        locationCallback = new LocationCallback() {
-//
-//            @Override
-//            public void onLocationResult(LocationResult locationResult) {
-//                super.onLocationResult(locationResult);
-//
-//                // set last location and update time
-//                lastLocation = locationResult.getLastLocation();
-//
-//                // update UI
-//                Log.i(TAG, "lastLocation = " + lastLocation);
-//                GPSFragment gpsFragment = (GPSFragment) adapter.getRegisteredFragment(2);
-//                if (gpsFragment != null) {
-//                    gpsFragment.updateLocation(lastLocation);
-//                }
-//            }
-//
-//        };
+        // Setup callback
+        locationCallback = new LocationCallback() {
+
+            @Override
+            public void onLocationResult(LocationResult locationResult) {
+                super.onLocationResult(locationResult);
+
+                // set last location
+                lastLocation = locationResult.getLastLocation();
+                Log.i(TAG, "lastLocation = " + lastLocation);
+
+                // Update ambulance
+                ambulanceData.update(lastLocation);
+
+                // update UI
+                GPSFragment gpsFragment = (GPSFragment) adapter.getRegisteredFragment(2);
+                if (gpsFragment != null) {
+                    // TODO: make updateLocation take Ambulance instead of Location
+                    gpsFragment.updateLocation(lastLocation);
+                }
+
+                // PUBLISH TO MQTT
+                String updateString = getUpdateString(lastLocation);
+
+                try {
+                    profileClient.publish("user/" + profileClient.getUsername() + "/ambulance/" + ambulanceId + "/data", updateString,1, false );
+                    Log.e("LocationChangeUpdate", "onLocationChanged: update sent to server\n" + updateString);
+                } catch (MqttException e) {
+                    e.printStackTrace();
+                }
+
+            }
+
+        };
 
         // Request permission for location services
         locationRequest = LocationRequest.create()
@@ -249,12 +290,12 @@ public class MainActivity extends AppCompatActivity {
     public void onResume() {
         super.onResume();
         // Within {@code onPause()}, we remove location updates. Here, we resume receiving
-//        // location updates if the user has requested them.
-//        if (requestingLocationUpdates && checkPermissions()) {
-//            startLocationUpdates();
-//        } else if (!checkPermissions()) {
-//            requestPermissions();
-//        }
+        // location updates if the user has requested them.
+        if (requestingLocationUpdates && checkPermissions()) {
+            startLocationUpdates();
+        } else if (!checkPermissions()) {
+            requestPermissions();
+        }
     }
 
     @Override
@@ -262,7 +303,7 @@ public class MainActivity extends AppCompatActivity {
         super.onPause();
 
         // Remove location updates to save battery.
-//        stopLocationUpdates();
+        stopLocationUpdates();
     }
 
     /**
@@ -278,80 +319,80 @@ public class MainActivity extends AppCompatActivity {
      * Requests location updates from the FusedLocationApi. Note: we don't call this unless location
      * runtime permission has been granted.
      */
-//    public void startLocationUpdates() {
-//
-//        if (requestingLocationUpdates) {
-//            Log.d(TAG, "startLocationUpdates: updates already requested, no-op.");
-//            return;
-//        }
-//
-//        // Begin by checking if the device has the necessary location settings.
-//        settingsClient.checkLocationSettings(locationSettingsRequest)
-//                .addOnSuccessListener(this, new OnSuccessListener<LocationSettingsResponse>() {
-//                    @SuppressLint("MissingPermission")
-//                    @Override
-//                    public void onSuccess(LocationSettingsResponse locationSettingsResponse) {
-//                        Log.i(TAG, "All location settings are satisfied. Starting location updates.");
-//
-//                        //noinspection MissingPermission
-//                        fusedLocationClient.requestLocationUpdates(locationRequest,
-//                                locationCallback, Looper.myLooper());
-//                        requestingLocationUpdates = true;
-//
-//                    }
-//                })
-//                .addOnFailureListener(this, new OnFailureListener() {
-//                    @Override
-//                    public void onFailure(@NonNull Exception e) {
-//                        int statusCode = ((ApiException) e).getStatusCode();
-//                        switch (statusCode) {
-//                            case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
-//                                Log.i(TAG, "Location settings are not satisfied. Attempting to upgrade " +
-//                                        "location settings ");
-//                                try {
-//                                    // Show the dialog by calling startResolutionForResult(), and check the
-//                                    // result in onActivityResult().
-//                                    ResolvableApiException rae = (ResolvableApiException) e;
-//                                    rae.startResolutionForResult(MainActivity.this, REQUEST_CHECK_SETTINGS);
-//                                } catch (IntentSender.SendIntentException sie) {
-//                                    Log.i(TAG, "PendingIntent unable to execute request.");
-//                                }
-//                                break;
-//                            case LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:
-//                                String errorMessage = "Location settings are inadequate, and cannot be " +
-//                                        "fixed here. Fix in Settings.";
-//                                Log.e(TAG, errorMessage);
-//                                Toast.makeText(MainActivity.this, errorMessage, Toast.LENGTH_LONG).show();
-//                                requestingLocationUpdates = false;
-//                        }
-//
-//                        // updateUI();
-//                    }
-//                });
-//    }
+    public void startLocationUpdates() {
 
-//    /**
-//     * Removes location updates from the FusedLocationApi.
-//     */
-//    public void stopLocationUpdates() {
-//
-//        if (!requestingLocationUpdates) {
-//            Log.d(TAG, "stopLocationUpdates: updates never requested, no-op.");
-//            return;
-//        }
-//
-//        // It is a good practice to remove location requests when the activity is in a paused or
-//        // stopped state. Doing so helps battery performance and is especially
-//        // recommended in applications that request frequent location updates.
-//        fusedLocationClient.removeLocationUpdates(locationCallback)
-//                .addOnCompleteListener(this, new OnCompleteListener<Void>() {
-//                    @Override
-//                    public void onComplete(@NonNull Task<Void> task) {
-//                        Log.d(TAG, "Stoping location updates.");
-//                        requestingLocationUpdates = false;
-//                    }
-//                });
-//    }
+        if (requestingLocationUpdates) {
+            Log.d(TAG, "startLocationUpdates: updates already requested, no-op.");
+            return;
+        }
+
+        // Begin by checking if the device has the necessary location settings.
+        settingsClient.checkLocationSettings(locationSettingsRequest)
+                .addOnSuccessListener(this, new OnSuccessListener<LocationSettingsResponse>() {
+                    @SuppressLint("MissingPermission")
+                    @Override
+                    public void onSuccess(LocationSettingsResponse locationSettingsResponse) {
+                        Log.i(TAG, "All location settings are satisfied. Starting location updates.");
+
+                        //noinspection MissingPermission
+                        fusedLocationClient.requestLocationUpdates(locationRequest,
+                                locationCallback, Looper.myLooper());
+                        requestingLocationUpdates = true;
+
+                    }
+                })
+                .addOnFailureListener(this, new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        int statusCode = ((ApiException) e).getStatusCode();
+                        switch (statusCode) {
+                            case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
+                                Log.i(TAG, "Location settings are not satisfied. Attempting to upgrade " +
+                                        "location settings ");
+                                try {
+                                    // Show the dialog by calling startResolutionForResult(), and check the
+                                    // result in onActivityResult().
+                                    ResolvableApiException rae = (ResolvableApiException) e;
+                                    rae.startResolutionForResult(MainActivity.this, REQUEST_CHECK_SETTINGS);
+                                } catch (IntentSender.SendIntentException sie) {
+                                    Log.i(TAG, "PendingIntent unable to execute request.");
+                                }
+                                break;
+                            case LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:
+                                String errorMessage = "Location settings are inadequate, and cannot be " +
+                                        "fixed here. Fix in Settings.";
+                                Log.e(TAG, errorMessage);
+                                Toast.makeText(MainActivity.this, errorMessage, Toast.LENGTH_LONG).show();
+                                requestingLocationUpdates = false;
+                        }
+
+                        // updateUI();
+                    }
+                });
+    }
+
+    /**
+     * Removes location updates from the FusedLocationApi.
+     */
+    public void stopLocationUpdates() {
+
+        if (!requestingLocationUpdates) {
+            Log.d(TAG, "stopLocationUpdates: updates never requested, no-op.");
+            return;
+        }
+
+        // It is a good practice to remove location requests when the activity is in a paused or
+        // stopped state. Doing so helps battery performance and is especially
+        // recommended in applications that request frequent location updates.
+        fusedLocationClient.removeLocationUpdates(locationCallback)
+                .addOnCompleteListener(this, new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        Log.d(TAG, "Stoping location updates.");
+                        requestingLocationUpdates = false;
+                    }
+                });
+    }
 
     private void requestPermissions() {
         boolean shouldProvideRationale =
@@ -418,7 +459,7 @@ public class MainActivity extends AppCompatActivity {
             } else if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 if (requestingLocationUpdates) {
                     Log.i(TAG, "Permission granted, updates requested, starting location updates");
-//                    startLocationUpdates();
+                    startLocationUpdates();
                 }
             } else {
                 // Permission denied.
@@ -516,6 +557,17 @@ public class MainActivity extends AppCompatActivity {
         drawerToggle.onConfigurationChanged(newConfig);
     }
 
+    public String getUpdateString(android.location.Location lastLocation) {
+        double latitude = lastLocation.getLatitude();
+        double longitude = lastLocation.getLongitude();
+        double orientation = lastLocation.getBearing();
+        String timestamp = new Date(lastLocation.getTime()).toString();
+
+        String updateString =  "{\"orientation\" :" + orientation + ",\"location\":{" +
+                "\"latitude\":"+ latitude + ",\"longitude\":" + longitude +"},\"location_timestamp\":\"" + timestamp + "\"}";
+        return updateString;
+
+    }
     public void panicPopUp() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setCancelable(true);
@@ -544,7 +596,7 @@ public class MainActivity extends AppCompatActivity {
     }
 */
 
-    public Location getLastLocation() {
+    public android.location.Location getLastLocation() {
         return lastLocation;
     }
 
