@@ -36,6 +36,6 @@
         android:layout_marginTop="10dp"
         android:background="@color/colorAccent"
         android:text="Select Ambulance"
-        android:textColor="@color/colorBlack" />
+        android:textColor="@color/colorWhite" />
 
 </LinearLayout>
