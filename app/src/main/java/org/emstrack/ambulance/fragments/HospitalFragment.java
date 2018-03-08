@@ -14,11 +14,14 @@ import android.widget.Toast;
 
 import org.emstrack.ambulance.AmbulanceApp;
 import org.emstrack.ambulance.R;
+import org.emstrack.ambulance.adapters.HospitalAdapter;
 import org.emstrack.ambulance.adapters.HospitalRVAdapter;
 import org.emstrack.models.Hospital;
 import org.emstrack.mqtt.MqttProfileClient;
 
 import java.util.List;
+
+import static org.emstrack.ambulance.FeatureFlags.OLD_HOSPITAL_UI;
 
 /**
  * This class is purely meant to demonstrate that the information is able to send
@@ -42,16 +45,17 @@ public class HospitalFragment extends Fragment {
         final MqttProfileClient profileClient = ((AmbulanceApp) getActivity().getApplication()).getProfileClient();
         final List<Hospital> hospitals = profileClient.getProfile().getHospitals();
 
-//        HospitalAdapter adapter = new HospitalAdapter(rootView.getContext(), hospitals);
-//        hospitalExpandableList = (ExpandableListView) rootView.findViewById(R.id.equipment_listview);
-//        hospitalExpandableList.setAdapter(adapter);
-
-        RecyclerView recyclerView = rootView.findViewById(R.id.rv);
-        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getContext());
-        HospitalRVAdapter adapter = new HospitalRVAdapter(hospitals);
-        recyclerView.setLayoutManager(linearLayoutManager);
-        recyclerView.setAdapter(adapter);
-
+        if (OLD_HOSPITAL_UI) {
+            HospitalAdapter adapter = new HospitalAdapter(rootView.getContext(), hospitals);
+            hospitalExpandableList = (ExpandableListView) rootView.findViewById(R.id.equipment_listview);
+            hospitalExpandableList.setAdapter(adapter);
+        } else {
+            RecyclerView recyclerView = rootView.findViewById(R.id.rv);
+            LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getContext());
+            HospitalRVAdapter adapter = new HospitalRVAdapter(hospitals);
+            recyclerView.setLayoutManager(linearLayoutManager);
+            recyclerView.setAdapter(adapter);
+        }
 
         return rootView;
     }

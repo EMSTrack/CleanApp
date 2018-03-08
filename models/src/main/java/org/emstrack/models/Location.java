@@ -1,8 +1,12 @@
 package org.emstrack.models;
 
+import com.google.gson.annotations.Expose;
+
 public class Location {
 
+    @Expose
     private double latitude;
+    @Expose
     private double longitude;
 
     public double getLatitude() {

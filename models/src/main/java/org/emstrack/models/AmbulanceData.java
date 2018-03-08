@@ -1,5 +1,7 @@
 package org.emstrack.models;
 
+import com.google.gson.annotations.Expose;
+
 import java.util.Date;
 
 public class AmbulanceData {
@@ -7,13 +9,39 @@ public class AmbulanceData {
     private int id;
     private String identifier;
     private String capability;
+    @Expose
     private String status;
+    @Expose
     private double orientation;
+    @Expose
     private Location location;
+    @Expose
     private Date timestamp;
     private String comment;
     private int updatedBy;
     private Date updatedOn;
+
+    public AmbulanceData(int id, String identifier, String capability) {
+        this.id = id;
+        this.identifier = identifier;
+        this.capability = capability;
+        this.status = "UK";
+        this.orientation = 0.0;
+        this.location = null;
+        this.timestamp = null;
+        this.comment = "";
+        this.updatedBy = -1;
+        this.updatedOn = null;
+    }
+
+    public void update(android.location.Location lastLocation) {
+
+        // Update ambulance
+        location = new Location(lastLocation.getLatitude(),lastLocation.getLongitude());
+        orientation = lastLocation.getBearing();
+        timestamp = new Date(lastLocation.getTime());
+
+    }
 
     public int getId() {
         return id;

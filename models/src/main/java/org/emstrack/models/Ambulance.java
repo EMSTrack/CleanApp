@@ -48,9 +48,4 @@ public class Ambulance {
     public boolean isCanWrite() {
         return canWrite;
     }
-
-    public void setCanWrite(boolean canWrite) {
-        this.canWrite = canWrite;
-    }
-
 }

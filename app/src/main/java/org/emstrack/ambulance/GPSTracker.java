@@ -41,7 +41,6 @@ public class GPSTracker extends Service implements LocationListener {
     public GPSTracker(GPSFragment gpsFragment, Context context, long minTime, long minDistance) {
         Log.e("GPSTracker", "Creating new GPSTracker");
         gpsLocation = new GPSLocation();
-        gpsLocation.addObserver(gpsFragment);
 
         // If have permission to access location, request location updates, otherwise request permission
         if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) ==
