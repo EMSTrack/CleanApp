@@ -49,7 +49,7 @@ public class Ambulance {
         this.updatedOn = null;
     }
 
-    public void update(android.location.Location lastLocation) {
+    public void updateLocation(android.location.Location lastLocation) {
 
         // Update ambulance
         location = new Location(lastLocation.getLatitude(),lastLocation.getLongitude());

@@ -16,6 +16,8 @@ public class Settings {
 
     public Map<String, String> equipmentType = new HashMap<>();
 
+    public Map<String, String> locationType = new HashMap<>();
+
     private Defaults defaults;
 
     public Map<String, String> getAmbulanceCapability() {
@@ -42,6 +44,12 @@ public class Settings {
         return equipmentType;
     }
 
+    public void setLocationType(Map<String,String> locationType) {
+        this.locationType = locationType;
+    }
+
+    public Map<String,String> getLocationType() { return locationType; }
+
     public Defaults getDefaults() {
         return defaults;
     }
@@ -53,20 +61,22 @@ public class Settings {
     public Settings(Map<String,String> ambulanceCapability,
                     Map<String,String> ambulanceStatus,
                     Map<String,String> equipmentType,
+                    Map<String,String> locationType,
                     Defaults defaults) {
         this.ambulanceCapability = ambulanceCapability;
         this.ambulanceStatus = ambulanceStatus;
         this.equipmentType = equipmentType;
+        this.locationType = locationType;
         this.defaults = defaults;
     }
 
     @Override
     public String toString() {
         return "settings:" +
-               "\nambulanceCapability = " + Arrays.toString(ambulanceCapability.entrySet().toArray()) +
-               "\nambulanceStatus = " + Arrays.toString(ambulanceStatus.entrySet().toArray()) +
-               "\nequipmentType = " + Arrays.toString(equipmentType.entrySet().toArray()) +
-               "\ndefaults = " + defaults;
+                "\nambulanceCapability = " + Arrays.toString(ambulanceCapability.entrySet().toArray()) +
+                "\nambulanceStatus = " + Arrays.toString(ambulanceStatus.entrySet().toArray()) +
+                "\nequipmentType = " + Arrays.toString(equipmentType.entrySet().toArray()) +
+                "\nlocationType = " + Arrays.toString(locationType.entrySet().toArray()) +
+                "\ndefaults = " + defaults;
     }
 }
-

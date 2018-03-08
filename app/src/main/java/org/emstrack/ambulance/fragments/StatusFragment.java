@@ -18,7 +18,7 @@ import java.util.Date;
 
 /**
  * Java Class AND ACTIVITY
- * implements code for the GPSFragment Activity
+ * implements code for the StatusFragment Activity
  * Methods for lists and buttons are here.
  *
  * TODO
@@ -34,9 +34,9 @@ import java.util.Date;
  * data to the server might use the LP's method that will
  * return a new JSONObject.
  */
-public class GPSFragment extends Fragment implements CompoundButton.OnCheckedChangeListener{
+public class StatusFragment extends Fragment implements CompoundButton.OnCheckedChangeListener{
 
-    private static final String TAG = GPSFragment.class.getSimpleName();;
+    private static final String TAG = StatusFragment.class.getSimpleName();;
 
     private View view;
 
@@ -68,7 +68,7 @@ public class GPSFragment extends Fragment implements CompoundButton.OnCheckedCha
         startTrackingSwitch = (Switch) view.findViewById(R.id.startTrackingSwitch);
         startTrackingSwitch.setOnCheckedChangeListener(this);
 
-        // Retrieve last location and update
+        // Retrieve last location and updateLocation
         android.location.Location lastLocation = ((MainActivity) getActivity()).getLastLocation();
         if (lastLocation != null) {
             updateLocation(lastLocation);
@@ -104,20 +104,20 @@ public class GPSFragment extends Fragment implements CompoundButton.OnCheckedCha
 
     @Override
     public void onPause() {
-        Log.i(TAG, "onPause: GPSFragment");
+        Log.i(TAG, "onPause: StatusFragment");
         super.onPause(); // This is required for some reason.
     }
 
     @Override
     public void onStop(){
-        Log.i(TAG, "onStop: GPSFragment");
+        Log.i(TAG, "onStop: StatusFragment");
         // startTrackingSwitch.setChecked(false);
         super.onStop(); // Same.
     }
 
     @Override
     public void onDestroy() {
-        Log.i(TAG, "onDestroy: GPSFragment");
+        Log.i(TAG, "onDestroy: StatusFragment");
         // startTrackingSwitch.setChecked(false);
         super.onDestroy(); // Same.
     }

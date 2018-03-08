@@ -156,14 +156,14 @@ public class DispatcherFragment extends Fragment implements View.OnClickListener
 
     private void goToLocation(double lat, double lon) {
         LatLng location = new LatLng(lat, lon);
-        CameraUpdate update = CameraUpdateFactory.newLatLng(location);
-        mGoogleMap.moveCamera(update);
+        CameraUpdate updateLocation = CameraUpdateFactory.newLatLng(location);
+        mGoogleMap.moveCamera(updateLocation);
     }
 
     private void goToLocationZoom(double lat, double lon, float zoom) {
         LatLng location = new LatLng(lat, lon);
-        CameraUpdate update = CameraUpdateFactory.newLatLngZoom(location, zoom);
-        mGoogleMap.moveCamera(update);
+        CameraUpdate updateLocation = CameraUpdateFactory.newLatLngZoom(location, zoom);
+        mGoogleMap.moveCamera(updateLocation);
 
         mGoogleMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
             @Override

@@ -31,8 +31,8 @@ public class GPSTracker extends Service implements LocationListener {
     /**
      * Constructor for GPSTracker
      * @param context
-     * @param minTime the minimum time that must pass between getting location update from GPS
-     * @param minDistance the minimum distance the ambulance must travel to get location update from GPS
+     * @param minTime the minimum time that must pass between getting location updateLocation from GPS
+     * @param minDistance the minimum distance the ambulance must travel to get location updateLocation from GPS
      */
     public GPSTracker(Context context, long minTime, long minDistance) {
         Log.e("GPSTracker", "Creating new GPSTracker");
@@ -44,7 +44,7 @@ public class GPSTracker extends Service implements LocationListener {
             String provider = LocationManager.GPS_PROVIDER;
             LocationManager m_locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
 
-            Log.e("GPSTracker", "Requesting location update");
+            Log.e("GPSTracker", "Requesting location updateLocation");
             m_locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, minTime, minDistance, this);
             m_locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, minTime, minDistance, this);
         } else {

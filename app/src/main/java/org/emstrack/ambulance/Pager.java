@@ -6,8 +6,11 @@ import android.support.v4.app.FragmentStatePagerAdapter;
 import android.view.ViewGroup;
 
 import org.emstrack.ambulance.fragments.DispatcherFragment;
-import org.emstrack.ambulance.fragments.GPSFragment;
+import org.emstrack.ambulance.fragments.StatusFragment;
 import org.emstrack.ambulance.fragments.HospitalFragment;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by mauricio on 2/21/18.
@@ -15,6 +18,7 @@ import org.emstrack.ambulance.fragments.HospitalFragment;
 
 public class Pager extends FragmentStatePagerAdapter {
 
+    Map<String,Fragment> registeredFragmentsByClassName;
     Fragment[] registeredFragments;
     int numberOfTabs;
 
@@ -24,6 +28,7 @@ public class Pager extends FragmentStatePagerAdapter {
 
         this.numberOfTabs = numberOfTabs;
         this.registeredFragments = new Fragment[numberOfTabs];
+        this.registeredFragmentsByClassName = new HashMap<String,Fragment>();
 
     }
 
@@ -33,13 +38,13 @@ public class Pager extends FragmentStatePagerAdapter {
         switch (position) {
 
             case 0:
-                return new DispatcherFragment();
+                return new StatusFragment();
 
             case 1:
                 return new HospitalFragment();
 
             case 2:
-                return new GPSFragment();
+                return new DispatcherFragment();
 
             default:
                 return null;
@@ -54,8 +59,14 @@ public class Pager extends FragmentStatePagerAdapter {
 
     @Override
     public Object instantiateItem(ViewGroup container, int position) {
+
+        // instantiate fragment
         Fragment fragment = (Fragment) super.instantiateItem(container, position);
+
+        // store fragments for later consultation
         registeredFragments[position] = fragment;
+        registeredFragmentsByClassName.put(fragment.getClass().getName(), fragment);
+
         return fragment;
     }
 
@@ -73,6 +84,10 @@ public class Pager extends FragmentStatePagerAdapter {
      */
     public Fragment getRegisteredFragment(int position) {
         return registeredFragments[position];
+    }
+
+    public Fragment getRegisteredFragment(Class cls) {
+        return registeredFragmentsByClassName.get(cls.getName());
     }
 
 }

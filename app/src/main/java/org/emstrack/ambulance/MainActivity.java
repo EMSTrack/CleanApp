@@ -53,7 +53,7 @@ import com.google.gson.GsonBuilder;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.emstrack.ambulance.dialogs.LogoutDialog;
-import org.emstrack.ambulance.fragments.GPSFragment;
+import org.emstrack.ambulance.fragments.StatusFragment;
 import org.emstrack.models.Ambulance;
 import org.emstrack.models.Location;
 import org.emstrack.mqtt.MqttProfileClient;
@@ -89,7 +89,7 @@ public class MainActivity extends AppCompatActivity {
     private NavigationView nvDrawer;
     private ActionBarDrawerToggle drawerToggle;
     private Toolbar toolbar;
-    static TextView statusText;
+    static TextView identifierText;
     private ImageButton panicButton;
     private FloatingActionButton navButton;
 
@@ -144,9 +144,9 @@ public class MainActivity extends AppCompatActivity {
 
         //set up TabLayout Structure
         TabLayout tabLayout = (TabLayout) findViewById(R.id.tab_layout_home);
-        tabLayout.addTab(tabLayout.newTab().setText("Dispatcher"));
+        tabLayout.addTab(tabLayout.newTab().setText("Status"));
         tabLayout.addTab(tabLayout.newTab().setText("Hospital"));
-        tabLayout.addTab(tabLayout.newTab().setText("GPS"));
+        tabLayout.addTab(tabLayout.newTab().setText("Dispatcher"));
 
         //pager
         viewPager = (ViewPager) findViewById(R.id.pager);
@@ -161,7 +161,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onTabSelected(TabLayout.Tab tab) {
                 viewPager.setCurrentItem(tab.getPosition());
-                if (tab.getPosition() == 0 ) {
+                if (tab.getPosition() == 2 ) {
                     navButton.show();
                 } else {
                     navButton.hide();
@@ -209,8 +209,23 @@ public class MainActivity extends AppCompatActivity {
                                                 Ambulance.class);
 
                                 // Update UI
-                                statusText = (TextView) findViewById(R.id.statusText);
-                                statusText.setText(ambulance.getIdentifier());
+                                identifierText = (TextView) findViewById(R.id.identifierText);
+                                identifierText.setText(ambulance.getIdentifier());
+
+                                // If no GPS updates
+                                if (!requestingLocationUpdates) {
+                                    // Set current location based on server's last update
+                                    Location location = ambulance.getLocation();
+                                    lastLocation = new android.location.Location("EMSTrack");
+                                    lastLocation.setLatitude(location.getLatitude());
+                                    lastLocation.setLongitude(location.getLongitude());
+
+                                    // update UI
+                                    StatusFragment statusFragment = (StatusFragment) adapter.getRegisteredFragment(StatusFragment.class);
+                                    if (statusFragment != null) {
+                                        statusFragment.updateLocation(lastLocation);
+                                    }
+                                }
 
                             } else {
 
@@ -243,20 +258,21 @@ public class MainActivity extends AppCompatActivity {
                 Log.i(TAG, "lastLocation = " + lastLocation);
 
                 // Update ambulance
-                ambulance.update(lastLocation);
+                ambulance.updateLocation(lastLocation);
 
                 // update UI
-                GPSFragment gpsFragment = (GPSFragment) adapter.getRegisteredFragment(2);
-                if (gpsFragment != null) {
+                StatusFragment statusFragment = (StatusFragment) adapter.getRegisteredFragment(StatusFragment.class);
+                if (statusFragment != null) {
                     // TODO: make updateLocation take Ambulance instead of Location
-                    gpsFragment.updateLocation(lastLocation);
+                    statusFragment.updateLocation(lastLocation);
                 }
 
                 // PUBLISH TO MQTT
                 String updateString = getUpdateString(lastLocation);
 
                 try {
-                    profileClient.publish("user/" + profileClient.getUsername() + "/ambulance/" + ambulanceId + "/data", updateString,1, false );
+                    profileClient.publish("user/" + profileClient.getUsername() + "/ambulance/" + ambulanceId + "/data",
+                            updateString,1, false );
                     Log.e("LocationChangeUpdate", "onLocationChanged: update sent to server\n" + updateString);
                 } catch (MqttException e) {
                     e.printStackTrace();
@@ -556,7 +572,7 @@ public class MainActivity extends AppCompatActivity {
         double orientation = lastLocation.getBearing();
         String timestamp = new Date(lastLocation.getTime()).toString();
 
-        String updateString =  "{\"orientation\" :" + orientation + ",\"location\":{" +
+        String updateString =  "{\"orientation\":" + orientation + ",\"location\":{" +
                 "\"latitude\":"+ latitude + ",\"longitude\":" + longitude +"},\"location_timestamp\":\"" + timestamp + "\"}";
         return updateString;
 

@@ -255,9 +255,14 @@ public class ModelsUnitTest {
         equipmentType.put("B", "Boolean");
         equipmentType.put("I", "Integer");
 
+        Map<String,String> locationType = new HashMap<>();
+        locationType.put("B", "Base");
+        locationType.put("A", "AED");
+        locationType.put("O", "Other");
+        
         Defaults defaults = new Defaults(new Location(32.5149,-117.0382),"BC","Tijuana","MX");
 
-        Settings settings = new Settings(ambulanceCapability, ambulanceStatus, equipmentType, defaults);
+        Settings settings = new Settings(ambulanceCapability, ambulanceStatus, equipmentType, locationType, defaults);
 
         GsonBuilder gsonBuilder = new GsonBuilder();
         gsonBuilder.setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES);
@@ -295,7 +300,13 @@ public class ModelsUnitTest {
             assertEquals(entry.getValue(), answerEquipmentType.get(entry.getKey()));
         }
 
-        to_json = "{\"ambulance_status\":{\"PB\":\"Patient bound\",\"HB\":\"Hospital bound\",\"UK\":\"Unknown\",\"AH\":\"At hospital\",\"AV\":\"Available\",\"AP\":\"At patient\",\"OS\":\"Out of service\"},\"defaults\":{\"state\":\"BC\",\"location\":{\"latitude\":\"32.5149\",\"longitude\":\"-117.0382\"},\"city\":\"Tijuana\",\"country\":\"MX\"},\"equipment_type\":{\"I\":\"Integer\",\"S\":\"String\",\"B\":\"Boolean\"},\"ambulance_capability\":{\"R\":\"Rescue\",\"B\":\"Basic\",\"A\":\"Advanced\"}}";
+        Map<String,String> expectedLocationType = settings.getLocationType();
+        Map<String,String> answerLocationType = from_json.getLocationType();
+        for (Map.Entry<String,String> entry : expectedLocationType.entrySet()) {
+            assertEquals(entry.getValue(), answerLocationType.get(entry.getKey()));
+        }
+        
+        to_json = "{\"ambulance_status\":{\"PB\":\"Patient bound\",\"HB\":\"Hospital bound\",\"UK\":\"Unknown\",\"AH\":\"At hospital\",\"AV\":\"Available\",\"AP\":\"At patient\",\"OS\":\"Out of service\"},\"defaults\":{\"state\":\"BC\",\"location\":{\"latitude\":\"32.5149\",\"longitude\":\"-117.0382\"},\"city\":\"Tijuana\",\"country\":\"MX\"},\"equipment_type\":{\"I\":\"Integer\",\"S\":\"String\",\"B\":\"Boolean\"},\"ambulance_capability\":{\"R\":\"Rescue\",\"B\":\"Basic\",\"A\":\"Advanced\"},\"location_type\":{\"B\":\"Base\",\"A\":\"AED\",\"O\":\"Other\"}}";
 
         from_json = gson.fromJson(to_json, Settings.class);
 
@@ -318,7 +329,12 @@ public class ModelsUnitTest {
         equipmentType.put("I", "Integer");
         equipmentType.put("S", "String");
 
-        settings = new Settings(ambulanceCapability, ambulanceStatus, equipmentType, defaults);
+        locationType = new HashMap<>();
+        locationType.put("B", "Base");
+        locationType.put("A", "AED");
+        locationType.put("O", "Other");
+
+        settings = new Settings(ambulanceCapability, ambulanceStatus, equipmentType, locationType, defaults);
 
         expectedDefaults = settings.getDefaults();
         answerDefaults = from_json.getDefaults();
@@ -346,6 +362,11 @@ public class ModelsUnitTest {
             assertEquals(entry.getValue(), answerEquipmentType.get(entry.getKey()));
         }
 
+        expectedLocationType = settings.getLocationType();
+        answerLocationType = from_json.getLocationType();
+        for (Map.Entry<String,String> entry : expectedLocationType.entrySet()) {
+            assertEquals(entry.getValue(), answerLocationType.get(entry.getKey()));
+        }
 
     }
 
