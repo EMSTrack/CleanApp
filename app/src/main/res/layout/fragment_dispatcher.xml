@@ -70,17 +70,6 @@
         android:textColor="@color/colorBlack"
         android:textSize="18dp" />
 
-    <ImageButton
-        android:id="@+id/gmap"
-        android:layout_width="60dp"
-        android:layout_height="60dp"
-        android:layout_alignEnd="@+id/description"
-        android:layout_alignParentBottom="true"
-        android:layout_alignRight="@+id/description"
-        android:layout_marginBottom="20dp"
-        android:background="@android:color/transparent"
-        android:scaleType="fitXY"
-        app:srcCompat="@drawable/nav_img" />
 
 
 </RelativeLayout>

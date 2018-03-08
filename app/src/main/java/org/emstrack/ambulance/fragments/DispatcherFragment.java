@@ -30,7 +30,7 @@ import static android.content.ContentValues.TAG;
 public class DispatcherFragment extends Fragment implements View.OnClickListener, OnMapReadyCallback {
 
     View rootView;
-    ImageButton mapButton;
+
     static TextView addressText;
 
 /*
@@ -49,8 +49,6 @@ public class DispatcherFragment extends Fragment implements View.OnClickListener
 
         rootView = inflater.inflate(R.layout.fragment_dispatcher, container, false);
 
-        mapButton = (ImageButton) rootView.findViewById(R.id.gmap);
-        mapButton.setOnClickListener(this);
 
         addressText = ((TextView) rootView.findViewById(R.id.address));
 
@@ -89,7 +87,7 @@ public class DispatcherFragment extends Fragment implements View.OnClickListener
     @Override
     public void onClick(View v) {
 
-        if(v == mapButton){
+       // if(v == mapButton){
 
 /*
             gps = new GPSTracker(view.getContext(), 500, -1);
@@ -109,7 +107,7 @@ public class DispatcherFragment extends Fragment implements View.OnClickListener
             startActivity(intent);
 */
 
-        }
+        //}
         /*
         else if(v == addressButton){
             geoLocate();
