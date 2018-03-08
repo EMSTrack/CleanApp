@@ -85,6 +85,16 @@ public class LoginActivity extends AppCompatActivity {
             }
         });
 
+        //allow keyboard to disappear on screen click
+        findViewById(R.id.relativeLayout).setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                InputMethodManager imm = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
+                imm.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), 0);
+                return true;
+            }
+        });
+
     }
 
     public void loginHospital(final String username, final String password) {
