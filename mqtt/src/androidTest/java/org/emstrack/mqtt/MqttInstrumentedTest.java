@@ -3,6 +3,7 @@ package org.emstrack.mqtt;
 import android.content.Context;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
+import android.util.Log;
 
 import org.eclipse.paho.android.service.MqttAndroidClient;
 import org.junit.Test;
@@ -19,6 +20,8 @@ import static org.junit.Assert.*;
  */
 @RunWith(AndroidJUnit4.class)
 public class MqttInstrumentedTest {
+
+    private static final String TAG = "MqttProfileClientInstrumentedTest";
 
     @Test
     public void testMqttProfileClient() throws Exception {
@@ -38,26 +41,6 @@ public class MqttInstrumentedTest {
         MqttProfileClient profileClient = new MqttProfileClient(client);
 
         // Test login
-        profileClient.connect(username, password, new MqttProfileCallback() {
-            @Override
-            public void onSuccess() {
-                assertEquals(true, true);
-            }
-
-            @Override
-            public void onFailure(Throwable exception) {
-                assertEquals(true, false);
-            }
-        });
-        Thread.sleep(2000);
-        assertEquals(true, profileClient.isConnected());
-
-        // Test logout
-        profileClient.disconnect();
-        Thread.sleep(2000);
-        assertEquals(false, profileClient.isConnected());
-
-        // Test login
         profileClient.setCallback(new MqttProfileCallback() {
             @Override
             public void onSuccess() {
@@ -66,9 +49,12 @@ public class MqttInstrumentedTest {
 
             @Override
             public void onFailure(Throwable exception) {
+                Log.d(TAG, "onFailure: " + exception);
                 assertEquals(true, false);
             }
         });
+
+        // Test login
         profileClient.connect(username, password, new MqttProfileCallback() {
             @Override
             public void onSuccess() {
