@@ -9,6 +9,15 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
 
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.CameraPosition;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
+
+import org.emstrack.ambulance.MainActivity;
 import org.emstrack.ambulance.R;
 
 import static android.content.ContentValues.TAG;
@@ -17,7 +26,7 @@ import static android.content.ContentValues.TAG;
  * Created by justingil1748 on 4/26/17.
  */
 
-public class DispatcherFragment extends Fragment implements View.OnClickListener {
+public class DispatcherFragment extends Fragment implements View.OnClickListener, OnMapReadyCallback {
 
     View rootView;
     Button mapButton;
@@ -43,6 +52,12 @@ public class DispatcherFragment extends Fragment implements View.OnClickListener
         mapButton.setOnClickListener(this);
 
         addressText = ((TextView) rootView.findViewById(R.id.address));
+
+        SupportMapFragment mapFragment = (SupportMapFragment) getChildFragmentManager()
+                .findFragmentById(R.id.map);
+        mapFragment.getMapAsync(this);
+
+
         // addressText.setText(AmbulanceApp.globalAddress);
 
         /*
@@ -99,6 +114,20 @@ public class DispatcherFragment extends Fragment implements View.OnClickListener
             geoLocate();
         }
         */
+    }
+
+    @Override
+    public void onMapReady(GoogleMap googleMap) {
+        // Add a marker in Sydney, Australia,
+        // and move the map's camera to the same location.
+        LatLng sydney = new LatLng(-33.852, 151.211);
+        googleMap.addMarker(new MarkerOptions().position(sydney)
+                .title("Marker in Sydney"));
+        CameraPosition cameraPosition = new CameraPosition.Builder()
+                .target(sydney).zoom(15).build();
+        googleMap.animateCamera(CameraUpdateFactory
+                .newCameraPosition(cameraPosition));
+
     }
 
 
