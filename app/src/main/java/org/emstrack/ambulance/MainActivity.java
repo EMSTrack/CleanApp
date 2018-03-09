@@ -200,14 +200,14 @@ public class MainActivity extends AppCompatActivity {
                             // Keep subscription to ambulance to make sure we receive
                             // the latest updates.
 
-                            if (ambulance == null) {
+                            Log.d(TAG, "Setting ambulance.");
 
-                                Log.d(TAG, "Setting ambulance.");
+                            // first time we receive ambulance data
+                            GsonBuilder gsonBuilder = new GsonBuilder();
+                            gsonBuilder.setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES);
+                            Gson gson = gsonBuilder.create();
 
-                                // first time we receive ambulance data
-                                GsonBuilder gsonBuilder = new GsonBuilder();
-                                gsonBuilder.setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES);
-                                Gson gson = gsonBuilder.create();
+                            try {
 
                                 // Parse and set ambulance
                                 // TODO: Check for potential errors
@@ -219,27 +219,24 @@ public class MainActivity extends AppCompatActivity {
                                 identifierText = (TextView) findViewById(R.id.identifierText);
                                 identifierText.setText(ambulance.getIdentifier());
 
-                                // If no GPS updates
-                                if (!requestingLocationUpdates) {
-                                    // Set current location based on server's last update
-                                    Location location = ambulance.getLocation();
-                                    lastLocation = new android.location.Location("EMSTrack");
-                                    lastLocation.setLatitude(location.getLatitude());
-                                    lastLocation.setLongitude(location.getLongitude());
+                                // Set current location based on server's last update
+                                Location location = ambulance.getLocation();
+                                lastLocation = new android.location.Location("EMSTrack");
+                                lastLocation.setLatitude(location.getLatitude());
+                                lastLocation.setLongitude(location.getLongitude());
 
-                                    // update UI
-                                    StatusFragment statusFragment = (StatusFragment) adapter.getRegisteredFragment(StatusFragment.class);
-                                    if (statusFragment != null) {
-                                        statusFragment.updateLocation(lastLocation);
-                                    }
+                                // update UI
+                                StatusFragment statusFragment = (StatusFragment) adapter.getRegisteredFragment(StatusFragment.class);
+                                if (statusFragment != null) {
+                                    statusFragment.updateLocation(lastLocation);
                                 }
 
-                            } else {
+                            } catch (Exception e) {
 
-                                Log.d(TAG, "Received ambulance update.");
+                                Log.i(TAG, "Could not parse ambulance update.");
 
-                                // TODO: process update
                             }
+
                         }
 
                     });
