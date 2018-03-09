@@ -20,21 +20,27 @@ import java.util.ArrayList;
  */
 
 public class HospitalEquipmentFragment extends Fragment {
+
     private static String TAG = HospitalEquipmentFragment.class.getSimpleName();
+
     String hospitalName;
     ArrayList<HospitalEquipment> hospitalEquipment;
 
     public void onCreate(Bundle savedInstanceState) {
+
         super.onCreate(savedInstanceState);
         Bundle bundle = this.getArguments();
+
         if (bundle != null) {
             this.hospitalName = bundle.getString("hospitalName");
             this.hospitalEquipment = bundle.getParcelableArrayList("hospitalEquipment");
         }
+
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+
         View rootView = inflater.inflate(R.layout.fragment_hospital_equipment, container, false);
         ImageView mapIV = rootView.findViewById(R.id.map_image);
 

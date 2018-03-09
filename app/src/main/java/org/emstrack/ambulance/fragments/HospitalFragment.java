@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,13 +13,22 @@ import android.widget.ExpandableListView;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import com.google.gson.FieldNamingPolicy;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
+import org.eclipse.paho.client.mqttv3.MqttException;
+import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.emstrack.ambulance.AmbulanceApp;
 import org.emstrack.ambulance.R;
-import org.emstrack.ambulance.adapters.HospitalAdapter;
 import org.emstrack.ambulance.adapters.HospitalRVAdapter;
+import org.emstrack.models.HospitalEquipment;
+import org.emstrack.models.HospitalEquipmentMetadata;
 import org.emstrack.models.HospitalPermission;
 import org.emstrack.mqtt.MqttProfileClient;
+import org.emstrack.mqtt.MqttProfileMessageCallback;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.emstrack.ambulance.FeatureFlags.OLD_HOSPITAL_UI;
@@ -42,12 +52,13 @@ public class HospitalFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
         rootView = inflater.inflate(R.layout.fragment_hospital, container, false);
+
         final MqttProfileClient profileClient = ((AmbulanceApp) getActivity().getApplication()).getProfileClient();
         final List<HospitalPermission> hospitals = profileClient.getProfile().getHospitals();
 
         RecyclerView recyclerView = rootView.findViewById(R.id.rv);
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getContext());
-        HospitalRVAdapter adapter = new HospitalRVAdapter(hospitals);
+        HospitalRVAdapter adapter = new HospitalRVAdapter(hospitals, this);
         recyclerView.setLayoutManager(linearLayoutManager);
         recyclerView.setAdapter(adapter);
 
@@ -61,4 +72,5 @@ public class HospitalFragment extends Fragment {
                     .show();
         }
     }
+
 }
