@@ -13,7 +13,7 @@ import java.util.Date;
 public class HospitalEquipment implements Parcelable {
 
     private int hospitalId;
-    private String hospitalName;
+    // private String hospitalName;
     private int equipmentId;
     private String equipmentName;
     private Character equipmentEtype;
@@ -22,13 +22,13 @@ public class HospitalEquipment implements Parcelable {
     private int updatedBy;
     private Date updatedOn;
 
-    public HospitalEquipment(int hospitalId, String hospitalName,
+    public HospitalEquipment(int hospitalId, // String hospitalName,
                              int equipmentId, String equipmentName,
                              Character equipmentEtype,
                              String value, String comment,
                              int updatedBy, Date updatedOn) {
         this.hospitalId = hospitalId;
-        this.hospitalName = hospitalName;
+        // this.hospitalName = hospitalName;
         this.equipmentId = equipmentId;
         this.equipmentName = equipmentName;
         this.equipmentEtype = equipmentEtype;
@@ -52,6 +52,7 @@ public class HospitalEquipment implements Parcelable {
         this.hospitalId = hospitalId;
     }
 
+/*
     public String getHospitalName() {
         return hospitalName;
     }
@@ -59,6 +60,7 @@ public class HospitalEquipment implements Parcelable {
     public void setHospitalName(String hospitalName) {
         this.hospitalName = hospitalName;
     }
+*/
 
     public int getEquipmentId() {
         return equipmentId;

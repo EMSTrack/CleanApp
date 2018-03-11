@@ -189,9 +189,8 @@ public class ModelsUnitTest {
     @Test
     public void test_hospital_equipment() throws Exception {
 
-        HospitalEquipment equipment = new HospitalEquipment(1,"Hospital General",
-                                                            2, "beds",
-                                                            'I',
+        HospitalEquipment equipment = new HospitalEquipment(1,
+                                                            2, "beds",'I',
                                                             "12", "",
                                                             1, new Date());
 
@@ -205,16 +204,18 @@ public class ModelsUnitTest {
         Integer answerId = from_json.getHospitalId();
         assertEquals(expectedId, answerId);
 
+/*
         String expectedName = equipment.getHospitalName();
         String answerName = from_json.getHospitalName();
         assertEquals(expectedName, answerName);
+*/
 
         expectedId = equipment.getEquipmentId();
         answerId = from_json.getEquipmentId();
         assertEquals(expectedId, answerId);
 
-        expectedName = equipment.getEquipmentName();
-        answerName = from_json.getEquipmentName();
+        String expectedName = equipment.getEquipmentName();
+        String answerName = from_json.getEquipmentName();
         assertEquals(expectedName, answerName);
 
         Character expectedEtype = equipment.getEquipmentEtype();
@@ -439,4 +440,81 @@ public class ModelsUnitTest {
 
     }
 
+    @Test
+    public void test_hospital() throws Exception {
+
+        double epsilon = 1e-4;
+
+        Hospital hospital = new Hospital(1,
+                "123","Some Street", null, null,
+                "Tijuana","BCN","28334","MX",
+                "Hospital Viejo", new Location(32.5149,-117.0382),
+                "No comments",1,new Date());
+
+        Gson gson = new Gson();
+
+        String to_json = gson.toJson(hospital);
+
+        Hospital from_json = gson.fromJson(to_json, Hospital.class);
+
+        Integer expectedId = hospital.getId();
+        Integer answerId = from_json.getId();
+        assertEquals(expectedId, answerId);
+
+        String expectedString = hospital.getNumber();
+        String answerString = from_json.getNumber();
+        assertEquals(expectedString, answerString);
+
+        expectedString = hospital.getStreet();
+        answerString = from_json.getStreet();
+        assertEquals(expectedString, answerString);
+
+        expectedString = hospital.getUnit();
+        answerString = from_json.getUnit();
+        assertEquals(expectedString, answerString);
+
+        expectedString = hospital.getNeighborhood();
+        answerString = from_json.getNeighborhood();
+        assertEquals(expectedString, answerString);
+
+        expectedString = hospital.getCity();
+        answerString = from_json.getCity();
+        assertEquals(expectedString, answerString);
+
+        expectedString = hospital.getState();
+        answerString = from_json.getState();
+        assertEquals(expectedString, answerString);
+
+        expectedString = hospital.getZipcode();
+        answerString = from_json.getZipcode();
+        assertEquals(expectedString, answerString);
+
+        expectedString = hospital.getCountry();
+        answerString = from_json.getCountry();
+        assertEquals(expectedString, answerString);
+
+
+        expectedString = hospital.getName();
+        answerString = from_json.getName();
+        assertEquals(expectedString, answerString);
+
+        Location expectedLocation = hospital.getLocation();
+        Location answerLocation = from_json.getLocation();
+        assertEquals(expectedLocation.getLatitude(),answerLocation.getLatitude(),epsilon);
+        assertEquals(expectedLocation.getLongitude(),answerLocation.getLongitude(),epsilon);
+
+        expectedString = hospital.getComment();
+        answerString = from_json.getComment();
+        assertEquals(expectedString, answerString);
+
+        expectedId = hospital.getUpdatedBy();
+        answerId = from_json.getUpdatedBy();
+        assertEquals(expectedId, answerId);
+
+        Date expectedDate = hospital.getUpdatedOn();
+        Date answerDate = hospital.getUpdatedOn();
+        SimpleDateFormat df = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
+        assertEquals(df.format(expectedDate), df.format(answerDate));
+
+    }
 }
