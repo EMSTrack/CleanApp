@@ -66,11 +66,13 @@ public class HospitalFragment extends Fragment {
     }
 
     public void onClick(View v) {
+
         if(v == listView){
             Toast.makeText(rootView.getContext(),
                     "Click ListItem Number " , Toast.LENGTH_LONG)
                     .show();
         }
+
     }
 
 }
