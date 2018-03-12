@@ -39,26 +39,9 @@ public class AmbulanceListActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_ambulance_list);
 
-        // Action bar
-//        getSupportActionBar().setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM);
-//        getSupportActionBar().setDisplayShowCustomEnabled(true);
-//        //getSupportActionBar().setCustomView(R.layout.maintitlebar);
-//        View view = getSupportActionBar().getCustomView();
-
-        // Connect logout dialog
-        //ImageView imageButton = view.findViewById(R.id.LogoutBtn);
-//        imageButton.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                LogoutDialog ld = LogoutDialog.newInstance();
-//                ld.show(getFragmentManager(), "logout_dialog");
-//            }
-//        });
-
         // Retrieve ambulances
         final MqttProfileClient profileClient = ((AmbulanceApp) getApplication()).getProfileClient();
         final List<AmbulancePermission> ambulances = profileClient.getProfile().getAmbulances();
-        final List<HospitalPermission> hospitals = profileClient.getProfile().getHospitals();
 
         // No ambulances associated with this account
         if (ambulances.size() < 1) {
@@ -71,10 +54,10 @@ public class AmbulanceListActivity extends AppCompatActivity {
 
         // Creates string arraylist of ambulance names
         Log.d(TAG, "Creating ambulance list...");
-        ArrayList<String> listObjects = new ArrayList<>();
+        ArrayList<String> ambulanceList = new ArrayList<>();
         for (AmbulancePermission ambulance : ambulances) {
             Log.d(TAG, "Adding ambulance " + ambulance.getAmbulanceIdentifier());
-            listObjects.add(ambulance.getAmbulanceIdentifier());
+            ambulanceList.add(ambulance.getAmbulanceIdentifier());
         }
 
         // Create the Spinner connection
@@ -93,7 +76,7 @@ public class AmbulanceListActivity extends AppCompatActivity {
 
         // Create the basic adapter
         ArrayAdapter<String> ambulanceListAdapter = new ArrayAdapter<>(this,
-                android.R.layout.simple_spinner_item, listObjects);
+                android.R.layout.simple_spinner_item, ambulanceList);
         ambulanceListAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 
         // Set the spinner's adapter

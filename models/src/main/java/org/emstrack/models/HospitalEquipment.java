@@ -16,7 +16,7 @@ public class HospitalEquipment implements Parcelable {
     // private String hospitalName;
     private int equipmentId;
     private String equipmentName;
-    private Character equipmentEtype;
+    private Character equipmentType;
     private String value;
     private String comment;
     private int updatedBy;
@@ -24,14 +24,14 @@ public class HospitalEquipment implements Parcelable {
 
     public HospitalEquipment(int hospitalId, // String hospitalName,
                              int equipmentId, String equipmentName,
-                             Character equipmentEtype,
+                             Character equipmentType,
                              String value, String comment,
                              int updatedBy, Date updatedOn) {
         this.hospitalId = hospitalId;
         // this.hospitalName = hospitalName;
         this.equipmentId = equipmentId;
         this.equipmentName = equipmentName;
-        this.equipmentEtype = equipmentEtype;
+        this.equipmentType = equipmentType;
         this.value = value;
         this.comment = comment;
         this.updatedBy = updatedBy;
@@ -78,12 +78,12 @@ public class HospitalEquipment implements Parcelable {
         this.equipmentName = equipmentName;
     }
 
-    public Character getEquipmentEtype() {
-        return equipmentEtype;
+    public Character getEquipmentType() {
+        return equipmentType;
     }
 
-    public void setEquipmentEtype(Character equipmentEtype) {
-        this.equipmentEtype = equipmentEtype;
+    public void setEquipmentType(Character equipmentType) {
+        this.equipmentType = equipmentType;
     }
 
     public String getValue() {

@@ -109,7 +109,7 @@
             android:layout_gravity="start"
             android:background="@android:color/white"
             app:headerLayout="@layout/nav_header"
-            app:theme="@style/drawer_menu_theme"
+            android:theme="@style/drawer_menu_theme"
             app:menu="@menu/drawer_view" >
 
         </android.support.design.widget.NavigationView>

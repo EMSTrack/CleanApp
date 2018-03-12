@@ -8,14 +8,14 @@ package org.emstrack.models;
 public class HospitalEquipmentMetadata {
     private Integer id;
     private String name;
-    private Character etype;
+    private Character type;
     private boolean toggleable;
 
     public HospitalEquipmentMetadata(int id, String name,
-                                     Character etype, boolean toggleable) {
+                                     Character type, boolean toggleable) {
         this.id = id;
         this.name = name;
-        this.etype = etype;
+        this.type = type;
         this.toggleable = toggleable;
     }
 
@@ -35,12 +35,12 @@ public class HospitalEquipmentMetadata {
         this.name = name;
     }
 
-    public Character getEtype() {
-        return etype;
+    public Character getType() {
+        return type;
     }
 
-    public void setEtype(Character etype) {
-        this.etype = etype;
+    public void setType(Character type) {
+        this.type = type;
     }
 
     public boolean isToggleable() {

@@ -5,8 +5,8 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.view.ViewGroup;
 
+import org.emstrack.ambulance.fragments.AmbulanceFragment;
 import org.emstrack.ambulance.fragments.DispatcherFragment;
-import org.emstrack.ambulance.fragments.StatusFragment;
 import org.emstrack.ambulance.fragments.HospitalFragment;
 
 import java.util.HashMap;
@@ -38,7 +38,7 @@ public class Pager extends FragmentStatePagerAdapter {
         switch (position) {
 
             case 0:
-                return new StatusFragment();
+                return new AmbulanceFragment();
 
             case 1:
                 return new HospitalFragment();

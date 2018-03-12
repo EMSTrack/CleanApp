@@ -121,6 +121,9 @@ public class MqttInstrumentedTest {
                                 Hospital hospital = gson
                                         .fromJson(message.toString(), Hospital.class);
 
+                                // Make sure it has equipments
+                                assertTrue(hospital.getHospitalequipmentSet() != null);
+
                                 // Got one hospital
                                 numberOfHospitals[0]--;
 
