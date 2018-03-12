@@ -52,14 +52,19 @@ import com.google.gson.GsonBuilder;
 
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
+
+import org.emstrack.ambulance.adapters.Pager;
 import org.emstrack.ambulance.dialogs.LogoutDialog;
-import org.emstrack.ambulance.fragments.StatusFragment;
+import org.emstrack.ambulance.fragments.AmbulanceFragment;
 import org.emstrack.models.Ambulance;
 import org.emstrack.models.Location;
 import org.emstrack.mqtt.MqttProfileClient;
 import org.emstrack.mqtt.MqttProfileMessageCallback;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.TimeZone;
 
 /**
  * This is the main activity -- the default screen
@@ -89,9 +94,13 @@ public class MainActivity extends AppCompatActivity {
     private NavigationView nvDrawer;
     private ActionBarDrawerToggle drawerToggle;
     private Toolbar toolbar;
-    static TextView identifierText;
+    private TextView identifierText;
     private ImageButton panicButton;
     private FloatingActionButton navButton;
+
+    public Ambulance getAmbulance() {
+        return ambulance;
+    }
 
     /**
      * @param savedInstanceState
@@ -107,6 +116,10 @@ public class MainActivity extends AppCompatActivity {
         ambulanceId = Integer
                 .parseInt(getIntent().getStringExtra("SELECTED_AMBULANCE_ID"));
 
+        // Identifier text
+        identifierText = (TextView) findViewById(R.id.identifierText);
+
+        // Panic button
         panicButton = (ImageButton) findViewById(R.id.panicButton);
         panicButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -115,6 +128,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        // Nav button
         navButton = (FloatingActionButton) findViewById(R.id.navBtn);
         navButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -122,6 +136,7 @@ public class MainActivity extends AppCompatActivity {
                 //
             }
         });
+        navButton.hide();
 
         // Set a Toolbar to replace the ActionBar.
         toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -144,15 +159,15 @@ public class MainActivity extends AppCompatActivity {
 
         //set up TabLayout Structure
         TabLayout tabLayout = (TabLayout) findViewById(R.id.tab_layout_home);
-        tabLayout.addTab(tabLayout.newTab().setText("Status"));
-        tabLayout.addTab(tabLayout.newTab().setText("Hospital"));
-        tabLayout.addTab(tabLayout.newTab().setText("Dispatcher"));
+        tabLayout.addTab(tabLayout.newTab().setText("Ambulance"));
+        tabLayout.addTab(tabLayout.newTab().setText("Hospitals"));
+        tabLayout.addTab(tabLayout.newTab().setText("Dispatch"));
 
-        //pager
+        // pager
         viewPager = (ViewPager) findViewById(R.id.pager);
         tabLayout.setTabGravity(TabLayout.GRAVITY_FILL);
 
-        //Setup Adapter for tabLayout
+        // Setup Adapter for tabLayout
         adapter = new Pager(getSupportFragmentManager(), tabLayout.getTabCount());
         viewPager.setAdapter(adapter);
 
@@ -193,14 +208,14 @@ public class MainActivity extends AppCompatActivity {
                             // Keep subscription to ambulance to make sure we receive
                             // the latest updates.
 
-                            if (ambulance == null) {
+                            Log.d(TAG, "Setting ambulance.");
 
-                                Log.d(TAG, "Setting ambulance.");
+                            // first time we receive ambulance data
+                            GsonBuilder gsonBuilder = new GsonBuilder();
+                            gsonBuilder.setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES);
+                            Gson gson = gsonBuilder.create();
 
-                                // first time we receive ambulance data
-                                GsonBuilder gsonBuilder = new GsonBuilder();
-                                gsonBuilder.setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES);
-                                Gson gson = gsonBuilder.create();
+                            try {
 
                                 // Parse and set ambulance
                                 // TODO: Check for potential errors
@@ -209,30 +224,26 @@ public class MainActivity extends AppCompatActivity {
                                                 Ambulance.class);
 
                                 // Update UI
-                                identifierText = (TextView) findViewById(R.id.identifierText);
                                 identifierText.setText(ambulance.getIdentifier());
 
-                                // If no GPS updates
-                                if (!requestingLocationUpdates) {
-                                    // Set current location based on server's last update
-                                    Location location = ambulance.getLocation();
-                                    lastLocation = new android.location.Location("EMSTrack");
-                                    lastLocation.setLatitude(location.getLatitude());
-                                    lastLocation.setLongitude(location.getLongitude());
+                                // Set current location based on server's last update
+                                Location location = ambulance.getLocation();
+                                lastLocation = new android.location.Location("EMSTrack");
+                                lastLocation.setLatitude(location.getLatitude());
+                                lastLocation.setLongitude(location.getLongitude());
 
-                                    // update UI
-                                    StatusFragment statusFragment = (StatusFragment) adapter.getRegisteredFragment(StatusFragment.class);
-                                    if (statusFragment != null) {
-                                        statusFragment.updateLocation(lastLocation);
-                                    }
+                                // update UI
+                                AmbulanceFragment ambulanceFragment = (AmbulanceFragment) adapter.getRegisteredFragment(AmbulanceFragment.class);
+                                if (ambulanceFragment != null) {
+                                    ambulanceFragment.updateAmbulance(ambulance);
                                 }
 
-                            } else {
+                            } catch (Exception e) {
 
-                                Log.d(TAG, "Received ambulance update.");
+                                Log.i(TAG, "Could not parse ambulance update.");
 
-                                // TODO: process update
                             }
+
                         }
 
                     });
@@ -257,15 +268,19 @@ public class MainActivity extends AppCompatActivity {
                 lastLocation = locationResult.getLastLocation();
                 Log.i(TAG, "lastLocation = " + lastLocation);
 
+                /*
+                 * No need to updates ui because we are subscribed to mqtt!
+                 *
+
                 // Update ambulance
                 ambulance.updateLocation(lastLocation);
 
                 // update UI
-                StatusFragment statusFragment = (StatusFragment) adapter.getRegisteredFragment(StatusFragment.class);
-                if (statusFragment != null) {
-                    // TODO: make updateLocation take Ambulance instead of Location
-                    statusFragment.updateLocation(lastLocation);
+                AmbulanceFragment ambulanceFragment = (AmbulanceFragment) adapter.getRegisteredFragment(AmbulanceFragment.class);
+                if (ambulanceFragment != null) {
+                    ambulanceFragment.updateLocation(lastLocation);
                 }
+                */
 
                 // PUBLISH TO MQTT
                 String updateString = getUpdateString(lastLocation);
@@ -570,10 +585,15 @@ public class MainActivity extends AppCompatActivity {
         double latitude = lastLocation.getLatitude();
         double longitude = lastLocation.getLongitude();
         double orientation = lastLocation.getBearing();
-        String timestamp = new Date(lastLocation.getTime()).toString();
+
+        // format timestamp
+        DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+        df.setTimeZone(TimeZone.getTimeZone("UTC"));
+        String timestamp = df.format(new Date(lastLocation.getTime()));
 
         String updateString =  "{\"orientation\":" + orientation + ",\"location\":{" +
-                "\"latitude\":"+ latitude + ",\"longitude\":" + longitude +"},\"location_timestamp\":\"" + timestamp + "\"}";
+                "\"latitude\":"+ latitude + ",\"longitude\":" + longitude +"},\"timestamp\":\"" + timestamp + "\"}";
+
         return updateString;
 
     }

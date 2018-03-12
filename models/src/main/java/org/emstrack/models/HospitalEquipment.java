@@ -5,15 +5,18 @@ package org.emstrack.models;
  * Represents an HospitalEquipment from the database
  */
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import java.util.Date;
 
-public class HospitalEquipment {
+public class HospitalEquipment implements Parcelable {
 
     private int hospitalId;
     // private String hospitalName;
     private int equipmentId;
     private String equipmentName;
-    private Character equipmentEtype;
+    private Character equipmentType;
     private String value;
     private String comment;
     private int updatedBy;
@@ -21,18 +24,24 @@ public class HospitalEquipment {
 
     public HospitalEquipment(int hospitalId, // String hospitalName,
                              int equipmentId, String equipmentName,
-                             Character equipmentEtype,
+                             Character equipmentType,
                              String value, String comment,
                              int updatedBy, Date updatedOn) {
         this.hospitalId = hospitalId;
         // this.hospitalName = hospitalName;
         this.equipmentId = equipmentId;
         this.equipmentName = equipmentName;
-        this.equipmentEtype = equipmentEtype;
+        this.equipmentType = equipmentType;
         this.value = value;
         this.comment = comment;
         this.updatedBy = updatedBy;
         this.updatedOn = updatedOn;
+    }
+
+    private HospitalEquipment(Parcel in) {
+        this.hospitalId = in.readInt();
+        this.equipmentName = in.readString();
+        this.value = in.readString();
     }
 
     public int getHospitalId() {
@@ -69,12 +78,12 @@ public class HospitalEquipment {
         this.equipmentName = equipmentName;
     }
 
-    public Character getEquipmentEtype() {
-        return equipmentEtype;
+    public Character getEquipmentType() {
+        return equipmentType;
     }
 
-    public void setEquipmentEtype(Character equipmentEtype) {
-        this.equipmentEtype = equipmentEtype;
+    public void setEquipmentType(Character equipmentType) {
+        this.equipmentType = equipmentType;
     }
 
     public String getValue() {
@@ -109,4 +118,27 @@ public class HospitalEquipment {
         this.updatedOn = updatedOn;
     }
 
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel parcel, int i) {
+        parcel.writeInt(equipmentId);
+        parcel.writeString(equipmentName);
+        parcel.writeString(value);
+
+    }
+
+    public static final Parcelable.Creator<HospitalEquipment> CREATOR = new
+            Parcelable.Creator<HospitalEquipment>() {
+                public HospitalEquipment createFromParcel(Parcel in) {
+                    return new HospitalEquipment(in);
+                }
+
+                public HospitalEquipment[] newArray(int size) {
+                    return new HospitalEquipment[size];
+                }
+    };
 }
