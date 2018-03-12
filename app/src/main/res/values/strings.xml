@@ -65,6 +65,7 @@
     <string name="dispatch">Dispatch</string>
     <string name="hospital">Hospital</string>
     <string name="gps">GPS</string>
+    <string name="degrees">deg</string>
 
     <string-array name="spinner_list_item_array">
         <item>@string/dispatch</item>

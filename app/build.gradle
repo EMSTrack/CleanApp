@@ -54,7 +54,8 @@ dependencies {
     compile 'com.android.support:appcompat-v7:27.1.0'
     compile 'com.android.support:design:27.1.0'
 
-    compile 'com.daimajia.swipelayout:library:1.2.0@aar'
+    // compile 'com.daimajia.swipelayout:library:1.2.0@aar'
+    compile 'com.thoughtbot:expandablerecyclerview:1.3'
 
     compile project(':models')
     compile project(':mqtt')

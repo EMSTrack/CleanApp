@@ -1,6 +1,7 @@
 package org.emstrack.models;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
@@ -24,7 +25,7 @@ public class Hospital{
     private String comment;
     private int updatedBy;
     private Date updatedOn;
-    private List<HospitalEquipment> hospitalEquipment = new ArrayList<>();
+    private List<HospitalEquipment> hospitalequipmentSet = new ArrayList <HospitalEquipment>();
 
     public Hospital(int id,
                     String number,
@@ -38,7 +39,8 @@ public class Hospital{
                     String name,
                     Location location,
                     String comment,
-                    int updatedBy, Date updatedOn) {
+                    int updatedBy, Date updatedOn,
+                    List<HospitalEquipment> hospitalequipmentSet) {
         this.id = id;
 
         this.number = number;
@@ -56,6 +58,8 @@ public class Hospital{
         this.comment = comment;
         this.updatedBy = updatedBy;
         this.updatedOn = updatedOn;
+
+        this.hospitalequipmentSet = hospitalequipmentSet;
     }
 
     public int getId() {
@@ -171,13 +175,17 @@ public class Hospital{
     }
 
     public List<HospitalEquipment> getHospitalequipmentSet() {
-        return hospitalEquipment;
+        return hospitalequipmentSet;
     }
 
-    public void setHospitalequipmentSet(List<HospitalEquipment> hospitalEquipment) {
-        this.hospitalEquipment = hospitalEquipment;
+    public void setHospitalequipmentSet(List<HospitalEquipment> hospitalequipmentSet) {
+        this.hospitalequipmentSet = hospitalequipmentSet;
     }
 
-
+    @Override
+    public String toString() {
+        return "Hospital '" + name + "'" +
+                "\nequipment = " + Arrays.toString(hospitalequipmentSet.toArray());
+    }
 
 }

@@ -1,12 +1,19 @@
 package org.emstrack.models;
 
+import android.util.Log;
+
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.FieldNamingPolicy;
 
 import org.junit.Test;
+
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 
+import java.text.DateFormat;
 import java.util.Date;
 import java.text.SimpleDateFormat;
 import java.util.HashMap;
@@ -175,8 +182,8 @@ public class ModelsUnitTest {
             String answerName = from_json[i].getName();
             assertEquals(expectedName, answerName);
 
-            Character expectedEtype = metadata.get(i).getEtype();
-            Character answerEtype = from_json[i].getEtype();
+            Character expectedEtype = metadata.get(i).getType();
+            Character answerEtype = from_json[i].getType();
             assertEquals(expectedEtype, answerEtype);
 
             boolean expectedToggleable = metadata.get(i).isToggleable();
@@ -218,8 +225,8 @@ public class ModelsUnitTest {
         String answerName = from_json.getEquipmentName();
         assertEquals(expectedName, answerName);
 
-        Character expectedEtype = equipment.getEquipmentEtype();
-        Character answerEtype = from_json.getEquipmentEtype();
+        Character expectedEtype = equipment.getEquipmentType();
+        Character answerEtype = from_json.getEquipmentType();
         assertEquals(expectedEtype, answerEtype);
 
         String expectedValue = equipment.getValue();
@@ -438,6 +445,10 @@ public class ModelsUnitTest {
 
         assertEquals(expected_to_json, to_json);
 
+        df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+        String timestamp = df.format(new Date());
+        System.out.println("date = '" + timestamp + "'");
+
     }
 
     @Test
@@ -445,17 +456,28 @@ public class ModelsUnitTest {
 
         double epsilon = 1e-4;
 
+        List<HospitalEquipment> equipment = new ArrayList<HospitalEquipment>();
+        equipment.add(new HospitalEquipment(1,
+                2, "beds",'I',
+                "12", "",
+                1, new Date()));
+        equipment.add(new HospitalEquipment(1,
+                3, "x-rays",'B',
+                "True", "no comment",
+                1, new Date()));
+
         Hospital hospital = new Hospital(1,
                 "123","Some Street", null, null,
                 "Tijuana","BCN","28334","MX",
                 "Hospital Viejo", new Location(32.5149,-117.0382),
-                "No comments",1,new Date());
+                "No comments",1, new Date(), equipment);
 
         Gson gson = new Gson();
 
         String to_json = gson.toJson(hospital);
 
         Hospital from_json = gson.fromJson(to_json, Hospital.class);
+        System.out.println("to_json = '" + to_json + "'");
 
         Integer expectedId = hospital.getId();
         Integer answerId = from_json.getId();
@@ -516,5 +538,49 @@ public class ModelsUnitTest {
         SimpleDateFormat df = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
         assertEquals(df.format(expectedDate), df.format(answerDate));
 
+        List<HospitalEquipment> expectedList = hospital.getHospitalequipmentSet();
+        List<HospitalEquipment> answerList = from_json.getHospitalequipmentSet();
+        
+        int n = expectedList.size();
+        assertEquals(n, 2);
+        for (int i = 0; i < n; i++) {
+
+            HospitalEquipment expectedEquipment = expectedList.get(i);
+            HospitalEquipment answerEquipment = expectedList.get(i);
+            
+            expectedId = expectedEquipment.getHospitalId();
+            answerId = answerEquipment.getHospitalId();
+            assertEquals(expectedId, answerId);
+
+            expectedId = expectedEquipment.getEquipmentId();
+            answerId = answerEquipment.getEquipmentId();
+            assertEquals(expectedId, answerId);
+
+            String expectedName = expectedEquipment.getEquipmentName();
+            String answerName = answerEquipment.getEquipmentName();
+            assertEquals(expectedName, answerName);
+
+            Character expectedEtype = expectedEquipment.getEquipmentType();
+            Character answerEtype = answerEquipment.getEquipmentType();
+            assertEquals(expectedEtype, answerEtype);
+
+            String expectedValue = expectedEquipment.getValue();
+            String answerValue = answerEquipment.getValue();
+            assertEquals(expectedValue, answerValue);
+
+            String expectedComment = expectedEquipment.getComment();
+            String answerComment = answerEquipment.getComment();
+            assertEquals(expectedComment, answerComment);
+
+            expectedId = expectedEquipment.getUpdatedBy();
+            answerId = answerEquipment.getUpdatedBy();
+            assertEquals(expectedId, answerId);
+
+            expectedDate = expectedEquipment.getUpdatedOn();
+            answerDate = answerEquipment.getUpdatedOn();
+            df = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
+            assertEquals(df.format(expectedDate), df.format(answerDate));
+
+        }
     }
 }
