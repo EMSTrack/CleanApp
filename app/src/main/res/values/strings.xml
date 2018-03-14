@@ -22,7 +22,7 @@
 
     <string name="error_empty_username">Please provide a valid user name.</string>
     <string name="error_empty_password">Please provide a valid password.</string>
-    <string name="error_invalid_credentials">Please provide valide credentials.</string>
+    <string name="error_invalid_credentials">Please provide valid credentials.</string>
     <string name="error_connection_failed">Connection failed. Reason: \'%1$s\'</string>
     <string name="error_no_hospitals">No hospitals are associated with this account.</string>
 
@@ -55,17 +55,24 @@
         functionality.</string>
 
     <string name="settings">Settings</string>
-
-    <string name="gps_startTrackingSwitchText">Start tracking:</string>
-    <string name="gpsLongitudeLabel">Longitude:</string>
-    <string name="gpsTimestampLabel">Timestamp:</string>
-    <string name="unknown">unknown</string>
-    <string name="gpsOrientationLabel">Orientation:</string>
-
     <string name="dispatch">Dispatch</string>
     <string name="hospital">Hospital</string>
     <string name="gps">GPS</string>
+
+    <string name="unknown">unknown</string>
+
+    <string name="gps_startTrackingSwitchText">Start tracking:</string>
+    <string name="gpsLocationLabel">Location:</string>
+    <string name="gpsLatitudeLabel">Latitude:</string>
+    <string name="gpsLongitudeLabel">Longitude:</string>
+    <string name="gpsTimestampLabel">Timestamp:</string>
+    <string name="gpsOrientationLabel">Orientation:</string>
     <string name="degrees">deg</string>
+    <string name="gpsStatusLabel">Status:</string>
+    <string name="gpsIdentifierLabel">Identifier:</string>
+    <string name="gpsCapabilityLabel">Capability:</string>
+    <string name="gpsCommentsLabel">Comments:</string>
+    <string name="gpsLastUpdatedOnLabel">Last updated on:</string>
 
     <string-array name="spinner_list_item_array">
         <item>@string/dispatch</item>

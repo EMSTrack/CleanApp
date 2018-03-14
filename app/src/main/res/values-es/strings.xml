@@ -1,12 +1,76 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+
     <string name="app_name">EMSTrack</string>
-    <string name="drawer_open">"cajón de navegación abierto "</string>
-    <string name="drawer_close">cerrar cajón de navegación</string>
-    <string name="alert_error_title">El error</string>
-    <string name="alert_warning">" El aviso"</string>
-    <string name="alert_button_positive_text">"Está bien "</string>
-    <string name="alert_button_negative_text">Anular</string>
-    <string name="message_please_wait">p\\Por favor espera</string>
-    <string name="logout_confirm">" el cierre de sesión?"</string>
+
+    <string name="drawer_open">Cajón de navegación abierto</string>
+    <string name="drawer_close">Cerrar cajón de navegación</string>
+
+    <string name="alert_error_title">Error</string>
+    <string name="alert_warning">Aviso</string>
+    <string name="alert_button_positive_text">OK</string>
+    <string name="alert_button_negative_text">Cancelar</string>
+
+    <string name="message_please_wait">Por favor espere...</string>
+    <string name="logout_confirm">¿Seguro que desea cerrar sesión?</string>
+
+    <string name="login_username_hint">Usuário</string>
+    <string name="login_password_hint">Contraseña</string>
+    <string name="login_remember_user_text">Recordar usuário</string>
+    <string name="login_button_text">Acceder</string>
+
+    <string name="error_empty_username">Por favor introduzca un nombre de usuario válido.</string>
+    <string name="error_empty_password">Por favor introduzca una contraseña válida.</string>
+    <string name="error_invalid_credentials">Por favor introduzca credenciales válidas.</string>
+    <string name="error_connection_failed">No se pudo conectar. Razón: \'%1$s\'</string>
+    <string name="error_no_hospitals">Ningún hospital esta asociado con esta cuenta.</string>
+
+    <string name="hospital_button_text">OK</string>
+
+    <string name="equipment_boolean_image">Caja</string>
+    <string name="equipment_bolean_button_positive_text">Actualizar</string>
+    <string name="equipment_bolean_button_negative_text">Cancelar</string>
+    <string name="equipment_boolean_message">¿Está disponible este recurso?</string>
+    <string name="equipment_boolean_true">Disponible</string>
+    <string name="equipment_boolean_false">Indisponible</string>
+
+    <string name="equipment_integer_text">Número</string>
+    <string name="equipment_integer_button_positive_text">Actualizar</string>
+    <string name="equipment_integer_button_negative_text">Cancelar</string>
+    <string name="equipment_integer_message">¿Cuántas unidades hay disponibles?</string>
+
+    <string name="equipment_string_text">Texto</string>
+    <string name="equipment_string_button_positive_text">Actualizar</string>
+    <string name="equipment_sting_button_negative_text">Cancelar</string>
+    <string name="equipment_string_message">Valor</string>
+
+    <string name="action_settings">Configuraciones</string>
+
+    <string name="location_settings_inadequate_warning">The location settings on the device are not
+        adequate to run this sample. Fix in Settings.</string>
+
+    <string name="permission_rationale">Location permission is needed for core functionality</string>
+    <string name="permission_denied_explanation">Permission was denied, but is needed for core
+        functionality.</string>
+
+    <string name="settings">Configuraciones</string>
+    <string name="dispatch">Despacho</string>
+    <string name="hospital">Hospital</string>
+    <string name="gps">GPS</string>
+
+    <string name="unknown">unknown</string>
+
+    <string name="gps_startTrackingSwitchText">Comenzar a seguir:</string>
+    <string name="gpsLocationLabel">Ubicación:</string>
+    <string name="gpsLatitudeLabel">Latitud:</string>
+    <string name="gpsLongitudeLabel">Longitud:</string>
+    <string name="gpsTimestampLabel">Hora:</string>
+    <string name="gpsOrientationLabel">Orientación:</string>
+    <string name="degrees">°</string>
+    <string name="gpsStatusLabel">Estado:</string>
+    <string name="gpsIdentifierLabel">Identificador:</string>
+    <string name="gpsCapabilityLabel">Capacidad:</string>
+    <string name="gpsCommentsLabel">Commentarios:</string>
+    <string name="gpsLastUpdatedOnLabel">Ultima actualizacion:</string>
+
 </resources>
