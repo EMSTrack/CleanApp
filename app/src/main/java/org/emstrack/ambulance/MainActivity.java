@@ -56,6 +56,7 @@ import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.emstrack.ambulance.adapters.Pager;
 import org.emstrack.ambulance.dialogs.LogoutDialog;
 import org.emstrack.ambulance.fragments.AmbulanceFragment;
+import org.emstrack.ambulance.util.LatLon;
 import org.emstrack.models.Ambulance;
 import org.emstrack.models.Location;
 import org.emstrack.mqtt.MqttProfileClient;
@@ -79,6 +80,7 @@ public class MainActivity extends AppCompatActivity {
     private Ambulance ambulance;
 
     private android.location.Location lastLocation;
+    private float lastBearing;
 
     private LocationRequest locationRequest;
     private FusedLocationProviderClient fusedLocationClient;
@@ -231,6 +233,7 @@ public class MainActivity extends AppCompatActivity {
                                 lastLocation = new android.location.Location("EMSTrack");
                                 lastLocation.setLatitude(location.getLatitude());
                                 lastLocation.setLongitude(location.getLongitude());
+                                lastBearing = (float) ambulance.getOrientation();
 
                                 // update UI
                                 AmbulanceFragment ambulanceFragment = (AmbulanceFragment) adapter.getRegisteredFragment(AmbulanceFragment.class);
@@ -264,31 +267,40 @@ public class MainActivity extends AppCompatActivity {
             public void onLocationResult(LocationResult locationResult) {
                 super.onLocationResult(locationResult);
 
-                // set last location
-                lastLocation = locationResult.getLastLocation();
-                Log.i(TAG, "lastLocation = " + lastLocation);
+                // get new location
+                android.location.Location newLocation = locationResult.getLastLocation();
 
-                /*
-                 * No need to updates ui because we are subscribed to mqtt!
-                 *
-
-                // Update ambulance
-                ambulance.updateLocation(lastLocation);
-
-                // update UI
-                AmbulanceFragment ambulanceFragment = (AmbulanceFragment) adapter.getRegisteredFragment(AmbulanceFragment.class);
-                if (ambulanceFragment != null) {
-                    ambulanceFragment.updateLocation(lastLocation);
+                // update bearing
+                float bearing = newLocation.getBearing();
+                if (bearing != 0.0) {
+                    lastBearing = bearing;
+                    Log.i(TAG, "newBearing = " + lastBearing);
                 }
-                */
 
-                // PUBLISH TO MQTT
+                // calculate distance from last update
+                double distance = LatLon.CalculateDistanceHaversine(newLocation, lastLocation);
+                Log.i(TAG, "distance = " + distance + ", newLocation = " + newLocation);
+
+                // Have we moved yet?
+                if (distance < LatLon.stationaryRadius)
+                    return;
+
+                // otherwise set last location
+                Log.i(TAG, "Will update location on server");
+                lastLocation = newLocation;
+
+                // make sure we have the latest bearing
+                lastLocation.setBearing(lastBearing);
+
+                // No need to update ui because we are subscribed to mqtt!
+
+                // Publish to MQTT
                 String updateString = getUpdateString(lastLocation);
 
                 try {
                     profileClient.publish("user/" + profileClient.getUsername() + "/ambulance/" + ambulanceId + "/data",
                             updateString,1, false );
-                    Log.e("LocationChangeUpdate", "onLocationChanged: update sent to server\n" + updateString);
+                    Log.i("LocationChangeUpdate", "onLocationChanged: update sent to server\n" + updateString);
                 } catch (MqttException e) {
                     e.printStackTrace();
                 }
