@@ -19,6 +19,7 @@ import android.widget.Toast;
 import android.util.Log;
 
 import org.emstrack.ambulance.dialogs.LogoutDialog;
+import org.emstrack.models.Ambulance;
 import org.emstrack.models.AmbulancePermission;
 import org.emstrack.models.HospitalPermission;
 import org.emstrack.mqtt.MqttProfileClient;
@@ -40,15 +41,14 @@ public class AmbulanceListActivity extends AppCompatActivity {
         setContentView(R.layout.activity_ambulance_list);
 
         // Retrieve ambulances
-        final MqttProfileClient profileClient = ((AmbulanceApp) getApplication()).getProfileClient();
+        final MqttProfileClient profileClient = AmbulanceForegroundService.getProfileClient(this);
         final List<AmbulancePermission> ambulances = profileClient.getProfile().getAmbulances();
 
         // No ambulances associated with this account
         if (ambulances.size() < 1) {
-            Toast toast = new Toast(this);
-            toast.setText("This account has no ambulances associated with it!");
-            toast.setDuration(Toast.LENGTH_LONG);
-            toast.show();
+            Toast.makeText(this,
+                    "This account has no ambulances associated with it!",
+                    Toast.LENGTH_LONG).show();
             return;
         }
 
@@ -87,6 +87,7 @@ public class AmbulanceListActivity extends AppCompatActivity {
         submitAmbulanceButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+
                 Log.d(TAG, "AmbulanceEquipmentMetadata Submit Button Clicked");
 
                 int position = ambulanceSpinner.getSelectedItemPosition();
@@ -97,9 +98,23 @@ public class AmbulanceListActivity extends AppCompatActivity {
 
                 int ambulanceId = selectedAmbulance.getAmbulanceId();
 
-                // Set the static list of HospitalEquipment in Dashboard
-                Intent intent = new Intent(AmbulanceListActivity.this, MainActivity.class);
-                intent.putExtra("SELECTED_AMBULANCE_ID", Integer.toString(selectedAmbulance.getAmbulanceId()));
+                // Retrieve ambulance
+                Log.i(TAG, "Retrieve ambulances");
+                Intent ambulanceIntent = new Intent(AmbulanceListActivity.this, AmbulanceForegroundService.class);
+                ambulanceIntent.setAction(AmbulanceForegroundService.Actions.GET_AMBULANCE);
+                ambulanceIntent.putExtra("AMBULANCE_ID", ambulanceId);
+                startService(ambulanceIntent);
+
+                // Retrieve hospitals
+                Log.i(TAG, "Retrieve hospitals");
+                Intent hospitalsIntent = new Intent(AmbulanceListActivity.this, AmbulanceForegroundService.class);
+                hospitalsIntent.setAction(AmbulanceForegroundService.Actions.GET_HOSPITALS);
+                startService(hospitalsIntent);
+
+                // Start MainActivity
+                Log.i(TAG, "Start main activity");
+                Intent intent = new Intent(AmbulanceListActivity.this,
+                        MainActivity.class);
                 startActivity(intent);
 
             }

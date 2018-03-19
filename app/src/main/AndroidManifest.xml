@@ -34,6 +34,7 @@
         </activity>
 
         <service android:name="org.eclipse.paho.android.service.MqttService"/>
+        <service android:name=".AmbulanceForegroundService"/>
 
         <meta-data
             android:name="com.google.android.gms.version"

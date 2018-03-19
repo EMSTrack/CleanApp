@@ -1,7 +1,12 @@
 package org.emstrack.ambulance.fragments;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -12,7 +17,7 @@ import android.widget.Spinner;
 import android.widget.Switch;
 import android.widget.TextView;
 
-import org.emstrack.ambulance.AmbulanceApp;
+import org.emstrack.ambulance.AmbulanceForegroundService;
 import org.emstrack.ambulance.MainActivity;
 import org.emstrack.ambulance.R;
 import org.emstrack.models.Ambulance;
@@ -20,7 +25,6 @@ import org.emstrack.mqtt.MqttProfileClient;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -71,11 +75,23 @@ public class AmbulanceFragment extends Fragment implements CompoundButton.OnChec
     private Map<String,String> ambulanceCapabilities;
     private List<String> ambulanceCapabilityList;
 
-    /*
-     * Default method
-     * Always called when an activity is created.
-     * @param savedInstanceState
-     */    @Override
+    AmbulancesUpdateBroadcastReceiver receiver;
+
+    public class AmbulancesUpdateBroadcastReceiver extends BroadcastReceiver {
+
+        @Override
+        public void onReceive(Context context, Intent intent ) {
+            if (intent != null) {
+                final String action = intent.getAction();
+                if (action.equals(AmbulanceForegroundService.BroadcastActions.AMBULANCE_UPDATE)) {
+
+                    Log.i(TAG, "AMBULANCE_UPDATE");
+                    update(AmbulanceForegroundService.getAmbulance());
+
+                }
+            }
+        }
+    };
 
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
@@ -83,7 +99,7 @@ public class AmbulanceFragment extends Fragment implements CompoundButton.OnChec
         view = inflater.inflate(R.layout.fragment_ambulance, container, false);
 
         // Retrieve identifier
-        identifierText = (TextView) view.findViewById(R.id.identifierText);
+        identifierText = (TextView) view.findViewById(R.id.headerText);
 
         // Retrieve location
         latitudeText = (TextView) view.findViewById(R.id.latitudeText);
@@ -101,10 +117,13 @@ public class AmbulanceFragment extends Fragment implements CompoundButton.OnChec
         updatedOnText = (TextView) view.findViewById(R.id.updatedOnText);
 
         // Get settings, status and capabilities
-        final MqttProfileClient profileClient = ((AmbulanceApp) getActivity().getApplication()).getProfileClient();
+        final MqttProfileClient profileClient = AmbulanceForegroundService.getProfileClient(getContext());
+
         ambulanceStatus = profileClient.getSettings().getAmbulanceStatus();
+
         ambulanceStatusList = new ArrayList<String>(ambulanceStatus.values());
         Collections.sort(ambulanceStatusList);
+
         ambulanceCapabilities = profileClient.getSettings().getAmbulanceCapability();
         ambulanceCapabilityList = new ArrayList<String>(ambulanceCapabilities.values());
         Collections.sort(ambulanceCapabilityList);
@@ -119,49 +138,49 @@ public class AmbulanceFragment extends Fragment implements CompoundButton.OnChec
         statusSpinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         statusSpinner.setAdapter(statusSpinnerAdapter);
 
-        // update
-        Ambulance ambulance = ((MainActivity) getActivity()).getAmbulance();
+        // Update ambulance
+        Ambulance ambulance = AmbulanceForegroundService.getAmbulance();
         if (ambulance != null)
-            updateAmbulance(ambulance);
+            update(ambulance);
 
         return view;
     }
 
-    public void setLatitudeText(String latitudeText) {
-        this.latitudeText.setText(latitudeText);
-    }
+    @Override
+    public void onResume() {
+        super.onResume();
 
-    public void setLongitudeText(String longitudeText) {
-        this.longitudeText.setText(longitudeText);
-    }
-
-    public void setTimestampText(String timestampText) {
-        this.timestampText.setText(timestampText);
-    }
-
-    public void setOrientationText(String orientationText) {
-        this.orientationText.setText(orientationText);
-    }
-
-    public void updateLocation(android.location.Location lastLocation) {
-
-        setLatitudeText(Double.toString(lastLocation.getLatitude()));
-        setLongitudeText(Double.toString(lastLocation.getLongitude()));
-        setOrientationText(Double.toString(lastLocation.getBearing()));
-        setTimestampText(new Date(lastLocation.getTime()).toString());
+        // Register receiver
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(AmbulanceForegroundService.BroadcastActions.AMBULANCE_UPDATE);
+        receiver = new AmbulanceFragment.AmbulancesUpdateBroadcastReceiver();
+        getLocalBroadcastManager().registerReceiver(receiver, filter);
 
     }
 
-    public void updateAmbulance(Ambulance ambulance) {
+    @Override
+    public void onPause() {
+        super.onPause();
+
+        // Unregister receiver
+        if (receiver != null) {
+            getLocalBroadcastManager().unregisterReceiver(receiver);
+            receiver = null;
+        }
+        super.onDestroy();
+    }
+
+    public void update(Ambulance ambulance) {
 
         // set identifier
         identifierText.setText(ambulance.getIdentifier());
+        ((MainActivity) getActivity()).setHeader(ambulance.getIdentifier());
 
         // set location
-        setLatitudeText(String.format("%.6f", ambulance.getLocation().getLatitude()));
-        setLongitudeText(String.format("%.6f", ambulance.getLocation().getLongitude()));
-        setOrientationText(String.format("%.1f", ambulance.getOrientation()));
-        setTimestampText(ambulance.getTimestamp().toString());
+        this.latitudeText.setText(String.format("%.6f", ambulance.getLocation().getLatitude()));
+        this.longitudeText.setText(String.format("%.6f", ambulance.getLocation().getLongitude()));
+        this.orientationText.setText(String.format("%.1f", ambulance.getOrientation()));
+        this.timestampText.setText(ambulance.getTimestamp().toString());
 
         // set status and comment
         commentText.setText(ambulance.getComment());
@@ -174,28 +193,6 @@ public class AmbulanceFragment extends Fragment implements CompoundButton.OnChec
         statusSpinner.setSelection(ambulanceStatusList.indexOf(ambulanceStatus.get(ambulance.getStatus())));
 
     }
-
-/*
-    @Override
-    public void onPause() {
-        Log.i(TAG, "onPause: AmbulanceFragment");
-        super.onPause(); // This is required for some reason.
-    }
-
-    @Override
-    public void onStop(){
-        Log.i(TAG, "onStop: AmbulanceFragment");
-        // startTrackingSwitch.setChecked(false);
-        super.onStop(); // Same.
-    }
-
-    @Override
-    public void onDestroy() {
-        Log.i(TAG, "onDestroy: AmbulanceFragment");
-        // startTrackingSwitch.setChecked(false);
-        super.onDestroy(); // Same.
-    }
-*/
 
     @Override
     public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
@@ -213,4 +210,14 @@ public class AmbulanceFragment extends Fragment implements CompoundButton.OnChec
         }
 
     }
+
+    /**
+     * Get LocalBroadcastManager
+     *
+     * @return the LocalBroadcastManager
+     */
+    private LocalBroadcastManager getLocalBroadcastManager() {
+        return LocalBroadcastManager.getInstance(getContext());
+    }
+
 }

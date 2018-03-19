@@ -1,7 +1,12 @@
 package org.emstrack.ambulance.fragments;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -9,20 +14,12 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.google.gson.FieldNamingPolicy;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-
-import org.eclipse.paho.client.mqttv3.MqttException;
-import org.eclipse.paho.client.mqttv3.MqttMessage;
-import org.emstrack.ambulance.AmbulanceApp;
+import org.emstrack.ambulance.AmbulanceForegroundService;
 import org.emstrack.ambulance.R;
 import org.emstrack.ambulance.adapters.HospitalExpandableRecyclerAdapter;
 import org.emstrack.ambulance.models.HospitalExpandableGroup;
+import org.emstrack.models.Ambulance;
 import org.emstrack.models.Hospital;
-import org.emstrack.models.HospitalPermission;
-import org.emstrack.mqtt.MqttProfileClient;
-import org.emstrack.mqtt.MqttProfileMessageCallback;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,6 +38,23 @@ public class HospitalFragment extends Fragment {
 
     View rootView;
     RecyclerView recyclerView;
+    HospitalsUpdateBroadcastReceiver receiver;
+
+    public class HospitalsUpdateBroadcastReceiver extends BroadcastReceiver {
+
+        @Override
+        public void onReceive(Context context, Intent intent ) {
+            if (intent != null) {
+                final String action = intent.getAction();
+                if (action.equals(AmbulanceForegroundService.BroadcastActions.HOSPITALS_UPDATE)) {
+
+                    Log.i(TAG, "HOSPITALS_UPDATE");
+                    update(AmbulanceForegroundService.getHospitals());
+
+                }
+            }
+        }
+    };
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -48,68 +62,71 @@ public class HospitalFragment extends Fragment {
         rootView = inflater.inflate(R.layout.fragment_hospital, container, false);
         recyclerView = rootView.findViewById(R.id.recycler_view);
 
-        // Retrieve hospital data
-        final MqttProfileClient profileClient = ((AmbulanceApp) getActivity().getApplication()).getProfileClient();
-        final List<HospitalPermission> hospitalPermissions = profileClient.getProfile().getHospitals();
-
-        final List hospitalExpandableGroup = new ArrayList<HospitalExpandableGroup>();
-        for (HospitalPermission hospitalPermission : hospitalPermissions) {
-
-            final int hospitalId = hospitalPermission.getHospitalId();
-
-            try {
-
-                // Start retrieving data
-                profileClient.subscribe("hospital/" + hospitalId + "/data",
-                        1, new MqttProfileMessageCallback() {
-
-                            @Override
-                            public void messageArrived(String topic, MqttMessage message) {
-
-                                try {
-
-                                    // Unsubscribe to hospital data
-                                    profileClient.unsubscribe("hospital/" + hospitalId + "/data");
-
-                                } catch (MqttException exception) {
-                                    Log.d(TAG, "Could not unsubscribe to 'hospital/" + hospitalId + "/data'");
-                                    return;
-                                }
-
-                                // Parse to hospital metadata
-                                GsonBuilder gsonBuilder = new GsonBuilder();
-                                gsonBuilder.setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES);
-                                Gson gson = gsonBuilder.create();
-
-                                // / Found hospital
-                                final Hospital hospital = gson.fromJson(message.toString(), Hospital.class);
-                                hospitalExpandableGroup.add(
-                                        new HospitalExpandableGroup(hospital.getName(),
-                                                hospital.getHospitalequipmentSet(), hospital));
-
-                                // Done yet?
-                                if (hospitalExpandableGroup.size() == hospitalPermissions.size()) {
-
-                                    Log.d(TAG, "Installing HospitalFragment");
-
-                                    // Install fragment
-                                    LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getContext());
-                                    HospitalExpandableRecyclerAdapter adapter =
-                                            new HospitalExpandableRecyclerAdapter(hospitalExpandableGroup);
-                                    recyclerView.setLayoutManager(linearLayoutManager);
-                                    recyclerView.setAdapter(adapter);
-
-                                }
-                            }
-                        });
-
-            } catch (MqttException e) {
-                Log.d(TAG, "Could not subscribe to hospital data");
-            }
-
-        }
+        List<Hospital> hospitals = AmbulanceForegroundService.getHospitals();
+        if (hospitals != null)
+            update(hospitals);
 
         return rootView;
+
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+
+        // Register receiver
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(AmbulanceForegroundService.BroadcastActions.HOSPITALS_UPDATE);
+        receiver = new HospitalsUpdateBroadcastReceiver();
+        getLocalBroadcastManager().registerReceiver(receiver, filter);
+
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+
+        // Unregister receiver
+        if (receiver != null) {
+            getLocalBroadcastManager().unregisterReceiver(receiver);
+            receiver = null;
+        }
+        super.onDestroy();
+    }
+
+    /**
+     * Update hospital list
+     *
+     * @param hospitals list of hospitals
+     */
+    public void update(List<Hospital> hospitals) {
+
+        // Loop through hospitals
+        final List hospitalExpandableGroup = new ArrayList<HospitalExpandableGroup>();
+        for (Hospital hospital : hospitals)
+
+            // Add to to expandable group
+            hospitalExpandableGroup.add(
+                    new HospitalExpandableGroup(hospital.getName(),
+                            hospital.getHospitalequipmentSet(),
+                            hospital));
+
+        // Install fragment
+        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getContext());
+        HospitalExpandableRecyclerAdapter adapter =
+                new HospitalExpandableRecyclerAdapter(hospitalExpandableGroup);
+        recyclerView.setLayoutManager(linearLayoutManager);
+        recyclerView.setAdapter(adapter);
+
+    }
+
+    /**
+     * Get LocalBroadcastManager
+     *
+     * @return the LocalBroadcastManager
+     */
+    private LocalBroadcastManager getLocalBroadcastManager() {
+        return LocalBroadcastManager.getInstance(getContext());
     }
 
 }
