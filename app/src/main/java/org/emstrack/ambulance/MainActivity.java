@@ -46,21 +46,13 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
-import com.google.gson.FieldNamingPolicy;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 
 import org.eclipse.paho.client.mqttv3.MqttException;
-import org.eclipse.paho.client.mqttv3.MqttMessage;
 
 import org.emstrack.ambulance.adapters.Pager;
 import org.emstrack.ambulance.dialogs.LogoutDialog;
-import org.emstrack.ambulance.fragments.AmbulanceFragment;
 import org.emstrack.ambulance.util.LatLon;
-import org.emstrack.models.Ambulance;
-import org.emstrack.models.Location;
 import org.emstrack.mqtt.MqttProfileClient;
-import org.emstrack.mqtt.MqttProfileMessageCallback;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -73,11 +65,13 @@ import java.util.TimeZone;
 public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = MainActivity.class.getSimpleName();
+
+    public static String MAIN_ACTION = "org.emstrack.ambulance.action.main";
+
     private static final int REQUEST_PERMISSIONS_REQUEST_CODE = 34;
     private static final int REQUEST_CHECK_SETTINGS = 0x1;
 
     private int ambulanceId = -1;
-    private Ambulance ambulance;
 
     private android.location.Location lastLocation;
     private float lastBearing;
@@ -96,13 +90,9 @@ public class MainActivity extends AppCompatActivity {
     private NavigationView nvDrawer;
     private ActionBarDrawerToggle drawerToggle;
     private Toolbar toolbar;
-    private TextView identifierText;
+    private TextView headerText;
     private ImageButton panicButton;
     private FloatingActionButton navButton;
-
-    public Ambulance getAmbulance() {
-        return ambulance;
-    }
 
     /**
      * @param savedInstanceState
@@ -111,15 +101,10 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
 
         super.onCreate(savedInstanceState);
-
         setContentView(R.layout.activity_main);
 
-        // Get data from Login and place it into the ambulance
-        ambulanceId = Integer
-                .parseInt(getIntent().getStringExtra("SELECTED_AMBULANCE_ID"));
-
         // Identifier text
-        identifierText = (TextView) findViewById(R.id.identifierText);
+        headerText = (TextView) findViewById(R.id.headerText);
 
         // Panic button
         panicButton = (ImageButton) findViewById(R.id.panicButton);
@@ -178,7 +163,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onTabSelected(TabLayout.Tab tab) {
                 viewPager.setCurrentItem(tab.getPosition());
-                if (tab.getPosition() == 2 ) {
+                if (tab.getPosition() == 2) {
                     navButton.show();
                 } else {
                     navButton.hide();
@@ -194,66 +179,27 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+    }
 
-        // Retrieve client
+    @Override
+    public void onBackPressed() {
+        // Initiate AmbulanceListActivity
+        Intent intent = new Intent(this, AmbulanceListActivity.class);
+        startActivity(intent);
+    }
+
+    /**
+     * Set header text
+     *
+     * @param header the header
+     */
+    public void setHeader(String header) {
+        headerText.setText(header);
+    }
+
+    void trash() {
+
         final MqttProfileClient profileClient = ((AmbulanceApp) getApplication()).getProfileClient();
-
-        try {
-
-            // Start retrieving data
-            profileClient.subscribe("ambulance/" + ambulanceId + "/data",
-                    1, new MqttProfileMessageCallback() {
-
-                        @Override
-                        public void messageArrived(String topic, MqttMessage message) {
-
-                            // Keep subscription to ambulance to make sure we receive
-                            // the latest updates.
-
-                            Log.d(TAG, "Setting ambulance.");
-
-                            // first time we receive ambulance data
-                            GsonBuilder gsonBuilder = new GsonBuilder();
-                            gsonBuilder.setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES);
-                            Gson gson = gsonBuilder.create();
-
-                            try {
-
-                                // Parse and set ambulance
-                                // TODO: Check for potential errors
-                                ambulance = gson
-                                        .fromJson(new String(message.getPayload()),
-                                                Ambulance.class);
-
-                                // Update UI
-                                identifierText.setText(ambulance.getIdentifier());
-
-                                // Set current location based on server's last update
-                                Location location = ambulance.getLocation();
-                                lastLocation = new android.location.Location("EMSTrack");
-                                lastLocation.setLatitude(location.getLatitude());
-                                lastLocation.setLongitude(location.getLongitude());
-                                lastBearing = (float) ambulance.getOrientation();
-
-                                // update UI
-                                AmbulanceFragment ambulanceFragment = (AmbulanceFragment) adapter.getRegisteredFragment(AmbulanceFragment.class);
-                                if (ambulanceFragment != null) {
-                                    ambulanceFragment.updateAmbulance(ambulance);
-                                }
-
-                            } catch (Exception e) {
-
-                                Log.i(TAG, "Could not parse ambulance update.");
-
-                            }
-
-                        }
-
-                    });
-
-        } catch (MqttException e) {
-            Log.d(TAG, "Could not subscribe to ambulance data");
-        }
 
         // Setup fused location client
         requestingLocationUpdates = false;
@@ -630,12 +576,6 @@ public class MainActivity extends AppCompatActivity {
         dialog.show();
     }
 
-/*
-    @Override
-    public void onBackPressed() {
-        finish();
-    }
-*/
 
     public android.location.Location getLastLocation() {
         return lastLocation;

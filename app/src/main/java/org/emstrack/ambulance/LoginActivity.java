@@ -71,15 +71,12 @@ public class LoginActivity extends AppCompatActivity {
                             getResources().getString(R.string.error_empty_password));
                 } else {
 
-                    // Show progress dialog
-                    progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-                    progressDialog.setMessage(getResources().getString(R.string.message_please_wait));
-                    progressDialog.setIndeterminate(true);
-                    progressDialog.setCanceledOnTouchOutside(false);
-                    progressDialog.show();
+                    // Login at foreground activity
+                    Intent intent = new Intent(LoginActivity.this, AmbulanceForegroundService.class);
+                    intent.setAction(AmbulanceForegroundService.Actions.LOGIN);
+                    intent.putExtra("CREDENTIALS", new String[] { username, password });
+                    startService(intent);
 
-                    // while attempting to login
-                    loginHospital(username, password);
                 }
 
             }
@@ -94,111 +91,6 @@ public class LoginActivity extends AppCompatActivity {
                 return true;
             }
         });
-
-    }
-
-    public void loginHospital(final String username, final String password) {
-
-        // Retrieve client
-        final MqttProfileClient profileClient = ((AmbulanceApp) getApplication()).getProfileClient();
-
-        // Set callback to be called after profile is retrieved
-        profileClient.setCallback(new MqttProfileCallback() {
-
-            @Override
-            public void onSuccess() {
-
-                // Get preferences editor
-                SharedPreferences.Editor editor = creds_prefs.edit();
-
-                // Save credentials
-                Log.d(TAG, "Storing credentials");
-                editor.putString(PREFERENCES_USERNAME, username);
-                editor.apply();
-
-                // Initiate new activity
-                Intent hospitalIntent = new Intent(getApplicationContext(), AmbulanceListActivity.class);
-                startActivity(hospitalIntent);
-
-                // Clear the loading screen
-                progressDialog.dismiss();
-
-                // Clear the password field
-                EditText passwordField = findViewById(R.id.editPassword);
-                passwordField.setText("");
-                passwordField.clearFocus();
-
-                // Clear the username field
-                EditText usernameField = findViewById(R.id.editUserName);
-                usernameField.clearFocus();
-
-                Log.d(TAG, "Done with LoginActivity.");
-
-            }
-
-            @Override
-            public void onFailure(Throwable exception) {
-
-                // Dismiss dialog
-                progressDialog.dismiss();
-
-                Log.d(TAG, "Failed to retrieve profile.");
-                alertDialog(LoginActivity.this,
-                        getResources().getString(R.string.alert_error_title),
-                        exception.toString());
-
-            }
-
-        });
-
-        try {
-
-            // Attempt to connect
-            profileClient.connect(username, password, new MqttProfileCallback() {
-
-                @Override
-                public void onSuccess() {
-                    Log.d(TAG, "Successfully connected to broker.");
-                }
-
-                @Override
-                public void onFailure(Throwable exception) {
-
-                    // Dismiss dialog
-                    progressDialog.dismiss();
-
-                    Log.d(TAG, "Failed to connected to broker.");
-                    String message;
-                    if (exception instanceof MqttException) {
-                        int reason = ((MqttException) exception).getReasonCode();
-                        if (reason == MqttException.REASON_CODE_FAILED_AUTHENTICATION ||
-                                reason == MqttException.REASON_CODE_NOT_AUTHORIZED ||
-                                reason == MqttException.REASON_CODE_INVALID_CLIENT_ID)
-                            message = getResources().getString(R.string.error_invalid_credentials);
-                        else
-                            message = String.format(getResources().getString(R.string.error_connection_failed),
-                                    exception.toString());
-                    } else {
-                        message = exception.toString();
-                    }
-
-                    // Alert user
-                    alertDialog(LoginActivity.this,
-                            getResources().getString(R.string.alert_error_title),
-                            message);
-                }
-
-            });
-
-        } catch (MqttException exception) {
-
-            // Alert user
-            alertDialog(LoginActivity.this,
-                    getResources().getString(R.string.alert_error_title),
-                    String.format(getResources().getString(R.string.error_connection_failed),
-                            exception.toString()));
-
-        }
 
     }
 

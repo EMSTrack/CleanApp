@@ -22,13 +22,14 @@
         android:layout_alignParentTop="true"/>
 
     <TextView
-        android:id="@+id/identifierText"
+        android:id="@+id/headerText"
         android:layout_height="wrap_content"
         android:layout_width="wrap_content"
         android:text="@string/unknown"
-        android:layout_marginLeft="20dp"
+        android:gravity="right"
+        android:layout_alignParentRight="true"
         android:textSize="18dp"
-        android:layout_below="@+id/identifierLabel"/>
+        android:layout_toRightOf="@+id/identifierLabel"/>
 
     <TextView
         android:id="@+id/statusLabel"
@@ -38,7 +39,7 @@
         android:textStyle="bold"
         android:textSize="18dp"
         android:layout_marginTop="20dp"
-        android:layout_below="@+id/identifierText"/>
+        android:layout_below="@+id/headerText"/>
 
     <Spinner
         android:id="@+id/statusSpinner"
@@ -46,7 +47,7 @@
         android:layout_height="wrap_content"
         android:layout_marginLeft="40dp"
         android:layout_marginTop="20dp"
-        android:layout_below="@+id/identifierText"
+        android:layout_below="@+id/headerText"
         android:layout_toRightOf="@+id/statusLabel"/>
 
     <TextView
@@ -66,7 +67,6 @@
         android:checked="false"
         android:switchTextAppearance="@style/TextAppearance.AppCompat.Widget.Switch"
         android:text="@string/gps_startTrackingSwitchText"
-        android:layout_marginLeft="20dp"
         android:layout_marginTop="20dp"
         android:gravity="right"
         android:layout_below="@+id/statusSpinner"
@@ -75,10 +75,8 @@
     <TextView
         android:id="@+id/latitudeLabel"
         android:layout_height="wrap_content"
-        android:layout_width="80dp"
+        android:layout_width="wrap_content"
         android:text="@string/gpsLatitudeLabel"
-        android:gravity="right"
-        android:layout_marginLeft="20dp"
         android:layout_below="@+id/locationLabel"/>
 
     <TextView
@@ -93,10 +91,8 @@
     <TextView
         android:id="@+id/longitudeLabel"
         android:layout_height="wrap_content"
-        android:layout_width="80dp"
+        android:layout_width="wrap_content"
         android:text="@string/gpsLongitudeLabel"
-        android:gravity="right"
-        android:layout_marginLeft="20dp"
         android:layout_below="@+id/latitudeLabel"/>
 
     <TextView
@@ -111,10 +107,8 @@
     <TextView
         android:id="@+id/orientationLabel"
         android:layout_height="wrap_content"
-        android:layout_width="80dp"
+        android:layout_width="wrap_content"
         android:text="@string/gpsOrientationLabel"
-        android:gravity="right"
-        android:layout_marginLeft="20dp"
         android:layout_below="@+id/longitudeLabel"/>
 
     <LinearLayout
@@ -147,10 +141,8 @@
     <TextView
         android:id="@+id/timestampLabel"
         android:layout_height="wrap_content"
-        android:layout_width="80dp"
+        android:layout_width="wrap_content"
         android:text="@string/gpsTimestampLabel"
-        android:gravity="right"
-        android:layout_marginLeft="20dp"
         android:layout_below="@+id/orientationLabel"/>
 
     <TextView
@@ -177,8 +169,9 @@
         android:layout_height="wrap_content"
         android:layout_width="wrap_content"
         android:text="@string/unknown"
-        android:layout_marginLeft="20dp"
-        android:layout_below="@+id/capabilityLabel"/>
+        android:layout_alignParentRight="true"
+        android:layout_marginTop="20dp"
+        android:layout_below="@+id/timestampText"/>
 
     <TextView
         android:id="@+id/commentLabel"
@@ -195,7 +188,7 @@
         android:layout_height="wrap_content"
         android:layout_width="wrap_content"
         android:text="@string/unknown"
-        android:layout_marginLeft="20dp"
+        android:layout_alignParentRight="true"
         android:layout_below="@+id/commentLabel"/>
 
     <TextView
@@ -213,7 +206,7 @@
         android:layout_height="wrap_content"
         android:layout_width="wrap_content"
         android:text="@string/unknown"
-        android:layout_marginLeft="20dp"
+        android:layout_alignParentRight="true"
         android:layout_below="@+id/updatedOnLabel"/>
 
 </RelativeLayout>

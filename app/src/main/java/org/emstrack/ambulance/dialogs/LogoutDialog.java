@@ -11,6 +11,7 @@ import android.util.Log;
 
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.emstrack.ambulance.AmbulanceApp;
+import org.emstrack.ambulance.AmbulanceForegroundService;
 import org.emstrack.ambulance.LoginActivity;
 import org.emstrack.ambulance.R;
 import org.emstrack.mqtt.MqttProfileClient;
@@ -45,6 +46,11 @@ public class LogoutDialog extends DialogFragment {
             public void onClick(DialogInterface dialog, int which) {
                 Log.i(TAG,"LogoutDialog: OK Button Clicked");
 
+                // Stop foreground activity
+                Intent intent = new Intent(getActivity().getBaseContext(), AmbulanceForegroundService.class);
+                intent.setAction(AmbulanceForegroundService.Actions.STOP);
+                getActivity().startService(intent);
+
                 // Retrieve client
                 final MqttProfileClient profileClient = ((AmbulanceApp) getActivity().getApplication()).getProfileClient();
                 try {
@@ -54,9 +60,9 @@ public class LogoutDialog extends DialogFragment {
                 }
 
                 // Start login activity
-                Intent intent = new Intent(getActivity(), LoginActivity.class);
-                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                startActivity(intent);
+                Intent loginIntent = new Intent(getActivity(), LoginActivity.class);
+                loginIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP|Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                startActivity(loginIntent);
 
             }
         });

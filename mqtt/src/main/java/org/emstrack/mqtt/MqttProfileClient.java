@@ -84,7 +84,10 @@ public class MqttProfileClient implements MqttCallbackExtended {
     }
 
     public void disconnect() throws MqttException {
-        mqttClient.disconnect();
+        // if connected, disconnect
+        if (isConnected()) {
+            mqttClient.disconnect();
+        }
         subscribedTopics = new HashMap<>();
     }
 
