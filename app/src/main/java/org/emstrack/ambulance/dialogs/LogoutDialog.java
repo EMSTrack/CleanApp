@@ -48,7 +48,7 @@ public class LogoutDialog extends DialogFragment {
 
                 // Stop foreground activity
                 Intent intent = new Intent(getActivity().getBaseContext(), AmbulanceForegroundService.class);
-                intent.setAction(AmbulanceForegroundService.Actions.STOP);
+                intent.setAction(AmbulanceForegroundService.Actions.LOGOUT);
                 getActivity().startService(intent);
 
                 // Retrieve client

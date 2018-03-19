@@ -18,6 +18,7 @@ import android.widget.Switch;
 import android.widget.TextView;
 
 import org.emstrack.ambulance.AmbulanceForegroundService;
+import org.emstrack.ambulance.LoginActivity;
 import org.emstrack.ambulance.MainActivity;
 import org.emstrack.ambulance.R;
 import org.emstrack.models.Ambulance;
@@ -98,24 +99,6 @@ public class AmbulanceFragment extends Fragment implements CompoundButton.OnChec
         // inflate view
         view = inflater.inflate(R.layout.fragment_ambulance, container, false);
 
-        // Retrieve identifier
-        identifierText = (TextView) view.findViewById(R.id.headerText);
-
-        // Retrieve location
-        latitudeText = (TextView) view.findViewById(R.id.latitudeText);
-        longitudeText = (TextView) view.findViewById(R.id.longitudeText);
-        timestampText = (TextView) view.findViewById(R.id.timestampText);
-        orientationText = (TextView) view.findViewById(R.id.orientationText);
-
-        // To track or not to track?
-        startTrackingSwitch = (Switch) view.findViewById(R.id.startTrackingSwitch);
-        startTrackingSwitch.setOnCheckedChangeListener(this);
-
-        // Other text
-        capabilityText = (TextView) view.findViewById(R.id.capabilityText);
-        commentText = (TextView) view.findViewById(R.id.commentText);
-        updatedOnText = (TextView) view.findViewById(R.id.updatedOnText);
-
         // Get settings, status and capabilities
         final MqttProfileClient profileClient = AmbulanceForegroundService.getProfileClient(getContext());
 
@@ -127,6 +110,26 @@ public class AmbulanceFragment extends Fragment implements CompoundButton.OnChec
         ambulanceCapabilities = profileClient.getSettings().getAmbulanceCapability();
         ambulanceCapabilityList = new ArrayList<String>(ambulanceCapabilities.values());
         Collections.sort(ambulanceCapabilityList);
+
+        // Retrieve identifier
+        identifierText = (TextView) view.findViewById(R.id.headerText);
+
+        // Retrieve location
+        latitudeText = (TextView) view.findViewById(R.id.latitudeText);
+        longitudeText = (TextView) view.findViewById(R.id.longitudeText);
+        timestampText = (TextView) view.findViewById(R.id.timestampText);
+        orientationText = (TextView) view.findViewById(R.id.orientationText);
+
+        // To track or not to track?
+        startTrackingSwitch = (Switch) view.findViewById(R.id.startTrackingSwitch);
+        startTrackingSwitch.setChecked(AmbulanceForegroundService.isRequestingLocationUpdates());
+        startTrackingSwitch.setOnCheckedChangeListener(this);
+
+        // Other text
+        capabilityText = (TextView) view.findViewById(R.id.capabilityText);
+        commentText = (TextView) view.findViewById(R.id.commentText);
+        updatedOnText = (TextView) view.findViewById(R.id.updatedOnText);
+
 
         // Set status spinner
         statusSpinner = (Spinner) view.findViewById(R.id.statusSpinner);
@@ -200,12 +203,16 @@ public class AmbulanceFragment extends Fragment implements CompoundButton.OnChec
         if (isChecked) {
 
             // turn on tracking
-            ((MainActivity) getActivity()).startLocationUpdates();
+            Intent intent = new Intent(getContext(), AmbulanceForegroundService.class);
+            intent.setAction(AmbulanceForegroundService.Actions.START_LOCATION_UPDATES);
+            getActivity().startService(intent);
 
         } else {
 
             // turn off tracking
-            ((MainActivity) getActivity()).stopLocationUpdates();
+            Intent intent = new Intent(getContext(), AmbulanceForegroundService.class);
+            intent.setAction(AmbulanceForegroundService.Actions.STOP_LOCATION_UPDATES);
+            getActivity().startService(intent);
 
         }
 
