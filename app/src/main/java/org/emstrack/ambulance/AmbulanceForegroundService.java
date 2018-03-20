@@ -87,7 +87,7 @@ public class AmbulanceForegroundService extends Service {
     private static MqttProfileClient client;
     private static Ambulance _ambulance;
     private static List<Hospital> _hospitals;
-    private static LocationUpdate lastLocation;
+    private static LocationUpdate _lastLocation;
     private static boolean requestingLocationUpdates = false;
     private static boolean canUpdateLocation = false;
 
@@ -164,12 +164,12 @@ public class AmbulanceForegroundService extends Service {
                             // update bearing
                             float bearing = newLocation.getBearing();
                             if (bearing != 0.0) {
-                                lastLocation.bearing = bearing;
-                                Log.i(TAG, "newBearing = " + lastLocation.bearing);
+                                _lastLocation.bearing = bearing;
+                                Log.i(TAG, "newBearing = " + _lastLocation.bearing);
                             }
 
                             // calculate distance from last update
-                            double distance = LatLon.CalculateDistanceHaversine(newLocation, lastLocation.location);
+                            double distance = LatLon.CalculateDistanceHaversine(newLocation, _lastLocation.location);
                             Log.i(TAG, "distance = " + distance + ", newLocation = " + newLocation);
 
                             // Have we moved yet?
@@ -180,11 +180,11 @@ public class AmbulanceForegroundService extends Service {
                             // NOTE: Needs to update both old and last because last may be changed by
                             // ambulance update during processing
                             Log.i(TAG, "Will update location on server");
-                            lastLocation.location = newLocation;
-                            lastLocation.timestamp = new Date(newLocation.getTime());
+                            _lastLocation.location = newLocation;
+                            _lastLocation.timestamp = new Date(newLocation.getTime());
 
                             // Publish to MQTT
-                            String updateString = getUpdateString(lastLocation);
+                            String updateString = getUpdateString(_lastLocation);
 
                             try {
                                 final MqttProfileClient profileClient = getProfileClient();
@@ -676,15 +676,15 @@ public class AmbulanceForegroundService extends Service {
                                                 Ambulance.class);
 
                                 // Has location been updated?
-                                if (lastLocation == null || ambulance.getTimestamp().after(lastLocation.timestamp)) {
+                                if (_lastLocation == null || ambulance.getTimestamp().after(_lastLocation.timestamp)) {
                                     // Update last location
-                                    lastLocation = new LocationUpdate();
-                                    lastLocation.location =
+                                    _lastLocation = new LocationUpdate();
+                                    _lastLocation.location =
                                             new android.location.Location("FusedLocationClient");
-                                    lastLocation.location.setLatitude(ambulance.getLocation().getLatitude());
-                                    lastLocation.location.setLongitude(ambulance.getLocation().getLongitude());
-                                    lastLocation.bearing = (float) ambulance.getOrientation();
-                                    lastLocation.timestamp = ambulance.getTimestamp();
+                                    _lastLocation.location.setLatitude(ambulance.getLocation().getLatitude());
+                                    _lastLocation.location.setLongitude(ambulance.getLocation().getLongitude());
+                                    _lastLocation.bearing = (float) ambulance.getOrientation();
+                                    _lastLocation.timestamp = ambulance.getTimestamp();
                                 }
 
                                 // Set current ambulance
@@ -770,6 +770,7 @@ public class AmbulanceForegroundService extends Service {
         
         // Remove current ambulance
         _ambulance = null;
+        _lastLocation = null;
         
     }
 
