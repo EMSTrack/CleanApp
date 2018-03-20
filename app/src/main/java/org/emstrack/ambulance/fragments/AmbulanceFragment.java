@@ -156,6 +156,11 @@ public class AmbulanceFragment extends Fragment implements CompoundButton.OnChec
     public void onResume() {
         super.onResume();
 
+        // Update ambulance
+        Ambulance ambulance = AmbulanceForegroundService.getAmbulance();
+        if (ambulance != null)
+            update(ambulance);
+
         // Register receiver
         IntentFilter filter = new IntentFilter();
         filter.addAction(AmbulanceForegroundService.BroadcastActions.AMBULANCE_UPDATE);
