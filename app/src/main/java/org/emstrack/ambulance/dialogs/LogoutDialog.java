@@ -37,7 +37,7 @@ public class LogoutDialog extends DialogFragment {
 
         AlertDialog.Builder alertBuilder = new AlertDialog.Builder(getActivity());
 
-        alertBuilder.setTitle(getResources().getString(R.string.alert_warning));
+        alertBuilder.setTitle(getResources().getString(R.string.alert_warning_title));
         alertBuilder.setMessage(getResources().getString(R.string.logout_confirm));
 
         // Create the OK button that logs user out

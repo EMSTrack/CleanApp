@@ -125,6 +125,9 @@ public class AmbulanceFragment extends Fragment implements CompoundButton.OnChec
         startTrackingSwitch.setChecked(AmbulanceForegroundService.isRequestingLocationUpdates());
         startTrackingSwitch.setOnCheckedChangeListener(this);
 
+        // Can track
+        startTrackingSwitch.setEnabled(AmbulanceForegroundService.canUpdateLocation());
+
         // Other text
         capabilityText = (TextView) view.findViewById(R.id.capabilityText);
         commentText = (TextView) view.findViewById(R.id.commentText);
@@ -180,10 +183,10 @@ public class AmbulanceFragment extends Fragment implements CompoundButton.OnChec
         ((MainActivity) getActivity()).setHeader(ambulance.getIdentifier());
 
         // set location
-        this.latitudeText.setText(String.format("%.6f", ambulance.getLocation().getLatitude()));
-        this.longitudeText.setText(String.format("%.6f", ambulance.getLocation().getLongitude()));
-        this.orientationText.setText(String.format("%.1f", ambulance.getOrientation()));
-        this.timestampText.setText(ambulance.getTimestamp().toString());
+        latitudeText.setText(String.format("%.6f", ambulance.getLocation().getLatitude()));
+        longitudeText.setText(String.format("%.6f", ambulance.getLocation().getLongitude()));
+        orientationText.setText(String.format("%.1f", ambulance.getOrientation()));
+        timestampText.setText(ambulance.getTimestamp().toString());
 
         // set status and comment
         commentText.setText(ambulance.getComment());
