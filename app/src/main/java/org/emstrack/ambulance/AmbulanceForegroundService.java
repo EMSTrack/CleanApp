@@ -75,25 +75,27 @@ public class AmbulanceForegroundService extends Service {
     private static final String PRIMARY_CHANNEL_LABEL = "Default channel";
 
     // SharedPreferences
-    private static final String PREFERENCES_NAME = "org.emstrack.ambulance";
-    private static final String PREFERENCES_USERNAME = "";
-    private static final String PREFERENCES_PASSWORD = "";
+    public static final String PREFERENCES_NAME = "org.emstrack.ambulance";
+    public static final String PREFERENCES_USERNAME = "USERNAME";
+    public static final String PREFERENCES_PASSWORD = "PASSWORD";
 
     private NotificationManager notificationManager;
 
     private static final String serverUri = "ssl://cruzroja.ucsd.edu:8883";
     private static final String clientId = "AmbulanceAppClient_" + UUID.randomUUID().toString();
 
-    private static MqttAndroidClient androidClient;
     private static MqttProfileClient client;
-    private static Ambulance ambulance;
-    private static List<Hospital> hospitals;
+    private static Ambulance _ambulance;
+    private static List<Hospital> _hospitals;
     private static LocationUpdate lastLocation;
+    private static boolean requestingLocationUpdates = false;
+    private static boolean canUpdateLocation = false;
 
-    private LocationRequest locationRequest;
-    private LocationSettingsRequest locationSettingsRequest;
+    private static LocationSettingsRequest locationSettingsRequest;
+    private static LocationRequest locationRequest;
+
     private FusedLocationProviderClient fusedLocationClient;
-    private static boolean requestingLocationUpdates;
+    private SharedPreferences sharedPreferences;
 
     /**
      * The desired interval for location updates. Inexact. Updates may be more or less frequent.
@@ -126,8 +128,6 @@ public class AmbulanceForegroundService extends Service {
         public final static String AMBULANCE_UPDATE = "org.emstrack.ambulance.ambulanceforegroundservice.action.AMBULANCE_UPDATE";
         public final static String LOCATION_UPDATE = "org.emstrack.ambulance.ambulanceforegroundservice.action.LOCATION_UPDATE";
     }
-
-    SharedPreferences sharedPreferences;
 
     public static class LocationUpdatesBroadcastReceiver extends BroadcastReceiver {
 
@@ -234,21 +234,6 @@ public class AmbulanceForegroundService extends Service {
         // Create shared preferences editor
         sharedPreferences = getSharedPreferences(PREFERENCES_NAME, MODE_PRIVATE);
 
-        // Create request for location updates
-        locationRequest = LocationRequest.create()
-                .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
-                .setInterval(UPDATE_INTERVAL)
-                .setFastestInterval(FASTEST_UPDATE_INTERVAL)
-                .setMaxWaitTime(MAX_WAIT_TIME);
-
-        // Build location setting request
-        LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder();
-        builder.addLocationRequest(locationRequest);
-        locationSettingsRequest = builder.build();
-
-        // Initialize requesting location updates flag
-        requestingLocationUpdates = false;
-
         // Initialize fused location client
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
@@ -266,7 +251,7 @@ public class AmbulanceForegroundService extends Service {
             String username = loginInfo[0];
             String password = loginInfo[1];
 
-            // Popup toast
+            // Notify user
             Toast.makeText(this, "Logging in '" + username + "'", Toast.LENGTH_SHORT).show();
 
             // Login user
@@ -337,15 +322,21 @@ public class AmbulanceForegroundService extends Service {
 
             Log.i(TAG, "START_LOCATION_UPDATES Foreground Intent");
 
-            // start requesting location updates
-            startLocationUpdates();
+            if (canUpdateLocation())
+                // start requesting location updates
+                startLocationUpdates();
+            else
+                Log.i(TAG,"Cannot update location. Ignoring intent.");
 
         } else if (intent.getAction().equals(Actions.STOP_LOCATION_UPDATES)) {
 
             Log.i(TAG, "STOP_LOCATION_UPDATES Foreground Intent");
 
-            // stop requesting location updates
-            removeLocationUpdates();
+            if (canUpdateLocation())
+                // stop requesting location updates
+                removeLocationUpdates();
+            else
+                Log.i(TAG,"Cannot update location. Ignoring intent.");
 
         } else
 
@@ -386,7 +377,7 @@ public class AmbulanceForegroundService extends Service {
     public static MqttProfileClient getProfileClient(Context context) {
         // lazy initialization
         if (client == null) {
-            androidClient = new MqttAndroidClient(context, serverUri, clientId);
+            MqttAndroidClient androidClient = new MqttAndroidClient(context, serverUri, clientId);
             client = new MqttProfileClient(androidClient);
         }
         return client;
@@ -409,7 +400,7 @@ public class AmbulanceForegroundService extends Service {
      * @return the ambulance
      */
     public static Ambulance getAmbulance() {
-        return ambulance;
+        return _ambulance;
     }
 
     /**
@@ -418,23 +409,83 @@ public class AmbulanceForegroundService extends Service {
      * @return the list of hospitals
      */
     public static List<Hospital> getHospitals() {
-        return hospitals;
+        return _hospitals;
     }
 
     /**
      * Return true if requesting location updates
+     *
      * @return the location updates status
      */
     public static boolean isRequestingLocationUpdates() { return requestingLocationUpdates; }
+
+    /**
+     * Return can update location
+     *
+     * @return the location update status
+     */
+    public static boolean canUpdateLocation() { return canUpdateLocation; }
+
+    /**
+     * Set can update location status
+     *
+     * @param canUpdateLocation the location update status
+     */
+    public static void setCanUpdateLocation(boolean canUpdateLocation) { AmbulanceForegroundService.canUpdateLocation = canUpdateLocation; }
+
+    /**
+     * Return the LocationRequest
+     * @return the location request
+     */
+    public static LocationRequest getLocationRequest() {
+
+        if (locationRequest == null) {
+
+            // Create request for location updates
+            locationRequest = LocationRequest.create()
+                    .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
+                    .setInterval(UPDATE_INTERVAL)
+                    .setFastestInterval(FASTEST_UPDATE_INTERVAL)
+                    .setMaxWaitTime(MAX_WAIT_TIME);
+
+        }
+
+        return locationRequest;
+
+    }
+
+    /**
+     * Return the LocationSettingsRequest
+     *
+     * @return the location settings request
+     */
+    public static LocationSettingsRequest getLocationSettingsRequest() {
+
+        if (locationSettingsRequest == null) {
+
+            // Build location setting request
+            LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder();
+            builder.addLocationRequest(getLocationRequest());
+            locationSettingsRequest = builder.build();
+
+        }
+
+        return locationSettingsRequest;
+
+    }
 
     /**
      * Logout
      */
     public void logout() {
 
-        // remove location updates
-        removeLocationUpdates();
+        // remove ambulance
+        removeAmbulance();
 
+        // remove hospital list
+        removeHospitals();
+
+        // disconnect mqttclient
         MqttProfileClient profileClient = getProfileClient(this);
         try {
             profileClient.disconnect();
@@ -457,10 +508,6 @@ public class AmbulanceForegroundService extends Service {
 
         // Retrieve client
         final MqttProfileClient profileClient = getProfileClient(this);
-
-        // Initialize ambulance and hospital list
-        ambulance = null;
-        hospitals = new ArrayList<Hospital>();
 
         // Set callback to be called after profile is retrieved
         profileClient.setCallback(new MqttProfileCallback() {
@@ -590,10 +637,13 @@ public class AmbulanceForegroundService extends Service {
         }
 
         // Is ambulance new?
-        Ambulance amb = getAmbulance();
-        if (amb != null && amb.getId() == ambulanceId) {
+        Ambulance ambulance = getAmbulance();
+        if (ambulance != null && ambulance.getId() == ambulanceId) {
             return;
         }
+
+        // Remove current ambulance
+        removeAmbulance();
 
         // Retrieve client
         final MqttProfileClient profileClient = getProfileClient(this);
@@ -621,7 +671,7 @@ public class AmbulanceForegroundService extends Service {
 
                                 // Parse and set ambulance
                                 // TODO: Check for potential errors
-                                ambulance = gson
+                                Ambulance ambulance = gson
                                         .fromJson(new String(message.getPayload()),
                                                 Ambulance.class);
 
@@ -637,14 +687,17 @@ public class AmbulanceForegroundService extends Service {
                                     lastLocation.timestamp = ambulance.getTimestamp();
                                 }
 
+                                // Set current ambulance
+                                _ambulance = ambulance;
+
                                 // Broadcast ambulance update
                                 Intent localIntent = new Intent(BroadcastActions.AMBULANCE_UPDATE);
                                 getLocalBroadcastManager().sendBroadcast(localIntent);
 
                                 // Initiate MainActivity
-                                Intent intent = new Intent(AmbulanceForegroundService.this,
-                                        MainActivity.class);
-                                startActivity(intent);
+                                // Intent intent = new Intent(AmbulanceForegroundService.this,
+                                //        MainActivity.class);
+                                //startActivity(intent);
 
                             } catch (Exception e) {
 
@@ -656,7 +709,7 @@ public class AmbulanceForegroundService extends Service {
                                         Toast.LENGTH_SHORT).show();
 
                                 // Go back to ambulance selection if no ambulance is selected
-                                if (ambulance == null) {
+                                if (getAmbulance() == null) {
 
                                     // Initiate LoginActivity
                                     Intent intent = new Intent(AmbulanceForegroundService.this,
@@ -690,6 +743,37 @@ public class AmbulanceForegroundService extends Service {
     }
 
     /**
+     * Remove current ambulance
+     */
+    public void removeAmbulance() {
+
+        Ambulance ambulance = getAmbulance();
+        if (ambulance == null ) {
+            Log.i(TAG,"No ambulance to remove.");
+            return;
+        }
+
+        // remove location updates
+        removeLocationUpdates();
+
+        // Retrieve client
+        final MqttProfileClient profileClient = getProfileClient(this);
+        
+        try {
+
+            // Unsubscribe to ambulance data
+            profileClient.unsubscribe("ambulance/" + ambulance.getId() + "/data");
+
+        } catch (MqttException exception) {
+            Log.d(TAG, "Could not unsubscribe to 'ambulance/" + ambulance.getId() + "/data'");
+        }
+        
+        // Remove current ambulance
+        _ambulance = null;
+        
+    }
+
+    /**
      * Retrieve hospitals
      */
     public void retrieveHospitals() {
@@ -701,7 +785,7 @@ public class AmbulanceForegroundService extends Service {
         final List<HospitalPermission> hospitalPermissions = profileClient.getProfile().getHospitals();
 
         // Initialize hospitals
-        hospitals = new ArrayList<Hospital>();
+        _hospitals = new ArrayList<Hospital>();
 
         // Loop over all hospitals
         for (HospitalPermission hospitalPermission : hospitalPermissions) {
@@ -732,12 +816,14 @@ public class AmbulanceForegroundService extends Service {
                                 gsonBuilder.setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES);
                                 Gson gson = gsonBuilder.create();
 
-                                // / Found hospital
+                                // Found hospital
                                 final Hospital hospital = gson.fromJson(message.toString(), Hospital.class);
-                                hospitals.add(hospital);
+
+                                // Add to hospital list
+                                _hospitals.add(hospital);
 
                                 // Done yet?
-                                if (hospitals.size() == hospitalPermissions.size()) {
+                                if (getHospitals().size() == hospitalPermissions.size()) {
 
                                     Log.d(TAG, "Done retrieving all hospitals");
 
@@ -757,6 +843,40 @@ public class AmbulanceForegroundService extends Service {
 
     }
 
+    /**
+     * Remove current hospitals
+     */
+    public void removeHospitals() {
+
+        List<Hospital> hospitals = getHospitals();
+        if (hospitals == null || hospitals.size() == 0) {
+            Log.i(TAG, "No hospital to remove.");
+            return;
+        }
+
+        // Retrieve client
+        final MqttProfileClient profileClient = getProfileClient(this);
+
+        // Loop over all hospitals
+        for (Hospital hospital : hospitals) {
+
+            try {
+
+                // Unsubscribe to hospital data
+                profileClient.unsubscribe("hospital/" + hospital.getId() + "/data");
+
+            } catch (MqttException exception) {
+                Log.d(TAG, "Could not unsubscribe to 'hospital/" + hospital.getId() + "/data'");
+            }
+
+        }
+
+        // Remove hospitals
+        _hospitals = null;
+
+    }
+
+
     private void startLocationUpdates() {
 
         // Logged in?
@@ -767,7 +887,7 @@ public class AmbulanceForegroundService extends Service {
 
         // Already started?
         if (requestingLocationUpdates) {
-            Log.i(TAG, "Already requesting location updates.");
+            Log.i(TAG, "Already requesting location updates. Skipping.");
             return;
         }
 
@@ -787,21 +907,20 @@ public class AmbulanceForegroundService extends Service {
                 .addOnFailureListener(new OnFailureListener() {
                     @Override
                     public void onFailure(@NonNull Exception e) {
-                        // TODO: notify user
                         int statusCode = ((ApiException) e).getStatusCode();
-                        String message;
+                        String message = "Location settings are inadequate, and cannot be fixed here. ";
                         switch (statusCode) {
                             case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
-                                message = "Location settings are not satisfied. " +
-                                        "Attempting to upgrade location settings.";
-                                Log.i(TAG, message);
-                                // TODO: attempt to upgrade
+                                message += "Try restarting app.";
                                 break;
                             case LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:
-                                message = "Location settings are inadequate, and cannot be " +
-                                        "fixed here. Fix in Settings.";
-                                Log.e(TAG, message);
+                                message += "Please fix in Settings.";
                         }
+                        Log.e(TAG, message);
+
+                        // notify user
+                        Toast.makeText(AmbulanceForegroundService.this, message, Toast.LENGTH_SHORT).show();
+
                     }
                 });
 
@@ -825,7 +944,7 @@ public class AmbulanceForegroundService extends Service {
 
         try {
 
-            fusedLocationClient.requestLocationUpdates(locationRequest, getPendingIntent())
+            fusedLocationClient.requestLocationUpdates(getLocationRequest(), getPendingIntent())
                     .addOnSuccessListener(new OnSuccessListener<Void>() {
                         @Override
                         public void onSuccess(Void aVoid) {
@@ -854,7 +973,7 @@ public class AmbulanceForegroundService extends Service {
 
         // Already started?
         if (!requestingLocationUpdates) {
-            Log.i(TAG, "Not requesting location updates.");
+            Log.i(TAG, "Not requesting location updates. Skipping.");
             return;
         }
 

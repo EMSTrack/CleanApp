@@ -7,9 +7,11 @@
     <string name="drawer_close">Close navigation drawer</string>
 
     <string name="alert_error_title">Error</string>
-    <string name="alert_warning">Warning</string>
+    <string name="alert_warning_title">Warning</string>
     <string name="alert_button_positive_text">OK</string>
     <string name="alert_button_negative_text">Cancel</string>
+
+    <string name="alert_ambulance_switch">Ambulance \'%1$s\' is currently requesting location updates. Are you sure you want to switch to ambulance \'%2$s\'?</string>
 
     <string name="message_please_wait">Please wait…</string>
 

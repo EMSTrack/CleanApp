@@ -7,7 +7,7 @@
     <string name="drawer_close">Cerrar cajón de navegación</string>
 
     <string name="alert_error_title">Error</string>
-    <string name="alert_warning">Aviso</string>
+    <string name="alert_warning_title">Aviso</string>
     <string name="alert_button_positive_text">OK</string>
     <string name="alert_button_negative_text">Cancelar</string>
 
