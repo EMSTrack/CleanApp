@@ -1,5 +1,6 @@
 package org.emstrack.ambulance.fragments;
 
+import android.annotation.SuppressLint;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.util.Log;
@@ -10,13 +11,18 @@ import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.LocationSettingsResponse;
+import com.google.android.gms.location.SettingsClient;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.tasks.OnSuccessListener;
 
 import org.emstrack.ambulance.AmbulanceForegroundService;
 import org.emstrack.ambulance.MainActivity;
@@ -66,19 +72,39 @@ public class MapFragment extends Fragment implements View.OnClickListener, OnMap
     @Override
     public void onMapReady(GoogleMap googleMap) {
 
+        boolean myLocationEnabled = false;
+        if (AmbulanceForegroundService.canUpdateLocation()) {
+
+            try {
+
+                Log.i(TAG, "Enable my location on google map.");
+                googleMap.setMyLocationEnabled(true);
+                myLocationEnabled = true;
+
+            } catch (SecurityException e) {
+                Log.i(TAG, "Could not enable my location on google map.");
+            }
+
+        }
+
         // Update ambulance
         Ambulance ambulance = AmbulanceForegroundService.getAmbulance();
         if (ambulance != null) {
 
             Location location = ambulance.getLocation();
-
             LatLng latLng = new LatLng(location.getLatitude(),location.getLongitude());
-            googleMap.addMarker(new MarkerOptions().position(latLng)
-                    .title(ambulance.getIdentifier()));
-            CameraPosition cameraPosition = new CameraPosition.Builder()
-                    .target(latLng).zoom(15).build();
-            googleMap.animateCamera(CameraUpdateFactory
-                    .newCameraPosition(cameraPosition));
+
+            if (!myLocationEnabled) {
+
+                // place marker
+                googleMap.addMarker(new MarkerOptions()
+                        .position(latLng)
+                        .title(ambulance.getIdentifier())
+                        .snippet(ambulanceStatus.get(ambulance.getStatus())));
+
+            }
+            // move camera
+            googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15));
 
         }
 
