@@ -11,6 +11,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.CompoundButton;
 import android.widget.Spinner;
@@ -18,36 +19,20 @@ import android.widget.Switch;
 import android.widget.TextView;
 
 import org.emstrack.ambulance.AmbulanceForegroundService;
-import org.emstrack.ambulance.LoginActivity;
 import org.emstrack.ambulance.MainActivity;
 import org.emstrack.ambulance.R;
 import org.emstrack.models.Ambulance;
 import org.emstrack.mqtt.MqttProfileClient;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.TimeZone;
 
-
-/**
- * Java Class AND ACTIVITY
- * implements code for the AmbulanceFragment Activity
- * Methods for lists and buttons are here.
- *
- * TODO
- * Location Point should probably be its own entity.
- *
- * Then when the LP is used to store data inside the phone, there
- * might be a method specific to the I/O that will parse the
- * LP Object. Or, LP might have the toString method modified
- * so that when we print to the file, we can just call the
- * toString method, and the save the time.
- *
- * The stack that will try to continually push most recent
- * data to the server might use the LP's method that will
- * return a new JSONObject.
- */
 public class AmbulanceFragment extends Fragment implements CompoundButton.OnCheckedChangeListener{
 
     private static final String TAG = AmbulanceFragment.class.getSimpleName();;
@@ -75,6 +60,7 @@ public class AmbulanceFragment extends Fragment implements CompoundButton.OnChec
     private List<String> ambulanceStatusList;
     private Map<String,String> ambulanceCapabilities;
     private List<String> ambulanceCapabilityList;
+    private boolean suppressNextSpinnerUpdate = false;
 
     AmbulancesUpdateBroadcastReceiver receiver;
 
@@ -133,7 +119,6 @@ public class AmbulanceFragment extends Fragment implements CompoundButton.OnChec
         commentText = (TextView) view.findViewById(R.id.commentText);
         updatedOnText = (TextView) view.findViewById(R.id.updatedOnText);
 
-
         // Set status spinner
         statusSpinner = (Spinner) view.findViewById(R.id.statusSpinner);
         // Create an ArrayAdapter using the string array and a default spinner layout
@@ -148,6 +133,64 @@ public class AmbulanceFragment extends Fragment implements CompoundButton.OnChec
         Ambulance ambulance = AmbulanceForegroundService.getAmbulance();
         if (ambulance != null)
             update(ambulance);
+
+        // Process change of status
+        statusSpinner.setOnItemSelectedListener(
+                new AdapterView.OnItemSelectedListener() {
+                    @Override
+                    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                        Log.i(TAG, "Item '" + position + "' selected.");
+
+                        // Should only update on server as a result of user interaction
+                        // Otherwise this will create a loop with mqtt updating ambulance
+                        // TODO: Debug spinner multiple updates
+                        // This may not be easy with the updates being called from a service
+                        if (suppressNextSpinnerUpdate) {
+
+                            Log.i(TAG, "Skipping status spinner update.");
+
+                            // reset the update flag
+                            suppressNextSpinnerUpdate = false;
+
+                        } else {
+
+                            Log.i(TAG, "Processing status spinner update.");
+
+                            // Get status from spinner
+                            String status = (String) parent.getItemAtPosition(position);
+
+                            // Search for entry in ambulanceStatus map
+                            String statusCode = "";
+                            for (Map.Entry<String, String> entry : ambulanceStatus.entrySet()) {
+                                if (status.equals(entry.getValue())) {
+                                    statusCode = entry.getKey();
+                                    break;
+                                }
+                            }
+
+                            // format timestamp
+                            DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+                            df.setTimeZone(TimeZone.getTimeZone("UTC"));
+                            String timestamp = df.format(new Date());
+
+                            // Set update string
+                            String updateString = "{\"status\":\"" + statusCode + "\",\"timestamp\":\"" + timestamp + "\"}";
+
+                            // Update on server
+                            Intent intent = new Intent(getContext(), AmbulanceForegroundService.class);
+                            intent.setAction(AmbulanceForegroundService.Actions.UPDATE_AMBULANCE);
+                            intent.putExtra("UPDATES",updateString);
+                            getActivity().startService(intent);
+
+                        }
+                    }
+
+                    @Override
+                    public void onNothingSelected(AdapterView<?> parent) {
+                        Log.i(TAG, "Nothing selected: this should never happen.");
+                    }
+                }
+        );
 
         return view;
     }
@@ -183,6 +226,25 @@ public class AmbulanceFragment extends Fragment implements CompoundButton.OnChec
 
     public void update(Ambulance ambulance) {
 
+        // set spinner only if position changed
+        // this helps to prevent a possible server loop
+        int position = ambulanceStatusList.indexOf(ambulanceStatus.get(ambulance.getStatus()));
+        int currentPosition = statusSpinner.getSelectedItemPosition();
+        if (currentPosition != position) {
+
+            Log.i(TAG,"Spinner changed from " + currentPosition + " to " + position);
+
+            // set flag to prevent spinner update from triggering server update
+            suppressNextSpinnerUpdate = true;
+
+            // update spinner
+            statusSpinner.setSelection(position);
+        } else {
+
+            Log.i(TAG, "Spinner continues to be at position " + position + ". Skipping update");
+
+        }
+
         // set identifier
         identifierText.setText(ambulance.getIdentifier());
         ((MainActivity) getActivity()).setHeader(ambulance.getIdentifier());
@@ -199,9 +261,6 @@ public class AmbulanceFragment extends Fragment implements CompoundButton.OnChec
 
         // set capability
         capabilityText.setText(ambulanceCapabilities.get(ambulance.getCapability()));
-
-        // set spinner
-        statusSpinner.setSelection(ambulanceStatusList.indexOf(ambulanceStatus.get(ambulance.getStatus())));
 
     }
 

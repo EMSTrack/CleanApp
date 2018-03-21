@@ -112,6 +112,7 @@ public class AmbulanceForegroundService extends Service {
         public final static String GET_HOSPITALS = "org.emstrack.ambulance.ambulanceforegroundservice.action.GET_HOSPITALS";
         public final static String START_LOCATION_UPDATES = "org.emstrack.ambulance.ambulanceforegroundservice.action.START_LOCATION_UPDATES";
         public final static String STOP_LOCATION_UPDATES = "org.emstrack.ambulance.ambulanceforegroundservice.action.STOP_LOCATION_UPDATES";
+        public final static String UPDATE_AMBULANCE = "org.emstrack.ambulance.ambulanceforegroundservice.action.UPDATE_AMBULANCE";
         public final static String LOGOUT = "org.emstrack.ambulance.ambulanceforegroundservice.action.LOGOUT";
     }
 
@@ -365,6 +366,15 @@ public class AmbulanceForegroundService extends Service {
             else
                 Log.i(TAG,"Cannot update location. Ignoring intent.");
 
+        } else if (intent.getAction().equals(Actions.UPDATE_AMBULANCE)) {
+
+            Log.i(TAG, "UPDATE_AMBULANCE Foreground Intent");
+
+            // Retrieve update string
+            String update = intent.getStringExtra("UPDATES");
+
+            updateAmbulance(update);
+
         } else
 
             Log.i(TAG, "Unknown Intent");
@@ -498,6 +508,38 @@ public class AmbulanceForegroundService extends Service {
         }
 
         return locationSettingsRequest;
+
+    }
+
+    /**
+     * Send update to current ambulance
+     * Allowing arbitrary updates might be too broad and a security concern
+     *
+     * @param update string
+     */
+    public void updateAmbulance(String update) {
+
+        // Has ambulance?
+        Ambulance ambulance = getAmbulance();
+        if (ambulance == null ) {
+            Log.i(TAG,"No ambulance currently.");
+            return;
+        }
+
+        // Publish to MQTT right away
+        try {
+            final MqttProfileClient profileClient = getProfileClient();
+            profileClient.publish("user/" + profileClient.getUsername() + "/ambulance/" +
+                            ambulance.getId() + "/data",
+                    update, 1, false);
+            Log.i(TAG, "Ambulance update sent to server\n" + update);
+        } catch (MqttException e) {
+            Log.i(TAG, "Could not update ambulance on server");
+            e.printStackTrace();
+        } catch (Exception e) {
+            Log.i(TAG, "Could not update ambulance on server");
+            e.printStackTrace();
+        }
 
     }
 
