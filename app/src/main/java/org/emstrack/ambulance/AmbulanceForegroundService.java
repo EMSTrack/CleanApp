@@ -19,6 +19,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.LocalBroadcastManager;
+import android.text.TextUtils;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -44,6 +45,7 @@ import org.emstrack.ambulance.util.LatLon;
 import org.emstrack.models.Ambulance;
 import org.emstrack.models.Hospital;
 import org.emstrack.models.HospitalPermission;
+import org.emstrack.models.Location;
 import org.emstrack.mqtt.MqttProfileCallback;
 import org.emstrack.mqtt.MqttProfileClient;
 import org.emstrack.mqtt.MqttProfileMessageCallback;
@@ -97,22 +99,12 @@ public class AmbulanceForegroundService extends Service {
     private FusedLocationProviderClient fusedLocationClient;
     private SharedPreferences sharedPreferences;
 
-    /**
-     * The desired interval for location updates. Inexact. Updates may be more or less frequent.
-     */
-    private static final long UPDATE_INTERVAL = 10 * 1000;
-
-    /**
-     * The fastest rate for active location updates. Updates will never be more frequent
-     * than this value, but they may be less frequent.
-     */
+    // Rate at which locations should be pulled in
+    // @ 70 mph gives an accuracy of about 30m
+    private static final long UPDATE_INTERVAL = 1 * 1000;
     private static final long FASTEST_UPDATE_INTERVAL = UPDATE_INTERVAL / 2;
-
-    /**
-     * The max time before batched results are delivered by location services. Results may be
-     * delivered sooner than this interval.
-     */
-    private static final long MAX_WAIT_TIME = UPDATE_INTERVAL * 3;
+    // Group all updates to be done every minute
+    private static final long MAX_WAIT_TIME = 60 * 1000;
 
     public class Actions {
         public final static String LOGIN = "org.emstrack.ambulance.ambulanceforegroundservice.action.LOGIN";
@@ -130,6 +122,9 @@ public class AmbulanceForegroundService extends Service {
     }
 
     public static class LocationUpdatesBroadcastReceiver extends BroadcastReceiver {
+
+        public boolean bulkUpdates = true;
+        public final String TAG = LocationUpdatesBroadcastReceiver.class.getSimpleName();
 
         public static String getUpdateString(LocationUpdate lastLocation) {
             double latitude = lastLocation.location.getLatitude();
@@ -159,6 +154,7 @@ public class AmbulanceForegroundService extends Service {
                         Log.i(TAG, "Received " + locations.size() + " location updates");
 
                         Ambulance ambulance = getAmbulance();
+                        List<String> mqttUpdates = new ArrayList<>();
                         for (android.location.Location newLocation : locations) {
 
                             // update bearing
@@ -183,15 +179,46 @@ public class AmbulanceForegroundService extends Service {
                             _lastLocation.location = newLocation;
                             _lastLocation.timestamp = new Date(newLocation.getTime());
 
-                            // Publish to MQTT
+                            // Create update string
                             String updateString = getUpdateString(_lastLocation);
 
+                            if (bulkUpdates) {
+
+                                // add to update list
+                                mqttUpdates.add(updateString);
+
+                            } else {
+
+                                // Publish to MQTT right away
+                                try {
+                                    final MqttProfileClient profileClient = getProfileClient();
+                                    profileClient.publish("user/" + profileClient.getUsername() + "/ambulance/" +
+                                                    ambulance.getId() + "/data",
+                                            updateString, 1, false);
+                                    Log.i(TAG, "onLocationChanged: update sent to server\n" + updateString);
+                                } catch (MqttException e) {
+                                    Log.i(TAG, "Could not update location on server");
+                                    e.printStackTrace();
+                                } catch (Exception e) {
+                                    Log.i(TAG, "Could not update location on server");
+                                    e.printStackTrace();
+                                }
+                            }
+
+                        }
+
+                        // bulk updates?
+                        if (bulkUpdates && mqttUpdates.size() > 0) {
+
+                            String updateString = "[" + TextUtils.join(",", mqttUpdates) + "]";
+
+                            // Publish to MQTT right away
                             try {
                                 final MqttProfileClient profileClient = getProfileClient();
                                 profileClient.publish("user/" + profileClient.getUsername() + "/ambulance/" +
                                                 ambulance.getId() + "/data",
                                         updateString, 1, false);
-                                Log.i("LocationChangeUpdate", "onLocationChanged: update sent to server\n" + updateString);
+                                Log.i(TAG, "onLocationChanged: bulk update sent to server\n" + updateString);
                             } catch (MqttException e) {
                                 Log.i(TAG, "Could not update location on server");
                                 e.printStackTrace();
