@@ -6,7 +6,7 @@ import java.util.Date;
 import java.util.List;
 
 /**
- * Created by mauri on 3/11/2018.
+ * Created by mauricio on 3/11/2018.
  */
 
 public class Hospital{
