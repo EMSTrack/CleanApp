@@ -7,6 +7,8 @@ import org.emstrack.mqtt.MqttProfileClient;
 
 import java.util.UUID;
 
+import static java.security.AccessController.getContext;
+
 /**
  * Created by mauri on 2/10/2018.
  */
@@ -18,6 +20,11 @@ public class AmbulanceApp extends Application {
 
     MqttAndroidClient androidClient;
     MqttProfileClient client;
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+    }
 
     public MqttProfileClient getProfileClient() {
         // lazy initialization
