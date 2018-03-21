@@ -150,13 +150,6 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    @Override
-    public void onBackPressed() {
-        // Initiate AmbulanceListActivity
-        Intent intent = new Intent(this, AmbulanceListActivity.class);
-        startActivity(intent);
-    }
-
     /**
      * Set header text
      *
