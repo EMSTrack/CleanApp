@@ -117,7 +117,7 @@ public class MainActivity extends AppCompatActivity {
         TabLayout tabLayout = (TabLayout) findViewById(R.id.tab_layout_home);
         tabLayout.addTab(tabLayout.newTab().setText("Ambulance"));
         tabLayout.addTab(tabLayout.newTab().setText("Hospitals"));
-        tabLayout.addTab(tabLayout.newTab().setText("Dispatch"));
+        tabLayout.addTab(tabLayout.newTab().setText("Map"));
 
         // pager
         viewPager = (ViewPager) findViewById(R.id.pager);

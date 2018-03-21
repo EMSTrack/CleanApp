@@ -1,13 +1,12 @@
 package org.emstrack.ambulance.adapters;
 
-import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.view.ViewGroup;
 
 import org.emstrack.ambulance.fragments.AmbulanceFragment;
-import org.emstrack.ambulance.fragments.DispatcherFragment;
+import org.emstrack.ambulance.fragments.MapFragment;
 import org.emstrack.ambulance.fragments.HospitalFragment;
 
 import java.util.HashMap;
@@ -45,7 +44,7 @@ public class Pager extends FragmentStatePagerAdapter {
                 return new HospitalFragment();
 
             case 2:
-                return new DispatcherFragment();
+                return new MapFragment();
 
             default:
                 return null;

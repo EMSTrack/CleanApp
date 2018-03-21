@@ -18,8 +18,14 @@ import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
+import org.emstrack.ambulance.AmbulanceForegroundService;
 import org.emstrack.ambulance.MainActivity;
 import org.emstrack.ambulance.R;
+import org.emstrack.models.Ambulance;
+import org.emstrack.models.Location;
+import org.emstrack.mqtt.MqttProfileClient;
+
+import java.util.Map;
 
 import static android.content.ContentValues.TAG;
 
@@ -27,58 +33,26 @@ import static android.content.ContentValues.TAG;
  * Created by justingil1748 on 4/26/17.
  */
 
-public class DispatcherFragment extends Fragment implements View.OnClickListener, OnMapReadyCallback {
+public class MapFragment extends Fragment implements View.OnClickListener, OnMapReadyCallback {
 
     View rootView;
+    private Map<String, String> ambulanceStatus;
 
-    static TextView addressText;
-
-/*
-    GPSTracker gps;
-    DispatcherCall dCall;
-*/
-
-    //GoogleMap mGoogleMap;
-    //Button addressButton;
-    //EditText addressSearchText;
-    //Marker marker;
-
-
-    //Dispatcher page
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
-        rootView = inflater.inflate(R.layout.fragment_dispatcher, container, false);
+        rootView = inflater.inflate(R.layout.fragment_map, container, false);
 
+        // Get settings, status and capabilities
+        final MqttProfileClient profileClient = AmbulanceForegroundService.getProfileClient(getContext());
 
-        addressText = ((TextView) rootView.findViewById(R.id.address));
+        ambulanceStatus = profileClient.getSettings().getAmbulanceStatus();
 
         SupportMapFragment mapFragment = (SupportMapFragment) getChildFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
-
-        // addressText.setText(AmbulanceApp.globalAddress);
-
-        /*
-        addressButton = (Button) view.findViewById(R.id.addressButton);
-        addressButton.setOnClickListener(this);
-        addressSearchText = (EditText) view.findViewById(R.id.addressSearch);
-        marker = null;
-
-        if (googleService()) {
-            SupportMapFragment  fragment = (SupportMapFragment) getChildFragmentManager().findFragmentById(R.id.map);
-            fragment.getMapAsync(this);
-        }
-        */
-
         return rootView;
 
-    }
-
-    public static void updateAddress(String msg) {
-        Log.d(TAG, "updateAddress: message re1");
-        // addressText.setText(AmbulanceApp.globalAddress);
-        Log.d(TAG, "updateAddress: message re2");
     }
 
     /*
@@ -87,63 +61,28 @@ public class DispatcherFragment extends Fragment implements View.OnClickListener
     @Override
     public void onClick(View v) {
 
-       // if(v == mapButton){
-
-/*
-            gps = new GPSTracker(view.getContext(), 500, -1);
-            gps.getLastKnownLocationIfAllowed();
-            gps.getLocation();
-
-            String dispatchLong = getLong();
-            String dispatchLat = getLatitude();
-
-            double lat = gps.getLatitude(); // returns latitude
-            double lon = gps.getLongitude(); // returns longitude
-
-            LocationPoint loc = new LocationPoint(lon, lat);
-
-            String geoUri = "http://maps.google.com/maps?q=loc:" + dispatchLat + "," + dispatchLong + " (" + loc + ")";
-            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(geoUri));
-            startActivity(intent);
-*/
-
-        //}
-        /*
-        else if(v == addressButton){
-            geoLocate();
-        }
-        */
     }
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
-        // Add a marker in Sydney, Australia,
-        // and move the map's camera to the same location.
-        LatLng sydney = new LatLng(-33.852, 151.211);
-        googleMap.addMarker(new MarkerOptions().position(sydney)
-                .title("Marker in Sydney"));
-        CameraPosition cameraPosition = new CameraPosition.Builder()
-                .target(sydney).zoom(15).build();
-        googleMap.animateCamera(CameraUpdateFactory
-                .newCameraPosition(cameraPosition));
 
-    }
+        // Update ambulance
+        Ambulance ambulance = AmbulanceForegroundService.getAmbulance();
+        if (ambulance != null) {
 
+            Location location = ambulance.getLocation();
 
-    /*
-    public boolean googleService(){
-        GoogleApiAvailability api = GoogleApiAvailability.getInstance();
-        int isAvailable = api.isGooglePlayServicesAvailable(getActivity());
+            LatLng latLng = new LatLng(location.getLatitude(),location.getLongitude());
+            googleMap.addMarker(new MarkerOptions().position(latLng)
+                    .title(ambulance.getIdentifier()));
+            CameraPosition cameraPosition = new CameraPosition.Builder()
+                    .target(latLng).zoom(15).build();
+            googleMap.animateCamera(CameraUpdateFactory
+                    .newCameraPosition(cameraPosition));
 
-        if(isAvailable == ConnectionResult.SUCCESS){
-            return true;
-        }
-        else{
-            return false;
         }
 
     }
-    */
 
 
 /*
