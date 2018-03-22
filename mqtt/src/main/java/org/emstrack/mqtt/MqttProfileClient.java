@@ -207,7 +207,8 @@ public class MqttProfileClient implements MqttCallbackExtended {
                         mqttClient.setBufferOpts(disconnectedBufferOptions);
 
                         // Forward callback
-                        if (connectCallback != null) connectCallback.onSuccess();
+                        if (connectCallback != null)
+                            connectCallback.onSuccess();
                     }
 
                     @Override
@@ -217,7 +218,8 @@ public class MqttProfileClient implements MqttCallbackExtended {
                         Log.e(TAG, exception.getMessage());
 
                         // Forward callback
-                        if (connectCallback != null) connectCallback.onFailure(exception);
+                        if (connectCallback != null)
+                            connectCallback.onFailure(exception);
                     }
                 });
 

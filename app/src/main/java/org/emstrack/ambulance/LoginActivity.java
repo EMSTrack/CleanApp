@@ -3,7 +3,6 @@ package org.emstrack.ambulance;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.content.SharedPreferences;
@@ -13,7 +12,6 @@ import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
-import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -33,7 +31,8 @@ import com.google.android.gms.location.SettingsClient;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 
-import org.emstrack.models.Ambulance;
+import org.emstrack.ambulance.services.AmbulanceForegroundService;
+import org.emstrack.ambulance.services.OnServiceComplete;
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -70,20 +69,59 @@ public class LoginActivity extends AppCompatActivity {
             public void onClick(View view) {
 
                 // Get user info & remove whitespace
-                String username = usernameField.getText().toString().trim();
-                String password = passwordField.getText().toString().trim();
+                final String username = usernameField.getText().toString().trim();
+                final String password = passwordField.getText().toString().trim();
 
-                if (username.isEmpty()) {
-                    alertDialog(LoginActivity.this,
-                            getResources().getString(R.string.alert_error_title),
-                            getResources().getString(R.string.error_empty_username));
-                } else if (password.isEmpty()) {
-                    alertDialog(LoginActivity.this,
-                            getResources().getString(R.string.alert_error_title),
-                            getResources().getString(R.string.error_empty_password));
-                } else {
+                if (username.isEmpty())
+                    alert(getResources().getString(R.string.error_empty_username));
 
-                    // Login at activity
+                else if (password.isEmpty())
+                    alert(getResources().getString(R.string.error_empty_password));
+
+                else {
+
+                    // What to do when service completes?
+                    new OnServiceComplete(LoginActivity.this,
+                            AmbulanceForegroundService.BroadcastActions.SUCCESS,
+                            AmbulanceForegroundService.BroadcastActions.FAILURE) {
+                        @Override
+                        public void onSuccess(Bundle extras) {
+                            super.onSuccess(extras);
+
+                            Log.i(TAG,"onSuccess");
+
+                            // Toast
+                            Toast.makeText(LoginActivity.this,
+                                    String.format(getString(R.string.loginSuccessMessage), username),
+                                    Toast.LENGTH_SHORT).show();
+
+                            // initiate AmbulanceListActivity
+                            Intent intent = new Intent(LoginActivity.this,
+                                    AmbulanceListActivity.class);
+                            startActivity(intent);
+
+                        }
+                        @Override
+                        public void onFailure(Bundle extras) {
+                            super.onFailure(extras);
+
+                            Log.i(TAG,"onFailure");
+
+                            // Alert user
+                            if (extras != null) {
+                                String message = extras.getString(AmbulanceForegroundService.BroadcastExtras.MESSAGE);
+                                if (message == null)
+                                    message = String.format(getString(R.string.couldNotLoginUser), username);
+
+                                // Alert user
+                                alert(message);
+
+                            }
+
+                        }
+                    };
+
+                    // Login at service
                     Intent intent = new Intent(LoginActivity.this, AmbulanceForegroundService.class);
                     intent.setAction(AmbulanceForegroundService.Actions.LOGIN);
                     intent.putExtra("CREDENTIALS", new String[] { username, password });
@@ -108,13 +146,16 @@ public class LoginActivity extends AppCompatActivity {
         });
 
         // Can update?
-        if (AmbulanceForegroundService.canUpdateLocation())
+        if (AmbulanceForegroundService.canUpdateLocation()) {
+
+            // Toast to warn about check permissions
+            Toast.makeText(LoginActivity.this, "Already has proper location settings.", Toast.LENGTH_LONG).show();
 
             // Enable button
             loginSubmitButton.setEnabled(true);
 
-        // Check and request permissions to retrieve locations if necessary
-        else if (checkPermissions()) {
+            // Check and request permissions to retrieve locations if necessary
+        } else if (checkPermissions()) {
 
                 // Toast to warn about check permissions
                 Toast.makeText(LoginActivity.this, "Checking location settings...", Toast.LENGTH_LONG).show();
@@ -134,19 +175,18 @@ public class LoginActivity extends AppCompatActivity {
 
     }
 
-    public void alertDialog(Activity activity, String title, String message) {
+    public void alert(String message) {
 
-        AlertDialog alertDialog = new AlertDialog.Builder(activity).create();
-        alertDialog.setTitle(title);
-        alertDialog.setMessage(message);
-        alertDialog.setButton(AlertDialog.BUTTON_POSITIVE,
-                getResources().getString(R.string.alert_button_positive_text),
-                new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int which) {
-                        dialog.dismiss();
-                    }
-                });
-        alertDialog.show();
+        Snackbar.make(findViewById(android.R.id.content),
+                message,
+                Snackbar.LENGTH_INDEFINITE)
+                .setAction(android.R.string.ok,
+                        new View.OnClickListener() {
+                            @Override
+                            public void onClick(View view) { /* do nothing */ }
+                        }).show();
+
+
     }
 
     /**
