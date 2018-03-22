@@ -302,7 +302,6 @@ public class AmbulanceForegroundService extends Service {
 
                 @Override
                 public void onSuccess(Bundle extras) {
-                    super.onSuccess(extras);
 
                     // Ticker message
                     String ticker = "Welcome " + username + ".";
@@ -347,7 +346,6 @@ public class AmbulanceForegroundService extends Service {
 
                 @Override
                 public void onFailure(Bundle extras) {
-                    super.onFailure(extras);
 
                     // Broadcast failure
                     Intent localIntent = new Intent(BroadcastActions.FAILURE);
@@ -726,15 +724,10 @@ public class AmbulanceForegroundService extends Service {
         // Is ambulance id valid?
         if (ambulanceId < 0) {
 
-            // Alert user
-            Toast.makeText(this,
-                    "Invalid ambulance id",
-                    Toast.LENGTH_SHORT).show();
-
-            // Initiate LoginActivity
-            Intent intent = new Intent(AmbulanceForegroundService.this,
-                    AmbulanceListActivity.class);
-            startActivity(intent);
+            // Broadcast failure
+            Intent localIntent = new Intent(BroadcastActions.FAILURE);
+            localIntent.putExtra(BroadcastExtras.MESSAGE, getString(R.string.invalidAmbulanceId));
+            getLocalBroadcastManager().sendBroadcast(localIntent);
 
             return;
         }
@@ -746,6 +739,7 @@ public class AmbulanceForegroundService extends Service {
         }
 
         // Remove current ambulance
+        // TODO: Does it need to be asynchrounous?
         removeAmbulance();
 
         // Retrieve client
@@ -790,36 +784,34 @@ public class AmbulanceForegroundService extends Service {
                                     _lastLocation.timestamp = ambulance.getTimestamp();
                                 }
 
+                                // First time?
+                                boolean firstTime = (_ambulance == null);
+
                                 // Set current ambulance
                                 _ambulance = ambulance;
 
-                                // Broadcast ambulance update
-                                Intent localIntent = new Intent(BroadcastActions.AMBULANCE_UPDATE);
-                                getLocalBroadcastManager().sendBroadcast(localIntent);
+                                if (firstTime) {
 
-                                // Initiate MainActivity
-                                // Intent intent = new Intent(AmbulanceForegroundService.this,
-                                //        MainActivity.class);
-                                //startActivity(intent);
+                                    // Broadcast success
+                                    Intent localIntent = new Intent(BroadcastActions.SUCCESS);
+                                    getLocalBroadcastManager().sendBroadcast(localIntent);
+
+                                } else {
+
+                                    // Broadcast ambulance update
+                                    Intent localIntent = new Intent(BroadcastActions.AMBULANCE_UPDATE);
+                                    getLocalBroadcastManager().sendBroadcast(localIntent);
+
+                                }
 
                             } catch (Exception e) {
 
                                 Log.i(TAG, "Could not parse ambulance update.");
 
-                                // Alert user
-                                Toast.makeText(AmbulanceForegroundService.this,
-                                        "Could not parse ambulance",
-                                        Toast.LENGTH_SHORT).show();
-
-                                // Go back to ambulance selection if no ambulance is selected
-                                if (getAmbulance() == null) {
-
-                                    // Initiate LoginActivity
-                                    Intent intent = new Intent(AmbulanceForegroundService.this,
-                                            AmbulanceListActivity.class);
-                                    startActivity(intent);
-
-                                }
+                                // Broadcast failure
+                                Intent localIntent = new Intent(BroadcastActions.FAILURE);
+                                localIntent.putExtra(BroadcastExtras.MESSAGE, getString(R.string.couldNotParseAmbulance));
+                                getLocalBroadcastManager().sendBroadcast(localIntent);
 
                             }
 
@@ -831,15 +823,10 @@ public class AmbulanceForegroundService extends Service {
 
             Log.d(TAG, "Could not subscribe to ambulance data");
 
-            // Alert user
-            Toast.makeText(this,
-                    "Could not subscribe to ambulance",
-                    Toast.LENGTH_SHORT).show();
-
-            // Initiate LoginActivity
-            Intent intent = new Intent(AmbulanceForegroundService.this,
-                    AmbulanceListActivity.class);
-            startActivity(intent);
+            // Broadcast failure
+            Intent localIntent = new Intent(BroadcastActions.FAILURE);
+            localIntent.putExtra(BroadcastExtras.MESSAGE, getString(R.string.couldNotSubscribeToAmbulance));
+            getLocalBroadcastManager().sendBroadcast(localIntent);
 
         }
 
@@ -882,6 +869,10 @@ public class AmbulanceForegroundService extends Service {
      */
     public void retrieveHospitals() {
 
+        // Remove current hospital list
+        // TODO: Does it need to be asynchrounous?
+        removeHospitals();
+
         // Retrieve hospital data
         final MqttProfileClient profileClient = getProfileClient(this);
 
@@ -889,7 +880,7 @@ public class AmbulanceForegroundService extends Service {
         final List<HospitalPermission> hospitalPermissions = profileClient.getProfile().getHospitals();
 
         // Initialize hospitals
-        _hospitals = new ArrayList<Hospital>();
+        final List<Hospital> hospitals = new ArrayList<Hospital>();
 
         // Loop over all hospitals
         for (HospitalPermission hospitalPermission : hospitalPermissions) {
@@ -905,16 +896,6 @@ public class AmbulanceForegroundService extends Service {
                             @Override
                             public void messageArrived(String topic, MqttMessage message) {
 
-                                try {
-
-                                    // Unsubscribe to hospital data
-                                    profileClient.unsubscribe("hospital/" + hospitalId + "/data");
-
-                                } catch (MqttException exception) {
-                                    Log.d(TAG, "Could not unsubscribe to 'hospital/" + hospitalId + "/data'");
-                                    return;
-                                }
-
                                 // Parse to hospital metadata
                                 GsonBuilder gsonBuilder = new GsonBuilder();
                                 gsonBuilder.setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES);
@@ -923,13 +904,31 @@ public class AmbulanceForegroundService extends Service {
                                 // Found hospital
                                 final Hospital hospital = gson.fromJson(message.toString(), Hospital.class);
 
-                                // Add to hospital list
-                                _hospitals.add(hospital);
+                                boolean firstTime = (_hospitals == null);
 
-                                // Done yet?
-                                if (getHospitals().size() == hospitalPermissions.size()) {
+                                if (firstTime) {
 
-                                    Log.d(TAG, "Done retrieving all hospitals");
+                                    // Add to hospital list
+                                    hospitals.add(hospital);
+
+                                    // Done yet?
+                                    if (hospitals.size() == hospitalPermissions.size()) {
+
+                                        Log.d(TAG, "Done retrieving all hospitals");
+
+                                        // set _hospitals
+                                        _hospitals = hospitals;
+
+                                        // Broadcast hospitals update
+                                        Intent localIntent = new Intent(BroadcastActions.SUCCESS);
+                                        getLocalBroadcastManager().sendBroadcast(localIntent);
+
+                                    }
+
+                                } else {
+
+                                    // TODO: Modify hospital list
+                                    Log.e(TAG, "NEED TO MODIFY HOSPITAL LIST");
 
                                     // Broadcast hospitals update
                                     Intent localIntent = new Intent(BroadcastActions.HOSPITALS_UPDATE);
@@ -941,6 +940,12 @@ public class AmbulanceForegroundService extends Service {
 
             } catch (MqttException e) {
                 Log.d(TAG, "Could not subscribe to hospital data");
+
+                // Broadcast failure
+                Intent localIntent = new Intent(BroadcastActions.FAILURE);
+                localIntent.putExtra(BroadcastExtras.MESSAGE, getString(R.string.couldNotSubscribeToHospital));
+                getLocalBroadcastManager().sendBroadcast(localIntent);
+
             }
 
         }

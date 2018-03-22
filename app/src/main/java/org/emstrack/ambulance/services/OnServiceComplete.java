@@ -51,16 +51,6 @@ public abstract class OnServiceComplete extends BroadcastReceiver {
 
     }
 
-    public void onSuccess(Bundle extras) {
-        this.completeFlag = true;
-        this.successFlag = true;
-    };
-
-    public void onFailure(Bundle extras) {
-        this.completeFlag = true;
-        this.successFlag = false;
-    };
-
     public boolean isSuccess() {
         return successFlag;
     }
@@ -82,18 +72,26 @@ public abstract class OnServiceComplete extends BroadcastReceiver {
             if (action.equals(successAction)) {
 
                 Log.i(TAG, "SUCCESS");
+                this.successFlag = true;
                 onSuccess(intent.getExtras());
 
             } else if (action.equals(failureAction)) {
 
                 Log.i(TAG, "FAILURE");
+                this.successFlag = false;
                 onFailure(intent.getExtras());
 
             } else
                 Log.i(TAG, "Unknown action '" + action + "'");
 
+            // complete
+            this.completeFlag = true;
         }
     }
+
+    protected abstract void onSuccess(Bundle extras);
+
+    protected abstract void onFailure(Bundle extras);
 
     public void unregister(Context context) {
         Log.d(TAG,"Unregistering receivers");

@@ -84,10 +84,9 @@ public class LoginActivity extends AppCompatActivity {
                     new OnServiceComplete(LoginActivity.this,
                             AmbulanceForegroundService.BroadcastActions.SUCCESS,
                             AmbulanceForegroundService.BroadcastActions.FAILURE) {
+
                         @Override
                         public void onSuccess(Bundle extras) {
-                            super.onSuccess(extras);
-
                             Log.i(TAG,"onSuccess");
 
                             // Toast
@@ -101,10 +100,9 @@ public class LoginActivity extends AppCompatActivity {
                             startActivity(intent);
 
                         }
+
                         @Override
                         public void onFailure(Bundle extras) {
-                            super.onFailure(extras);
-
                             Log.i(TAG,"onFailure");
 
                             // Alert user
