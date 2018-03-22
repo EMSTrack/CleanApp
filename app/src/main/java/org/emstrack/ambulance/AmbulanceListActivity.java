@@ -3,9 +3,11 @@ package org.emstrack.ambulance;
 import java.util.ArrayList;
 import java.util.List;
 
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.design.widget.Snackbar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
@@ -17,6 +19,7 @@ import android.util.Log;
 
 import org.emstrack.ambulance.dialogs.LogoutDialog;
 import org.emstrack.ambulance.services.AmbulanceForegroundService;
+import org.emstrack.ambulance.services.OnServiceComplete;
 import org.emstrack.models.Ambulance;
 import org.emstrack.models.AmbulancePermission;
 import org.emstrack.mqtt.MqttProfileClient;
@@ -26,6 +29,31 @@ import org.emstrack.mqtt.MqttProfileClient;
  */
 
 public class AmbulanceListActivity extends AppCompatActivity {
+
+    abstract class LocalOnServiceComplete extends OnServiceComplete {
+
+        public LocalOnServiceComplete(Context context, String successAction, String failureAction) {
+            super(context, successAction, failureAction, true);
+        }
+
+        @Override
+        public void onFailure(Bundle extras) {
+            Log.i(TAG,"onFailure");
+
+            // Alert user
+            if (extras != null) {
+                String message = extras.getString(AmbulanceForegroundService.BroadcastExtras.MESSAGE);
+                if (message == null)
+                    message = "Failed to complete service request";
+
+                // Alert user
+                alert(message);
+
+            }
+
+        }
+
+    }
 
     private static final String TAG = "AmbulanceListActivity";
 
@@ -122,24 +150,47 @@ public class AmbulanceListActivity extends AppCompatActivity {
 
                 }
 
+                new LocalOnServiceComplete(AmbulanceListActivity.this,
+                        AmbulanceForegroundService.BroadcastActions.SUCCESS,
+                        AmbulanceForegroundService.BroadcastActions.FAILURE) {
+
+                    @Override
+                    public void onSuccess(Bundle extras) {
+                        Log.i(TAG, "onSuccess");
+
+                        new LocalOnServiceComplete(AmbulanceListActivity.this,
+                                AmbulanceForegroundService.BroadcastActions.SUCCESS,
+                                AmbulanceForegroundService.BroadcastActions.FAILURE) {
+
+                            @Override
+                            public void onSuccess(Bundle extras) {
+                                Log.i(TAG, "onSuccess");
+
+                                // Start MainActivity
+                                Log.i(TAG, "Start main activity");
+                                Intent intent = new Intent(AmbulanceListActivity.this,
+                                        MainActivity.class);
+                                startActivity(intent);
+
+                            }
+                        };
+
+                        // Retrieve hospitals
+                        Log.i(TAG, "Retrieve hospitals");
+                        Intent hospitalsIntent = new Intent(AmbulanceListActivity.this, AmbulanceForegroundService.class);
+                        hospitalsIntent.setAction(AmbulanceForegroundService.Actions.GET_HOSPITALS);
+                        startService(hospitalsIntent);
+
+                    }
+
+                };
+
                 // Retrieve ambulance
                 Log.i(TAG, "Retrieve ambulances");
                 Intent ambulanceIntent = new Intent(AmbulanceListActivity.this, AmbulanceForegroundService.class);
                 ambulanceIntent.setAction(AmbulanceForegroundService.Actions.GET_AMBULANCE);
                 ambulanceIntent.putExtra("AMBULANCE_ID", ambulanceId);
                 startService(ambulanceIntent);
-
-                // Retrieve hospitals
-                Log.i(TAG, "Retrieve hospitals");
-                Intent hospitalsIntent = new Intent(AmbulanceListActivity.this, AmbulanceForegroundService.class);
-                hospitalsIntent.setAction(AmbulanceForegroundService.Actions.GET_HOSPITALS);
-                startService(hospitalsIntent);
-
-                // Start MainActivity
-                Log.i(TAG, "Start main activity");
-                Intent intent = new Intent(AmbulanceListActivity.this,
-                        MainActivity.class);
-                startActivity(intent);
 
             }
         });
@@ -150,6 +201,20 @@ public class AmbulanceListActivity extends AppCompatActivity {
     public void onBackPressed() {
         LogoutDialog ld = LogoutDialog.newInstance();
         ld.show(getFragmentManager(), "logout_dialog");
+    }
+
+    public void alert(String message) {
+
+        Snackbar.make(findViewById(android.R.id.content),
+                message,
+                Snackbar.LENGTH_INDEFINITE)
+                .setAction(android.R.string.ok,
+                        new View.OnClickListener() {
+                            @Override
+                            public void onClick(View view) { /* do nothing */ }
+                        }).show();
+
+
     }
 
 }
