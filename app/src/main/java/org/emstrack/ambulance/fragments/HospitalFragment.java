@@ -14,11 +14,10 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import org.emstrack.ambulance.AmbulanceForegroundService;
+import org.emstrack.ambulance.services.AmbulanceForegroundService;
 import org.emstrack.ambulance.R;
 import org.emstrack.ambulance.adapters.HospitalExpandableRecyclerAdapter;
 import org.emstrack.ambulance.models.HospitalExpandableGroup;
-import org.emstrack.models.Ambulance;
 import org.emstrack.models.Hospital;
 
 import java.util.ArrayList;

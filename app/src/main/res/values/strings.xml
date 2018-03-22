@@ -76,6 +76,10 @@
     <string name="gpsCommentsLabel">Comments:</string>
     <string name="gpsLastUpdatedOnLabel">Last updated on:</string>
     <string name="access_token">pk.eyJ1IjoieWFuZ2Y5NiIsImEiOiJjaXltYTNmbTcwMDJzMzNwZnpzM3Z6ZW9kIn0.gjEwLiCIbYhVFUGud9B56w</string>
+    <string name="failedToConnectToBrocker">Failed to connected to broker.</string>
+    <string name="Exception">Exception:</string>
+    <string name="loginSuccessMessage">User \'%1$s\' successfully logged in.</string>
+    <string name="couldNotLoginUser">Could not login user \'%1$s</string>
 
     <string-array name="spinner_list_item_array">
         <item>@string/dispatch</item>

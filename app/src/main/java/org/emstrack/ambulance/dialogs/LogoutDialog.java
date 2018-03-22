@@ -11,7 +11,7 @@ import android.util.Log;
 
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.emstrack.ambulance.AmbulanceApp;
-import org.emstrack.ambulance.AmbulanceForegroundService;
+import org.emstrack.ambulance.services.AmbulanceForegroundService;
 import org.emstrack.ambulance.LoginActivity;
 import org.emstrack.ambulance.R;
 import org.emstrack.mqtt.MqttProfileClient;

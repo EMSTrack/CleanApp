@@ -1,4 +1,4 @@
-package org.emstrack.ambulance;
+package org.emstrack.ambulance.services;
 
 import android.annotation.SuppressLint;
 import android.app.Notification;
@@ -14,6 +14,8 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.os.Build;
+import android.os.Bundle;
+import android.os.Handler;
 import android.os.IBinder;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -41,11 +43,14 @@ import com.google.gson.GsonBuilder;
 import org.eclipse.paho.android.service.MqttAndroidClient;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
+import org.emstrack.ambulance.AmbulanceListActivity;
+import org.emstrack.ambulance.LoginActivity;
+import org.emstrack.ambulance.MainActivity;
+import org.emstrack.ambulance.R;
 import org.emstrack.ambulance.util.LatLon;
 import org.emstrack.models.Ambulance;
 import org.emstrack.models.Hospital;
 import org.emstrack.models.HospitalPermission;
-import org.emstrack.models.Location;
 import org.emstrack.mqtt.MqttProfileCallback;
 import org.emstrack.mqtt.MqttProfileClient;
 import org.emstrack.mqtt.MqttProfileMessageCallback;
@@ -116,10 +121,18 @@ public class AmbulanceForegroundService extends Service {
         public final static String LOGOUT = "org.emstrack.ambulance.ambulanceforegroundservice.action.LOGOUT";
     }
 
+    public class BroadcastExtras {
+        public final static String MESSAGE = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastextras.MESSAGE";
+    }
+
     public class BroadcastActions {
-        public final static String HOSPITALS_UPDATE = "org.emstrack.ambulance.ambulanceforegroundservice.action.HOSPITALS_UPDATE";
-        public final static String AMBULANCE_UPDATE = "org.emstrack.ambulance.ambulanceforegroundservice.action.AMBULANCE_UPDATE";
-        public final static String LOCATION_UPDATE = "org.emstrack.ambulance.ambulanceforegroundservice.action.LOCATION_UPDATE";
+        public final static String HOSPITALS_UPDATE = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastaction.HOSPITALS_UPDATE";
+        public final static String AMBULANCE_UPDATE = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastaction.AMBULANCE_UPDATE";
+        public final static String LOCATION_UPDATE = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastaction.LOCATION_UPDATE";
+        public final static String SUCCESS = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastaction.SUCCESS";
+        public final static String FAILURE = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastaction.FAILURE";
+        public final static String LOGIN_SUCCESS = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastaction.LOGIN_SUCCESS";
+        public final static String LOGIN_FAILURE = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastaction.LOGIN_FAILURE";
     }
 
     public static class LocationUpdatesBroadcastReceiver extends BroadcastReceiver {
@@ -276,46 +289,78 @@ public class AmbulanceForegroundService extends Service {
 
             // Retrieve username and password
             String[] loginInfo = intent.getStringArrayExtra("CREDENTIALS");
-            String username = loginInfo[0];
-            String password = loginInfo[1];
+            final String username = loginInfo[0];
+            final String password = loginInfo[1];
 
             // Notify user
             Toast.makeText(this, "Logging in '" + username + "'", Toast.LENGTH_SHORT).show();
 
+            // What to do when login completes?
+            OnServiceComplete onServiceComplete = new OnServiceComplete(this,
+                    AmbulanceForegroundService.BroadcastActions.LOGIN_SUCCESS,
+                    AmbulanceForegroundService.BroadcastActions.LOGIN_FAILURE) {
+
+                @Override
+                public void onSuccess(Bundle extras) {
+                    super.onSuccess(extras);
+
+                    // Ticker message
+                    String ticker = "Welcome " + username + ".";
+
+                    // Create notification
+                    Intent notificationIntent = new Intent(AmbulanceForegroundService.this, MainActivity.class);
+                    notificationIntent.setAction(MainActivity.MAIN_ACTION);
+                    notificationIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK
+                            | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                    PendingIntent pendingIntent = PendingIntent.getActivity(AmbulanceForegroundService.this, 0,
+                            notificationIntent, 0);
+
+                    Bitmap icon = BitmapFactory.decodeResource(getResources(),
+                            R.mipmap.ic_launcher);
+
+                    NotificationCompat.Builder notificationBuilder;
+                    if (Build.VERSION.SDK_INT >= 26)
+                        notificationBuilder = new NotificationCompat.Builder(AmbulanceForegroundService.this,
+                                AmbulanceForegroundService.PRIMARY_CHANNEL);
+                    else
+                        notificationBuilder = new NotificationCompat.Builder(AmbulanceForegroundService.this);
+
+                    Notification notification = notificationBuilder
+                            .setContentTitle("EMSTrack")
+                            .setTicker(ticker)
+                            .setContentText(ticker)
+                            .setSmallIcon(R.mipmap.ic_launcher)
+                            .setLargeIcon(Bitmap.createScaledBitmap(icon, 128, 128, false))
+                            .setContentIntent(pendingIntent)
+                            .setOngoing(true)
+                            .build();
+
+                    startForeground(101, notification);
+
+                    // Broadcast success
+                    Intent localIntent = new Intent(BroadcastActions.SUCCESS);
+                    if (extras != null)
+                        localIntent.putExtras(extras);
+                    getLocalBroadcastManager().sendBroadcast(localIntent);
+
+                }
+
+                @Override
+                public void onFailure(Bundle extras) {
+                    super.onFailure(extras);
+
+                    // Broadcast failure
+                    Intent localIntent = new Intent(BroadcastActions.FAILURE);
+                    if (extras != null)
+                        localIntent.putExtras(extras);
+                    getLocalBroadcastManager().sendBroadcast(localIntent);
+
+                }
+
+            };
+
             // Login user
             login(username, password);
-
-            // Ticker message
-            String ticker = "Welcome " + username + ".";
-
-            // Create notification
-            Intent notificationIntent = new Intent(this, MainActivity.class);
-            notificationIntent.setAction(MainActivity.MAIN_ACTION);
-            notificationIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK
-                    | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-            PendingIntent pendingIntent = PendingIntent.getActivity(this, 0,
-                    notificationIntent, 0);
-
-            Bitmap icon = BitmapFactory.decodeResource(getResources(),
-                    R.mipmap.ic_launcher);
-
-            NotificationCompat.Builder notificationBuilder;
-            if (Build.VERSION.SDK_INT >= 26)
-                notificationBuilder = new NotificationCompat.Builder(this, PRIMARY_CHANNEL);
-            else
-                notificationBuilder = new NotificationCompat.Builder(this);
-
-            Notification notification = notificationBuilder
-                    .setContentTitle("EMSTrack")
-                    .setTicker(ticker)
-                    .setContentText(ticker)
-                    .setSmallIcon(R.mipmap.ic_launcher)
-                    .setLargeIcon(Bitmap.createScaledBitmap(icon, 128, 128, false))
-                    .setContentIntent(pendingIntent)
-                    .setOngoing(true)
-                    .build();
-
-            startForeground(101, notification);
 
         } else if (intent.getAction().equals(Actions.LOGOUT)) {
 
@@ -593,14 +638,9 @@ public class AmbulanceForegroundService extends Service {
                 editor.putString(PREFERENCES_PASSWORD, password);
                 editor.apply();
 
-                // Toast
-                Toast.makeText(AmbulanceForegroundService.this,
-                        "User '" + username + "' successfully logged in.", Toast.LENGTH_SHORT).show();
-
-                // Initiate AmbulanceListActivity
-                Intent intent = new Intent(AmbulanceForegroundService.this,
-                        AmbulanceListActivity.class);
-                startActivity(intent);
+                // Broadcast success
+                Intent localIntent = new Intent(BroadcastActions.LOGIN_SUCCESS);
+                getLocalBroadcastManager().sendBroadcast(localIntent);
 
             }
 
@@ -609,15 +649,13 @@ public class AmbulanceForegroundService extends Service {
 
                 Log.d(TAG, "Failed to retrieve profile.");
 
-                // Alert user
-                Toast.makeText(AmbulanceForegroundService.this,
-                        "Could not log in user '" + username + "'.\n" + exception.toString(),
-                        Toast.LENGTH_SHORT).show();
+                // Build error message
+                String message = String.format("Could not log in user '%1$s'.\n'%2$s'", username, exception.toString());
 
-                // Initiate LoginActivity
-                Intent intent = new Intent(AmbulanceForegroundService.this,
-                        LoginActivity.class);
-                startActivity(intent);
+                // Broadcast failure
+                Intent localIntent = new Intent(BroadcastActions.LOGIN_FAILURE);
+                localIntent.putExtra(BroadcastExtras.MESSAGE, message);
+                getLocalBroadcastManager().sendBroadcast(localIntent);
 
             }
 
@@ -636,30 +674,28 @@ public class AmbulanceForegroundService extends Service {
                 @Override
                 public void onFailure(Throwable exception) {
 
-                    Log.d(TAG, "Failed to connected to broker.");
+                    Log.d(TAG, "Failed to connect to brocker.");
 
-                    String message;
+                    String message = getString(R.string.failedToConnectToBrocker) + "\n";
                     if (exception instanceof MqttException) {
                         int reason = ((MqttException) exception).getReasonCode();
                         if (reason == MqttException.REASON_CODE_FAILED_AUTHENTICATION ||
                                 reason == MqttException.REASON_CODE_NOT_AUTHORIZED ||
                                 reason == MqttException.REASON_CODE_INVALID_CLIENT_ID)
-                            message = getResources().getString(R.string.error_invalid_credentials);
+                            message += getResources().getString(R.string.error_invalid_credentials);
                         else
-                            message = String.format(getResources().getString(R.string.error_connection_failed),
+                            message += String.format(getResources().getString(R.string.error_connection_failed),
                                     exception.toString());
                     } else {
-                        message = exception.toString();
+                        message += getString(R.string.Exception) + exception.toString();
                     }
 
-                    // Alert user
-                    Toast.makeText(AmbulanceForegroundService.this, message,
-                            Toast.LENGTH_SHORT).show();
+                    Log.d(TAG, "message = " + message);
 
-                    // Initiate LoginActivity
-                    Intent intent = new Intent(AmbulanceForegroundService.this,
-                            LoginActivity.class);
-                    startActivity(intent);
+                    // Broadcast failure
+                    Intent localIntent = new Intent(BroadcastActions.LOGIN_FAILURE);
+                    localIntent.putExtra(BroadcastExtras.MESSAGE, message);
+                    getLocalBroadcastManager().sendBroadcast(localIntent);
 
                 }
 
@@ -667,16 +703,14 @@ public class AmbulanceForegroundService extends Service {
 
         } catch (MqttException exception) {
 
-            // Alert user
-            Toast.makeText(AmbulanceForegroundService.this,
-                    String.format(getResources().getString(R.string.error_connection_failed),
-                            exception.toString()),
-                    Toast.LENGTH_SHORT).show();
+            // Build error message
+            String message = String.format(getResources().getString(R.string.error_connection_failed),
+                    exception.toString());
 
-            // Initiate LoginActivity
-            Intent intent = new Intent(AmbulanceForegroundService.this,
-                    LoginActivity.class);
-            startActivity(intent);
+            // Broadcast failure
+            Intent localIntent = new Intent(BroadcastActions.LOGIN_FAILURE);
+            localIntent.putExtra(BroadcastExtras.MESSAGE, message);
+            getLocalBroadcastManager().sendBroadcast(localIntent);
 
         }
 

@@ -16,6 +16,7 @@ import android.widget.Toast;
 import android.util.Log;
 
 import org.emstrack.ambulance.dialogs.LogoutDialog;
+import org.emstrack.ambulance.services.AmbulanceForegroundService;
 import org.emstrack.models.Ambulance;
 import org.emstrack.models.AmbulancePermission;
 import org.emstrack.mqtt.MqttProfileClient;
