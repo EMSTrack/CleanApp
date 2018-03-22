@@ -648,7 +648,7 @@ public class AmbulanceForegroundService extends Service {
                 Log.d(TAG, "Failed to retrieve profile.");
 
                 // Build error message
-                String message = String.format("Could not log in user '%1$s'.\n'%2$s'", username, exception.toString());
+                String message = exception.toString();
 
                 // Broadcast failure
                 Intent localIntent = new Intent(BroadcastActions.LOGIN_FAILURE);
@@ -682,8 +682,7 @@ public class AmbulanceForegroundService extends Service {
                                 reason == MqttException.REASON_CODE_INVALID_CLIENT_ID)
                             message += getResources().getString(R.string.error_invalid_credentials);
                         else
-                            message += String.format(getResources().getString(R.string.error_connection_failed),
-                                    exception.toString());
+                            message += getResources().getString(R.string.error_connection_failed, exception.toString());
                     } else {
                         message += getString(R.string.Exception) + exception.toString();
                     }
@@ -702,8 +701,7 @@ public class AmbulanceForegroundService extends Service {
         } catch (MqttException exception) {
 
             // Build error message
-            String message = String.format(getResources().getString(R.string.error_connection_failed),
-                    exception.toString());
+            String message = getResources().getString(R.string.error_connection_failed, exception.toString());
 
             // Broadcast failure
             Intent localIntent = new Intent(BroadcastActions.LOGIN_FAILURE);
