@@ -8,16 +8,20 @@ import android.os.Bundle;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
+import org.emstrack.ambulance.dialogs.AlertDialog;
+
 /**
  * Created by mauricio on 3/21/2018.
  */
 
 public abstract class OnServiceComplete extends BroadcastReceiver {
 
-    final private String TAG = OnServiceComplete.class.getSimpleName();
+    private final String TAG = OnServiceComplete.class.getSimpleName();
 
     private final String successAction;
     private final String failureAction;
+    private String failureMessage;
+    private AlertDialog alert;
 
     private boolean oneShot;
     private boolean successFlag;
@@ -40,14 +44,18 @@ public abstract class OnServiceComplete extends BroadcastReceiver {
         this.successFlag = false;
         this.completeFlag = false;
 
-        Log.d(TAG,"Registering receivers");
-
         // Register actions for broadcasting
         IntentFilter successIntentFilter = new IntentFilter(successAction);
         getLocalBroadcastManager(context).registerReceiver(this, successIntentFilter);
 
         IntentFilter failureIntentFilter = new IntentFilter(failureAction);
         getLocalBroadcastManager(context).registerReceiver(this, failureIntentFilter);
+
+        // Default alert is AlertLog
+        this.alert = new AlertDialog(TAG);
+
+        // Defaiult failure message
+        this.failureMessage = "Failed to complete service request";
 
     }
 
@@ -57,6 +65,16 @@ public abstract class OnServiceComplete extends BroadcastReceiver {
 
     public boolean isComplete() {
         return completeFlag;
+    }
+
+    public OnServiceComplete setAlert(AlertDialog alert) {
+        this.alert = alert;
+        return this;
+    }
+
+    public OnServiceComplete setFailureMessage(String failureMessage) {
+        this.failureMessage = failureMessage;
+        return this;
     }
 
     @Override
@@ -89,12 +107,25 @@ public abstract class OnServiceComplete extends BroadcastReceiver {
         }
     }
 
-    protected abstract void onSuccess(Bundle extras);
+    public abstract void onSuccess(Bundle extras);
 
-    protected abstract void onFailure(Bundle extras);
+    public void onFailure(Bundle extras) {
+
+        // Alert user
+        String message = failureMessage;
+        if (extras != null) {
+            String msg = extras.getString(AmbulanceForegroundService.BroadcastExtras.MESSAGE);
+            if (msg != null)
+               message +=  '\n' + msg;
+
+        }
+
+        // Alert user
+        alert.alert(message);
+
+    }
 
     public void unregister(Context context) {
-        Log.d(TAG,"Unregistering receivers");
         getLocalBroadcastManager(context).unregisterReceiver(this);
     }
 

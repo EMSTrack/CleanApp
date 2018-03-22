@@ -11,7 +11,7 @@
     <string name="alert_button_positive_text">OK</string>
     <string name="alert_button_negative_text">Cancel</string>
 
-    <string name="alert_ambulance_switch">Ambulance \'%1$s\' is currently requesting location updates. Are you sure you want to switch to ambulance \'%2$s\'?</string>
+    <string name="alert_ambulance_switch">Stop \'%1$s\' from updating locations first.</string>
 
     <string name="message_please_wait">Please wait…</string>
 
@@ -84,6 +84,8 @@
     <string name="couldNotParseAmbulance">Could not parse ambulance</string>
     <string name="couldNotSubscribeToAmbulance">Could not subscribe to ambulance</string>
     <string name="couldNotSubscribeToHospital">Could not subscribe to hospital data</string>
+    <string name="couldNotRetrieveAmbulance">Could not retrieve ambulance \'%1$s\'.</string>
+    <string name="couldNotRetrieveHospitals">Could not retrieve hospitals</string>
 
     <string-array name="spinner_list_item_array">
         <item>@string/dispatch</item>

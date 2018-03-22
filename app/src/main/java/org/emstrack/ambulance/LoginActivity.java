@@ -31,12 +31,13 @@ import com.google.android.gms.location.SettingsClient;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 
+import org.emstrack.ambulance.dialogs.AlertDialog;
 import org.emstrack.ambulance.services.AmbulanceForegroundService;
 import org.emstrack.ambulance.services.OnServiceComplete;
 
 public class LoginActivity extends AppCompatActivity {
 
-    private static final String TAG = "LoginActvity";
+    private static final String TAG = LoginActivity.class.getSimpleName();
 
     private static final int REQUEST_PERMISSIONS_REQUEST_CODE = 34;
     private static final int REQUEST_CHECK_SETTINGS = 0x1;
@@ -73,10 +74,10 @@ public class LoginActivity extends AppCompatActivity {
                 final String password = passwordField.getText().toString().trim();
 
                 if (username.isEmpty())
-                    alert(getResources().getString(R.string.error_empty_username));
+                    new AlertDialog(LoginActivity.this).alert(getResources().getString(R.string.error_empty_username));
 
                 else if (password.isEmpty())
-                    alert(getResources().getString(R.string.error_empty_password));
+                    new AlertDialog(LoginActivity.this).alert(getResources().getString(R.string.error_empty_password));
 
                 else {
 
@@ -91,7 +92,7 @@ public class LoginActivity extends AppCompatActivity {
 
                             // Toast
                             Toast.makeText(LoginActivity.this,
-                                    String.format(getString(R.string.loginSuccessMessage), username),
+                                    getResources().getString(R.string.loginSuccessMessage, username),
                                     Toast.LENGTH_SHORT).show();
 
                             // initiate AmbulanceListActivity
@@ -101,23 +102,9 @@ public class LoginActivity extends AppCompatActivity {
 
                         }
 
-                        @Override
-                        public void onFailure(Bundle extras) {
-                            Log.i(TAG,"onFailure");
-
-                            // Alert user
-                            if (extras != null) {
-                                String message = extras.getString(AmbulanceForegroundService.BroadcastExtras.MESSAGE);
-                                if (message == null)
-                                    message = String.format(getString(R.string.couldNotLoginUser), username);
-
-                                // Alert user
-                                alert(message);
-
-                            }
-
-                        }
-                    };
+                    }
+                            .setFailureMessage(getResources().getString(R.string.couldNotLoginUser, username))
+                            .setAlert(new AlertDialog(LoginActivity.this));
 
                     // Login at service
                     Intent intent = new Intent(LoginActivity.this, AmbulanceForegroundService.class);
@@ -170,20 +157,6 @@ public class LoginActivity extends AppCompatActivity {
             requestPermissions();
 
         }
-
-    }
-
-    public void alert(String message) {
-
-        Snackbar.make(findViewById(android.R.id.content),
-                message,
-                Snackbar.LENGTH_INDEFINITE)
-                .setAction(android.R.string.ok,
-                        new View.OnClickListener() {
-                            @Override
-                            public void onClick(View view) { /* do nothing */ }
-                        }).show();
-
 
     }
 

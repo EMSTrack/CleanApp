@@ -1,22 +1,16 @@
 package org.emstrack.ambulance;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.design.widget.Snackbar;
-import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.Spinner;
 import android.widget.Toast;
-import android.util.Log;
 
+import org.emstrack.ambulance.dialogs.AlertDialog;
 import org.emstrack.ambulance.dialogs.LogoutDialog;
 import org.emstrack.ambulance.services.AmbulanceForegroundService;
 import org.emstrack.ambulance.services.OnServiceComplete;
@@ -24,38 +18,16 @@ import org.emstrack.models.Ambulance;
 import org.emstrack.models.AmbulancePermission;
 import org.emstrack.mqtt.MqttProfileClient;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Created by devinhickey on 5/24/17.
  */
 
 public class AmbulanceListActivity extends AppCompatActivity {
 
-    abstract class LocalOnServiceComplete extends OnServiceComplete {
-
-        public LocalOnServiceComplete(Context context, String successAction, String failureAction) {
-            super(context, successAction, failureAction, true);
-        }
-
-        @Override
-        public void onFailure(Bundle extras) {
-            Log.i(TAG,"onFailure");
-
-            // Alert user
-            if (extras != null) {
-                String message = extras.getString(AmbulanceForegroundService.BroadcastExtras.MESSAGE);
-                if (message == null)
-                    message = "Failed to complete service request";
-
-                // Alert user
-                alert(message);
-
-            }
-
-        }
-
-    }
-
-    private static final String TAG = "AmbulanceListActivity";
+    private static final String TAG = AmbulanceListActivity.class.getSimpleName();
 
     private boolean goAhead = true;
 
@@ -99,72 +71,34 @@ public class AmbulanceListActivity extends AppCompatActivity {
         ambulanceSpinner.setAdapter(ambulanceListAdapter);
 
         // Any ambulance currently selected?
-        final Ambulance ambulance = AmbulanceForegroundService.getAmbulance();
+        Ambulance ambulance = AmbulanceForegroundService.getAmbulance();
         if (ambulance != null)
             // Set spinner
             ambulanceSpinner.setSelection(ambulanceListAdapter.getPosition(ambulance.getIdentifier()));
 
         // Create the ambulance button
         Button submitAmbulanceButton = findViewById(R.id.submitAmbulanceButton);
-        submitAmbulanceButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-                Log.d(TAG, "AmbulanceEquipmentMetadata Submit Button Clicked");
-
-                int position = ambulanceSpinner.getSelectedItemPosition();
-                Log.d(TAG, "Position Selected: " + position);
-
-                AmbulancePermission selectedAmbulance = ambulances.get(position);
-                Log.d(TAG, "Selected AmbulanceEquipmentMetadata: " + selectedAmbulance.getAmbulanceIdentifier());
-
-                int ambulanceId = selectedAmbulance.getAmbulanceId();
-
-                // Warn if current ambulance is requesting location updates
-                if (ambulance != null && ambulance.getId() != ambulanceId && AmbulanceForegroundService.isRequestingLocationUpdates()) {
-
-                    AlertDialog.Builder builder = new AlertDialog.Builder(AmbulanceListActivity.this);
-                    builder.setTitle(R.string.alert_warning_title);
-                    builder.setMessage(getResources().getString(R.string.alert_ambulance_switch, ambulance.getIdentifier(), selectedAmbulance.getAmbulanceIdentifier()))
-                            .setPositiveButton(R.string.alert_button_positive_text,
-                                    new DialogInterface.OnClickListener() {
-                                        public void onClick(DialogInterface dialog, int id) {
-                                            goAhead = true;
-                                        }
-                                    })
-                            .setNegativeButton(R.string.alert_button_negative_text,
-                                    new DialogInterface.OnClickListener() {
-                                        public void onClick(DialogInterface dialog, int id) {
-                                            goAhead = false;
-
-                                        }
-                                    });
-
-                    // Display dialog
-                    goAhead = true;
-                    builder.create().show();
-
-                    // Go ahead?
-                    if (!goAhead)
-                        return;
-
-                }
-
-                new LocalOnServiceComplete(AmbulanceListActivity.this,
-                        AmbulanceForegroundService.BroadcastActions.SUCCESS,
-                        AmbulanceForegroundService.BroadcastActions.FAILURE) {
-
+        submitAmbulanceButton.setOnClickListener(
+                new View.OnClickListener() {
                     @Override
-                    public void onSuccess(Bundle extras) {
-                        Log.i(TAG, "onSuccess");
+                    public void onClick(View v) {
 
-                        new LocalOnServiceComplete(AmbulanceListActivity.this,
-                                AmbulanceForegroundService.BroadcastActions.SUCCESS,
-                                AmbulanceForegroundService.BroadcastActions.FAILURE) {
+                        // Get selected ambulance
+                        int position = ambulanceSpinner.getSelectedItemPosition();
+                        final AmbulancePermission selectedAmbulance = ambulances.get(position);
+                        Log.d(TAG, "Selected ambulance " + selectedAmbulance.getAmbulanceIdentifier());
 
-                            @Override
-                            public void onSuccess(Bundle extras) {
-                                Log.i(TAG, "onSuccess");
+                        // Any ambulance currently selected?
+                        final Ambulance ambulance = AmbulanceForegroundService.getAmbulance();
+
+                        // Warn if current ambulance is requesting location updates
+                        if (ambulance != null) {
+
+                            Log.d(TAG, "Current ambulance " + ambulance.getIdentifier());
+                            Log.d(TAG, "Requesting location updates? " +
+                                    (AmbulanceForegroundService.isRequestingLocationUpdates() ? "TRUE" : "FALSE"));
+
+                            if (ambulance.getId() == selectedAmbulance.getAmbulanceId()) {
 
                                 // Start MainActivity
                                 Log.i(TAG, "Start main activity");
@@ -172,49 +106,94 @@ public class AmbulanceListActivity extends AppCompatActivity {
                                         MainActivity.class);
                                 startActivity(intent);
 
-                            }
-                        };
+                                return;
 
-                        // Retrieve hospitals
-                        Log.i(TAG, "Retrieve hospitals");
-                        Intent hospitalsIntent = new Intent(AmbulanceListActivity.this, AmbulanceForegroundService.class);
-                        hospitalsIntent.setAction(AmbulanceForegroundService.Actions.GET_HOSPITALS);
-                        startService(hospitalsIntent);
+                            } else // ambulance.getId() != selectedAmbulance.getAmbulanceId()
+                                if (AmbulanceForegroundService.isRequestingLocationUpdates()) {
+
+                                // Can't do: stop location updates first!
+                                Log.d(TAG, "Switching ambulance during location updates");
+
+                                // Display dialog
+                                new AlertDialog(AmbulanceListActivity.this)
+                                        .alert(getResources().getString(R.string.alert_ambulance_switch, ambulance.getIdentifier()),
+                                                new View.OnClickListener() {
+                                                    @Override
+                                                    public void onClick(View view) {
+                                                        // set spinner back to original ambulance
+                                                        ambulanceSpinner.setSelection(((ArrayAdapter<String>) ambulanceSpinner.getAdapter()).getPosition(ambulance.getIdentifier()));
+                                                    }
+                                                });
+
+                                return;
+
+                            }
+
+                        }
+
+                        // otherwise go ahead!
+                        retrieveAmbulance(selectedAmbulance);
 
                     }
 
-                };
+                });
 
-                // Retrieve ambulance
-                Log.i(TAG, "Retrieve ambulances");
-                Intent ambulanceIntent = new Intent(AmbulanceListActivity.this, AmbulanceForegroundService.class);
-                ambulanceIntent.setAction(AmbulanceForegroundService.Actions.GET_AMBULANCE);
-                ambulanceIntent.putExtra("AMBULANCE_ID", ambulanceId);
-                startService(ambulanceIntent);
+    }
+
+    public void retrieveAmbulance(AmbulancePermission selectedAmbulance) {
+
+        // What to do when GET_AMBULANCE service completes?
+        new OnServiceComplete(AmbulanceListActivity.this,
+                AmbulanceForegroundService.BroadcastActions.SUCCESS,
+                AmbulanceForegroundService.BroadcastActions.FAILURE) {
+
+            @Override
+            public void onSuccess(Bundle extras) {
+
+                // What to do when GET_HOSPITALS service completes?
+                new OnServiceComplete(AmbulanceListActivity.this,
+                        AmbulanceForegroundService.BroadcastActions.SUCCESS,
+                        AmbulanceForegroundService.BroadcastActions.FAILURE) {
+
+                    @Override
+                    public void onSuccess(Bundle extras) {
+
+                        // Start MainActivity
+                        Log.i(TAG, "Start main activity");
+                        Intent intent = new Intent(AmbulanceListActivity.this,
+                                MainActivity.class);
+                        startActivity(intent);
+
+                    }
+                }
+                        .setFailureMessage(getString(R.string.couldNotRetrieveHospitals))
+                        .setAlert(new AlertDialog(AmbulanceListActivity.this));
+                ;
+
+                // Retrieve hospitals
+                Intent hospitalsIntent = new Intent(AmbulanceListActivity.this, AmbulanceForegroundService.class);
+                hospitalsIntent.setAction(AmbulanceForegroundService.Actions.GET_HOSPITALS);
+                startService(hospitalsIntent);
 
             }
-        });
 
-    }  // end onCreate
+        }
+                .setFailureMessage(getResources().getString(R.string.couldNotRetrieveAmbulance, selectedAmbulance.getAmbulanceIdentifier()))
+                .setAlert(new AlertDialog(AmbulanceListActivity.this));
+        ;
+
+        // Retrieve ambulance
+        Intent ambulanceIntent = new Intent(AmbulanceListActivity.this, AmbulanceForegroundService.class);
+        ambulanceIntent.setAction(AmbulanceForegroundService.Actions.GET_AMBULANCE);
+        ambulanceIntent.putExtra("AMBULANCE_ID", selectedAmbulance.getAmbulanceId());
+        startService(ambulanceIntent);
+
+    }
 
     @Override
     public void onBackPressed() {
         LogoutDialog ld = LogoutDialog.newInstance();
         ld.show(getFragmentManager(), "logout_dialog");
-    }
-
-    public void alert(String message) {
-
-        Snackbar.make(findViewById(android.R.id.content),
-                message,
-                Snackbar.LENGTH_INDEFINITE)
-                .setAction(android.R.string.ok,
-                        new View.OnClickListener() {
-                            @Override
-                            public void onClick(View view) { /* do nothing */ }
-                        }).show();
-
-
     }
 
 }
