@@ -10,7 +10,6 @@ import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
-import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -19,7 +18,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
-import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.common.api.ApiException;
@@ -31,11 +30,11 @@ import com.google.android.gms.location.SettingsClient;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 
-import org.emstrack.ambulance.dialogs.AlertDialog;
+import org.emstrack.ambulance.dialogs.AlertSnackbar;
 import org.emstrack.ambulance.services.AmbulanceForegroundService;
 import org.emstrack.ambulance.services.OnServiceComplete;
 
-public class LoginActivity extends AppCompatActivity {
+public class LoginActivity extends AppCompatActivity implements View.OnClickListener {
 
     private static final String TAG = LoginActivity.class.getSimpleName();
 
@@ -45,6 +44,8 @@ public class LoginActivity extends AppCompatActivity {
 
     private SharedPreferences sharedPreferences;
     private Button loginSubmitButton;
+    private TextView usernameField;
+    private TextView passwordField;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,8 +54,8 @@ public class LoginActivity extends AppCompatActivity {
         setContentView(R.layout.activity_login);
 
         // Find username and password from layout
-        final EditText usernameField = findViewById(R.id.editUserName);
-        final EditText passwordField = findViewById(R.id.editPassword);
+        usernameField = (TextView) findViewById(R.id.editUserName);
+        passwordField = (TextView) findViewById(R.id.editPassword);
 
         // Retrieving credentials
         sharedPreferences = getSharedPreferences(AmbulanceForegroundService.PREFERENCES_NAME, MODE_PRIVATE);
@@ -63,64 +64,10 @@ public class LoginActivity extends AppCompatActivity {
         usernameField.setText(sharedPreferences.getString(AmbulanceForegroundService.PREFERENCES_USERNAME, null));
         passwordField.setText(sharedPreferences.getString(AmbulanceForegroundService.PREFERENCES_PASSWORD, null));
 
-        // Submit button's click listener
+        // Submit button
         loginSubmitButton = (Button) findViewById(R.id.buttonLogin);
-        loginSubmitButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
 
-                // Get user info & remove whitespace
-                final String username = usernameField.getText().toString().trim();
-                final String password = passwordField.getText().toString().trim();
-
-                if (username.isEmpty())
-                    new AlertDialog(LoginActivity.this).alert(getResources().getString(R.string.error_empty_username));
-
-                else if (password.isEmpty())
-                    new AlertDialog(LoginActivity.this).alert(getResources().getString(R.string.error_empty_password));
-
-                else {
-
-                    // What to do when service completes?
-                    new OnServiceComplete(LoginActivity.this,
-                            AmbulanceForegroundService.BroadcastActions.SUCCESS,
-                            AmbulanceForegroundService.BroadcastActions.FAILURE) {
-
-                        @Override
-                        public void onSuccess(Bundle extras) {
-                            Log.i(TAG,"onSuccess");
-
-                            // Toast
-                            Toast.makeText(LoginActivity.this,
-                                    getResources().getString(R.string.loginSuccessMessage, username),
-                                    Toast.LENGTH_SHORT).show();
-
-                            // initiate AmbulanceListActivity
-                            Intent intent = new Intent(LoginActivity.this,
-                                    AmbulanceListActivity.class);
-                            startActivity(intent);
-
-                        }
-
-                    }
-                            .setFailureMessage(getResources().getString(R.string.couldNotLoginUser, username))
-                            .setAlert(new AlertDialog(LoginActivity.this));
-
-                    // Login at service
-                    Intent intent = new Intent(LoginActivity.this, AmbulanceForegroundService.class);
-                    intent.setAction(AmbulanceForegroundService.Actions.LOGIN);
-                    intent.putExtra("CREDENTIALS", new String[] { username, password });
-                    startService(intent);
-
-                }
-
-            }
-        });
-
-        // button is disabled until permissions are checked
-        loginSubmitButton.setEnabled(false);
-
-        //allow keyboard to disappear on screen click
+        // allow keyboard to disappear on screen click
         findViewById(R.id.relativeLayout).setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
@@ -130,31 +77,116 @@ public class LoginActivity extends AppCompatActivity {
             }
         });
 
-        // Can update?
+    }
+
+    public void disableLogin() {
+
+        // Disable login
+        loginSubmitButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                // Toast to warn about check permissions
+                Toast.makeText(LoginActivity.this, "Please be patient. Checking permissions...", Toast.LENGTH_LONG).show();
+
+            }
+        });
+
+    }
+
+    public void enableLogin() {
+
+        // Enable login
+        loginSubmitButton.setOnClickListener(this);
+
         if (AmbulanceForegroundService.canUpdateLocation()) {
 
             // Toast to warn about check permissions
-            Toast.makeText(LoginActivity.this, "Already has proper location settings.", Toast.LENGTH_LONG).show();
+            Toast.makeText(LoginActivity.this, "Location permissions satisfied.", Toast.LENGTH_LONG).show();
 
-            // Enable button
-            loginSubmitButton.setEnabled(true);
+        } else {
+
+            // Alert to warn about check permissions
+            new AlertSnackbar(LoginActivity.this)
+                    .alert("Location permissions not satisfied. Expect limited functionality.");
+
+        }
+
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+
+        // Disable login
+        disableLogin();
+
+        // Can update?
+        if (AmbulanceForegroundService.canUpdateLocation()) {
+
+            // Enable login
+            enableLogin();
 
             // Check and request permissions to retrieve locations if necessary
         } else if (checkPermissions()) {
 
-                // Toast to warn about check permissions
-                Toast.makeText(LoginActivity.this, "Checking location settings...", Toast.LENGTH_LONG).show();
-
-                // Otherwise check
-                checkLocationSettings();
+            // Otherwise check
+            checkLocationSettings();
 
         } else {
 
-            // Toast to warn about check permissions
-            Toast.makeText(LoginActivity.this, "Requesting permissions...", Toast.LENGTH_LONG).show();
-
             // requestPermissions calls checkLocationSettings if successful
             requestPermissions();
+
+        }
+
+    }
+
+    @Override
+    public void onClick(View view) {
+
+        // Get user info & remove whitespace
+        final String username = usernameField.getText().toString().trim();
+        final String password = passwordField.getText().toString().trim();
+
+        if (username.isEmpty())
+            new AlertSnackbar(LoginActivity.this).alert(getResources().getString(R.string.error_empty_username));
+
+        else if (password.isEmpty())
+            new AlertSnackbar(LoginActivity.this).alert(getResources().getString(R.string.error_empty_password));
+
+        else {
+
+            // What to do when service completes?
+            new OnServiceComplete(LoginActivity.this,
+                    AmbulanceForegroundService.BroadcastActions.SUCCESS,
+                    AmbulanceForegroundService.BroadcastActions.FAILURE) {
+
+                @Override
+                public void onSuccess(Bundle extras) {
+                    Log.i(TAG, "onSuccess");
+
+                    // Toast
+                    Toast.makeText(LoginActivity.this,
+                            getResources().getString(R.string.loginSuccessMessage, username),
+                            Toast.LENGTH_SHORT).show();
+
+                    // initiate AmbulanceListActivity
+                    Intent intent = new Intent(LoginActivity.this,
+                            AmbulanceListActivity.class);
+                    startActivity(intent);
+
+                }
+
+            }
+                    .setFailureMessage(getResources().getString(R.string.couldNotLoginUser, username))
+                    .setAlert(new AlertSnackbar(LoginActivity.this));
+
+            // Login at service
+            Intent intent = new Intent(LoginActivity.this, AmbulanceForegroundService.class);
+            intent.setAction(AmbulanceForegroundService.Actions.LOGIN);
+            intent.putExtra("CREDENTIALS", new String[]{username, password});
+            startService(intent);
 
         }
 
@@ -183,10 +215,8 @@ public class LoginActivity extends AppCompatActivity {
         if (shouldProvideRationale) {
             Log.i(TAG, "Displaying permission rationale to provide additional context.");
 
-            Snackbar.make(findViewById(android.R.id.content),
-                    R.string.permission_rationale,
-                    Snackbar.LENGTH_INDEFINITE)
-                    .setAction(android.R.string.ok,
+            new AlertSnackbar(this)
+                    .alert(getString(R.string.permission_rationale),
                             new View.OnClickListener() {
                                 @Override
                                 public void onClick(View view) {
@@ -195,7 +225,7 @@ public class LoginActivity extends AppCompatActivity {
                                             new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
                                             REQUEST_PERMISSIONS_REQUEST_CODE);
                                 }
-                            }).show();
+                            });
 
         } else {
             Log.i(TAG, "Requesting permission");
@@ -243,11 +273,8 @@ public class LoginActivity extends AppCompatActivity {
                 // again" prompts). Therefore, a user interface affordance is typically implemented
                 // when permissions are denied. Otherwise, your app could appear unresponsive to
                 // touches or interactions which have required permissions.
-                Snackbar.make(
-                        findViewById(android.R.id.content),
-                        R.string.permission_denied_explanation,
-                        Snackbar.LENGTH_INDEFINITE)
-                        .setAction(R.string.settings,
+                new AlertSnackbar(this)
+                        .alert(getString(R.string.permission_denied_explanation),
                                 new View.OnClickListener() {
                                     @Override
                                     public void onClick(View view) {
@@ -261,7 +288,7 @@ public class LoginActivity extends AppCompatActivity {
                                         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                                         startActivity(intent);
                                     }
-                                }).show();
+                                });
             }
         }
     }
@@ -279,11 +306,11 @@ public class LoginActivity extends AppCompatActivity {
                     public void onSuccess(LocationSettingsResponse locationSettingsResponse) {
                         Log.i(TAG, "All location settings are satisfied.");
 
-                        // enable login button
-                        loginSubmitButton.setEnabled(true);
-
                         // enable location updates
                         AmbulanceForegroundService.setCanUpdateLocation(true);
+
+                        // enable login
+                        enableLogin();
 
                     }
                 })
@@ -307,14 +334,15 @@ public class LoginActivity extends AppCompatActivity {
                             case LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:
                                 String errorMessage = "Location settings are inadequate, and cannot be " +
                                         "fixed here. Fix in Settings.";
-                                Log.e(TAG, errorMessage);
-                                Toast.makeText(LoginActivity.this, errorMessage, Toast.LENGTH_LONG).show();
 
-                                // enable login button
-                                loginSubmitButton.setEnabled(true);
+                                new AlertSnackbar(LoginActivity.this)
+                                        .alert(errorMessage);
 
                                 // disable location updates
                                 AmbulanceForegroundService.setCanUpdateLocation(false);
+
+                                // enable login
+                                enableLogin();
 
                         }
 

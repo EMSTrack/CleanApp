@@ -10,7 +10,7 @@ import android.widget.Button;
 import android.widget.Spinner;
 import android.widget.Toast;
 
-import org.emstrack.ambulance.dialogs.AlertDialog;
+import org.emstrack.ambulance.dialogs.AlertSnackbar;
 import org.emstrack.ambulance.dialogs.LogoutDialog;
 import org.emstrack.ambulance.services.AmbulanceForegroundService;
 import org.emstrack.ambulance.services.OnServiceComplete;
@@ -115,7 +115,7 @@ public class AmbulanceListActivity extends AppCompatActivity {
                                 Log.d(TAG, "Switching ambulance during location updates");
 
                                 // Display dialog
-                                new AlertDialog(AmbulanceListActivity.this)
+                                new AlertSnackbar(AmbulanceListActivity.this)
                                         .alert(getResources().getString(R.string.alert_ambulance_switch, ambulance.getIdentifier()),
                                                 new View.OnClickListener() {
                                                     @Override
@@ -167,7 +167,7 @@ public class AmbulanceListActivity extends AppCompatActivity {
                     }
                 }
                         .setFailureMessage(getString(R.string.couldNotRetrieveHospitals))
-                        .setAlert(new AlertDialog(AmbulanceListActivity.this));
+                        .setAlert(new AlertSnackbar(AmbulanceListActivity.this));
                 ;
 
                 // Retrieve hospitals
@@ -179,7 +179,7 @@ public class AmbulanceListActivity extends AppCompatActivity {
 
         }
                 .setFailureMessage(getResources().getString(R.string.couldNotRetrieveAmbulance, selectedAmbulance.getAmbulanceIdentifier()))
-                .setAlert(new AlertDialog(AmbulanceListActivity.this));
+                .setAlert(new AlertSnackbar(AmbulanceListActivity.this));
         ;
 
         // Retrieve ambulance
