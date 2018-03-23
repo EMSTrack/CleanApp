@@ -177,6 +177,8 @@ public class AmbulanceFragment extends Fragment implements CompoundButton.OnChec
                             String updateString = "{\"status\":\"" + statusCode + "\",\"timestamp\":\"" + timestamp + "\"}";
 
                             // Update on server
+                            // TODO: Update along with locations because it will be recorded with
+                            // the wrong location on the server
                             Intent intent = new Intent(getContext(), AmbulanceForegroundService.class);
                             intent.setAction(AmbulanceForegroundService.Actions.UPDATE_AMBULANCE);
                             intent.putExtra("UPDATES",updateString);
