@@ -15,7 +15,6 @@ import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
 import android.os.IBinder;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -43,14 +42,15 @@ import com.google.gson.GsonBuilder;
 import org.eclipse.paho.android.service.MqttAndroidClient;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
-import org.emstrack.ambulance.AmbulanceListActivity;
-import org.emstrack.ambulance.LoginActivity;
 import org.emstrack.ambulance.MainActivity;
 import org.emstrack.ambulance.R;
 import org.emstrack.ambulance.util.LatLon;
+import org.emstrack.ambulance.util.LocationFilter;
+import org.emstrack.ambulance.util.LocationUpdate;
 import org.emstrack.models.Ambulance;
 import org.emstrack.models.Hospital;
 import org.emstrack.models.HospitalPermission;
+import org.emstrack.models.Location;
 import org.emstrack.mqtt.MqttProfileCallback;
 import org.emstrack.mqtt.MqttProfileClient;
 import org.emstrack.mqtt.MqttProfileMessageCallback;
@@ -68,12 +68,6 @@ import java.util.UUID;
  */
 
 public class AmbulanceForegroundService extends Service {
-
-    class LocationUpdate {
-        public android.location.Location location;
-        public float bearing;
-        public Date timestamp;
-    };
 
     final static String TAG = AmbulanceForegroundService.class.getSimpleName();
 
@@ -139,16 +133,17 @@ public class AmbulanceForegroundService extends Service {
 
         public boolean bulkUpdates = true;
         public final String TAG = LocationUpdatesBroadcastReceiver.class.getSimpleName();
+        public LocationFilter filter = new LocationFilter(null);
 
         public static String getUpdateString(LocationUpdate lastLocation) {
-            double latitude = lastLocation.location.getLatitude();
-            double longitude = lastLocation.location.getLongitude();
-            double orientation = lastLocation.bearing;
+            double latitude = lastLocation.getLocation().getLatitude();
+            double longitude = lastLocation.getLocation().getLongitude();
+            double orientation = lastLocation.getBearing();
 
             // format timestamp
             DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
             df.setTimeZone(TimeZone.getTimeZone("UTC"));
-            String timestamp = df.format(lastLocation.timestamp);
+            String timestamp = df.format(lastLocation.getTimestamp());
 
             String updateString =  "{\"orientation\":" + orientation + ",\"location\":{" +
                     "\"latitude\":"+ latitude + ",\"longitude\":" + longitude +"},\"timestamp\":\"" + timestamp + "\"}";
@@ -167,31 +162,19 @@ public class AmbulanceForegroundService extends Service {
                         List<android.location.Location> locations = result.getLocations();
                         Log.i(TAG, "Received " + locations.size() + " location updates");
 
+                        // Initialize filter
+                        if (_lastLocation != null)
+                            filter.setLocation(_lastLocation);
+
+                        // Filter location
+                        List<LocationUpdate> filteredLocations = filter.update(locations);
+
                         Ambulance ambulance = getAmbulance();
                         List<String> mqttUpdates = new ArrayList<>();
-                        for (android.location.Location newLocation : locations) {
+                        for (LocationUpdate newLocation : filteredLocations) {
 
-                            // update bearing
-                            float bearing = newLocation.getBearing();
-                            if (bearing != 0.0) {
-                                _lastLocation.bearing = bearing;
-                                Log.i(TAG, "newBearing = " + _lastLocation.bearing);
-                            }
-
-                            // calculate distance from last update
-                            double distance = LatLon.CalculateDistanceHaversine(newLocation, _lastLocation.location);
-                            Log.i(TAG, "distance = " + distance + ", newLocation = " + newLocation);
-
-                            // Have we moved yet?
-                            if (distance < LatLon.stationaryRadius)
-                                continue;
-
-                            // otherwise set last location
-                            // NOTE: Needs to update both old and last because last may be changed by
-                            // ambulance update during processing
-                            Log.i(TAG, "Will update location on server");
-                            _lastLocation.location = newLocation;
-                            _lastLocation.timestamp = new Date(newLocation.getTime());
+                            // Set last location
+                            _lastLocation = newLocation;
 
                             // Create update string
                             String updateString = getUpdateString(_lastLocation);
@@ -363,9 +346,6 @@ public class AmbulanceForegroundService extends Service {
         } else if (intent.getAction().equals(Actions.LOGOUT)) {
 
             Log.i(TAG, "LOGOUT Foreground Intent");
-
-            // Popup toast
-            Toast.makeText(this, "Stopping service", Toast.LENGTH_SHORT).show();
 
             // logout
             logout();
@@ -771,15 +751,15 @@ public class AmbulanceForegroundService extends Service {
                                                 Ambulance.class);
 
                                 // Has location been updated?
-                                if (_lastLocation == null || ambulance.getTimestamp().after(_lastLocation.timestamp)) {
+                                if (_lastLocation == null || ambulance.getTimestamp().after(_lastLocation.getTimestamp())) {
                                     // Update last location
                                     _lastLocation = new LocationUpdate();
-                                    _lastLocation.location =
-                                            new android.location.Location("FusedLocationClient");
-                                    _lastLocation.location.setLatitude(ambulance.getLocation().getLatitude());
-                                    _lastLocation.location.setLongitude(ambulance.getLocation().getLongitude());
-                                    _lastLocation.bearing = (float) ambulance.getOrientation();
-                                    _lastLocation.timestamp = ambulance.getTimestamp();
+                                    android.location.Location location = new android.location.Location("FusedLocationClient");
+                                    location.setLatitude(ambulance.getLocation().getLatitude());
+                                    location.setLongitude(ambulance.getLocation().getLongitude());
+                                    _lastLocation.setLocation(location);
+                                    _lastLocation.setBearing(ambulance.getOrientation());
+                                    _lastLocation.setTimestamp(ambulance.getTimestamp());
                                 }
 
                                 // First time?

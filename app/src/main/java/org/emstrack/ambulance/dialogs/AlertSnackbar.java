@@ -9,22 +9,22 @@ import android.view.View;
  * Created by mauricio on 3/22/2018.
  */
 
-public class AlertDialog {
+public class AlertSnackbar {
 
-    private static String TAG = AlertDialog.class.getSimpleName();
+    private static String TAG = AlertSnackbar.class.getSimpleName();
 
     private final View view;
 
-    public AlertDialog(String TAG) {
+    public AlertSnackbar(String TAG) {
         this.TAG = TAG;
         this.view = null;
     }
 
-    public AlertDialog(View view) {
+    public AlertSnackbar(View view) {
         this.view = view.findViewById(android.R.id.content);
     }
 
-    public AlertDialog(Activity activity) {
+    public AlertSnackbar(Activity activity) {
         this.view = activity.findViewById(android.R.id.content);
     }
 

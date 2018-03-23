@@ -8,7 +8,7 @@ import android.os.Bundle;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
-import org.emstrack.ambulance.dialogs.AlertDialog;
+import org.emstrack.ambulance.dialogs.AlertSnackbar;
 
 /**
  * Created by mauricio on 3/21/2018.
@@ -21,7 +21,7 @@ public abstract class OnServiceComplete extends BroadcastReceiver {
     private final String successAction;
     private final String failureAction;
     private String failureMessage;
-    private AlertDialog alert;
+    private AlertSnackbar alert;
 
     private boolean oneShot;
     private boolean successFlag;
@@ -52,7 +52,7 @@ public abstract class OnServiceComplete extends BroadcastReceiver {
         getLocalBroadcastManager(context).registerReceiver(this, failureIntentFilter);
 
         // Default alert is AlertLog
-        this.alert = new AlertDialog(TAG);
+        this.alert = new AlertSnackbar(TAG);
 
         // Defaiult failure message
         this.failureMessage = "Failed to complete service request";
@@ -67,7 +67,7 @@ public abstract class OnServiceComplete extends BroadcastReceiver {
         return completeFlag;
     }
 
-    public OnServiceComplete setAlert(AlertDialog alert) {
+    public OnServiceComplete setAlert(AlertSnackbar alert) {
         this.alert = alert;
         return this;
     }
