@@ -115,10 +115,16 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
             // Get user info & remove whitespace
             final String username = usernameField.getText().toString().trim();
 
+            // Create intent
+            Intent intent = new Intent(LoginActivity.this,
+                    AmbulanceListActivity.class);
+
             Ambulance ambulance = AmbulanceForegroundService.getAmbulance();
             if (ambulance != null) {
 
                 Log.i(TAG, "Already logged in with ambulance");
+
+                intent.putExtra("SKIP_AMBULANCE_SELECTION", true);
 
             } else {
 
@@ -134,10 +140,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                     Toast.LENGTH_SHORT).show();
 
             // initiate AmbulanceListActivity
-            Intent intent = new Intent(LoginActivity.this,
-                    AmbulanceListActivity.class);
             startActivity(intent);
-
 
             return;
         }
