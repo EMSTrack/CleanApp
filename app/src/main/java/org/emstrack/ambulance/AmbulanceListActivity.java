@@ -140,6 +140,20 @@ public class AmbulanceListActivity extends AppCompatActivity {
 
                 });
 
+        // Skip selection and go straight to MainActivity?
+        boolean skipAmbulanceSelection = getIntent().getBooleanExtra("SKIP_AMBULANCE_SELECTION", false);
+        if(skipAmbulanceSelection) {
+
+            // Start MainActivity
+            Log.i(TAG, "Start main activity");
+            Intent intent = new Intent(AmbulanceListActivity.this,
+                    MainActivity.class);
+            startActivity(intent);
+
+            return;
+
+        }
+
     }
 
     public void retrieveAmbulance(AmbulancePermission selectedAmbulance) {
