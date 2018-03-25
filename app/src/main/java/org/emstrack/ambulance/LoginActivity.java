@@ -3,6 +3,7 @@ package org.emstrack.ambulance;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.TaskStackBuilder;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.content.SharedPreferences;
@@ -33,6 +34,13 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import org.emstrack.ambulance.dialogs.AlertSnackbar;
 import org.emstrack.ambulance.services.AmbulanceForegroundService;
 import org.emstrack.ambulance.services.OnServiceComplete;
+import org.emstrack.models.Ambulance;
+import org.emstrack.models.AmbulancePermission;
+import org.emstrack.models.Profile;
+import org.emstrack.mqtt.MqttProfileCallback;
+import org.emstrack.mqtt.MqttProfileClient;
+
+import java.util.List;
 
 public class LoginActivity extends AppCompatActivity implements View.OnClickListener {
 
@@ -99,6 +107,42 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         // Enable login
         loginSubmitButton.setOnClickListener(this);
 
+        // Already logged in?
+        final MqttProfileClient profileClient = AmbulanceForegroundService.getProfileClient(this);
+        Profile profile = profileClient.getProfile();
+        if (profile != null) {
+
+            // Get user info & remove whitespace
+            final String username = usernameField.getText().toString().trim();
+
+            Ambulance ambulance = AmbulanceForegroundService.getAmbulance();
+            if (ambulance != null) {
+
+                Log.i(TAG, "Already logged in with ambulance");
+
+            } else {
+
+                Log.i(TAG, "Already logged in without ambulance");
+
+            }
+
+            Log.i(TAG, "Starting AmbulanceListActivity");
+
+            // Toast
+            Toast.makeText(LoginActivity.this,
+                    getResources().getString(R.string.loginSuccessMessage, username),
+                    Toast.LENGTH_SHORT).show();
+
+            // initiate AmbulanceListActivity
+            Intent intent = new Intent(LoginActivity.this,
+                    AmbulanceListActivity.class);
+            startActivity(intent);
+
+
+            return;
+        }
+
+
         if (AmbulanceForegroundService.canUpdateLocation()) {
 
             // Toast to warn about check permissions
@@ -157,10 +201,16 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
         else {
 
+            // Login at service
+            Intent intent = new Intent(LoginActivity.this, AmbulanceForegroundService.class);
+            intent.setAction(AmbulanceForegroundService.Actions.LOGIN);
+            intent.putExtra("CREDENTIALS", new String[]{username, password});
+
             // What to do when service completes?
             new OnServiceComplete(LoginActivity.this,
                     AmbulanceForegroundService.BroadcastActions.SUCCESS,
-                    AmbulanceForegroundService.BroadcastActions.FAILURE) {
+                    AmbulanceForegroundService.BroadcastActions.FAILURE,
+                    intent) {
 
                 @Override
                 public void onSuccess(Bundle extras) {
@@ -181,12 +231,6 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
             }
                     .setFailureMessage(getResources().getString(R.string.couldNotLoginUser, username))
                     .setAlert(new AlertSnackbar(LoginActivity.this));
-
-            // Login at service
-            Intent intent = new Intent(LoginActivity.this, AmbulanceForegroundService.class);
-            intent.setAction(AmbulanceForegroundService.Actions.LOGIN);
-            intent.putExtra("CREDENTIALS", new String[]{username, password});
-            startService(intent);
 
         }
 

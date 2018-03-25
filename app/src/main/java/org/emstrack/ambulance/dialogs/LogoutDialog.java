@@ -8,12 +8,15 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
+import android.widget.Toast;
 
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.emstrack.ambulance.AmbulanceApp;
+import org.emstrack.ambulance.AmbulanceListActivity;
 import org.emstrack.ambulance.services.AmbulanceForegroundService;
 import org.emstrack.ambulance.LoginActivity;
 import org.emstrack.ambulance.R;
+import org.emstrack.ambulance.services.OnServiceComplete;
 import org.emstrack.mqtt.MqttProfileClient;
 
 /**
@@ -49,20 +52,27 @@ public class LogoutDialog extends DialogFragment {
                 // Stop foreground activity
                 Intent intent = new Intent(getActivity().getBaseContext(), AmbulanceForegroundService.class);
                 intent.setAction(AmbulanceForegroundService.Actions.LOGOUT);
-                getActivity().startService(intent);
 
-                // Retrieve client
-                final MqttProfileClient profileClient = ((AmbulanceApp) getActivity().getApplication()).getProfileClient();
-                try {
-                    profileClient.disconnect();
-                } catch (MqttException e) {
-                    Log.d(TAG,"Failed to disconnect.");
+                // What to do when service completes?
+                new OnServiceComplete(getActivity(),
+                        AmbulanceForegroundService.BroadcastActions.SUCCESS,
+                        AmbulanceForegroundService.BroadcastActions.FAILURE,
+                        intent) {
+
+                    @Override
+                    public void onSuccess(Bundle extras) {
+                        Log.i(TAG, "onSuccess");
+
+                        // Start login activity
+                        Intent loginIntent = new Intent(LogoutDialog.this.getActivity(), LoginActivity.class);
+                        loginIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP|Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                        startActivity(loginIntent);
+
+                    }
+
                 }
-
-                // Start login activity
-                Intent loginIntent = new Intent(getActivity(), LoginActivity.class);
-                loginIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP|Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                startActivity(loginIntent);
+                        .setFailureMessage(getString(R.string.couldNotLogout))
+                        .setAlert(new AlertSnackbar(getActivity()));
 
             }
         });

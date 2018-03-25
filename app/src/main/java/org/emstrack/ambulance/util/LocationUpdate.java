@@ -22,6 +22,13 @@ public class LocationUpdate {
         this.timestamp = new Date();
     }
 
+    public LocationUpdate(Location location) {
+        this.location = new Location(location);
+        this.bearing = location.getBearing();
+        this.velocity = location.getSpeed();
+        this.timestamp = new Date(location.getTime());
+    }
+
     public LocationUpdate(LocationUpdate update) {
         this.location = new Location(update.location);
         this.bearing = update.bearing;

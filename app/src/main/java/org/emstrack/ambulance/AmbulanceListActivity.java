@@ -1,5 +1,7 @@
 package org.emstrack.ambulance;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -142,18 +144,29 @@ public class AmbulanceListActivity extends AppCompatActivity {
 
     public void retrieveAmbulance(AmbulancePermission selectedAmbulance) {
 
+        // Retrieve ambulance
+        Intent ambulanceIntent = new Intent(AmbulanceListActivity.this, AmbulanceForegroundService.class);
+        ambulanceIntent.setAction(AmbulanceForegroundService.Actions.GET_AMBULANCE);
+        ambulanceIntent.putExtra("AMBULANCE_ID", selectedAmbulance.getAmbulanceId());
+
         // What to do when GET_AMBULANCE service completes?
         new OnServiceComplete(AmbulanceListActivity.this,
                 AmbulanceForegroundService.BroadcastActions.SUCCESS,
-                AmbulanceForegroundService.BroadcastActions.FAILURE) {
+                AmbulanceForegroundService.BroadcastActions.FAILURE,
+                ambulanceIntent) {
 
             @Override
             public void onSuccess(Bundle extras) {
 
+                // Retrieve hospitals
+                Intent hospitalsIntent = new Intent(AmbulanceListActivity.this, AmbulanceForegroundService.class);
+                hospitalsIntent.setAction(AmbulanceForegroundService.Actions.GET_HOSPITALS);
+
                 // What to do when GET_HOSPITALS service completes?
                 new OnServiceComplete(AmbulanceListActivity.this,
                         AmbulanceForegroundService.BroadcastActions.SUCCESS,
-                        AmbulanceForegroundService.BroadcastActions.FAILURE) {
+                        AmbulanceForegroundService.BroadcastActions.FAILURE,
+                        hospitalsIntent) {
 
                     @Override
                     public void onSuccess(Bundle extras) {
@@ -168,32 +181,73 @@ public class AmbulanceListActivity extends AppCompatActivity {
                 }
                         .setFailureMessage(getString(R.string.couldNotRetrieveHospitals))
                         .setAlert(new AlertSnackbar(AmbulanceListActivity.this));
-                ;
-
-                // Retrieve hospitals
-                Intent hospitalsIntent = new Intent(AmbulanceListActivity.this, AmbulanceForegroundService.class);
-                hospitalsIntent.setAction(AmbulanceForegroundService.Actions.GET_HOSPITALS);
-                startService(hospitalsIntent);
 
             }
 
         }
                 .setFailureMessage(getResources().getString(R.string.couldNotRetrieveAmbulance, selectedAmbulance.getAmbulanceIdentifier()))
                 .setAlert(new AlertSnackbar(AmbulanceListActivity.this));
-        ;
-
-        // Retrieve ambulance
-        Intent ambulanceIntent = new Intent(AmbulanceListActivity.this, AmbulanceForegroundService.class);
-        ambulanceIntent.setAction(AmbulanceForegroundService.Actions.GET_AMBULANCE);
-        ambulanceIntent.putExtra("AMBULANCE_ID", selectedAmbulance.getAmbulanceId());
-        startService(ambulanceIntent);
 
     }
 
     @Override
     public void onBackPressed() {
-        LogoutDialog ld = LogoutDialog.newInstance();
-        ld.show(getFragmentManager(), "logout_dialog");
+
+        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
+
+        alertDialogBuilder.setTitle(R.string.alert_warning_title);
+        alertDialogBuilder.setMessage(R.string.logout_confirm);
+
+        // Cancel button
+        alertDialogBuilder.setNegativeButton(
+                R.string.alert_button_negative_text,
+                new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        /* do nothing */
+                    }
+                });
+
+        // Create the OK button that logs user out
+        alertDialogBuilder.setPositiveButton(
+                R.string.alert_button_positive_text,
+                new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+
+                        Log.i(TAG,"LogoutDialog: OK Button Clicked");
+
+                        // Stop foreground activity
+                        Intent intent = new Intent(AmbulanceListActivity.this, AmbulanceForegroundService.class);
+                        intent.setAction(AmbulanceForegroundService.Actions.LOGOUT);
+
+                        // What to do when service completes?
+                        new OnServiceComplete(AmbulanceListActivity.this,
+                                AmbulanceForegroundService.BroadcastActions.SUCCESS,
+                                AmbulanceForegroundService.BroadcastActions.FAILURE,
+                                intent) {
+
+                            @Override
+                            public void onSuccess(Bundle extras) {
+                                Log.i(TAG, "onSuccess");
+
+                                // Start login activity
+                                Intent loginIntent = new Intent(AmbulanceListActivity.this, LoginActivity.class);
+                                loginIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP|Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                                startActivity(loginIntent);
+
+                            }
+
+                        }
+                                .setFailureMessage(getString(R.string.couldNotLogout))
+                                .setAlert(new AlertSnackbar(AmbulanceListActivity.this));
+
+                    }
+                });
+
+        AlertDialog alertDialog = alertDialogBuilder.create();
+        alertDialog.show();
+
     }
 
 }

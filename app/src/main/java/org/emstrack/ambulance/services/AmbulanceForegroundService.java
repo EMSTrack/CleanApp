@@ -19,6 +19,7 @@ import android.os.IBinder;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationCompat;
+import android.support.v4.app.NotificationManagerCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.text.TextUtils;
 import android.util.Log;
@@ -60,6 +61,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.TimeZone;
 import java.util.UUID;
 
@@ -67,11 +69,13 @@ import java.util.UUID;
  * Created by mauricio on 3/18/2018.
  */
 
-public class AmbulanceForegroundService extends Service {
+public class AmbulanceForegroundService extends BroadcastService {
 
     final static String TAG = AmbulanceForegroundService.class.getSimpleName();
 
     // Notification channel
+    public final int NOTIFICATION_ID = 101;
+    public final int ERROR_NOTIFICATION_ID = 102;
     private static final String PRIMARY_CHANNEL = "default";
     private static final String PRIMARY_CHANNEL_LABEL = "Default channel";
 
@@ -89,6 +93,7 @@ public class AmbulanceForegroundService extends Service {
     private static Ambulance _ambulance;
     private static List<Hospital> _hospitals;
     private static LocationUpdate _lastLocation;
+    private static Date _lastServerUpdate;
     private static boolean requestingLocationUpdates = false;
     private static boolean canUpdateLocation = false;
 
@@ -112,6 +117,7 @@ public class AmbulanceForegroundService extends Service {
         public final static String START_LOCATION_UPDATES = "org.emstrack.ambulance.ambulanceforegroundservice.action.START_LOCATION_UPDATES";
         public final static String STOP_LOCATION_UPDATES = "org.emstrack.ambulance.ambulanceforegroundservice.action.STOP_LOCATION_UPDATES";
         public final static String UPDATE_AMBULANCE = "org.emstrack.ambulance.ambulanceforegroundservice.action.UPDATE_AMBULANCE";
+        public final static String UPDATE_NOTIFICATION = "org.emstrack.ambulance.ambulanceforegroundservice.action.UPDATE_NOTIFICATION";
         public final static String LOGOUT = "org.emstrack.ambulance.ambulanceforegroundservice.action.LOGOUT";
     }
 
@@ -131,7 +137,6 @@ public class AmbulanceForegroundService extends Service {
 
     public static class LocationUpdatesBroadcastReceiver extends BroadcastReceiver {
 
-        public boolean bulkUpdates = true;
         public final String TAG = LocationUpdatesBroadcastReceiver.class.getSimpleName();
         public LocationFilter filter = new LocationFilter(null);
 
@@ -170,7 +175,7 @@ public class AmbulanceForegroundService extends Service {
                         List<LocationUpdate> filteredLocations = filter.update(locations);
 
                         Ambulance ambulance = getAmbulance();
-                        List<String> mqttUpdates = new ArrayList<>();
+                        ArrayList<String> mqttUpdates = new ArrayList<>();
                         for (LocationUpdate newLocation : filteredLocations) {
 
                             // Set last location
@@ -179,52 +184,34 @@ public class AmbulanceForegroundService extends Service {
                             // Create update string
                             String updateString = getUpdateString(_lastLocation);
 
-                            if (bulkUpdates) {
-
-                                // add to update list
-                                mqttUpdates.add(updateString);
-
-                            } else {
-
-                                // Publish to MQTT right away
-                                try {
-                                    final MqttProfileClient profileClient = getProfileClient();
-                                    profileClient.publish("user/" + profileClient.getUsername() + "/ambulance/" +
-                                                    ambulance.getId() + "/data",
-                                            updateString, 1, false);
-                                    Log.i(TAG, "onLocationChanged: update sent to server\n" + updateString);
-                                } catch (MqttException e) {
-                                    Log.i(TAG, "Could not update location on server");
-                                    e.printStackTrace();
-                                } catch (Exception e) {
-                                    Log.i(TAG, "Could not update location on server");
-                                    e.printStackTrace();
-                                }
-                            }
+                            // add to update list
+                            mqttUpdates.add(updateString);
 
                         }
 
-                        // bulk updates?
-                        if (bulkUpdates && mqttUpdates.size() > 0) {
-
-                            String updateString = "[" + TextUtils.join(",", mqttUpdates) + "]";
-
-                            // Publish to MQTT right away
-                            try {
-                                final MqttProfileClient profileClient = getProfileClient();
-                                profileClient.publish("user/" + profileClient.getUsername() + "/ambulance/" +
-                                                ambulance.getId() + "/data",
-                                        updateString, 1, false);
-                                Log.i(TAG, "onLocationChanged: bulk update sent to server\n" + updateString);
-                            } catch (MqttException e) {
-                                Log.i(TAG, "Could not update location on server");
-                                e.printStackTrace();
-                            } catch (Exception e) {
-                                Log.i(TAG, "Could not update location on server");
-                                e.printStackTrace();
-                            }
-
+                        // any updates?
+                        if (mqttUpdates.size() > 0) {
+                            Intent updateIntent = new Intent(context, AmbulanceForegroundService.class);
+                            updateIntent.setAction(AmbulanceForegroundService.Actions.UPDATE_AMBULANCE);
+                            Bundle bundle = new Bundle();
+                            bundle.putStringArrayList("UPDATES", mqttUpdates);
+                            updateIntent.putExtras(bundle);
+                            context.startService(updateIntent);
                         }
+
+                        // Notification message
+                        String message = "Last update at "
+                                + new SimpleDateFormat("d MMM HH:mm:ss z", Locale.getDefault()).format(new Date());
+
+                        if (_lastServerUpdate != null)
+                            message += "\nLast server update at "
+                                    + new SimpleDateFormat("d MMM HH:mm:ss z", Locale.getDefault()).format(_lastServerUpdate);
+
+                        // modify notification
+                        Intent notificationIntent = new Intent(context, AmbulanceForegroundService.class);
+                        notificationIntent.setAction(AmbulanceForegroundService.Actions.UPDATE_NOTIFICATION);
+                        notificationIntent.putExtra("MESSAGE", message);
+                        context.startService(notificationIntent);
 
                     }
                 }
@@ -266,6 +253,15 @@ public class AmbulanceForegroundService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
 
+        // quick return
+        if (intent == null) {
+            Log.i(TAG, "null intent, return.");
+            return START_STICKY;
+        }
+
+        // retrieve uuid
+        final String uuid = intent.getStringExtra(OnServiceComplete.UUID);
+
         if (intent.getAction().equals(Actions.LOGIN)) {
 
             Log.i(TAG, "LOGIN Foreground Intent ");
@@ -280,8 +276,16 @@ public class AmbulanceForegroundService extends Service {
 
             // What to do when login completes?
             OnServiceComplete onServiceComplete = new OnServiceComplete(this,
-                    AmbulanceForegroundService.BroadcastActions.LOGIN_SUCCESS,
-                    AmbulanceForegroundService.BroadcastActions.LOGIN_FAILURE) {
+                    AmbulanceForegroundService.BroadcastActions.SUCCESS,
+                    AmbulanceForegroundService.BroadcastActions.FAILURE,
+                    null) {
+
+                public void run() {
+
+                    // Login user
+                    login(username, password, getUuid());
+
+                }
 
                 @Override
                 public void onSuccess(Bundle extras) {
@@ -317,13 +321,13 @@ public class AmbulanceForegroundService extends Service {
                             .setOngoing(true)
                             .build();
 
-                    startForeground(101, notification);
+                    startForeground(NOTIFICATION_ID, notification);
 
                     // Broadcast success
                     Intent localIntent = new Intent(BroadcastActions.SUCCESS);
                     if (extras != null)
                         localIntent.putExtras(extras);
-                    getLocalBroadcastManager().sendBroadcast(localIntent);
+                    sendBroadcastWithUUID(localIntent, uuid);
 
                 }
 
@@ -334,21 +338,18 @@ public class AmbulanceForegroundService extends Service {
                     Intent localIntent = new Intent(BroadcastActions.FAILURE);
                     if (extras != null)
                         localIntent.putExtras(extras);
-                    getLocalBroadcastManager().sendBroadcast(localIntent);
+                    sendBroadcastWithUUID(localIntent, uuid);
 
                 }
 
             };
-
-            // Login user
-            login(username, password);
 
         } else if (intent.getAction().equals(Actions.LOGOUT)) {
 
             Log.i(TAG, "LOGOUT Foreground Intent");
 
             // logout
-            logout();
+            logout(uuid);
 
             // stop service
             stopForeground(true);
@@ -360,14 +361,14 @@ public class AmbulanceForegroundService extends Service {
 
             // Retrieve ambulance
             int ambulanceId = intent.getIntExtra("AMBULANCE_ID", -1);
-            retrieveAmbulance(ambulanceId);
+            retrieveAmbulance(ambulanceId, uuid);
 
         } else if (intent.getAction().equals(Actions.GET_HOSPITALS)) {
 
             Log.i(TAG, "GET_HOSPITALS Foreground Intent");
 
             // Retrieve hospitals
-            retrieveHospitals();
+            retrieveHospitals(uuid);
 
         } else if (intent.getAction().equals(Actions.START_LOCATION_UPDATES)) {
 
@@ -393,10 +394,36 @@ public class AmbulanceForegroundService extends Service {
 
             Log.i(TAG, "UPDATE_AMBULANCE Foreground Intent");
 
-            // Retrieve update string
-            String update = intent.getStringExtra("UPDATES");
+            Bundle bundle = intent.getExtras();
 
-            updateAmbulance(update);
+            // Retrieve update string
+            String update = bundle.getString("UPDATE");
+            if (update != null) {
+                updateAmbulance(update);
+
+                // Set update time
+                _lastServerUpdate = new Date();
+
+            }
+
+            // Retrieve update string array
+            ArrayList<String> updateArray = bundle.getStringArrayList("UPDATES");
+            if (updateArray != null) {
+                updateAmbulance(updateArray);
+
+                // Set update time
+                _lastServerUpdate = new Date();
+
+            }
+
+        } else if (intent.getAction().equals(Actions.UPDATE_NOTIFICATION)) {
+
+            Log.i(TAG, "UPDATE_NOTIFICATION Foreground Intent");
+
+            // Retrieve update string
+            String message = intent.getStringExtra("MESSAGE");
+            if (message != null)
+                updateNotification(message);
 
         } else
 
@@ -417,15 +444,6 @@ public class AmbulanceForegroundService extends Service {
                     Context.NOTIFICATION_SERVICE);
         }
         return notificationManager;
-    }
-
-    /**
-     * Get the LocalBroadcastManager
-     *
-     * @return The system LocalBroadcastManager
-     */
-    private LocalBroadcastManager getLocalBroadcastManager() {
-        return LocalBroadcastManager.getInstance(this);
     }
 
     /**
@@ -535,6 +553,21 @@ public class AmbulanceForegroundService extends Service {
     }
 
     /**
+     * Send bulk updates to current ambulance
+     * Allowing arbitrary updates might be too broad and a security concern
+     *
+     * @param updates string array
+     */
+    public void updateAmbulance(ArrayList<String> updates) {
+
+        // Join updates in array
+        String updateArray = "[" + TextUtils.join(",", updates) + "]";
+
+        // send to server
+        updateAmbulance(updateArray);
+    }
+
+    /**
      * Send update to current ambulance
      * Allowing arbitrary updates might be too broad and a security concern
      *
@@ -549,27 +582,73 @@ public class AmbulanceForegroundService extends Service {
             return;
         }
 
-        // Publish to MQTT right away
+        // Publish to MQTT
+        String message = getString(R.string.couldNotUpdateAmbulanceOnServer);
         try {
             final MqttProfileClient profileClient = getProfileClient();
             profileClient.publish("user/" + profileClient.getUsername() + "/ambulance/" +
                             ambulance.getId() + "/data",
                     update, 1, false);
             Log.i(TAG, "Ambulance update sent to server\n" + update);
+            return;
         } catch (MqttException e) {
             Log.i(TAG, "Could not update ambulance on server");
-            e.printStackTrace();
+            message += "\n" + e.toString();
         } catch (Exception e) {
             Log.i(TAG, "Could not update ambulance on server");
-            e.printStackTrace();
+            message += "\n" + e.toString();
         }
+
+        // Build a notification in case of error
+
+        // Create an explicit intent for an Activity in your app
+        Intent intent = new Intent(this, MainActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, 0);
+
+        NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(this, PRIMARY_CHANNEL)
+                .setSmallIcon(R.mipmap.ic_launcher)
+                .setContentTitle("EMSTrack")
+                .setContentText(message)
+                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                .setContentIntent(pendingIntent)
+                .setAutoCancel(true);
+
+        NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
+        notificationManager.notify(ERROR_NOTIFICATION_ID, mBuilder.build());
+    }
+
+    /**
+     * Update current notification message
+     *
+     * @param message the message
+     */
+    public void updateNotification(String message) {
+
+        // Create an explicit intent for an Activity in your app
+        Intent intent = new Intent(this, MainActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, 0);
+
+        Notification notification = new NotificationCompat.Builder(this, PRIMARY_CHANNEL)
+                .setContentTitle("EMSTrack")
+                .setTicker(message)
+                .setContentText(message)
+                .setStyle(new NotificationCompat.BigTextStyle()
+                        .bigText(message))
+                .setSmallIcon(R.mipmap.ic_launcher)
+                .setContentIntent(pendingIntent)
+                .setOngoing(true).build();
+
+        NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
+        notificationManager.notify(NOTIFICATION_ID, notification);
 
     }
 
     /**
      * Logout
      */
-    public void logout() {
+    public void logout(final String uuid) {
 
         // remove ambulance
         removeAmbulance();
@@ -580,9 +659,53 @@ public class AmbulanceForegroundService extends Service {
         // disconnect mqttclient
         MqttProfileClient profileClient = getProfileClient(this);
         try {
-            profileClient.disconnect();
+
+            profileClient.disconnect(new MqttProfileCallback() {
+
+                @Override
+                public void onSuccess() {
+
+                    Log.d(TAG, "Successfully disconnected from broker.");
+
+                    // Broadcast success
+                    Intent localIntent = new Intent(BroadcastActions.SUCCESS);
+                    sendBroadcastWithUUID(localIntent, uuid);
+
+                }
+
+                @Override
+                public void onFailure(Throwable exception) {
+
+                    Log.d(TAG, "Failed to disconnect from brocker.");
+
+                    String message = getString(R.string.failedToDisconnectFromBroker) + "\n";
+                    if (exception instanceof MqttException) {
+                        int reason = ((MqttException) exception).getReasonCode();
+                        message += getResources().getString(R.string.error_connection_failed, exception.toString());
+                    } else {
+                        message += getString(R.string.Exception) + exception.toString();
+                    }
+
+                    Log.d(TAG, "message = " + message);
+
+                    // Broadcast failure
+                    Intent localIntent = new Intent(BroadcastActions.FAILURE);
+                    localIntent.putExtra(BroadcastExtras.MESSAGE, message);
+                    sendBroadcastWithUUID(localIntent, uuid);
+
+                }
+
+            });
+
         } catch (MqttException e) {
+
             Log.d(TAG, "Failed to disconnect.");
+
+            // Broadcast failure
+            Intent localIntent = new Intent(BroadcastActions.FAILURE);
+            localIntent.putExtra(BroadcastExtras.MESSAGE, "Could not disconnect.");
+            sendBroadcastWithUUID(localIntent, uuid);
+
         }
 
     }
@@ -593,10 +716,10 @@ public class AmbulanceForegroundService extends Service {
      * @param username Username
      * @param password Password
      */
-    public void login(final String username, final String password) {
+    public void login(final String username, final String password, final String uuid) {
 
         // logout first
-        logout();
+        logout(uuid);
 
         // Retrieve client
         final MqttProfileClient profileClient = getProfileClient(this);
@@ -617,8 +740,8 @@ public class AmbulanceForegroundService extends Service {
                 editor.apply();
 
                 // Broadcast success
-                Intent localIntent = new Intent(BroadcastActions.LOGIN_SUCCESS);
-                getLocalBroadcastManager().sendBroadcast(localIntent);
+                Intent localIntent = new Intent(BroadcastActions.SUCCESS);
+                sendBroadcastWithUUID(localIntent, uuid);
 
             }
 
@@ -631,9 +754,9 @@ public class AmbulanceForegroundService extends Service {
                 String message = exception.toString();
 
                 // Broadcast failure
-                Intent localIntent = new Intent(BroadcastActions.LOGIN_FAILURE);
+                Intent localIntent = new Intent(BroadcastActions.FAILURE);
                 localIntent.putExtra(BroadcastExtras.MESSAGE, message);
-                getLocalBroadcastManager().sendBroadcast(localIntent);
+                sendBroadcastWithUUID(localIntent, uuid);
 
             }
 
@@ -672,7 +795,7 @@ public class AmbulanceForegroundService extends Service {
                     // Broadcast failure
                     Intent localIntent = new Intent(BroadcastActions.LOGIN_FAILURE);
                     localIntent.putExtra(BroadcastExtras.MESSAGE, message);
-                    getLocalBroadcastManager().sendBroadcast(localIntent);
+                    sendBroadcastWithUUID(localIntent, uuid);
 
                 }
 
@@ -686,7 +809,7 @@ public class AmbulanceForegroundService extends Service {
             // Broadcast failure
             Intent localIntent = new Intent(BroadcastActions.LOGIN_FAILURE);
             localIntent.putExtra(BroadcastExtras.MESSAGE, message);
-            getLocalBroadcastManager().sendBroadcast(localIntent);
+            sendBroadcastWithUUID(localIntent, uuid);
 
         }
 
@@ -697,7 +820,7 @@ public class AmbulanceForegroundService extends Service {
      *
      * @param ambulanceId the ambulance id
      */
-    public void retrieveAmbulance(final int ambulanceId) {
+    public void retrieveAmbulance(final int ambulanceId, final String uuid) {
 
         // Is ambulance id valid?
         if (ambulanceId < 0) {
@@ -705,7 +828,7 @@ public class AmbulanceForegroundService extends Service {
             // Broadcast failure
             Intent localIntent = new Intent(BroadcastActions.FAILURE);
             localIntent.putExtra(BroadcastExtras.MESSAGE, getString(R.string.invalidAmbulanceId));
-            getLocalBroadcastManager().sendBroadcast(localIntent);
+            sendBroadcastWithUUID(localIntent, uuid);
 
             return;
         }
@@ -737,7 +860,10 @@ public class AmbulanceForegroundService extends Service {
 
                             Log.d(TAG, "Retrieving ambulance.");
 
-                            // first time we receive ambulance data
+                            // First time?
+                            boolean firstTime = (_ambulance == null);
+
+                            // parse ambulance data
                             GsonBuilder gsonBuilder = new GsonBuilder();
                             gsonBuilder.setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES);
                             Gson gson = gsonBuilder.create();
@@ -762,9 +888,6 @@ public class AmbulanceForegroundService extends Service {
                                     _lastLocation.setTimestamp(ambulance.getTimestamp());
                                 }
 
-                                // First time?
-                                boolean firstTime = (_ambulance == null);
-
                                 // Set current ambulance
                                 _ambulance = ambulance;
 
@@ -772,13 +895,14 @@ public class AmbulanceForegroundService extends Service {
 
                                     // Broadcast success
                                     Intent localIntent = new Intent(BroadcastActions.SUCCESS);
-                                    getLocalBroadcastManager().sendBroadcast(localIntent);
+                                    sendBroadcastWithUUID(localIntent, uuid);
 
                                 } else {
 
                                     // Broadcast ambulance update
+                                    // Don't use uuid so that continuous receiver can capture
                                     Intent localIntent = new Intent(BroadcastActions.AMBULANCE_UPDATE);
-                                    getLocalBroadcastManager().sendBroadcast(localIntent);
+                                    sendBroadcastWithUUID(localIntent);
 
                                 }
 
@@ -789,7 +913,10 @@ public class AmbulanceForegroundService extends Service {
                                 // Broadcast failure
                                 Intent localIntent = new Intent(BroadcastActions.FAILURE);
                                 localIntent.putExtra(BroadcastExtras.MESSAGE, getString(R.string.couldNotParseAmbulance));
-                                getLocalBroadcastManager().sendBroadcast(localIntent);
+                                if (firstTime)
+                                    sendBroadcastWithUUID(localIntent, uuid);
+                                else
+                                    sendBroadcastWithUUID(localIntent);
 
                             }
 
@@ -804,7 +931,7 @@ public class AmbulanceForegroundService extends Service {
             // Broadcast failure
             Intent localIntent = new Intent(BroadcastActions.FAILURE);
             localIntent.putExtra(BroadcastExtras.MESSAGE, getString(R.string.couldNotSubscribeToAmbulance));
-            getLocalBroadcastManager().sendBroadcast(localIntent);
+            sendBroadcastWithUUID(localIntent, uuid);
 
         }
 
@@ -845,7 +972,7 @@ public class AmbulanceForegroundService extends Service {
     /**
      * Retrieve hospitals
      */
-    public void retrieveHospitals() {
+    public void retrieveHospitals(final String uuid) {
 
         // Remove current hospital list
         // TODO: Does it need to be asynchrounous?
@@ -874,6 +1001,9 @@ public class AmbulanceForegroundService extends Service {
                             @Override
                             public void messageArrived(String topic, MqttMessage message) {
 
+                                // first time?
+                                boolean firstTime = (_hospitals == null);
+
                                 // Parse to hospital metadata
                                 GsonBuilder gsonBuilder = new GsonBuilder();
                                 gsonBuilder.setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES);
@@ -881,8 +1011,6 @@ public class AmbulanceForegroundService extends Service {
 
                                 // Found hospital
                                 final Hospital hospital = gson.fromJson(message.toString(), Hospital.class);
-
-                                boolean firstTime = (_hospitals == null);
 
                                 if (firstTime) {
 
@@ -899,18 +1027,18 @@ public class AmbulanceForegroundService extends Service {
 
                                         // Broadcast hospitals update
                                         Intent localIntent = new Intent(BroadcastActions.SUCCESS);
-                                        getLocalBroadcastManager().sendBroadcast(localIntent);
+                                        sendBroadcastWithUUID(localIntent, uuid);
 
                                     }
 
                                 } else {
 
-                                    // TODO: Modify hospital list
+                                    // TODO: Modify hospital list instead of adding
                                     Log.e(TAG, "NEED TO MODIFY HOSPITAL LIST");
 
                                     // Broadcast hospitals update
                                     Intent localIntent = new Intent(BroadcastActions.HOSPITALS_UPDATE);
-                                    getLocalBroadcastManager().sendBroadcast(localIntent);
+                                    sendBroadcastWithUUID(localIntent);
 
                                 }
                             }
@@ -922,7 +1050,7 @@ public class AmbulanceForegroundService extends Service {
                 // Broadcast failure
                 Intent localIntent = new Intent(BroadcastActions.FAILURE);
                 localIntent.putExtra(BroadcastExtras.MESSAGE, getString(R.string.couldNotSubscribeToHospital));
-                getLocalBroadcastManager().sendBroadcast(localIntent);
+                sendBroadcastWithUUID(localIntent, uuid);
 
             }
 
@@ -962,7 +1090,6 @@ public class AmbulanceForegroundService extends Service {
         _hospitals = null;
 
     }
-
 
     private void startLocationUpdates() {
 

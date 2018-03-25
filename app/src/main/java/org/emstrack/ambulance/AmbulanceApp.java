@@ -15,26 +15,5 @@ import static java.security.AccessController.getContext;
 
 public class AmbulanceApp extends Application {
 
-    final String serverUri = "ssl://cruzroja.ucsd.edu:8883";
-    final String clientId = "HospitalAppClient_" + UUID.randomUUID().toString();
-
-    MqttAndroidClient androidClient;
-    MqttProfileClient client;
-
-    @Override
-    public void onCreate() {
-        super.onCreate();
-    }
-
-    public MqttProfileClient getProfileClient() {
-        // lazy initialization
-        if (client == null) {
-
-            androidClient = new MqttAndroidClient(getApplicationContext(), serverUri, clientId);
-            client = new MqttProfileClient(androidClient);
-
-        }
-        return client;
-    }
 
 }

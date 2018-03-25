@@ -87,9 +87,45 @@ public class MqttProfileClient implements MqttCallbackExtended {
         // if connected, disconnect
         if (isConnected()) {
             mqttClient.disconnect();
+            setUsername("");
         }
         subscribedTopics = new HashMap<>();
     }
+
+    public void disconnect(final MqttProfileCallback disconnectCallback) throws MqttException {
+
+        // if connected, disconnect
+        if (isConnected()) {
+            mqttClient.disconnect(null,
+                    new IMqttActionListener() {
+
+                        @Override
+                        public void onSuccess(IMqttToken asyncActionToken) {
+
+                            Log.d(TAG, "Successfully disconnected from broker.");
+                            setUsername("");
+
+                            // Forward callback
+                            if (disconnectCallback != null)
+                                disconnectCallback.onSuccess();
+                        }
+
+                        @Override
+                        public void onFailure(IMqttToken asyncActionToken, Throwable exception) {
+
+                            Log.d(TAG, "Failed to disconnect to broker failed");
+                            Log.e(TAG, exception.getMessage());
+
+                            // Forward callback
+                            if (disconnectCallback != null)
+                                disconnectCallback.onFailure(exception);
+                        }
+                    });
+        }
+
+        subscribedTopics = new HashMap<>();
+    }
+
 
     public boolean isConnected() {
         return mqttClient.isConnected();
