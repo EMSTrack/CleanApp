@@ -86,6 +86,9 @@
     <string name="couldNotSubscribeToHospital">Could not subscribe to hospital data</string>
     <string name="couldNotRetrieveAmbulance">Could not retrieve ambulance \'%1$s\'.</string>
     <string name="couldNotRetrieveHospitals">Could not retrieve hospitals</string>
+    <string name="couldNotUpdateAmbulanceOnServer">Could not update ambulance on server.</string>
+    <string name="failedToDisconnectFromBroker">Failed to disconnect from brocker.</string>
+    <string name="couldNotLogout">Could not logout.</string>
 
     <string-array name="spinner_list_item_array">
         <item>@string/dispatch</item>

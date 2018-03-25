@@ -16,25 +16,26 @@ import org.emstrack.ambulance.dialogs.AlertSnackbar;
 
 public abstract class OnServiceComplete extends BroadcastReceiver {
 
+    public static final String UUID = "_UUID_";
+
     private final String TAG = OnServiceComplete.class.getSimpleName();
 
     private final String successAction;
     private final String failureAction;
+    private final String uuid;
     private String failureMessage;
     private AlertSnackbar alert;
 
-    private boolean oneShot;
     private boolean successFlag;
     private boolean completeFlag;
 
-    public OnServiceComplete(Context context, String successAction, String failureAction) {
-        this(context, successAction, failureAction, true);
-    }
+    public OnServiceComplete(Context context,
+                             String successAction,
+                             String failureAction,
+                             Intent intent) {
 
-    public OnServiceComplete(Context context, String successAction, String failureAction, boolean oneShot) {
-
-        // one shot?
-        this.oneShot = oneShot;
+        // uuid
+        this.uuid = java.util.UUID.randomUUID().toString();
 
         // actions
         this.successAction = successAction;
@@ -57,7 +58,21 @@ public abstract class OnServiceComplete extends BroadcastReceiver {
         // Defaiult failure message
         this.failureMessage = "Failed to complete service request";
 
+        // Run
+        this.run();
+
+        // Start service
+        if (intent != null) {
+
+            // Start service
+            intent.putExtra(UUID, this.uuid);
+            context.startService(intent);
+
+        }
+
     }
+
+    public String getUuid() { return uuid; }
 
     public boolean isSuccess() {
         return successFlag;
@@ -79,33 +94,45 @@ public abstract class OnServiceComplete extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
-        if (intent != null) {
 
-            // Unregister?
-            if (oneShot)
-                unregister(context);
+        // quick return if no intent
+        if (intent == null)
+            return;
 
-            // Process actions
-            final String action = intent.getAction();
-            if (action.equals(successAction)) {
+        // get uuid
+        String uuid = intent.getStringExtra(UUID);
 
-                Log.i(TAG, "SUCCESS");
-                this.successFlag = true;
-                onSuccess(intent.getExtras());
+        // quick return if not same uuid
+        if (!this.uuid.equals(uuid))
+            return;
 
-            } else if (action.equals(failureAction)) {
 
-                Log.i(TAG, "FAILURE");
-                this.successFlag = false;
-                onFailure(intent.getExtras());
+        // unregister first
+        unregister(context);
 
-            } else
-                Log.i(TAG, "Unknown action '" + action + "'");
+        // Process actions
+        final String action = intent.getAction();
+        if (action.equals(successAction)) {
 
-            // complete
-            this.completeFlag = true;
-        }
+            Log.i(TAG, "SUCCESS");
+            this.successFlag = true;
+            onSuccess(intent.getExtras());
+
+        } else if (action.equals(failureAction)) {
+
+            Log.i(TAG, "FAILURE");
+            this.successFlag = false;
+            onFailure(intent.getExtras());
+
+        } else
+            Log.i(TAG, "Unknown action '" + action + "'");
+
+        // complete
+        this.completeFlag = true;
+
     }
+
+    public void run() { }
 
     public abstract void onSuccess(Bundle extras);
 

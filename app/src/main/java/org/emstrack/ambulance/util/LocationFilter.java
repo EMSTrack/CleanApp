@@ -84,7 +84,17 @@ public class LocationFilter {
 
     public List<LocationUpdate> update(List<Location> locations) {
 
+        // Fast return if no updates
         List<LocationUpdate> filteredLocations = new ArrayList<>();
+        if (locations == null || locations.size() == 0)
+            return filteredLocations;
+
+        // initialize
+        if (location == null)
+            // use first record
+            location = new LocationUpdate(locations.get(0));
+
+        // loop through records
         for (Location location : locations)
             update(location, filteredLocations);
 
