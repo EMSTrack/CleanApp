@@ -79,7 +79,7 @@
     <string name="failedToConnectToBrocker">Failed to connected to broker.</string>
     <string name="Exception">Exception:</string>
     <string name="loginSuccessMessage">User \'%1$s\' successfully logged in.</string>
-    <string name="couldNotLoginUser">Could not login user \'%1$s</string>
+    <string name="couldNotLoginUser">Could not login user \'%1$s\'</string>
     <string name="invalidAmbulanceId">Invalid ambulance id</string>
     <string name="couldNotParseAmbulance">Could not parse ambulance</string>
     <string name="couldNotSubscribeToAmbulance">Could not subscribe to ambulance</string>

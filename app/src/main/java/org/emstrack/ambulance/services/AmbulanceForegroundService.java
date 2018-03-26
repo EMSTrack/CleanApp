@@ -131,8 +131,6 @@ public class AmbulanceForegroundService extends BroadcastService {
         public final static String LOCATION_UPDATE = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastaction.LOCATION_UPDATE";
         public final static String SUCCESS = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastaction.SUCCESS";
         public final static String FAILURE = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastaction.FAILURE";
-        public final static String LOGIN_SUCCESS = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastaction.LOGIN_SUCCESS";
-        public final static String LOGIN_FAILURE = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastaction.LOGIN_FAILURE";
     }
 
     public static class LocationUpdatesBroadcastReceiver extends BroadcastReceiver {
@@ -793,7 +791,7 @@ public class AmbulanceForegroundService extends BroadcastService {
                     Log.d(TAG, "message = " + message);
 
                     // Broadcast failure
-                    Intent localIntent = new Intent(BroadcastActions.LOGIN_FAILURE);
+                    Intent localIntent = new Intent(BroadcastActions.FAILURE);
                     localIntent.putExtra(BroadcastExtras.MESSAGE, message);
                     sendBroadcastWithUUID(localIntent, uuid);
 
@@ -807,7 +805,7 @@ public class AmbulanceForegroundService extends BroadcastService {
             String message = getResources().getString(R.string.error_connection_failed, exception.toString());
 
             // Broadcast failure
-            Intent localIntent = new Intent(BroadcastActions.LOGIN_FAILURE);
+            Intent localIntent = new Intent(BroadcastActions.FAILURE);
             localIntent.putExtra(BroadcastExtras.MESSAGE, message);
             sendBroadcastWithUUID(localIntent, uuid);
 
