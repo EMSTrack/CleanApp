@@ -4,7 +4,7 @@ Run this application on your android mobile phone to start tracking ambulances a
 
 ## Installation
 
-Download the file app-debug.apk from:
+Download the file `app-debug.apk` from:
 
 https://github.com/EMSTrack/CleanApp/releases
 
