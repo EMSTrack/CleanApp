@@ -172,29 +172,11 @@ public class AmbulanceListActivity extends AppCompatActivity {
             @Override
             public void onSuccess(Bundle extras) {
 
-                // Retrieve hospitals
-                Intent hospitalsIntent = new Intent(AmbulanceListActivity.this, AmbulanceForegroundService.class);
-                hospitalsIntent.setAction(AmbulanceForegroundService.Actions.GET_HOSPITALS);
-
-                // What to do when GET_HOSPITALS service completes?
-                new OnServiceComplete(AmbulanceListActivity.this,
-                        AmbulanceForegroundService.BroadcastActions.SUCCESS,
-                        AmbulanceForegroundService.BroadcastActions.FAILURE,
-                        hospitalsIntent) {
-
-                    @Override
-                    public void onSuccess(Bundle extras) {
-
-                        // Start MainActivity
-                        Log.i(TAG, "Start main activity");
-                        Intent intent = new Intent(AmbulanceListActivity.this,
-                                MainActivity.class);
-                        startActivity(intent);
-
-                    }
-                }
-                        .setFailureMessage(getString(R.string.couldNotRetrieveHospitals))
-                        .setAlert(new AlertSnackbar(AmbulanceListActivity.this));
+                // Start MainActivity
+                Log.i(TAG, "Start main activity");
+                Intent intent = new Intent(AmbulanceListActivity.this,
+                        MainActivity.class);
+                startActivity(intent);
 
             }
 

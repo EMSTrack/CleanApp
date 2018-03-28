@@ -14,23 +14,20 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import org.emstrack.ambulance.AmbulanceListActivity;
+import org.emstrack.ambulance.MainActivity;
+import org.emstrack.ambulance.dialogs.AlertSnackbar;
 import org.emstrack.ambulance.services.AmbulanceForegroundService;
 import org.emstrack.ambulance.R;
 import org.emstrack.ambulance.adapters.HospitalExpandableRecyclerAdapter;
 import org.emstrack.ambulance.models.HospitalExpandableGroup;
+import org.emstrack.ambulance.services.OnServiceComplete;
 import org.emstrack.models.Hospital;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
-/**
- * This class is purely meant to demonstrate that the information is able to send
- * to the server. The website is:
- *
- * http://cruzroja.ucsd.edu/ambulances/info/123456
- *
- *
- */
 public class HospitalFragment extends Fragment {
 
     private static final String TAG = HospitalFragment.class.getSimpleName();
@@ -61,9 +58,40 @@ public class HospitalFragment extends Fragment {
         rootView = inflater.inflate(R.layout.fragment_hospital, container, false);
         recyclerView = rootView.findViewById(R.id.recycler_view);
 
-        List<Hospital> hospitals = AmbulanceForegroundService.getHospitals();
-        if (hospitals != null)
+        Map<Integer, Hospital> hospitals = AmbulanceForegroundService.getHospitals();
+
+        // Retrieve hospitals?
+        if (hospitals == null) {
+
+            // Retrieve hospitals
+            Intent hospitalsIntent = new Intent(getContext(), AmbulanceForegroundService.class);
+            hospitalsIntent.setAction(AmbulanceForegroundService.Actions.GET_HOSPITALS);
+
+            // What to do when GET_HOSPITALS service completes?
+            new OnServiceComplete(getContext(),
+                    AmbulanceForegroundService.BroadcastActions.SUCCESS,
+                    AmbulanceForegroundService.BroadcastActions.FAILURE,
+                    hospitalsIntent) {
+
+                @Override
+                public void onSuccess(Bundle extras) {
+
+                    Log.i(TAG,"Got all hospitals.");
+
+                    // update hospitals
+                    update(AmbulanceForegroundService.getHospitals());
+
+                }
+            }
+                    .setFailureMessage(getString(R.string.couldNotRetrieveHospitals))
+                    .setAlert(new AlertSnackbar(getActivity()));
+
+        } else {
+
+            // Already have hospitals
             update(hospitals);
+
+        }
 
         return rootView;
 
@@ -78,6 +106,9 @@ public class HospitalFragment extends Fragment {
         filter.addAction(AmbulanceForegroundService.BroadcastActions.HOSPITALS_UPDATE);
         receiver = new HospitalsUpdateBroadcastReceiver();
         getLocalBroadcastManager().registerReceiver(receiver, filter);
+
+        // update UI
+        update(AmbulanceForegroundService.getHospitals());
 
     }
 
@@ -98,17 +129,30 @@ public class HospitalFragment extends Fragment {
      *
      * @param hospitals list of hospitals
      */
-    public void update(List<Hospital> hospitals) {
+    public void update(Map<Integer, Hospital> hospitals) {
+
+        // fast return if no hospitals
+        if (hospitals == null)
+            return;
+
+        Log.i(TAG,"Updating hospitals UI.");
 
         // Loop through hospitals
         final List hospitalExpandableGroup = new ArrayList<HospitalExpandableGroup>();
-        for (Hospital hospital : hospitals)
+
+        // Loop over all hospitals
+        for (Map.Entry<Integer, Hospital> entry : hospitals.entrySet()) {
+
+            // Get hospital
+            Hospital hospital = entry.getValue();
 
             // Add to to expandable group
             hospitalExpandableGroup.add(
                     new HospitalExpandableGroup(hospital.getName(),
                             hospital.getHospitalequipmentSet(),
                             hospital));
+
+        }
 
         // Install fragment
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getContext());
