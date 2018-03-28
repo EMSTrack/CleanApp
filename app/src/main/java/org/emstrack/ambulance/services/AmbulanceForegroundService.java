@@ -5,7 +5,6 @@ import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
-import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -20,7 +19,6 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
-import android.support.v4.content.LocalBroadcastManager;
 import android.text.TextUtils;
 import android.util.Log;
 import android.widget.Toast;
@@ -45,13 +43,12 @@ import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.emstrack.ambulance.MainActivity;
 import org.emstrack.ambulance.R;
-import org.emstrack.ambulance.util.LatLon;
 import org.emstrack.ambulance.util.LocationFilter;
 import org.emstrack.ambulance.util.LocationUpdate;
 import org.emstrack.models.Ambulance;
+import org.emstrack.models.AmbulancePermission;
 import org.emstrack.models.Hospital;
 import org.emstrack.models.HospitalPermission;
-import org.emstrack.models.Location;
 import org.emstrack.mqtt.MqttProfileCallback;
 import org.emstrack.mqtt.MqttProfileClient;
 import org.emstrack.mqtt.MqttProfileMessageCallback;
@@ -60,8 +57,10 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.TimeZone;
 import java.util.UUID;
 
@@ -91,7 +90,8 @@ public class AmbulanceForegroundService extends BroadcastService {
 
     private static MqttProfileClient client;
     private static Ambulance _ambulance;
-    private static List<Hospital> _hospitals;
+    private static Map<Integer, Hospital> _hospitals;
+    private static Map<Integer, Ambulance> _ambulances;
     private static LocationUpdate _lastLocation;
     private static Date _lastServerUpdate;
     private static boolean requestingLocationUpdates = false;
@@ -113,6 +113,7 @@ public class AmbulanceForegroundService extends BroadcastService {
     public class Actions {
         public final static String LOGIN = "org.emstrack.ambulance.ambulanceforegroundservice.action.LOGIN";
         public final static String GET_AMBULANCE = "org.emstrack.ambulance.ambulanceforegroundservice.action.GET_AMBULANCE";
+        public final static String GET_AMBULANCES= "org.emstrack.ambulance.ambulanceforegroundservice.action.GET_AMBULANCES";
         public final static String GET_HOSPITALS = "org.emstrack.ambulance.ambulanceforegroundservice.action.GET_HOSPITALS";
         public final static String START_LOCATION_UPDATES = "org.emstrack.ambulance.ambulanceforegroundservice.action.START_LOCATION_UPDATES";
         public final static String STOP_LOCATION_UPDATES = "org.emstrack.ambulance.ambulanceforegroundservice.action.STOP_LOCATION_UPDATES";
@@ -127,6 +128,7 @@ public class AmbulanceForegroundService extends BroadcastService {
 
     public class BroadcastActions {
         public final static String HOSPITALS_UPDATE = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastaction.HOSPITALS_UPDATE";
+        public static final String AMBULANCES_UPDATE = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastaction.AMBULANCES_UPDATE";
         public final static String AMBULANCE_UPDATE = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastaction.AMBULANCE_UPDATE";
         public final static String LOCATION_UPDATE = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastaction.LOCATION_UPDATE";
         public final static String SUCCESS = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastaction.SUCCESS";
@@ -361,6 +363,13 @@ public class AmbulanceForegroundService extends BroadcastService {
             int ambulanceId = intent.getIntExtra("AMBULANCE_ID", -1);
             retrieveAmbulance(ambulanceId, uuid);
 
+        } else if (intent.getAction().equals(Actions.GET_AMBULANCES)) {
+
+            Log.i(TAG, "GET_AMBULANCES Foreground Intent");
+
+            // Retrieve ambulances
+            retrieveAmbulances(uuid);
+
         } else if (intent.getAction().equals(Actions.GET_HOSPITALS)) {
 
             Log.i(TAG, "GET_HOSPITALS Foreground Intent");
@@ -479,14 +488,28 @@ public class AmbulanceForegroundService extends BroadcastService {
         return _ambulance;
     }
 
+    public static int getAmbulanceId() {
+        if (_ambulance == null)
+            return -1;
+        else
+            return getAmbulance().getId();
+    }
+
     /**
      * Get current hospitals
      *
      * @return the list of hospitals
      */
-    public static List<Hospital> getHospitals() {
+    public static Map<Integer, Hospital> getHospitals() {
         return _hospitals;
     }
+
+    /**
+     * Get current ambulances
+     *
+     * @return the list of ambulances
+     */
+    public static Map<Integer, Ambulance> getAmbulances() { return _ambulances; }
 
     /**
      * Return true if requesting location updates
@@ -651,8 +674,11 @@ public class AmbulanceForegroundService extends BroadcastService {
         // remove ambulance
         removeAmbulance();
 
-        // remove hospital list
+        // remove hospital map
         removeHospitals();
+
+        // remove ambulance map
+        removeAmbulances();
 
         // disconnect mqttclient
         MqttProfileClient profileClient = getProfileClient(this);
@@ -972,7 +998,7 @@ public class AmbulanceForegroundService extends BroadcastService {
      */
     public void retrieveHospitals(final String uuid) {
 
-        // Remove current hospital list
+        // Remove current hospital map
         // TODO: Does it need to be asynchrounous?
         removeHospitals();
 
@@ -983,7 +1009,7 @@ public class AmbulanceForegroundService extends BroadcastService {
         final List<HospitalPermission> hospitalPermissions = profileClient.getProfile().getHospitals();
 
         // Initialize hospitals
-        final List<Hospital> hospitals = new ArrayList<Hospital>();
+        final Map<Integer, Hospital> hospitals = new HashMap<>();
 
         // Loop over all hospitals
         for (HospitalPermission hospitalPermission : hospitalPermissions) {
@@ -1002,7 +1028,7 @@ public class AmbulanceForegroundService extends BroadcastService {
                                 // first time?
                                 boolean firstTime = (_hospitals == null);
 
-                                // Parse to hospital metadata
+                                // Parse hospital
                                 GsonBuilder gsonBuilder = new GsonBuilder();
                                 gsonBuilder.setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES);
                                 Gson gson = gsonBuilder.create();
@@ -1012,8 +1038,8 @@ public class AmbulanceForegroundService extends BroadcastService {
 
                                 if (firstTime) {
 
-                                    // Add to hospital list
-                                    hospitals.add(hospital);
+                                    // Add to hospital map
+                                    hospitals.put(hospitalId, hospital);
 
                                     // Done yet?
                                     if (hospitals.size() == hospitalPermissions.size()) {
@@ -1031,8 +1057,8 @@ public class AmbulanceForegroundService extends BroadcastService {
 
                                 } else {
 
-                                    // TODO: Modify hospital list instead of adding
-                                    Log.e(TAG, "NEED TO MODIFY HOSPITAL LIST");
+                                    // Modify hospital map
+                                    hospitals.put(hospitalId, hospital);
 
                                     // Broadcast hospitals update
                                     Intent localIntent = new Intent(BroadcastActions.HOSPITALS_UPDATE);
@@ -1061,7 +1087,7 @@ public class AmbulanceForegroundService extends BroadcastService {
      */
     public void removeHospitals() {
 
-        List<Hospital> hospitals = getHospitals();
+        Map<Integer, Hospital> hospitals = getHospitals();
         if (hospitals == null || hospitals.size() == 0) {
             Log.i(TAG, "No hospital to remove.");
             return;
@@ -1071,7 +1097,10 @@ public class AmbulanceForegroundService extends BroadcastService {
         final MqttProfileClient profileClient = getProfileClient(this);
 
         // Loop over all hospitals
-        for (Hospital hospital : hospitals) {
+        for (Map.Entry<Integer, Hospital> entry : hospitals.entrySet()) {
+
+            // Get hospital
+            Hospital hospital = entry.getValue();
 
             try {
 
@@ -1086,6 +1115,139 @@ public class AmbulanceForegroundService extends BroadcastService {
 
         // Remove hospitals
         _hospitals = null;
+
+    }
+
+    /**
+     * Retrieve ambulances
+     */
+    public void retrieveAmbulances(final String uuid) {
+
+        // Remove current ambulance map
+        // TODO: Does it need to be asynchrounous?
+        removeAmbulances();
+
+        // Retrieve ambulance data
+        final MqttProfileClient profileClient = getProfileClient(this);
+
+        // Get list of ambulances
+        final List<AmbulancePermission> ambulancePermissions = profileClient.getProfile().getAmbulances();
+
+        // Initialize ambulances
+        final Map<Integer, Ambulance> ambulances = new HashMap<>();
+
+        // Current ambulance id
+        int currentAmbulanceId = getAmbulanceId();
+
+        // Loop over all ambulances
+        for (AmbulancePermission ambulancePermission : ambulancePermissions) {
+
+            final int ambulanceId = ambulancePermission.getAmbulanceId();
+
+            // Skip if current ambulance
+            if (ambulanceId == currentAmbulanceId)
+                continue;
+
+            try {
+
+                // Start retrieving data
+                profileClient.subscribe("ambulance/" + ambulanceId + "/data",
+                        1, new MqttProfileMessageCallback() {
+
+                            @Override
+                            public void messageArrived(String topic, MqttMessage message) {
+
+                                // first time?
+                                boolean firstTime = (_ambulances == null);
+
+                                // Parse ambulance
+                                GsonBuilder gsonBuilder = new GsonBuilder();
+                                gsonBuilder.setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES);
+                                Gson gson = gsonBuilder.create();
+
+                                // Found ambulance
+                                final Ambulance ambulance = gson.fromJson(message.toString(), Ambulance.class);
+
+                                if (firstTime) {
+
+                                    // Add to ambulance map
+                                    ambulances.put(ambulanceId, ambulance);
+
+                                    // Done yet?
+                                    if (ambulances.size() ==
+                                            (ambulancePermissions.size() + (getAmbulanceId() == -1 ? 0 : - 1))) {
+
+                                        Log.d(TAG, "Done retrieving all ambulances");
+
+                                        // set _ambulances
+                                        _ambulances = ambulances;
+
+                                        // Broadcast ambulances update
+                                        Intent localIntent = new Intent(BroadcastActions.SUCCESS);
+                                        sendBroadcastWithUUID(localIntent, uuid);
+
+                                    }
+
+                                } else {
+
+                                    // Update ambulance map
+                                    ambulances.put(ambulanceId, ambulance);
+
+                                    // Broadcast ambulances update
+                                    Intent localIntent = new Intent(BroadcastActions.AMBULANCES_UPDATE);
+                                    sendBroadcastWithUUID(localIntent);
+
+                                }
+                            }
+                        });
+
+            } catch (MqttException e) {
+                Log.d(TAG, "Could not subscribe to ambulance data");
+
+                // Broadcast failure
+                Intent localIntent = new Intent(BroadcastActions.FAILURE);
+                localIntent.putExtra(BroadcastExtras.MESSAGE, getString(R.string.couldNotSubscribeToAmbulance));
+                sendBroadcastWithUUID(localIntent, uuid);
+
+            }
+
+        }
+
+    }
+
+    /**
+     * Remove current ambulances
+     */
+    public void removeAmbulances() {
+
+        Map<Integer, Ambulance> ambulances = getAmbulances();
+        if (ambulances == null || ambulances.size() == 0) {
+            Log.i(TAG, "No ambulances to remove.");
+            return;
+        }
+
+        // Retrieve client
+        final MqttProfileClient profileClient = getProfileClient(this);
+
+        // Loop over all ambulances
+        for (Map.Entry<Integer, Ambulance> entry : ambulances.entrySet()) {
+
+            // Get ambulance
+            Ambulance ambulance = entry.getValue();
+
+            try {
+
+                // Unsubscribe to ambulance data
+                profileClient.unsubscribe("ambulance/" + ambulance.getId() + "/data");
+
+            } catch (MqttException exception) {
+                Log.d(TAG, "Could not unsubscribe to 'ambulance/" + ambulance.getId() + "/data'");
+            }
+
+        }
+
+        // Remove ambulances
+        _ambulances = null;
 
     }
 
