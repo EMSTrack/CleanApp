@@ -867,6 +867,10 @@ public class AmbulanceForegroundService extends BroadcastService {
         // TODO: Does it need to be asynchrounous?
         removeAmbulance();
 
+        // Remove current ambulances
+        // TODO: Does it need to be asynchrounous?
+        removeAmbulances();
+
         // Retrieve client
         final MqttProfileClient profileClient = getProfileClient(this);
 

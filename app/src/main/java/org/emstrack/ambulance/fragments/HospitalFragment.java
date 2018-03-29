@@ -50,7 +50,7 @@ public class HospitalFragment extends Fragment {
                 }
             }
         }
-    };
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -121,7 +121,7 @@ public class HospitalFragment extends Fragment {
             getLocalBroadcastManager().unregisterReceiver(receiver);
             receiver = null;
         }
-        super.onDestroy();
+
     }
 
     /**

@@ -2,8 +2,10 @@ package org.emstrack.ambulance.fragments;
 
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.drawable.BitmapDrawable;
@@ -16,6 +18,7 @@ import android.support.annotation.DrawableRes;
 import android.support.graphics.drawable.VectorDrawableCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.content.res.ResourcesCompat;
 import android.support.v4.graphics.drawable.DrawableCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -25,6 +28,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -52,26 +56,43 @@ import java.util.Map;
 
 import static android.content.ContentValues.TAG;
 
-/**
- * Created by justingil1748 on 4/26/17.
- */
+// TODO: Implement listener to ambulance changes
 
-public class MapFragment extends Fragment implements View.OnClickListener, OnMapReadyCallback {
+public class MapFragment extends Fragment implements OnMapReadyCallback {
 
     View rootView;
     private Map<String, String> ambulanceStatus;
     private Map<Integer, Marker> ambulanceMarkers;
-    private Button showAmbulancesButton;
-    private boolean showAmbulances = true;
+    private ImageView showAmbulancesButton;
+    private boolean showAmbulances = false;
     private GoogleMap googleMap;
     private boolean myLocationEnabled;
+    private AmbulancesUpdateBroadcastReceiver receiver;
+
+    public class AmbulancesUpdateBroadcastReceiver extends BroadcastReceiver {
+
+        @Override
+        public void onReceive(Context context, Intent intent ) {
+            if (intent != null) {
+                final String action = intent.getAction();
+                if (action.equals(AmbulanceForegroundService.BroadcastActions.AMBULANCES_UPDATE)) {
+
+                    Log.i(TAG, "AMBULANCES_UPDATE");
+
+                    // update markers
+                    updateMarkers();
+
+                }
+            }
+        }
+    }
 
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
         rootView = inflater.inflate(R.layout.fragment_map, container, false);
 
         // Retrieve ambulance button
-        showAmbulancesButton = (Button) rootView.findViewById(R.id.showAmbulancesButton);
+        showAmbulancesButton = (ImageView) rootView.findViewById(R.id.showAmbulancesButton);
         showAmbulancesButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -89,9 +110,6 @@ public class MapFragment extends Fragment implements View.OnClickListener, OnMap
                         retrieveAmbulances();
 
                     else {
-
-                        // Clear all markers
-                        googleMap.clear();
 
                         // forget ambulances
                         forgetAmbulances();
@@ -131,7 +149,11 @@ public class MapFragment extends Fragment implements View.OnClickListener, OnMap
 
         if (ambulances == null) {
 
+            Log.i(TAG,"No ambulances.");
+
             if (showAmbulances) {
+
+                Log.i(TAG,"Retrieving ambulances...");
 
                 // Retrieve ambulances first
                 Intent ambulancesIntent = new Intent(getContext(), AmbulanceForegroundService.class);
@@ -146,7 +168,13 @@ public class MapFragment extends Fragment implements View.OnClickListener, OnMap
                     @Override
                     public void onSuccess(Bundle extras) {
 
-                        updateMarkers();
+                        Log.i(TAG,"Got them all. Updating markers.");
+
+                        // update markers
+                        LatLngBounds bounds = updateMarkers();
+
+                        // center bounds
+                        centerMap(bounds);
 
                     }
                 }
@@ -157,6 +185,8 @@ public class MapFragment extends Fragment implements View.OnClickListener, OnMap
 
         } else if (showAmbulances) {
 
+            Log.i(TAG,"Already have ambulances. Updating markers.");
+
             // Already have ambulances
             updateMarkers();
 
@@ -166,14 +196,37 @@ public class MapFragment extends Fragment implements View.OnClickListener, OnMap
 
     public void forgetAmbulances() {
 
+        // Clear all markers
+        googleMap.clear();
+
+        // Clear marker maps
+        ambulanceMarkers.clear();
+
+        // TODO: unsubscribe to ambulances?
+
     }
 
-    /*
-    Functionality of google map button
-     */
-    @Override
-    public void onClick(View v) {
+     @Override
+    public void onResume() {
+        super.onResume();
 
+        // Register receiver
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(AmbulanceForegroundService.BroadcastActions.AMBULANCES_UPDATE);
+        receiver = new AmbulancesUpdateBroadcastReceiver();
+        getLocalBroadcastManager().registerReceiver(receiver, filter);
+
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+
+        // Unregister receiver
+        if (receiver != null) {
+            getLocalBroadcastManager().unregisterReceiver(receiver);
+            receiver = null;
+        }
     }
 
     @Override
@@ -198,15 +251,46 @@ public class MapFragment extends Fragment implements View.OnClickListener, OnMap
         }
 
         // Update markers
-        updateMarkers();
+        LatLngBounds bounds = updateMarkers();
+
+        // Center map
+        centerMap(bounds);
 
     }
 
-    public void updateMarkers() {
+    public void centerMap(LatLngBounds bounds) {
+
+        if (ambulanceMarkers.size() > 0) {
+
+            // Move camera
+            if (ambulanceMarkers.size() == 1) {
+
+                Ambulance ambulance = AmbulanceForegroundService.getAmbulance();
+                if (ambulance != null) {
+
+                    Location location = ambulance.getLocation();
+                    LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
+
+                    googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15));
+
+                }
+
+            } else if (bounds != null) {
+
+                // move camera
+                googleMap.moveCamera(CameraUpdateFactory.newLatLngBounds(bounds, 50));
+
+            }
+
+        }
+
+    }
+
+    public LatLngBounds updateMarkers() {
 
         // fast return
         if (googleMap == null)
-            return;
+            return null;
 
         // Assemble marker bounds
         LatLngBounds.Builder builder = new LatLngBounds.Builder();
@@ -229,18 +313,31 @@ public class MapFragment extends Fragment implements View.OnClickListener, OnMap
                     Location location = ambulance.getLocation();
                     LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
 
-                    // Place marker
-                    Marker marker = googleMap.addMarker(new MarkerOptions()
-                            .position(latLng)
-                            .icon(bitmapDescriptorFromVector(getActivity(), R.drawable.ambulance_blue, 0.1))
-                            .anchor(0.5F,0.5F)
-                            .rotation((float) ambulance.getOrientation())
-                            .flat(true)
-                            .title(ambulance.getIdentifier())
-                            .snippet(ambulanceStatus.get(ambulance.getStatus())));
+                    // Marker exist?
+                    Marker marker;
+                    if (ambulanceMarkers.containsKey(ambulance.getId())) {
 
-                    // Save marker
-                    ambulanceMarkers.put(ambulance.getId(), marker);
+                        // Update marker
+                        marker = ambulanceMarkers.get(ambulance.getId());
+                        marker.setPosition(latLng);
+
+                    } else {
+
+                        // Create marker
+                        marker = googleMap.addMarker(new MarkerOptions()
+                                .position(latLng)
+                                .icon(bitmapDescriptorFromVector(getActivity(), R.drawable.ambulance_blue, 0.1))
+                                .anchor(0.5F,0.5F)
+                                .rotation((float) ambulance.getOrientation())
+                                .flat(true)
+                                .title(ambulance.getIdentifier())
+                                .snippet(ambulanceStatus.get(ambulance.getStatus())));
+
+                        // Save marker
+                        ambulanceMarkers.put(ambulance.getId(), marker);
+
+                    }
+
 
                     // Add to bound builder
                     builder.include(marker.getPosition());
@@ -249,6 +346,9 @@ public class MapFragment extends Fragment implements View.OnClickListener, OnMap
             }
 
         }
+
+        // Bounds
+        LatLngBounds bounds = null;
 
         // Update own ambulance
         Ambulance ambulance = AmbulanceForegroundService.getAmbulance();
@@ -278,22 +378,12 @@ public class MapFragment extends Fragment implements View.OnClickListener, OnMap
             builder.include(latLng);
 
             // Calculate bounds
-            LatLngBounds bounds = builder.build();
-
-            // move camera
-            if (ambulanceMarkers.size() == 1) {
-
-                googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15));
-
-            } else {
-
-                // move camera
-                googleMap.moveCamera(CameraUpdateFactory.newLatLngBounds(bounds, 50));
-
-            }
+            bounds = builder.build();
 
         }
 
+        // return bounds
+        return bounds;
     }
 
     /*
@@ -309,6 +399,15 @@ public class MapFragment extends Fragment implements View.OnClickListener, OnMap
         Canvas canvas = new Canvas(bitmap);
         vectorDrawable.draw(canvas);
         return BitmapDescriptorFactory.fromBitmap(bitmap);
+    }
+
+   /**
+     * Get LocalBroadcastManager
+     *
+     * @return the LocalBroadcastManager
+     */
+    private LocalBroadcastManager getLocalBroadcastManager() {
+        return LocalBroadcastManager.getInstance(getContext());
     }
 
 }
