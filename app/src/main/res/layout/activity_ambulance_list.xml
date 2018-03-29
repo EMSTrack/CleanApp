@@ -3,16 +3,23 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:gravity="center"
     android:orientation="vertical">
-
 
     <ImageView
         android:id="@+id/logo"
         android:layout_width="match_parent"
         android:layout_height="240dp"
-        android:paddingBottom="20dp"
+        android:layout_marginTop="20dp"
         app:srcCompat="@drawable/ambulancelogo" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="40dp"
+        android:layout_marginTop="20dp"
+        android:text="Select ambulance:"
+        android:textStyle="bold"
+        android:textSize="18sp" />
 
     <Spinner
         android:id="@+id/ambulanceSpinner"
@@ -22,20 +29,29 @@
         android:layout_marginLeft="40dp"
         android:layout_marginRight="40dp"
         android:layout_marginStart="40dp"
-        android:layout_marginTop="10dp"
+        android:layout_marginTop="20dp"
         android:textAlignment="center" />
 
-    <Button
-        android:id="@+id/submitAmbulanceButton"
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginEnd="40dp"
-        android:layout_marginLeft="40dp"
-        android:layout_marginRight="40dp"
-        android:layout_marginStart="40dp"
-        android:layout_marginTop="10dp"
-        android:background="@color/colorAccent"
-        android:text="Select Ambulance"
-        android:textColor="@color/colorWhite" />
+        android:layout_height="0dip"
+        android:layout_weight="1"
+        android:gravity="center|bottom"
+        android:orientation="vertical" >
+
+        <Button
+            android:id="@+id/submitAmbulanceButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="40dp"
+            android:layout_marginLeft="40dp"
+            android:layout_marginRight="40dp"
+            android:layout_marginStart="40dp"
+            android:layout_marginBottom="120dp"
+            android:background="@color/colorAccent"
+            android:text="Login"
+            android:textColor="@color/colorWhite" />
+
+    </LinearLayout>
 
 </LinearLayout>

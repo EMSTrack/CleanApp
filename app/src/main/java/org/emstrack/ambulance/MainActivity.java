@@ -1,7 +1,7 @@
 package org.emstrack.ambulance;
 
-import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.support.design.widget.NavigationView;
@@ -10,18 +10,23 @@ import android.support.v4.app.Fragment;
 import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
 import org.emstrack.ambulance.adapters.FragmentPager;
+import org.emstrack.ambulance.dialogs.AlertSnackbar;
 import org.emstrack.ambulance.dialogs.LogoutDialog;
 import org.emstrack.ambulance.fragments.AmbulanceFragment;
 import org.emstrack.ambulance.fragments.HospitalFragment;
 import org.emstrack.ambulance.fragments.MapFragment;
+import org.emstrack.ambulance.services.AmbulanceForegroundService;
+import org.emstrack.ambulance.services.OnServiceComplete;
 
 /**
  * This is the main activity -- the default screen
@@ -138,8 +143,9 @@ public class MainActivity extends AppCompatActivity {
 
         // Actions
         if (itemId == R.id.logout) {
-            LogoutDialog ld = LogoutDialog.newInstance();
-            ld.show(getFragmentManager(), "logout_dialog");
+
+            LogoutDialog.newInstance(this).show();
+
         } // else if (itemId == R.id.home) {}
 
     }
@@ -159,6 +165,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void panicPopUp() {
+
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setCancelable(true);
         builder.setTitle("PANIC!");

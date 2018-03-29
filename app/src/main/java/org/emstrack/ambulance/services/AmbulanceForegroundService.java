@@ -114,6 +114,7 @@ public class AmbulanceForegroundService extends BroadcastService {
         public final static String LOGIN = "org.emstrack.ambulance.ambulanceforegroundservice.action.LOGIN";
         public final static String GET_AMBULANCE = "org.emstrack.ambulance.ambulanceforegroundservice.action.GET_AMBULANCE";
         public final static String GET_AMBULANCES= "org.emstrack.ambulance.ambulanceforegroundservice.action.GET_AMBULANCES";
+        public final static String STOP_AMBULANCES= "org.emstrack.ambulance.ambulanceforegroundservice.action.STOP_AMBULANCES";
         public final static String GET_HOSPITALS = "org.emstrack.ambulance.ambulanceforegroundservice.action.GET_HOSPITALS";
         public final static String START_LOCATION_UPDATES = "org.emstrack.ambulance.ambulanceforegroundservice.action.START_LOCATION_UPDATES";
         public final static String STOP_LOCATION_UPDATES = "org.emstrack.ambulance.ambulanceforegroundservice.action.STOP_LOCATION_UPDATES";
@@ -369,6 +370,13 @@ public class AmbulanceForegroundService extends BroadcastService {
 
             // Retrieve ambulances
             retrieveAmbulances(uuid);
+
+        } else if (intent.getAction().equals(Actions.STOP_AMBULANCES)) {
+
+            Log.i(TAG, "STOP_AMBULANCES Foreground Intent");
+
+            // Stop ambulances
+            stopAmbulances(uuid);
 
         } else if (intent.getAction().equals(Actions.GET_HOSPITALS)) {
 
@@ -1252,6 +1260,21 @@ public class AmbulanceForegroundService extends BroadcastService {
 
         // Remove ambulances
         _ambulances = null;
+
+    }
+
+    /**
+     * Stop subscribing to ambulances
+     */
+    public void stopAmbulances(final String uuid) {
+
+        // Remove current ambulance map
+        // TODO: Does it need to be asynchrounous?
+        removeAmbulances();
+
+        // Broadcast success
+        Intent localIntent = new Intent(BroadcastActions.SUCCESS);
+        sendBroadcastWithUUID(localIntent, uuid);
 
     }
 

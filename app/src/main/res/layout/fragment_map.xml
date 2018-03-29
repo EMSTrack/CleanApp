@@ -18,7 +18,7 @@
         android:layout_gravity="center_horizontal"
         android:layout_marginRight="12dp"
         android:layout_marginTop="60dp"
-        android:background="#8FFF"
+        android:background="@color/mapButtonOff"
         android:padding="5dp"
         app:srcCompat="@drawable/ic_ambulance" />
 
