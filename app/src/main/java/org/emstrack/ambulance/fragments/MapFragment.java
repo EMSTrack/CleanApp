@@ -327,18 +327,12 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
 
         }
 
-        try {
+        // Otherwise center at default location
+        Location location = AmbulanceForegroundService.getProfileClient(getContext())
+                .getSettings().getDefaults().getLocation();
+        LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
 
-            // Otherwise center at default location
-            Location location = AmbulanceForegroundService.getProfileClient().getSettings().getDefaults().getLocation();
-            LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
-
-            googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, defaultZoom));
-
-        } catch (Exception e) {
-
-            Log.i(TAG, "Could not get default location.");
-        }
+        googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, defaultZoom));
 
     }
 

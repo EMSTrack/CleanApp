@@ -17,11 +17,14 @@ import android.widget.CompoundButton;
 import android.widget.Spinner;
 import android.widget.Switch;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import org.emstrack.ambulance.LoginActivity;
 import org.emstrack.ambulance.services.AmbulanceForegroundService;
 import org.emstrack.ambulance.MainActivity;
 import org.emstrack.ambulance.R;
 import org.emstrack.models.Ambulance;
+import org.emstrack.models.AmbulancePermission;
 import org.emstrack.mqtt.MqttProfileClient;
 
 import java.text.DateFormat;
@@ -32,8 +35,9 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
+import java.util.TooManyListenersException;
 
-public class AmbulanceFragment extends Fragment implements CompoundButton.OnCheckedChangeListener{
+public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSelectedListener, CompoundButton.OnCheckedChangeListener{
 
     private static final String TAG = AmbulanceFragment.class.getSimpleName();;
 
@@ -60,7 +64,6 @@ public class AmbulanceFragment extends Fragment implements CompoundButton.OnChec
     private List<String> ambulanceStatusList;
     private Map<String,String> ambulanceCapabilities;
     private List<String> ambulanceCapabilityList;
-    private boolean suppressNextSpinnerUpdate = false;
 
     AmbulancesUpdateBroadcastReceiver receiver;
 
@@ -135,66 +138,7 @@ public class AmbulanceFragment extends Fragment implements CompoundButton.OnChec
             update(ambulance);
 
         // Process change of status
-        statusSpinner.setOnItemSelectedListener(
-                new AdapterView.OnItemSelectedListener() {
-                    @Override
-                    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                        Log.i(TAG, "Item '" + position + "' selected.");
-
-                        // Should only update on server as a result of user interaction
-                        // Otherwise this will create a loop with mqtt updating ambulance
-                        // TODO: Debug spinner multiple updates
-                        // This may not be easy with the updates being called from a service
-                        if (suppressNextSpinnerUpdate) {
-
-                            Log.i(TAG, "Skipping status spinner update.");
-
-                            // reset the update flag
-                            suppressNextSpinnerUpdate = false;
-
-                        } else {
-
-                            Log.i(TAG, "Processing status spinner update.");
-
-                            // Get status from spinner
-                            String status = (String) parent.getItemAtPosition(position);
-
-                            // Search for entry in ambulanceStatus map
-                            String statusCode = "";
-                            for (Map.Entry<String, String> entry : ambulanceStatus.entrySet()) {
-                                if (status.equals(entry.getValue())) {
-                                    statusCode = entry.getKey();
-                                    break;
-                                }
-                            }
-
-                            // format timestamp
-                            DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
-                            df.setTimeZone(TimeZone.getTimeZone("UTC"));
-                            String timestamp = df.format(new Date());
-
-                            // Set update string
-                            String updateString = "{\"status\":\"" + statusCode + "\",\"timestamp\":\"" + timestamp + "\"}";
-
-                            // Update on server
-                            // TODO: Update along with locations because it will be recorded with
-                            // the wrong location on the server
-                            Intent intent = new Intent(getContext(), AmbulanceForegroundService.class);
-                            intent.setAction(AmbulanceForegroundService.Actions.UPDATE_AMBULANCE);
-                            Bundle bundle = new Bundle();
-                            bundle.putString("UPDATE", updateString);
-                            intent.putExtras(bundle);
-                            getActivity().startService(intent);
-
-                        }
-                    }
-
-                    @Override
-                    public void onNothingSelected(AdapterView<?> parent) {
-                        Log.i(TAG, "Nothing selected: this should never happen.");
-                    }
-                }
-        );
+        statusSpinner.setOnItemSelectedListener(this);
 
         return view;
     }
@@ -238,11 +182,9 @@ public class AmbulanceFragment extends Fragment implements CompoundButton.OnChec
 
             Log.i(TAG,"Spinner changed from " + currentPosition + " to " + position);
 
-            // set flag to prevent spinner update from triggering server update
-            suppressNextSpinnerUpdate = true;
+            // set spinner
+            setSpinner(position);
 
-            // update spinner
-            statusSpinner.setSelection(position);
         } else {
 
             Log.i(TAG, "Spinner continues to be at position " + position + ". Skipping update");
@@ -268,25 +210,167 @@ public class AmbulanceFragment extends Fragment implements CompoundButton.OnChec
 
     }
 
+    public void setSpinner(int position) {
+
+        // temporarily disconnect listener to prevent loop
+        Log.i(TAG, "Suppressing listener");
+        statusSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                /* do nothing */
+                Log.i(TAG,"Ignoring change in spinner. Position '" + position + "' selected.");
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+                Log.i(TAG,"Ignoring change in spinner. Nothing selected.");
+            }
+        });
+
+        // update spinner
+        statusSpinner.setSelection(position, false);
+
+        // connect listener
+        // this is tricky, see
+        // https://stackoverflow.com/questions/2562248/how-to-keep-onitemselected-from-firing-off-on-a-newly-instantiated-spinner
+        statusSpinner.post(new Runnable() {
+            public void run() {
+                Log.i(TAG, "Restoring listener");
+                statusSpinner.setOnItemSelectedListener(AmbulanceFragment.this);
+            }
+        });
+
+    }
+
+    public boolean canWrite() {
+
+        Ambulance ambulance = AmbulanceForegroundService.getAmbulance();
+
+        // has ambulance?
+        if (ambulance == null)
+            return false;
+
+        // can write?
+        final MqttProfileClient profileClient = AmbulanceForegroundService.getProfileClient(getContext());
+        boolean canWrite = false;
+        for (AmbulancePermission permission : profileClient.getProfile().getAmbulances()) {
+            if (permission.getAmbulanceId() == ambulance.getId()) {
+                if (permission.isCanWrite()) {
+                    canWrite = true;
+                }
+                break;
+            }
+        }
+
+        return canWrite;
+
+    }
+
     @Override
     public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
 
         if (isChecked) {
 
-            // turn on tracking
-            Intent intent = new Intent(getContext(), AmbulanceForegroundService.class);
-            intent.setAction(AmbulanceForegroundService.Actions.START_LOCATION_UPDATES);
-            getActivity().startService(intent);
+            if (canWrite()) {
+
+                // turn on tracking
+                Intent intent = new Intent(getContext(), AmbulanceForegroundService.class);
+                intent.setAction(AmbulanceForegroundService.Actions.START_LOCATION_UPDATES);
+                getActivity().startService(intent);
+
+            } else {
+
+                // Toast to warn user
+                Toast.makeText(getContext(), R.string.cantModifyAmbulance, Toast.LENGTH_LONG).show();
+
+                // reset switch
+                startTrackingSwitch.setChecked(false);
+
+            }
 
         } else {
 
-            // turn off tracking
-            Intent intent = new Intent(getContext(), AmbulanceForegroundService.class);
-            intent.setAction(AmbulanceForegroundService.Actions.STOP_LOCATION_UPDATES);
-            getActivity().startService(intent);
+            if (canWrite()) {
+
+                // turn off tracking
+                Intent intent = new Intent(getContext(), AmbulanceForegroundService.class);
+                intent.setAction(AmbulanceForegroundService.Actions.STOP_LOCATION_UPDATES);
+                getActivity().startService(intent);
+
+            }
 
         }
 
+    }
+
+    @Override
+    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+
+        Log.i(TAG, "Item '" + position + "' selected.");
+
+        // Should only update on server as a result of user interaction
+        // Otherwise this will create a loop with mqtt updating ambulance
+        // TODO: Debug spinner multiple updates
+        // This may not be easy with the updates being called from a service
+
+        Log.i(TAG, "Processing status spinner update.");
+
+        if (!canWrite()) {
+
+            // Toast to warn user
+            Toast.makeText(getContext(), R.string.cantModifyAmbulance, Toast.LENGTH_LONG).show();
+
+            // set spinner
+            Ambulance ambulance = AmbulanceForegroundService.getAmbulance();
+            if (ambulance != null) {
+
+                int oldPosition = ambulanceStatusList.indexOf(ambulanceStatus.get(ambulance.getStatus()));
+                setSpinner(oldPosition);
+
+            } else {
+                Log.d(TAG,"Could not retrieve ambulance.");
+            }
+
+            // Return
+            return;
+
+        }
+
+        // Get status from spinner
+        String status = (String) parent.getItemAtPosition(position);
+
+        // Search for entry in ambulanceStatus map
+        String statusCode = "";
+        for (Map.Entry<String, String> entry : ambulanceStatus.entrySet()) {
+            if (status.equals(entry.getValue())) {
+                statusCode = entry.getKey();
+                break;
+            }
+        }
+
+        // format timestamp
+        DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+        df.setTimeZone(TimeZone.getTimeZone("UTC"));
+        String timestamp = df.format(new Date());
+
+        // Set update string
+        String updateString = "{\"status\":\"" + statusCode + "\",\"timestamp\":\"" + timestamp + "\"}";
+
+        // Update on server
+        // TODO: Update along with locations because it will be recorded with
+        //       the wrong location on the server
+        Intent intent = new Intent(getContext(), AmbulanceForegroundService.class);
+        intent.setAction(AmbulanceForegroundService.Actions.UPDATE_AMBULANCE);
+        Bundle bundle = new Bundle();
+        bundle.putString("UPDATE", updateString);
+        intent.putExtras(bundle);
+        getActivity().startService(intent);
+
+    }
+
+    @Override
+    public void onNothingSelected(AdapterView<?> parent) {
+        Log.i(TAG, "Nothing selected: this should never happen.");
     }
 
     /**

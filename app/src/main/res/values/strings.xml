@@ -91,6 +91,7 @@
     <string name="couldNotLogout">Could not logout.</string>
     <string name="couldNotRetrieveAmbulances">Could not retrieve ambulances</string>
     <string name="couldNotUnsubscribeToAmbulances">Could not unsubscribe to ambulances</string>
+    <string name="cantModifyAmbulance">You do not have permission to modify this ambulance.</string>
 
     <string-array name="spinner_list_item_array">
         <item>@string/dispatch</item>
