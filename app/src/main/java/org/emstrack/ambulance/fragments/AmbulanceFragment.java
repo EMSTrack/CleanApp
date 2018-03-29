@@ -225,7 +225,7 @@ public class AmbulanceFragment extends Fragment implements CompoundButton.OnChec
             getLocalBroadcastManager().unregisterReceiver(receiver);
             receiver = null;
         }
-        super.onDestroy();
+
     }
 
     public void update(Ambulance ambulance) {

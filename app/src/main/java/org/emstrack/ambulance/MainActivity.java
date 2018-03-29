@@ -1,47 +1,27 @@
 package org.emstrack.ambulance;
 
-import android.Manifest;
-import android.annotation.SuppressLint;
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
-import android.content.Intent;
-import android.content.IntentSender;
-import android.content.pm.PackageManager;
 import android.content.res.Configuration;
-import android.net.Uri;
 import android.os.Bundle;
-import android.provider.Settings;
-import android.support.annotation.NonNull;
-import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
-import android.support.design.widget.Snackbar;
 import android.support.design.widget.TabLayout;
-import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.Fragment;
 import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import com.google.android.gms.common.api.ApiException;
-import com.google.android.gms.common.api.ResolvableApiException;
-import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.location.LocationSettingsResponse;
-import com.google.android.gms.location.LocationSettingsStatusCodes;
-import com.google.android.gms.location.SettingsClient;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
-
-import org.emstrack.ambulance.adapters.Pager;
+import org.emstrack.ambulance.adapters.FragmentPager;
 import org.emstrack.ambulance.dialogs.LogoutDialog;
 import org.emstrack.ambulance.fragments.AmbulanceFragment;
+import org.emstrack.ambulance.fragments.HospitalFragment;
+import org.emstrack.ambulance.fragments.MapFragment;
 
 /**
  * This is the main activity -- the default screen
@@ -53,7 +33,7 @@ public class MainActivity extends AppCompatActivity {
     public static String MAIN_ACTION = "org.emstrack.ambulance.action.main";
 
     private ViewPager viewPager;
-    private Pager adapter;
+    private FragmentPager adapter;
 
     private DrawerLayout mDrawer;
     private NavigationView nvDrawer;
@@ -61,7 +41,6 @@ public class MainActivity extends AppCompatActivity {
     private Toolbar toolbar;
     private TextView headerText;
     private ImageButton panicButton;
-    private FloatingActionButton navButton;
 
     /**
      * @param savedInstanceState
@@ -84,16 +63,6 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        // Nav button
-        navButton = (FloatingActionButton) findViewById(R.id.navBtn);
-        navButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                //
-            }
-        });
-        navButton.hide();
-
         // Set a Toolbar to replace the ActionBar.
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -113,40 +82,22 @@ public class MainActivity extends AppCompatActivity {
         // Setup drawer view
         setupDrawerContent(nvDrawer);
 
-        //set up TabLayout Structure
-        TabLayout tabLayout = (TabLayout) findViewById(R.id.tab_layout_home);
-        tabLayout.addTab(tabLayout.newTab().setText("Ambulance"));
-        tabLayout.addTab(tabLayout.newTab().setText("Hospitals"));
-        tabLayout.addTab(tabLayout.newTab().setText("Map"));
-
         // pager
         viewPager = (ViewPager) findViewById(R.id.pager);
-        tabLayout.setTabGravity(TabLayout.GRAVITY_FILL);
 
         // Setup Adapter for tabLayout
-        adapter = new Pager(getSupportFragmentManager(), tabLayout.getTabCount());
+        adapter = new FragmentPager(getSupportFragmentManager(),
+                new Fragment[] {new AmbulanceFragment(), new HospitalFragment(), new MapFragment()},
+                new CharSequence[] {"Ambulance", "Hospitals", "Map"});
         viewPager.setAdapter(adapter);
 
-        viewPager.addOnPageChangeListener(new TabLayout.TabLayoutOnPageChangeListener(tabLayout));
-        tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
-            @Override
-            public void onTabSelected(TabLayout.Tab tab) {
-                viewPager.setCurrentItem(tab.getPosition());
-                if (tab.getPosition() == 2) {
-                    navButton.show();
-                } else {
-                    navButton.hide();
-                }
-            }
-
-            @Override
-            public void onTabUnselected(TabLayout.Tab tab) {
-            }
-
-            @Override
-            public void onTabReselected(TabLayout.Tab tab) {
-            }
-        });
+        //set up TabLayout Structure
+        TabLayout tabLayout = (TabLayout) findViewById(R.id.tab_layout_home);
+        tabLayout.setTabGravity(TabLayout.GRAVITY_FILL);
+        tabLayout.setupWithViewPager(viewPager);
+        tabLayout.getTabAt(0).setIcon(R.drawable.ic_ambulance);
+        tabLayout.getTabAt(1).setIcon(R.drawable.ic_hospital);
+        tabLayout.getTabAt(2).setIcon(R.drawable.ic_globe);
 
     }
 
