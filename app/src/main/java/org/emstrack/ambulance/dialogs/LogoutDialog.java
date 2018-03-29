@@ -1,5 +1,6 @@
 package org.emstrack.ambulance.dialogs;
 
+import android.app.Activity;
 import android.app.Dialog;
 import android.app.DialogFragment;
 import android.content.DialogInterface;
@@ -23,72 +24,66 @@ import org.emstrack.mqtt.MqttProfileClient;
  * Created by devinhickey on 5/24/17.
  */
 
-public class LogoutDialog extends DialogFragment {
+public class LogoutDialog {
 
-    final String TAG = "LogoutDialog";
+    private static final String TAG = LogoutDialog.class.getSimpleName();
 
-    public LogoutDialog() {}
+    public static AlertDialog newInstance(final Activity activity) {
 
-    public static LogoutDialog newInstance() {
-        return new LogoutDialog();
-    }
+        // Logout dialog
+        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(activity);
 
-    @Override
-    @NonNull
-    public Dialog onCreateDialog(Bundle savedInstanceState) {
-        System.out.println("Logout Dialog onCreateDialog");
+        alertDialogBuilder.setTitle(R.string.alert_warning_title);
+        alertDialogBuilder.setMessage(R.string.logout_confirm);
 
-        AlertDialog.Builder alertBuilder = new AlertDialog.Builder(getActivity());
-
-        alertBuilder.setTitle(getResources().getString(R.string.alert_warning_title));
-        alertBuilder.setMessage(getResources().getString(R.string.logout_confirm));
+        // Cancel button
+        alertDialogBuilder.setNegativeButton(
+                R.string.alert_button_negative_text,
+                new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        /* do nothing */
+                    }
+                });
 
         // Create the OK button that logs user out
-        alertBuilder.setNeutralButton(getResources().getString(R.string.alert_button_positive_text), new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                Log.i(TAG,"LogoutDialog: OK Button Clicked");
-
-                // Stop foreground activity
-                Intent intent = new Intent(getActivity().getBaseContext(), AmbulanceForegroundService.class);
-                intent.setAction(AmbulanceForegroundService.Actions.LOGOUT);
-
-                // What to do when service completes?
-                new OnServiceComplete(getActivity(),
-                        AmbulanceForegroundService.BroadcastActions.SUCCESS,
-                        AmbulanceForegroundService.BroadcastActions.FAILURE,
-                        intent) {
-
+        alertDialogBuilder.setPositiveButton(
+                R.string.alert_button_positive_text,
+                new DialogInterface.OnClickListener() {
                     @Override
-                    public void onSuccess(Bundle extras) {
-                        Log.i(TAG, "onSuccess");
+                    public void onClick(DialogInterface dialog, int which) {
 
-                        // Start login activity
-                        Intent loginIntent = new Intent(LogoutDialog.this.getActivity(), LoginActivity.class);
-                        loginIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP|Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                        startActivity(loginIntent);
+                        Log.i(TAG,"LogoutDialog: OK Button Clicked");
+
+                        // Stop foreground activity
+                        Intent intent = new Intent(activity, AmbulanceForegroundService.class);
+                        intent.setAction(AmbulanceForegroundService.Actions.LOGOUT);
+
+                        // What to do when service completes?
+                        new OnServiceComplete(activity,
+                                AmbulanceForegroundService.BroadcastActions.SUCCESS,
+                                AmbulanceForegroundService.BroadcastActions.FAILURE,
+                                intent) {
+
+                            @Override
+                            public void onSuccess(Bundle extras) {
+                                Log.i(TAG, "onSuccess");
+
+                                // Start login activity
+                                Intent loginIntent = new Intent(activity, LoginActivity.class);
+                                loginIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP|Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                                activity.startActivity(loginIntent);
+
+                            }
+
+                        }
+                                .setFailureMessage(activity.getString(R.string.couldNotLogout))
+                                .setAlert(new AlertSnackbar(activity));
 
                     }
+                });
 
-                }
-                        .setFailureMessage(getString(R.string.couldNotLogout))
-                        .setAlert(new AlertSnackbar(getActivity()));
-
-            }
-        });
-
-        // Create the Cancel Button
-        alertBuilder.setNegativeButton(getResources().getString(R.string.alert_button_negative_text), new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                Log.i(TAG, "LogoutDialog: Cancel Button Clicked");
-
-                // dismiss
-                dialog.dismiss();
-            }
-        });
-
-        return alertBuilder.create();
+        return alertDialogBuilder.create();
 
     }
 

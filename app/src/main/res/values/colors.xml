@@ -6,4 +6,6 @@
     <color name="colorWhite">#ffffffff</color>
     <color name="colorBlack">#000000</color>
     <color name="common_action_bar_splitter">#000000</color>
+    <color name="mapButtonOff">#8FFF</color>
+    <color name="mapButtonOn">#8888</color>
 </resources>
