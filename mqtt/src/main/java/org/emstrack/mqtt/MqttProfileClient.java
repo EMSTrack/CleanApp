@@ -49,7 +49,9 @@ public class MqttProfileClient implements MqttCallbackExtended {
         }
     }
 
-   private static final String TAG = "MqttProfileClient";
+    private static final String TAG = MqttProfileClient.class.getSimpleName();
+
+    private final String connectTopic = "/user/%1$s/client/%2$s/status";
 
     private String username;
     private Profile profile;
@@ -96,6 +98,20 @@ public class MqttProfileClient implements MqttCallbackExtended {
 
         // if connected, disconnect
         if (isConnected()) {
+
+            try {
+
+                // Publish to connect topic
+                final String topic =
+                        String.format(connectTopic,
+                                username, mqttClient.getClientId());
+                MqttProfileClient.this.publish(topic, "offline", 1, true);
+
+            } catch (MqttException e) {
+                Log.e(TAG, "COuld not publish to connectTopic");
+            }
+
+            // try to disconnect
             mqttClient.disconnect(null,
                     new IMqttActionListener() {
 
@@ -227,6 +243,12 @@ public class MqttProfileClient implements MqttCallbackExtended {
         mqttConnectOptions.setUserName(username);
         mqttConnectOptions.setPassword(password.toCharArray());
 
+        // set will
+        final String topic =
+                String.format(connectTopic,
+                        username,mqttClient.getClientId());
+        mqttConnectOptions.setWill(topic, "disconnected".getBytes(), 1, true);
+
         mqttClient.connect(mqttConnectOptions,
                 null,
                 new IMqttActionListener() {
@@ -241,6 +263,15 @@ public class MqttProfileClient implements MqttCallbackExtended {
                         disconnectedBufferOptions.setPersistBuffer(false);
                         disconnectedBufferOptions.setDeleteOldestMessages(false);
                         mqttClient.setBufferOpts(disconnectedBufferOptions);
+
+                        try {
+
+                            // publish online to connectTopic
+                            MqttProfileClient.this.publish(topic, "online", 1, true);
+
+                        } catch (MqttException e) {
+                            Log.e(TAG,"Could not publish to connect topic");
+                        }
 
                         // Forward callback
                         if (connectCallback != null)

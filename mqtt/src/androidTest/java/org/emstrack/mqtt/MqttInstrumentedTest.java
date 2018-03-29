@@ -82,7 +82,7 @@ public class MqttInstrumentedTest {
 
         // Test settings
         assertEquals("Tijuana", profileClient.getSettings().getDefaults().getCity());
-        assertEquals("BC", profileClient.getSettings().getDefaults().getState());
+        assertEquals("BCN", profileClient.getSettings().getDefaults().getState());
         assertEquals("MX", profileClient.getSettings().getDefaults().getCountry());
 
         // Test hospitals
