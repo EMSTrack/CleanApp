@@ -78,7 +78,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
 
                     Log.i(TAG, "AMBULANCES_UPDATE");
 
-                    // update markers
+                    // update markers without centering
                     updateMarkers();
 
                 }
@@ -154,7 +154,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
                         // forget ambulances
                         forgetAmbulances();
 
-                        // update markers
+                        // update markers without centering
                         updateMarkers();
 
                     }
@@ -172,9 +172,6 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         final MqttProfileClient profileClient = AmbulanceForegroundService.getProfileClient(getContext());
 
         ambulanceStatus = profileClient.getSettings().getAmbulanceStatus();
-
-        // Retrieve ambulances?
-        retrieveAmbulances();
 
         // Initialize map
         SupportMapFragment mapFragment = (SupportMapFragment) getChildFragmentManager()
@@ -216,11 +213,8 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
 
                         Log.i(TAG,"Got them all. Updating markers.");
 
-                        // update markers
-                        LatLngBounds bounds = updateMarkers();
-
-                        // center bounds
-                        centerMap(bounds);
+                        // update markers and center bounds
+                        centerMap(updateMarkers());
 
                         // Enable button
                         showAmbulancesButton.setEnabled(true);
@@ -237,7 +231,9 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
             Log.i(TAG,"Already have ambulances. Updating markers.");
 
             // Already have ambulances
-            updateMarkers();
+
+            // update markers and center bounds
+            centerMap(updateMarkers());
 
         }
 
@@ -302,21 +298,6 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
          else
              showLocationButton.setBackgroundColor(getResources().getColor(R.color.mapButtonOff));
 
-         if (showAmbulances) {
-
-             // forget ambulances
-             forgetAmbulances();
-
-             // retrieve ambulances
-             retrieveAmbulances();
-
-         } else {
-
-             // update markers
-             updateMarkers();
-
-         }
-
      }
 
     @Override
@@ -357,11 +338,17 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
 
         }
 
-        // Update markers
-        LatLngBounds bounds = updateMarkers();
+        if (showAmbulances) {
 
-        // Center map
-        centerMap(bounds);
+            // retrieve ambulances
+            retrieveAmbulances();
+
+        } else {
+
+            // Update markers and center map
+            centerMap(updateMarkers());
+
+        }
 
     }
 

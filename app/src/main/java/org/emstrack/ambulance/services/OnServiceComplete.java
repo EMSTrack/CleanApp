@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
@@ -29,10 +30,11 @@ public abstract class OnServiceComplete extends BroadcastReceiver {
     private boolean successFlag;
     private boolean completeFlag;
 
-    public OnServiceComplete(Context context,
-                             String successAction,
-                             String failureAction,
-                             Intent intent) {
+    public OnServiceComplete(final Context context,
+                             final String successAction,
+                             final String failureAction,
+                             Intent intent,
+                             int timeout) {
 
         // uuid
         this.uuid = java.util.UUID.randomUUID().toString();
@@ -70,6 +72,36 @@ public abstract class OnServiceComplete extends BroadcastReceiver {
 
         }
 
+        // Start timeout timer
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+
+                if (!isComplete()) {
+
+                    // Broadcast failure
+                    Intent localIntent = new Intent(failureAction);
+                    localIntent.putExtra(OnServiceComplete.UUID, uuid);
+                    localIntent.putExtra(AmbulanceForegroundService.BroadcastExtras.MESSAGE,
+                            "Timed out without completing service.");
+                    context.sendBroadcast(localIntent);
+
+                }
+
+                // otherwise die graciously
+
+            }
+        }, timeout);
+
+    }
+
+    public OnServiceComplete(final Context context,
+                             final String successAction,
+                             final String failureAction,
+                             Intent intent) {
+
+        this(context, successAction, failureAction, intent, 10000);
+
     }
 
     public String getUuid() { return uuid; }
@@ -105,7 +137,6 @@ public abstract class OnServiceComplete extends BroadcastReceiver {
         // quick return if not same uuid
         if (!this.uuid.equals(uuid))
             return;
-
 
         // unregister first
         unregister(context);
