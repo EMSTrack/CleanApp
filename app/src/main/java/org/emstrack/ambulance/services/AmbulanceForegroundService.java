@@ -68,7 +68,7 @@ import java.util.UUID;
  * Created by mauricio on 3/18/2018.
  */
 
-public class AmbulanceForegroundService extends BroadcastService {
+public class  AmbulanceForegroundService extends BroadcastService {
 
     final static String TAG = AmbulanceForegroundService.class.getSimpleName();
 
@@ -86,7 +86,7 @@ public class AmbulanceForegroundService extends BroadcastService {
     private NotificationManager notificationManager;
 
     private static final String serverUri = "ssl://cruzroja.ucsd.edu:8883";
-    private static final String clientId = "AmbulanceAppClient_" + UUID.randomUUID().toString();
+    private static final String baseClientId = "v_0_1_AndroidAppClient_";
 
     private static MqttProfileClient client;
     private static Ambulance _ambulance;
@@ -162,6 +162,24 @@ public class AmbulanceForegroundService extends BroadcastService {
             if (intent != null) {
                 final String action = intent.getAction();
                 if (BroadcastActions.LOCATION_UPDATE.equals(action)) {
+
+                    // stop updates?
+                    Ambulance ambulance = getAmbulance();
+                    if (ambulance.getLocationClientId() == null ||
+                            !ambulance.getLocationClientId()
+                                    .equals(AmbulanceForegroundService.getProfileClient(context).getClientId())) {
+
+                        Log.i(TAG, "Stopping location updates.");
+
+                        // turn off tracking
+                        Intent stopIntent = new Intent(context, AmbulanceForegroundService.class);
+                        stopIntent.setAction(AmbulanceForegroundService.Actions.STOP_LOCATION_UPDATES);
+                        context.startService(stopIntent);
+
+                        return;
+
+                    }
+
                     LocationResult result = LocationResult.extractResult(intent);
                     if (result != null) {
 
@@ -175,7 +193,6 @@ public class AmbulanceForegroundService extends BroadcastService {
                         // Filter location
                         List<LocationUpdate> filteredLocations = filter.update(locations);
 
-                        Ambulance ambulance = getAmbulance();
                         ArrayList<String> mqttUpdates = new ArrayList<>();
                         for (LocationUpdate newLocation : filteredLocations) {
 
@@ -470,6 +487,7 @@ public class AmbulanceForegroundService extends BroadcastService {
     public static MqttProfileClient getProfileClient(Context context) {
         // lazy initialization
         if (client == null) {
+            String clientId = baseClientId + UUID.randomUUID().toString();
             MqttAndroidClient androidClient = new MqttAndroidClient(context, serverUri, clientId);
             client = new MqttProfileClient(androidClient);
         }
@@ -884,6 +902,24 @@ public class AmbulanceForegroundService extends BroadcastService {
 
         try {
 
+            // Publish ambulance login
+            String topic = String.format("user/%1$s/client/%2$s/ambulance/%3$s/status",
+                    profileClient.getUsername(), profileClient.getClientId(), ambulanceId);
+            profileClient.publish(topic, "ambulance login",2,true);
+
+        } catch (MqttException e) {
+
+            Log.d(TAG, "Could not login to ambulance");
+
+            // Broadcast failure
+            Intent localIntent = new Intent(BroadcastActions.FAILURE);
+            localIntent.putExtra(BroadcastExtras.MESSAGE, getString(R.string.couldNotSubscribeToAmbulance));
+            sendBroadcastWithUUID(localIntent, uuid);
+
+        }
+
+        try {
+
             // Start retrieving data
             profileClient.subscribe("ambulance/" + ambulanceId + "/data",
                     1, new MqttProfileMessageCallback() {
@@ -984,25 +1020,39 @@ public class AmbulanceForegroundService extends BroadcastService {
             return;
         }
 
+        // Remove current ambulance first
+        _ambulance = null;
+
+        // get ambulance id
+        int ambulanceId = ambulance.getId();
+
         // remove location updates
         removeLocationUpdates();
 
         // Retrieve client
         final MqttProfileClient profileClient = getProfileClient(this);
-        
+
+        try {
+
+            // Publish ambulance logout
+            String topic = String.format("user/%1$s/client/%2$s/ambulance/%3$s/status",
+                    profileClient.getUsername(), profileClient.getClientId(), ambulanceId);
+            profileClient.publish(topic, "ambulance logout",2,true);
+
+        } catch (MqttException e) {
+            Log.d(TAG, "Could not logout from ambulance");
+        }
+
         try {
 
             // Unsubscribe to ambulance data
-            profileClient.unsubscribe("ambulance/" + ambulance.getId() + "/data");
+            profileClient.unsubscribe("ambulance/" + ambulanceId + "/data");
 
         } catch (MqttException exception) {
-            Log.d(TAG, "Could not unsubscribe to 'ambulance/" + ambulance.getId() + "/data'");
+            Log.d(TAG, "Could not unsubscribe to 'ambulance/" + ambulanceId + "/data'");
         }
         
-        // Remove current ambulance
-        _ambulance = null;
-        _lastLocation = null;
-        
+
     }
 
     /**
@@ -1328,17 +1378,6 @@ public class AmbulanceForegroundService extends BroadcastService {
     }
 
     /**
-     * Get the service's PendingIntent.
-     * Override to customize.
-     * @return the service's PendingIntent
-     */
-    protected PendingIntent getPendingIntent() {
-        Intent intent = new Intent(this, LocationUpdatesBroadcastReceiver.class);
-        intent.setAction(BroadcastActions.LOCATION_UPDATE);
-        return PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
-    }
-
-    /**
      * Handles the Request Updates button and requests start of location updates.
      */
     public void requestLocationUpdates() {
@@ -1372,12 +1411,40 @@ public class AmbulanceForegroundService extends BroadcastService {
      */
     public void removeLocationUpdates() {
 
+        _lastLocation = null;
+
         // Already started?
         if (!requestingLocationUpdates) {
             Log.i(TAG, "Not requesting location updates. Skipping.");
             return;
         }
 
+        // clear location_client on server?
+        Ambulance ambulance = getAmbulance();
+        if (ambulance != null &&
+                ambulance.getLocationClientId().equals(AmbulanceForegroundService.getProfileClient(this).getClientId())) {
+
+            Log.i(TAG, "Will clear location client on server");
+
+            // clear location_client on server
+            final MqttProfileClient profileClient = AmbulanceForegroundService.getProfileClient(this);
+            String payload = "{\"location_client_id\":\"\"}";
+
+            // Update location_client on server, listening to updates already
+            Intent intent = new Intent(this, AmbulanceForegroundService.class);
+            intent.setAction(AmbulanceForegroundService.Actions.UPDATE_AMBULANCE);
+            Bundle bundle = new Bundle();
+            bundle.putString("UPDATE", payload);
+            intent.putExtras(bundle);
+            startService(intent);
+
+        } else {
+
+            Log.i(TAG, "No need to clear location client on server");
+
+        }
+
+        // remove on fusedLocationclient
         fusedLocationClient.removeLocationUpdates(getPendingIntent())
                 .addOnSuccessListener(new OnSuccessListener<Void>() {
                     @Override
@@ -1393,6 +1460,18 @@ public class AmbulanceForegroundService extends BroadcastService {
                         e.printStackTrace();
                     }
                 });
+
+    }
+
+    /**
+     * Get the service's PendingIntent.
+     * Override to customize.
+     * @return the service's PendingIntent
+     */
+    protected PendingIntent getPendingIntent() {
+        Intent intent = new Intent(this, LocationUpdatesBroadcastReceiver.class);
+        intent.setAction(BroadcastActions.LOCATION_UPDATE);
+        return PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
     }
 
 }
