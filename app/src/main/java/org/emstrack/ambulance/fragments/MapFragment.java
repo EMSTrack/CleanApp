@@ -43,7 +43,7 @@ import static android.content.ContentValues.TAG;
 
 // TODO: Implement listener to ambulance changes
 
-public class MapFragment extends Fragment implements OnMapReadyCallback {
+public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleMap.OnCameraIdleListener {
 
     View rootView;
     private Map<String, String> ambulanceStatus;
@@ -58,6 +58,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
     private AmbulancesUpdateBroadcastReceiver receiver;
     private float defaultZoom = 15;
     private int defaultPadding = 50;
+    private float zoomLevel = defaultZoom;
 
     public class AmbulancesUpdateBroadcastReceiver extends BroadcastReceiver {
 
@@ -312,6 +313,11 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
     }
 
     @Override
+    public void onCameraIdle() {
+        zoomLevel = googleMap.getCameraPosition().zoom;
+    }
+
+    @Override
     public void onMapReady(GoogleMap googleMap) {
 
         // save map
@@ -338,6 +344,9 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
 
         }
 
+        // Add listener to track zoom
+        googleMap.setOnCameraIdleListener(this);
+
         if (showAmbulances) {
 
             // retrieve ambulances
@@ -352,6 +361,8 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
 
     }
 
+
+
     public void centerMap(LatLngBounds bounds) {
 
         if (ambulanceMarkers.size() > 0) {
@@ -365,7 +376,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
                     Location location = ambulance.getLocation();
                     LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
 
-                    googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, defaultZoom));
+                    googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, zoomLevel));
 
                     return;
                 }
@@ -386,7 +397,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
                 .getSettings().getDefaults().getLocation();
         LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
 
-        googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, defaultZoom));
+        googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, zoomLevel));
 
     }
 
@@ -493,12 +504,14 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
             Location location = ambulance.getLocation();
             LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
 
-            googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, defaultZoom));
+            // Add marker for ambulance
+            Marker marker = addMarkerForAmbulance(ambulance);
+
+            googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, zoomLevel));
 
         }
 
     }
-
 
     /*
      * This is from
