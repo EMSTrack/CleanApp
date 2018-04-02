@@ -189,7 +189,7 @@ public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSel
                 Log.d(TAG, "Succeeded in request to stream location");
 
                 // Let user know
-                Toast.makeText(getContext(), R.string.startedStreamingLocation, Toast.LENGTH_LONG).show();
+                Toast.makeText(getContext(), R.string.startedStreamingLocation, Toast.LENGTH_SHORT).show();
 
                 // turn on tracking
                 Intent intent = new Intent(getContext(), AmbulanceForegroundService.class);
@@ -380,6 +380,9 @@ public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSel
                 if (canStreamLocation()) {
 
                     Log.d(TAG, "onCheckedChanged: requesting to stream location");
+
+                    // Let user know
+                    Toast.makeText(getContext(), R.string.requestingToStreamLocation, Toast.LENGTH_SHORT).show();
 
                     // Set requestingLocation to number of attempts
                     requestingToStreamLocation = MAX_NUMBER_OF_LOCATION_REQUESTS_ATTEMPTS;
