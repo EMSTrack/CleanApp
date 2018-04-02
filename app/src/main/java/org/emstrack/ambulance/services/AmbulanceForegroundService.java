@@ -15,6 +15,7 @@ import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.os.MessageQueue;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationCompat;
@@ -163,11 +164,14 @@ public class  AmbulanceForegroundService extends BroadcastService {
                 final String action = intent.getAction();
                 if (BroadcastActions.LOCATION_UPDATE.equals(action)) {
 
+                    // get profile client
+                    final MqttProfileClient profileClient = AmbulanceForegroundService.getProfileClient(context);
+
                     // stop updates?
                     Ambulance ambulance = getAmbulance();
-                    if (ambulance.getLocationClientId() == null ||
-                            !ambulance.getLocationClientId()
-                                    .equals(AmbulanceForegroundService.getProfileClient(context).getClientId())) {
+                    if (ambulance != null && profileClient != null &&
+                            (ambulance.getLocationClientId() == null ||
+                                    !profileClient.getClientId().equals(ambulance.getLocationClientId()))) {
 
                         Log.i(TAG, "Stopping location updates.");
 
@@ -1419,15 +1423,17 @@ public class  AmbulanceForegroundService extends BroadcastService {
             return;
         }
 
+        // get profile client
+        final MqttProfileClient profileClient = AmbulanceForegroundService.getProfileClient(this);
+
         // clear location_client on server?
         Ambulance ambulance = getAmbulance();
-        if (ambulance != null &&
-                ambulance.getLocationClientId().equals(AmbulanceForegroundService.getProfileClient(this).getClientId())) {
+        if (ambulance != null && profileClient != null &&
+                profileClient.getClientId().equals(ambulance.getLocationClientId())) {
 
             Log.i(TAG, "Will clear location client on server");
 
             // clear location_client on server
-            final MqttProfileClient profileClient = AmbulanceForegroundService.getProfileClient(this);
             String payload = "{\"location_client_id\":\"\"}";
 
             // Update location_client on server, listening to updates already

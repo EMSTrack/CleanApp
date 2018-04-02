@@ -188,6 +188,9 @@ public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSel
 
                 Log.d(TAG, "Succeeded in request to stream location");
 
+                // Let user know
+                Toast.makeText(getContext(), R.string.startedStreamingLocation, Toast.LENGTH_LONG).show();
+
                 // turn on tracking
                 Intent intent = new Intent(getContext(), AmbulanceForegroundService.class);
                 intent.setAction(AmbulanceForegroundService.Actions.START_LOCATION_UPDATES);
@@ -198,9 +201,6 @@ public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSel
 
                 // set switch
                 setSwitch(true);
-
-                // Let user know
-                Toast.makeText(getContext(), R.string.startedStreamingLocation, Toast.LENGTH_LONG).show();
 
             } else {
 
@@ -364,7 +364,7 @@ public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSel
         // is location_client available?
         final MqttProfileClient profileClient = AmbulanceForegroundService.getProfileClient(getContext());
         return (ambulance.getLocationClientId() == null ||
-                ambulance.getLocationClientId().equals(profileClient.getClientId()));
+                profileClient.getClientId().equals(ambulance.getLocationClientId()));
 
     }
 
