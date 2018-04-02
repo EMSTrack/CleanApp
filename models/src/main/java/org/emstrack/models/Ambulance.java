@@ -17,6 +17,7 @@ public class Ambulance {
     private Location location;
     @Expose
     private Date timestamp;
+    private String locationClientId;
     private String comment;
     private int updatedBy;
     private Date updatedOn;
@@ -32,6 +33,7 @@ public class Ambulance {
         this.location = location;
         this.timestamp = timestamp;
         this.comment = comment;
+        this.locationClientId = null;
         this.updatedBy = updatedBy;
         this.updatedOn = updatedOn;
     }
@@ -44,6 +46,7 @@ public class Ambulance {
         this.orientation = 0.0;
         this.location = null;
         this.timestamp = null;
+        this.locationClientId = null;
         this.comment = "";
         this.updatedBy = -1;
         this.updatedOn = null;
@@ -113,6 +116,10 @@ public class Ambulance {
     public void setTimestamp(Date timestamp) {
         this.timestamp = timestamp;
     }
+
+    public String getLocationClientId() { return locationClientId; }
+
+    public void setLocationClientId(String locationClient) { this.locationClientId = locationClientId; }
 
     public String getComment() {
         return comment;

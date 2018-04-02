@@ -51,7 +51,7 @@ public class MqttProfileClient implements MqttCallbackExtended {
 
     private static final String TAG = MqttProfileClient.class.getSimpleName();
 
-    private final String connectTopic = "/user/%1$s/client/%2$s/status";
+    private final String connectTopic = "user/%1$s/client/%2$s/status";
 
     private String username;
     private Profile profile;
@@ -94,6 +94,8 @@ public class MqttProfileClient implements MqttCallbackExtended {
         subscribedTopics = new HashMap<>();
     }
 
+    public String getClientId() { return mqttClient.getClientId(); }
+
     public void disconnect(final MqttProfileCallback disconnectCallback) throws MqttException {
 
         // if connected, disconnect
@@ -105,10 +107,10 @@ public class MqttProfileClient implements MqttCallbackExtended {
                 final String topic =
                         String.format(connectTopic,
                                 username, mqttClient.getClientId());
-                MqttProfileClient.this.publish(topic, "offline", 1, true);
+                MqttProfileClient.this.publish(topic, "offline", 2, true);
 
             } catch (MqttException e) {
-                Log.e(TAG, "COuld not publish to connectTopic");
+                Log.e(TAG, "Could not publish client information.");
             }
 
             // try to disconnect
@@ -167,6 +169,7 @@ public class MqttProfileClient implements MqttCallbackExtended {
 
     public void publish(String topic, String payload, int qos, boolean retained) throws MqttException {
         mqttClient.publish(topic, payload.getBytes(), qos, retained);
+        Log.d(TAG,String.format("Published '%1$s' to '%2$s'",payload, topic));
     }
 
     public void subscribe(String topic, int qos) throws MqttException {
@@ -247,7 +250,7 @@ public class MqttProfileClient implements MqttCallbackExtended {
         final String topic =
                 String.format(connectTopic,
                         username,mqttClient.getClientId());
-        mqttConnectOptions.setWill(topic, "disconnected".getBytes(), 1, true);
+        mqttConnectOptions.setWill(topic, "disconnected".getBytes(), 2, true);
 
         mqttClient.connect(mqttConnectOptions,
                 null,
@@ -267,7 +270,7 @@ public class MqttProfileClient implements MqttCallbackExtended {
                         try {
 
                             // publish online to connectTopic
-                            MqttProfileClient.this.publish(topic, "online", 1, true);
+                            MqttProfileClient.this.publish(topic, "online", 2, true);
 
                         } catch (MqttException e) {
                             Log.e(TAG,"Could not publish to connect topic");
