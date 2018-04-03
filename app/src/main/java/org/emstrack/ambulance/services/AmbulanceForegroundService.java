@@ -87,7 +87,7 @@ public class  AmbulanceForegroundService extends BroadcastService {
     private NotificationManager notificationManager;
 
     private static final String serverUri = "ssl://cruzroja.ucsd.edu:8883";
-    private static final String baseClientId = "v_0_1_AndroidAppClient_";
+    private static final String baseClientId = "v_0_2_AndroidAppClient_";
 
     private static MqttProfileClient client;
     private static Ambulance _ambulance;
