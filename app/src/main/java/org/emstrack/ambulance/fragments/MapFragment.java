@@ -8,6 +8,7 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.LocalBroadcastManager;
@@ -23,6 +24,7 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
@@ -33,10 +35,12 @@ import org.emstrack.ambulance.services.AmbulanceForegroundService;
 import org.emstrack.ambulance.R;
 import org.emstrack.ambulance.services.OnServiceComplete;
 import org.emstrack.models.Ambulance;
+import org.emstrack.models.Hospital;
 import org.emstrack.models.Location;
 import org.emstrack.mqtt.MqttProfileClient;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 import static android.content.ContentValues.TAG;
@@ -48,17 +52,27 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
     View rootView;
     private Map<String, String> ambulanceStatus;
     private Map<Integer, Marker> ambulanceMarkers;
-    private ImageView showAmbulancesButton;
+    private HashMap<Integer, Marker> hospitalMarkers;
+
     private ImageView showLocationButton;
     private boolean centerAmbulances = false;
+
+    private ImageView showAmbulancesButton;
     private boolean showAmbulances = false;
-    private GoogleMap googleMap;
+
+    private ImageView showHospitalsButton;
+    private boolean showHospitals = false;
+
     private boolean myLocationEnabled;
     private boolean useMyLocation = false;
-    private AmbulancesUpdateBroadcastReceiver receiver;
+
     private float defaultZoom = 15;
     private int defaultPadding = 50;
+
     private float zoomLevel = defaultZoom;
+
+    private GoogleMap googleMap;
+    private AmbulancesUpdateBroadcastReceiver receiver;
 
     public class AmbulancesUpdateBroadcastReceiver extends BroadcastReceiver {
 
@@ -66,9 +80,12 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
         public void onReceive(Context context, Intent intent ) {
             if (intent != null) {
                 final String action = intent.getAction();
+                assert action != null;
                 if (action.equals(AmbulanceForegroundService.BroadcastActions.AMBULANCE_UPDATE)) {
 
                     if (centerAmbulances) {
+
+                        Log.i(TAG, "AMBULANCE_UPDATE");
 
                         // center ambulances
                         centerAmbulances();
@@ -87,7 +104,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
         }
     }
 
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
         rootView = inflater.inflate(R.layout.fragment_map, container, false);
 
@@ -166,8 +183,55 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
             }
         });
 
-        // Initialize markers map
+        // Retrieve hospitals button
+        showHospitalsButton = (ImageView) rootView.findViewById(R.id.showHospitalsButton);
+        showHospitalsButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                // toggle show hospitals
+                showHospitals = !showHospitals;
+
+                // Switch color
+                if (showHospitals)
+                    showHospitalsButton.setBackgroundColor(getResources().getColor(R.color.mapButtonOn));
+                else
+                    showHospitalsButton.setBackgroundColor(getResources().getColor(R.color.mapButtonOff));
+
+                Log.i(TAG, "Toggle show hospitals: " + (showHospitals ? "ON" : "OFF"));
+
+                if (googleMap != null) {
+
+                    if (!showHospitals) {
+
+                        // Clear markers
+                        Iterator<Map.Entry<Integer,Marker>> iter = hospitalMarkers.entrySet().iterator();
+                        while (iter.hasNext())
+                        {
+                            // get entry
+                            Map.Entry<Integer,Marker> entry = iter.next();
+
+                            // remove from map
+                            entry.getValue().remove();
+
+                            // remove from collection
+                            iter.remove();
+
+                        }
+
+                    }
+
+                    // update markers without centering
+                    updateMarkers();
+
+                }
+
+            }
+        });
+        
+        // Initialize markers maps
         ambulanceMarkers = new HashMap<>();
+        hospitalMarkers = new HashMap<>();
 
         // Get settings, status and capabilities
         final MqttProfileClient profileClient = AmbulanceForegroundService.getProfileClient(getContext());
@@ -245,13 +309,20 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
         // disable button
         showAmbulancesButton.setEnabled(false);
 
-        if (googleMap != null)
+        // Clear markers
+        Iterator<Map.Entry<Integer,Marker>> iter = ambulanceMarkers.entrySet().iterator();
+        while (iter.hasNext())
+        {
+            // get entry
+            Map.Entry<Integer,Marker> entry = iter.next();
 
-            // Clear all markers
-            googleMap.clear();
+            // remove from map
+            entry.getValue().remove();
 
-        // Clear marker maps
-        ambulanceMarkers.clear();
+            // remove from collection
+            iter.remove();
+
+        }
 
         // Unsubscribe to ambulances
         Intent intent = new Intent(getActivity(), AmbulanceForegroundService.class);
@@ -294,6 +365,11 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
          else
              showAmbulancesButton.setBackgroundColor(getResources().getColor(R.color.mapButtonOff));
 
+         if (showHospitals)
+             showHospitalsButton.setBackgroundColor(getResources().getColor(R.color.mapButtonOn));
+         else
+             showHospitalsButton.setBackgroundColor(getResources().getColor(R.color.mapButtonOff));
+         
          if (centerAmbulances)
              showLocationButton.setBackgroundColor(getResources().getColor(R.color.mapButtonOn));
          else
@@ -361,8 +437,6 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
 
     }
 
-
-
     public void centerMap(LatLngBounds bounds) {
 
         if (ambulanceMarkers.size() > 0) {
@@ -410,6 +484,31 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
         // Assemble marker bounds
         LatLngBounds.Builder builder = new LatLngBounds.Builder();
 
+        // Update hospitals
+        if (showHospitals) {
+
+            // Get hospitals
+            Map<Integer, Hospital> hospitals = AmbulanceForegroundService.getHospitals();
+
+            if (hospitals != null) {
+
+                // Loop over all hospitals
+                for (Map.Entry<Integer, Hospital> entry : hospitals.entrySet()) {
+
+                    // Get hospital
+                    Hospital hospital = entry.getValue();
+
+                    // Add marker for hospital
+                    Marker marker = addMarkerForHospital(hospital);
+
+                    // Add to bound builder
+                    builder.include(marker.getPosition());
+
+                }
+            }
+
+        }
+        
         // Update ambulances
         if (showAmbulances) {
 
@@ -452,15 +551,14 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
 
         }
 
-        // Calculate bounds
-        LatLngBounds bounds = builder.build();
-
-        // return bounds
-        return bounds;
+        // Calculate bounds and return
+        return builder.build();
 
     }
 
     public Marker addMarkerForAmbulance(Ambulance ambulance) {
+
+        Log.d(TAG,"Adding marker for ambulance " + ambulance.getIdentifier());
 
         // Find new location
         Location location = ambulance.getLocation();
@@ -496,6 +594,40 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
         return marker;
     }
 
+    public Marker addMarkerForHospital(Hospital hospital) {
+
+        Log.d(TAG,"Adding marker for hospital " + hospital.getName());
+
+        // Find new location
+        Location location = hospital.getLocation();
+        LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
+
+        // Marker exist?
+        Marker marker;
+        if (hospitalMarkers.containsKey(hospital.getId())) {
+
+            // Update marker
+            marker = hospitalMarkers.get(hospital.getId());
+            marker.setPosition(latLng);;
+
+        } else {
+
+            // Create marker
+            marker = googleMap.addMarker(new MarkerOptions()
+                    .position(latLng)
+                    .icon(bitmapDescriptorFromVector(getActivity(), R.drawable.ic_hospital_15, 1))
+                    .anchor(0.5F,0.5F)
+                    .flat(true)
+                    .title(hospital.getName()));
+
+            // Save marker
+            hospitalMarkers.put(hospital.getId(), marker);
+
+        }
+
+        return marker;
+    }
+    
     public void centerAmbulances() {
 
         Ambulance ambulance = AmbulanceForegroundService.getAmbulance();
@@ -507,7 +639,13 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
             // Add marker for ambulance
             Marker marker = addMarkerForAmbulance(ambulance);
 
-            googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, zoomLevel));
+            // Center and orient map
+            CameraPosition currentPlace = new CameraPosition.Builder()
+                    .target(latLng)
+                    .bearing((float) ambulance.getOrientation())
+                    .zoom(zoomLevel)
+                    .build();
+            googleMap.animateCamera(CameraUpdateFactory.newCameraPosition(currentPlace));
 
         }
 
