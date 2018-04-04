@@ -8,18 +8,21 @@ import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.IBinder;
 import android.os.MessageQueue;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
+import android.support.v4.content.LocalBroadcastManager;
 import android.text.TextUtils;
 import android.util.Log;
 import android.widget.ActionMenuView;
@@ -43,8 +46,11 @@ import com.google.gson.GsonBuilder;
 import org.eclipse.paho.android.service.MqttAndroidClient;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
+import org.emstrack.ambulance.AmbulanceListActivity;
 import org.emstrack.ambulance.MainActivity;
 import org.emstrack.ambulance.R;
+import org.emstrack.ambulance.dialogs.AlertSnackbar;
+import org.emstrack.ambulance.fragments.AmbulanceFragment;
 import org.emstrack.ambulance.util.LocationFilter;
 import org.emstrack.ambulance.util.LocationUpdate;
 import org.emstrack.models.Ambulance;
@@ -93,7 +99,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
     public static final String PREFERENCES_PASSWORD = "PASSWORD";
 
     private static final String serverUri = "ssl://cruzroja.ucsd.edu:8883";
-    private static final String baseClientId = "v_0_2_AndroidAppClient_";
+    private static final String baseClientId = "v_0_2_1_AndroidAppClient_";
 
     private static MqttProfileClient client;
     private static Ambulance _ambulance;
@@ -174,6 +180,8 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                             (ambulance.getLocationClientId() == null ||
                                     !profileClient.getClientId().equals(ambulance.getLocationClientId()))) {
 
+                        Log.i(TAG, "ambulance.getLocationClientId() = " + ambulance.getLocationClientId());
+                        Log.i(TAG, "profileClient.getClientId() = " + profileClient.getClientId());
                         Log.i(TAG, "Stopping location updates.");
 
                         // turn off tracking
@@ -770,7 +778,121 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
      */
     @Override
     public void onSuccess() {
-        Log.d(TAG, "onSuccess: ");
+        Log.d(TAG, "onSuccess after reconnect. Restoring subscriptions.");
+
+        final boolean hasAmbulance = _ambulance != null;
+        final boolean hasAmbulances = _ambulances != null;
+        final boolean hasHospitals = _hospitals != null;
+        final boolean isRequestingLocationUpdates = isRequestingLocationUpdates();
+
+        if (hasAmbulance) {
+
+            final int ambulanceId = _ambulance.getId();
+            final String ambulanceIdentifier = _ambulance.getIdentifier();
+
+            // Remove current ambulance
+            // TODO: Does it need to be asynchrounous?
+            removeAmbulance();
+
+            // Retrieve ambulance
+            Intent ambulanceIntent = new Intent(this, AmbulanceForegroundService.class);
+            ambulanceIntent.setAction(AmbulanceForegroundService.Actions.GET_AMBULANCE);
+            ambulanceIntent.putExtra("AMBULANCE_ID", ambulanceId);
+
+            // What to do when GET_AMBULANCE service completes?
+            new OnServiceComplete(this,
+                    AmbulanceForegroundService.BroadcastActions.SUCCESS,
+                    AmbulanceForegroundService.BroadcastActions.FAILURE,
+                    ambulanceIntent) {
+
+                @Override
+                public void onSuccess(Bundle extras) {
+
+                    Log.i(TAG, String.format("Subscribed to ambulance %1$s", ambulanceIdentifier));
+
+                    if (hasAmbulances) {
+
+                        Log.i(TAG, "Subscribing to ambulances.");
+
+                        // Remove ambulances
+                        // TODO: Does it need to be asynchrounous?
+                        removeAmbulances();
+
+                        // Retrieve ambulance
+                        Intent ambulanceIntent = new Intent(AmbulanceForegroundService.this,
+                                AmbulanceForegroundService.class);
+                        ambulanceIntent.setAction(AmbulanceForegroundService.Actions.GET_AMBULANCES);
+
+                    }
+
+                    if (hasHospitals) {
+
+                        Log.i(TAG, "Subscribing to hospitals.");
+
+                        // Remove hospitals
+                        // TODO: Does it need to be asynchrounous?
+                        removeHospitals();
+
+                        // Retrieve hospital
+                        Intent hospitalIntent = new Intent(AmbulanceForegroundService.this,
+                                AmbulanceForegroundService.class);
+                        hospitalIntent.setAction(AmbulanceForegroundService.Actions.GET_HOSPITALS);
+                        startService(hospitalIntent);
+                        
+                    }
+
+                    if (isRequestingLocationUpdates) {
+
+                        // Register receiver
+                        IntentFilter filter = new IntentFilter();
+                        filter.addAction(AmbulanceForegroundService.BroadcastActions.AMBULANCE_UPDATE);
+                        BroadcastReceiver receiver = new BroadcastReceiver() {
+
+                            @Override
+                            public void onReceive(Context context, Intent intent ) {
+                                if (intent != null) {
+                                    final String action = intent.getAction();
+                                    if (action.equals(AmbulanceForegroundService.BroadcastActions.AMBULANCE_UPDATE)) {
+
+                                        Log.i(TAG, "Restoring location updates.");
+
+                                        // unregister self
+                                        getLocalBroadcastManager().unregisterReceiver(this);
+
+                                        // Make sure it can still stream location
+                                        String clientId = getProfileClient(AmbulanceForegroundService.this).getClientId();
+                                        Ambulance ambulance = getAmbulance();
+                                        if (ambulance.getLocationClientId() == null) {
+                                            ambulance.setLocationClientId(clientId);
+                                        } else if (!ambulance.getLocationClientId().equals(clientId)) {
+                                            // Some other client hijacked location streaming, abort
+                                            // TODO: Check if slider is back at its position and warn user
+                                            return;
+                                        }
+
+                                        // Start location updates
+                                        Intent locationUpdatesIntent = new Intent(AmbulanceForegroundService.this,
+                                                AmbulanceForegroundService.class);
+                                        locationUpdatesIntent.setAction(AmbulanceForegroundService.Actions.START_LOCATION_UPDATES);
+                                        startService(locationUpdatesIntent);
+
+                                    }
+                                }
+                            }
+                        };
+                        getLocalBroadcastManager().registerReceiver(receiver, filter);
+
+
+                    }
+
+                }
+
+            }
+                    .setFailureMessage(getResources().getString(R.string.couldNotRetrieveAmbulance,
+                            ambulanceIdentifier));
+
+        }
+
     }
 
     /**
@@ -781,8 +903,6 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
     @Override
     public void onFailure(Throwable exception) {
         Log.d(TAG, "onFailure: " + exception);
-
-
     }
 
     /**
@@ -847,7 +967,10 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
                 @Override
                 public void onSuccess() {
+
                     Log.d(TAG, "Successfully connected to broker.");
+
+                    // Do nothing. All work is done on the callback
                 }
 
                 @Override
@@ -1506,6 +1629,15 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         Intent intent = new Intent(this, LocationUpdatesBroadcastReceiver.class);
         intent.setAction(BroadcastActions.LOCATION_UPDATE);
         return PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+    }
+
+    /**
+     * Get LocalBroadcastManager
+     *
+     * @return the LocalBroadcastManager
+     */
+    private LocalBroadcastManager getLocalBroadcastManager() {
+        return LocalBroadcastManager.getInstance(this);
     }
 
 }

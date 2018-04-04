@@ -119,7 +119,7 @@ public class Ambulance {
 
     public String getLocationClientId() { return locationClientId; }
 
-    public void setLocationClientId(String locationClient) { this.locationClientId = locationClientId; }
+    public void setLocationClientId(String locationClientId) { this.locationClientId = locationClientId; }
 
     public String getComment() {
         return comment;
