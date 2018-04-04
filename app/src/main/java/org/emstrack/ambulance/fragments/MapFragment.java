@@ -1,19 +1,26 @@
 package org.emstrack.ambulance.fragments;
 
+import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.ActivityInfo;
+import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.drawable.Drawable;
+import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
+import android.view.Display;
 import android.view.LayoutInflater;
+import android.view.OrientationEventListener;
+import android.view.Surface;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -73,6 +80,8 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
 
     private GoogleMap googleMap;
     private AmbulancesUpdateBroadcastReceiver receiver;
+    private int screenRotation;
+    private OrientationEventListener orientationListener;
 
     public class AmbulancesUpdateBroadcastReceiver extends BroadcastReceiver {
 
@@ -238,10 +247,37 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
 
         ambulanceStatus = profileClient.getSettings().getAmbulanceStatus();
 
+        // Initialize screen rotation
+        if (rootView.getDisplay() != null)
+            screenRotation = rootView.getDisplay().getRotation();
+        else
+            screenRotation = Surface.ROTATION_0;
+
         // Initialize map
         SupportMapFragment mapFragment = (SupportMapFragment) getChildFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
+
+        // Orientation listener
+        orientationListener = new OrientationEventListener(getContext(), SensorManager.SENSOR_DELAY_UI) {
+
+            @Override
+            public void onOrientationChanged(int rotation) {
+
+                Activity activity = getActivity();
+                if (activity != null) {
+                    // activity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+                    Log.d(TAG,"onOrientationChanged");
+                    setOrientation();
+                }
+
+            }
+
+        };
+
+        orientationListener.enable();
+
+
 
         return rootView;
 
@@ -434,6 +470,17 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
             centerMap(updateMarkers());
 
         }
+
+    }
+
+    static float ROTATIONS[] = { 0.f, 90.f, 180.f, 270.f };
+
+    public void setOrientation() {
+
+        Display display = rootView.getDisplay();
+        if (display != null)
+            // get new screen rotation
+            screenRotation = display.getRotation();
 
     }
 
@@ -642,7 +689,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
             // Center and orient map
             CameraPosition currentPlace = new CameraPosition.Builder()
                     .target(latLng)
-                    .bearing((float) ambulance.getOrientation())
+                    .bearing((float) ambulance.getOrientation() + ROTATIONS[screenRotation])
                     .zoom(zoomLevel)
                     .build();
             googleMap.animateCamera(CameraUpdateFactory.newCameraPosition(currentPlace));
