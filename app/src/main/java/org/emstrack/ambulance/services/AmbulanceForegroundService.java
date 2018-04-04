@@ -22,6 +22,7 @@ import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
 import android.text.TextUtils;
 import android.util.Log;
+import android.widget.ActionMenuView;
 import android.widget.Toast;
 
 import com.google.android.gms.common.api.ApiException;
@@ -69,22 +70,27 @@ import java.util.UUID;
  * Created by mauricio on 3/18/2018.
  */
 
-public class  AmbulanceForegroundService extends BroadcastService {
+public class  AmbulanceForegroundService extends BroadcastService implements MqttProfileCallback {
 
     final static String TAG = AmbulanceForegroundService.class.getSimpleName();
 
+    // Rate at which locations should be pulled in
+    // @ 70 mph gives an accuracy of about 30m
+    private static final long UPDATE_INTERVAL = 1 * 1000;
+    private static final long FASTEST_UPDATE_INTERVAL = UPDATE_INTERVAL / 2;
+    // Group all updates to be done every minute
+    private static final long MAX_WAIT_TIME = 60 * 1000;
+
     // Notification channel
-    public final int NOTIFICATION_ID = 101;
-    public final int ERROR_NOTIFICATION_ID = 102;
-    private static final String PRIMARY_CHANNEL = "default";
-    private static final String PRIMARY_CHANNEL_LABEL = "Default channel";
+    public static final int NOTIFICATION_ID = 101;
+    public static final int ERROR_NOTIFICATION_ID = 102;
+    public static final String PRIMARY_CHANNEL = "default";
+    public static final String PRIMARY_CHANNEL_LABEL = "Default channel";
 
     // SharedPreferences
     public static final String PREFERENCES_NAME = "org.emstrack.ambulance";
     public static final String PREFERENCES_USERNAME = "USERNAME";
     public static final String PREFERENCES_PASSWORD = "PASSWORD";
-
-    private NotificationManager notificationManager;
 
     private static final String serverUri = "ssl://cruzroja.ucsd.edu:8883";
     private static final String baseClientId = "v_0_2_AndroidAppClient_";
@@ -101,15 +107,10 @@ public class  AmbulanceForegroundService extends BroadcastService {
     private static LocationSettingsRequest locationSettingsRequest;
     private static LocationRequest locationRequest;
 
+    private NotificationManager notificationManager;
+
     private FusedLocationProviderClient fusedLocationClient;
     private SharedPreferences sharedPreferences;
-
-    // Rate at which locations should be pulled in
-    // @ 70 mph gives an accuracy of about 30m
-    private static final long UPDATE_INTERVAL = 1 * 1000;
-    private static final long FASTEST_UPDATE_INTERVAL = UPDATE_INTERVAL / 2;
-    // Group all updates to be done every minute
-    private static final long MAX_WAIT_TIME = 60 * 1000;
 
     public class Actions {
         public final static String LOGIN = "org.emstrack.ambulance.ambulanceforegroundservice.action.LOGIN";
@@ -765,6 +766,26 @@ public class  AmbulanceForegroundService extends BroadcastService {
     }
 
     /**
+     * Callback after handling successful connection
+     */
+    @Override
+    public void onSuccess() {
+        Log.d(TAG, "onSuccess: ");
+    }
+
+    /**
+     * Callback after handling successful connection
+     *
+     * @param exception
+     */
+    @Override
+    public void onFailure(Throwable exception) {
+        Log.d(TAG, "onFailure: " + exception);
+
+
+    }
+
+    /**
      * Login user
      *
      * @param username Username
@@ -796,6 +817,9 @@ public class  AmbulanceForegroundService extends BroadcastService {
                 // Broadcast success
                 Intent localIntent = new Intent(BroadcastActions.SUCCESS);
                 sendBroadcastWithUUID(localIntent, uuid);
+
+                // set callback
+                getProfileClient(AmbulanceForegroundService.this).setCallback(AmbulanceForegroundService.this);
 
             }
 
@@ -829,20 +853,24 @@ public class  AmbulanceForegroundService extends BroadcastService {
                 @Override
                 public void onFailure(Throwable exception) {
 
-                    Log.d(TAG, "Failed to connect to brocker.");
-
                     String message = getString(R.string.failedToConnectToBrocker) + "\n";
+
                     if (exception instanceof MqttException) {
+
                         int reason = ((MqttException) exception).getReasonCode();
+
                         if (reason == MqttException.REASON_CODE_FAILED_AUTHENTICATION ||
                                 reason == MqttException.REASON_CODE_NOT_AUTHORIZED ||
                                 reason == MqttException.REASON_CODE_INVALID_CLIENT_ID)
+
                             message += getResources().getString(R.string.error_invalid_credentials);
+
                         else
+
                             message += getResources().getString(R.string.error_connection_failed, exception.toString());
-                    } else {
+
+                    } else
                         message += getString(R.string.Exception) + exception.toString();
-                    }
 
                     Log.d(TAG, "message = " + message);
 

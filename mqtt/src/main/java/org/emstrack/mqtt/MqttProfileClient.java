@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import android.content.Intent;
 import android.util.Log;
 
 import com.google.gson.FieldNamingPolicy;
@@ -284,19 +285,33 @@ public class MqttProfileClient implements MqttCallbackExtended {
                     @Override
                     public void onFailure(IMqttToken asyncActionToken, Throwable exception) {
 
+                        if (exception instanceof MqttException) {
+
+                            int reason = ((MqttException) exception).getReasonCode();
+
+                            if (reason == MqttException.REASON_CODE_CLIENT_CONNECTED) {
+
+                                // Not an error, already connected, just log
+                                Log.d(TAG, "Tried to connect, but already connected.");
+                                return;
+
+                            }
+
+                        }
+
                         Log.d(TAG, "Connection to broker failed");
-                        Log.e(TAG, exception.getMessage());
 
                         // Forward callback
                         if (connectCallback != null)
                             connectCallback.onFailure(exception);
+
                     }
                 });
 
     }
 
     @Override
-    public void connectComplete(boolean reconnect, String serverURI) {
+    public void connectComplete(final boolean reconnect, String serverURI) {
 
          // TODO: Handle reconnection properly
         if (reconnect)
@@ -312,7 +327,7 @@ public class MqttProfileClient implements MqttCallbackExtended {
                 @Override
                 public void messageArrived(String topic, MqttMessage message) {
 
-                    if (profile != null) {
+                    if (!reconnect && profile != null) {
                         // Should never happen
                         callOnFailure(new Exception("Profile already exists!"));
                         return;
@@ -402,8 +417,13 @@ public class MqttProfileClient implements MqttCallbackExtended {
 
     @Override
     public void connectionLost(Throwable cause) {
+
         // TODO: Handle reconnection properly
-        Log.d(TAG, "Connection to broker lost");
+        Log.d(TAG, "Connection to broker lost.");
+
+        // Connection lost is a failure
+        callOnFailure(cause);
+
     }
 
     @Override
