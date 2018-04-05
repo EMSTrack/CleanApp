@@ -98,6 +98,10 @@
     <string name="forcingLocationUpdates">Forcing location updates. Click switch one more time to start tracking.</string>
     <string name="anotherClientRequestedLocations">Another client requested to stream locations.</string>
     <string name="requestingToStreamLocation">Requesting to stream location.</string>
+    <string name="EMSTrack">EMSTrack</string>
+    <string name="couldNotProcessBuffer">Could not process entire buffer, %1$d messages left.</string>
+    <string name="localBufferIsEmpty">Server is online, local buffer is empty.</string>
+    <string name="serverIsOffline">Server is offline. Buffering updates.</string>
 
     <string-array name="spinner_list_item_array">
         <item>@string/dispatch</item>
