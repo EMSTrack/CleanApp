@@ -15,9 +15,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
 import android.os.IBinder;
-import android.os.MessageQueue;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationCompat;
@@ -25,7 +23,6 @@ import android.support.v4.app.NotificationManagerCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.text.TextUtils;
 import android.util.Log;
-import android.widget.ActionMenuView;
 import android.widget.Toast;
 
 import com.google.android.gms.common.api.ApiException;
@@ -46,11 +43,8 @@ import com.google.gson.GsonBuilder;
 import org.eclipse.paho.android.service.MqttAndroidClient;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
-import org.emstrack.ambulance.AmbulanceListActivity;
 import org.emstrack.ambulance.MainActivity;
 import org.emstrack.ambulance.R;
-import org.emstrack.ambulance.dialogs.AlertSnackbar;
-import org.emstrack.ambulance.fragments.AmbulanceFragment;
 import org.emstrack.ambulance.util.LocationFilter;
 import org.emstrack.ambulance.util.LocationUpdate;
 import org.emstrack.models.Ambulance;
@@ -127,6 +121,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         public final static String GET_AMBULANCES= "org.emstrack.ambulance.ambulanceforegroundservice.action.GET_AMBULANCES";
         public final static String STOP_AMBULANCES= "org.emstrack.ambulance.ambulanceforegroundservice.action.STOP_AMBULANCES";
         public final static String GET_HOSPITALS = "org.emstrack.ambulance.ambulanceforegroundservice.action.GET_HOSPITALS";
+        public final static String REQUEST_LOCATION_UPDATES = "org.emstrack.ambulance.ambulanceforegroundservice.action.REQUEST_LOCATION_UPDATES";
         public final static String START_LOCATION_UPDATES = "org.emstrack.ambulance.ambulanceforegroundservice.action.START_LOCATION_UPDATES";
         public final static String STOP_LOCATION_UPDATES = "org.emstrack.ambulance.ambulanceforegroundservice.action.STOP_LOCATION_UPDATES";
         public final static String UPDATE_AMBULANCE = "org.emstrack.ambulance.ambulanceforegroundservice.action.UPDATE_AMBULANCE";
@@ -416,12 +411,22 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
             // Retrieve hospitals
             retrieveHospitals(uuid);
 
+        } else if (intent.getAction().equals(Actions.REQUEST_LOCATION_UPDATES)) {
+
+            Log.i(TAG, "REQUEST_LOCATION_UPDATES Foreground Intent");
+
+            if (canUpdateLocation())
+                // request location updates
+                requestLocationUpdates(uuid);
+            else
+                Log.i(TAG,"Cannot update location. Ignoring intent.");
+
         } else if (intent.getAction().equals(Actions.START_LOCATION_UPDATES)) {
 
             Log.i(TAG, "START_LOCATION_UPDATES Foreground Intent");
 
             if (canUpdateLocation())
-                // start requesting location updates
+                // start location updates
                 startLocationUpdates();
             else
                 Log.i(TAG,"Cannot update location. Ignoring intent.");
@@ -432,7 +437,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
             if (canUpdateLocation())
                 // stop requesting location updates
-                removeLocationUpdates();
+                stopLocationUpdates();
             else
                 Log.i(TAG,"Cannot update location. Ignoring intent.");
 
@@ -1058,7 +1063,6 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
         return;
 
-
     }
 
     /**
@@ -1338,7 +1342,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         int ambulanceId = ambulance.getId();
 
         // remove location updates
-        removeLocationUpdates();
+        stopLocationUpdates();
 
         // Retrieve client
         final MqttProfileClient profileClient = getProfileClient(this);
@@ -1639,6 +1643,16 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
     }
 
+    private void requestLocationUpdates(String uuid) {
+
+        // Logged in?
+        if (getAmbulance() == null) {
+            Log.i(TAG, "No ambulance selected.");
+            return;
+        }
+
+    }
+
     private void startLocationUpdates() {
 
         // Logged in?
@@ -1663,7 +1677,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                     @Override
                     public void onSuccess(LocationSettingsResponse locationSettingsResponse) {
                         Log.i(TAG, "All location settings are satisfied. Starting location updates.");
-                        requestLocationUpdates();
+                        beginLocationUpdates();
                     }
                 })
                 .addOnFailureListener(new OnFailureListener() {
@@ -1691,7 +1705,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
     /**
      * Handles the Request Updates button and requests start of location updates.
      */
-    public void requestLocationUpdates() {
+    public void beginLocationUpdates() {
 
         try {
 
@@ -1720,7 +1734,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
     /**
      * Handles the Remove Updates button, and requests removal of location updates.
      */
-    public void removeLocationUpdates() {
+    public void stopLocationUpdates() {
 
         _lastLocation = null;
 
