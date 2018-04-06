@@ -85,15 +85,23 @@ public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSel
 
                 } else if (action.equals(AmbulanceForegroundService.BroadcastActions.LOCATION_CHANGE)) {
 
-                    // stop location upates?
                     if (startTrackingSwitch.isChecked() && !AmbulanceForegroundService.isUpdatingLocation()) {
 
                         // set switch off
                         // will trigger event handler
-                        startTrackingSwitch.setChecked(false);
+                        setSwitch(false);
 
                         // Toast to warn user
                         Toast.makeText(getContext(), R.string.anotherClientRequestedLocations, Toast.LENGTH_SHORT).show();
+
+                    } if (!startTrackingSwitch.isChecked() && AmbulanceForegroundService.isUpdatingLocation()) {
+
+                        // set switch on
+                        // will no trigger event handler
+                        setSwitch(true);
+
+                        // Toast to warn user
+                        Toast.makeText(getContext(), R.string.startedStreamingLocation, Toast.LENGTH_SHORT).show();
 
                     }
 
