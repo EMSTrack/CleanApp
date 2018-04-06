@@ -62,13 +62,10 @@ public class MainActivity extends AppCompatActivity {
 
                     Log.i(TAG, "AMBULANCE_UPDATE");
 
-                    if (AmbulanceForegroundService.isUpdatingLocation()) {
-                        Log.i(TAG, "VISIBLE");
+                    if (AmbulanceForegroundService.isUpdatingLocation())
                         trackingIcon.setVisibility(View.VISIBLE);
-                    } else {
-                        Log.i(TAG, "INVISIBLE");
+                    else
                         trackingIcon.setVisibility(View.INVISIBLE);
-                    }
 
                 }
             }
