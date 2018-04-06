@@ -48,14 +48,12 @@ public abstract class OnServicesComplete extends BroadcastReceiver {
         this.completeFlag = false;
 
         // Register actions for broadcasting
-        for (String action : successActions) {
-            IntentFilter successIntentFilter = new IntentFilter(action);
-            getLocalBroadcastManager(context).registerReceiver(this, successIntentFilter);
-        }
-        for (String action: failureActions) {
-            IntentFilter failureIntentFilter = new IntentFilter(action);
-            getLocalBroadcastManager(context).registerReceiver(this, failureIntentFilter);
-        }
+        IntentFilter intentFilter = new IntentFilter();
+        for (String action : successActions)
+            intentFilter.addAction(action);
+        for (String action: failureActions)
+            intentFilter.addAction(action);
+        getLocalBroadcastManager(context).registerReceiver(this, intentFilter);
 
         // Default alert is AlertLog
         this.alert = new AlertSnackbar(TAG);

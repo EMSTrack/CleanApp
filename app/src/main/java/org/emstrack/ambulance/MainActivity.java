@@ -1,13 +1,16 @@
 package org.emstrack.ambulance;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.pm.ActivityInfo;
+import android.content.IntentFilter;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
@@ -18,16 +21,15 @@ import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import org.emstrack.ambulance.adapters.FragmentPager;
-import org.emstrack.ambulance.dialogs.AlertSnackbar;
 import org.emstrack.ambulance.dialogs.LogoutDialog;
 import org.emstrack.ambulance.fragments.AmbulanceFragment;
 import org.emstrack.ambulance.fragments.HospitalFragment;
 import org.emstrack.ambulance.fragments.MapFragment;
 import org.emstrack.ambulance.services.AmbulanceForegroundService;
-import org.emstrack.ambulance.services.OnServiceComplete;
 
 /**
  * This is the main activity -- the default screen
@@ -47,6 +49,31 @@ public class MainActivity extends AppCompatActivity {
     private Toolbar toolbar;
     private TextView headerText;
     private ImageButton panicButton;
+    private ImageView trackingIcon;
+    private LocationChangeBroadcastReceiver receiver;
+
+    public class LocationChangeBroadcastReceiver extends BroadcastReceiver {
+
+        @Override
+        public void onReceive(Context context, Intent intent ) {
+            if (intent != null) {
+                final String action = intent.getAction();
+                if (action.equals(AmbulanceForegroundService.BroadcastActions.LOCATION_CHANGE)) {
+
+                    Log.i(TAG, "AMBULANCE_UPDATE");
+
+                    if (AmbulanceForegroundService.isUpdatingLocation()) {
+                        Log.i(TAG, "VISIBLE");
+                        trackingIcon.setVisibility(View.VISIBLE);
+                    } else {
+                        Log.i(TAG, "INVISIBLE");
+                        trackingIcon.setVisibility(View.INVISIBLE);
+                    }
+
+                }
+            }
+        }
+    };
 
     /**
      * @param savedInstanceState
@@ -68,6 +95,10 @@ public class MainActivity extends AppCompatActivity {
                 panicPopUp();
             }
         });
+
+        // Tracking icon
+        trackingIcon = (ImageView) findViewById(R.id.trackingIcon);
+        trackingIcon.setVisibility(View.INVISIBLE);
 
         // Set a Toolbar to replace the ActionBar.
         toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -167,6 +198,29 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+
+        // Register receiver
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(AmbulanceForegroundService.BroadcastActions.LOCATION_CHANGE);
+        receiver = new LocationChangeBroadcastReceiver();
+        getLocalBroadcastManager().registerReceiver(receiver, filter);
+
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+
+        // Unregister receiver
+        if (receiver != null) {
+            getLocalBroadcastManager().unregisterReceiver(receiver);
+            receiver = null;
+        }
+    }
+
     public void panicPopUp() {
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -189,6 +243,13 @@ public class MainActivity extends AppCompatActivity {
         dialog.show();
     }
 
-
+    /**
+     * Get LocalBroadcastManager
+     *
+     * @return the LocalBroadcastManager
+     */
+    private LocalBroadcastManager getLocalBroadcastManager() {
+        return LocalBroadcastManager.getInstance(this);
+    }
 
 }

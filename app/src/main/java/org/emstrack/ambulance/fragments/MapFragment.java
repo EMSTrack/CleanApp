@@ -15,7 +15,6 @@ import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
-import android.view.Display;
 import android.view.LayoutInflater;
 import android.view.OrientationEventListener;
 import android.view.Surface;
@@ -301,7 +300,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
     public void retrieveAmbulances() {
 
         // Get ambulances
-        Map<Integer, Ambulance> ambulances = AmbulanceForegroundService.getAmbulances();
+        Map<Integer, Ambulance> ambulances = AmbulanceForegroundService.getOtherAmbulances();
 
         if (ambulances == null) {
 
@@ -576,7 +575,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
         if (showAmbulances) {
 
             // Get ambulances
-            Map<Integer, Ambulance> ambulances = AmbulanceForegroundService.getAmbulances();
+            Map<Integer, Ambulance> ambulances = AmbulanceForegroundService.getOtherAmbulances();
 
             if (ambulances != null) {
 
@@ -601,7 +600,6 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
         if (!useMyLocation) {
 
             Ambulance ambulance = AmbulanceForegroundService.getAmbulance();
-
             if (ambulance != null) {
 
                 // Add marker for ambulance
@@ -615,7 +613,11 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
         }
 
         // Calculate bounds and return
-        return builder.build();
+        try {
+            return builder.build();
+        } catch (IllegalStateException e) {
+            return null;
+        }
 
     }
 
