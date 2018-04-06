@@ -21,12 +21,12 @@ import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import org.emstrack.ambulance.LoginActivity;
 import org.emstrack.ambulance.dialogs.AlertSnackbar;
 import org.emstrack.ambulance.services.AmbulanceForegroundService;
 import org.emstrack.ambulance.MainActivity;
 import org.emstrack.ambulance.R;
 import org.emstrack.ambulance.services.OnServiceComplete;
+import org.emstrack.ambulance.services.OnServicesComplete;
 import org.emstrack.models.Ambulance;
 import org.emstrack.models.AmbulancePermission;
 import org.emstrack.mqtt.MqttProfileClient;
@@ -70,7 +70,7 @@ public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSel
 
     AmbulancesUpdateBroadcastReceiver receiver;
     private int requestingToStreamLocation;
-    private final int MAX_NUMBER_OF_LOCATION_REQUESTS_ATTEMPTS = 3;
+    private final int MAX_NUMBER_OF_LOCATION_REQUESTS_ATTEMPTS = 2;
 
     public class AmbulancesUpdateBroadcastReceiver extends BroadcastReceiver {
 
@@ -116,7 +116,7 @@ public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSel
 
         // To track or not to track?
         startTrackingSwitch = (Switch) view.findViewById(R.id.startTrackingSwitch);
-        startTrackingSwitch.setChecked(AmbulanceForegroundService.isRequestingLocationUpdates());
+        startTrackingSwitch.setChecked(AmbulanceForegroundService.isUpdatingLocation());
         startTrackingSwitch.setOnCheckedChangeListener(this);
 
         // Can track
@@ -138,7 +138,7 @@ public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSel
         statusSpinner.setAdapter(statusSpinnerAdapter);
 
         // initialize requestingToStreamLocation
-        requestingToStreamLocation = 0;
+        requestingToStreamLocation = MAX_NUMBER_OF_LOCATION_REQUESTS_ATTEMPTS;
 
         // Update ambulance
         Ambulance ambulance = AmbulanceForegroundService.getAmbulance();
@@ -182,54 +182,15 @@ public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSel
 
     public void update(Ambulance ambulance) {
 
-        if (requestingToStreamLocation > 0)
-
-            if (canStreamLocation()) {
-
-                Log.d(TAG, "Succeeded in request to stream location");
-
-                // Let user know
-                Toast.makeText(getContext(), R.string.startedStreamingLocation, Toast.LENGTH_SHORT).show();
-
-                // turn on tracking
-                Intent intent = new Intent(getContext(), AmbulanceForegroundService.class);
-                intent.setAction(AmbulanceForegroundService.Actions.START_LOCATION_UPDATES);
-                getActivity().startService(intent);
-
-                // reset request to stream location
-                requestingToStreamLocation = 0;
-
-                // set switch
-                setSwitch(true);
-
-            } else {
-
-                if (requestingToStreamLocation-- > 0) {
-
-                    Log.d(TAG, "Failed in requesting to stream location, will try " +
-                            requestingToStreamLocation + " more times.");
-
-                } else {
-
-                    // Letting know that tried once before
-                    requestingToStreamLocation = -1;
-
-                    // Alert user
-                    new AlertSnackbar(getActivity())
-                            .alert(getResources().getString(R.string.anotherClientIsStreamingLocations));
-
-                }
-            }
-
         // stop location upates?
-        if (!canStreamLocation() && canWrite() && startTrackingSwitch.isChecked()) {
+        if (startTrackingSwitch.isChecked() && !AmbulanceForegroundService.isUpdatingLocation()) {
 
             // set switch off
             // will trigger event handler
             startTrackingSwitch.setChecked(false);
 
             // Toast to warn user
-            Toast.makeText(getContext(), R.string.anotherClientRequestedLocations, Toast.LENGTH_LONG).show();
+            Toast.makeText(getContext(), R.string.anotherClientRequestedLocations, Toast.LENGTH_SHORT).show();
 
         }
 
@@ -353,21 +314,6 @@ public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSel
 
     }
 
-    public boolean canStreamLocation() {
-
-        Ambulance ambulance = AmbulanceForegroundService.getAmbulance();
-
-        // has ambulance?
-        if (ambulance == null)
-            return false;
-
-        // is location_client available?
-        final MqttProfileClient profileClient = AmbulanceForegroundService.getProfileClient(getContext());
-        return (ambulance.getLocationClientId() == null ||
-                profileClient.getClientId().equals(ambulance.getLocationClientId()));
-
-    }
-
     @Override
     public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
 
@@ -375,118 +321,147 @@ public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSel
 
             Log.d(TAG, "onCheckedChanged: isChecked");
 
+            // reset switch
+            startTrackingSwitch.setChecked(false);
+
             if (canWrite()) {
 
-                if (canStreamLocation()) {
+                // Toast to warn user
+                Toast.makeText(getContext(), R.string.requestingToStreamLocation,
+                        Toast.LENGTH_SHORT).show();
 
-                    Log.d(TAG, "onCheckedChanged: requesting to stream location");
+                // turn on tracking
+                Intent intent = new Intent(getContext(), AmbulanceForegroundService.class);
+                intent.setAction(AmbulanceForegroundService.Actions.START_LOCATION_UPDATES);
 
-                    // Let user know
-                    Toast.makeText(getContext(), R.string.requestingToStreamLocation, Toast.LENGTH_SHORT).show();
+                new OnServiceComplete(getContext(),
+                        AmbulanceForegroundService.BroadcastActions.SUCCESS,
+                        AmbulanceForegroundService.BroadcastActions.FAILURE,
+                        intent) {
 
-                    // Set requestingLocation to number of attempts
-                    requestingToStreamLocation = MAX_NUMBER_OF_LOCATION_REQUESTS_ATTEMPTS;
+                    @Override
+                    public void onSuccess(Bundle extras) {
 
-                    // Set location_client
-                    final MqttProfileClient profileClient = AmbulanceForegroundService.getProfileClient(getContext());
-                    String payload = String.format("{\"location_client_id\":\"%1$s\"}", profileClient.getClientId());
+                        // set switch
+                        setSwitch(true);
 
-                    // Update location_client on server, listening to updates already
-                    Intent intent = new Intent(getContext(), AmbulanceForegroundService.class);
-                    intent.setAction(AmbulanceForegroundService.Actions.UPDATE_AMBULANCE);
-                    Bundle bundle = new Bundle();
-                    bundle.putString("UPDATE", payload);
-                    intent.putExtras(bundle);
-                    getActivity().startService(intent);
+                        // reset requestingLocation to maximum number of attempts
+                        requestingToStreamLocation = MAX_NUMBER_OF_LOCATION_REQUESTS_ATTEMPTS;
 
-                    // reset switch
-                    startTrackingSwitch.setChecked(false);
+                        // Toast to warn user
+                        Toast.makeText(getContext(), R.string.startedStreamingLocation,
+                                Toast.LENGTH_SHORT).show();
 
-                } else {
+                    }
 
-                    // Ask user to force?
-                    if (requestingToStreamLocation < 0) {
+                    @Override
+                    public void onFailure(Bundle extras) {
 
-                        // Create dialog
-                        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(getActivity());
+                        if (--requestingToStreamLocation > 0) {
 
-                        alertDialogBuilder.setTitle(R.string.alert_warning_title);
-                        alertDialogBuilder.setMessage(R.string.forceLocationUpdates);
+                            // call super to display error message
+                            super.onFailure(extras);
 
-                        // Cancel button
-                        alertDialogBuilder.setNegativeButton(
-                                R.string.alert_button_negative_text,
-                                new DialogInterface.OnClickListener() {
-                                    @Override
-                                    public void onClick(DialogInterface dialog, int which) {
+                        } else {
 
-                                        // reset switch
-                                        startTrackingSwitch.setChecked(false);
+                            // Otherwise ask user if wants to force
+                            AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(getActivity());
 
-                                    }
-                                });
+                            alertDialogBuilder.setTitle(R.string.alert_warning_title);
+                            alertDialogBuilder.setMessage(R.string.forceLocationUpdates);
 
-                        // Create the OK button that logs user out
-                        alertDialogBuilder.setPositiveButton(
-                                R.string.alert_button_positive_text,
-                                new DialogInterface.OnClickListener() {
-                                    @Override
-                                    public void onClick(DialogInterface dialog, int which) {
+                            // Cancel button
+                            alertDialogBuilder.setNegativeButton(
+                                    R.string.alert_button_negative_text,
+                                    new DialogInterface.OnClickListener() {
+                                        @Override
+                                        public void onClick(DialogInterface dialog, int which) {
+                                            // do nothing
+                                        }
+                                    });
 
-                                        Log.i(TAG, "ForceLocationUpdatesDialog: OK Button Clicked");
+                            // Create the OK button that logs user out
+                            alertDialogBuilder.setPositiveButton(
+                                    R.string.alert_button_positive_text,
+                                    new DialogInterface.OnClickListener() {
+                                        @Override
+                                        public void onClick(DialogInterface dialog, int which) {
 
-                                        // Reset location_client
-                                        final MqttProfileClient profileClient =
-                                                AmbulanceForegroundService.getProfileClient(getContext());
-                                        String payload = "{\"location_client_id\":\"\"}";
+                                            Log.i(TAG, "ForceLocationUpdatesDialog: OK Button Clicked");
 
-                                        // Update location_client on server, listening to updates already
-                                        Intent intent = new Intent(getContext(), AmbulanceForegroundService.class);
-                                        intent.setAction(AmbulanceForegroundService.Actions.UPDATE_AMBULANCE);
-                                        Bundle bundle = new Bundle();
-                                        bundle.putString("UPDATE", payload);
-                                        intent.putExtras(bundle);
-                                        getActivity().startService(intent);
+                                            // Toast to warn user
+                                            Toast.makeText(getContext(), R.string.forcingLocationUpdates,
+                                                    Toast.LENGTH_LONG).show();
 
-                                        // Reset request to stream location
-                                        requestingToStreamLocation = 0;
+                                            // Reset location_client
+                                            String payload = "{\"location_client_id\":\"\"}";
+                                            Intent intent = new Intent(getContext(), AmbulanceForegroundService.class);
+                                            intent.setAction(AmbulanceForegroundService.Actions.UPDATE_AMBULANCE);
+                                            Bundle bundle = new Bundle();
+                                            bundle.putString("UPDATE", payload);
+                                            intent.putExtras(bundle);
 
-                                        // reset switch
-                                        startTrackingSwitch.setChecked(false);
+                                            // What to do when service completes?
+                                            new OnServicesComplete(getContext(),
+                                                    new String[] {
+                                                            AmbulanceForegroundService.BroadcastActions.SUCCESS,
+                                                            AmbulanceForegroundService.BroadcastActions.AMBULANCE_UPDATE
+                                                    },
+                                                    new String[] {AmbulanceForegroundService.BroadcastActions.FAILURE},
+                                                    intent) {
 
-                                        // Toast to warn user
-                                        Toast.makeText(getContext(), R.string.forcingLocationUpdates,
-                                                Toast.LENGTH_LONG).show();
+                                                @Override
+                                                public void onSuccess(Bundle extras) {
+                                                    Log.i(TAG, "onSuccess");
 
+                                                    // Toast to warn user
+                                                    Toast.makeText(getContext(), R.string.succeededForcingLocationUpdates,
+                                                            Toast.LENGTH_LONG).show();
 
-                                    }
-                                });
+                                                }
 
-                        alertDialogBuilder.create().show();
+                                                @Override
+                                                public void onReceive(Context context, Intent intent) {
 
-                    } else {
+                                                    // Retrieve action
+                                                    String action = intent.getAction();
 
-                        // Letting know that tried once before
-                        requestingToStreamLocation = -1;
+                                                    // Intercept success
+                                                    if (action.equals(AmbulanceForegroundService.BroadcastActions.SUCCESS))
+                                                        // prevent propagation, still waiting for AMBULANCE_UPDATE
+                                                        return;
 
-                        // reset switch
-                        startTrackingSwitch.setChecked(false);
+                                                    // Intercept AMBULANCE_UPDATE
+                                                    if (action.equals(AmbulanceForegroundService.BroadcastActions.AMBULANCE_UPDATE))
+                                                        // Inject uuid into AMBULANCE_UPDATE
+                                                        intent.putExtra(OnServicesComplete.UUID, getUuid());
 
-                        // Alert user
-                        new AlertSnackbar(getActivity())
-                                .alert(getResources().getString(R.string.anotherClientIsStreamingLocations));
+                                                    // Call super
+                                                    super.onReceive(context, intent);
+                                                }
+
+                                            }
+                                                    .setFailureMessage(getString(R.string.couldNotForceLocationUpdate))
+                                                    .setAlert(new AlertSnackbar(getActivity()));
+
+                                        }
+
+                                    });
+
+                            alertDialogBuilder.create().show();
+
+                        }
 
                     }
 
                 }
+                        .setFailureMessage(getResources().getString(R.string.anotherClientIsStreamingLocations))
+                        .setAlert(new AlertSnackbar(getActivity()));
 
             } else {
 
                 // Toast to warn user
                 Toast.makeText(getContext(), R.string.cantModifyAmbulance, Toast.LENGTH_LONG).show();
-
-                // reset switch
-                startTrackingSwitch.setChecked(false);
 
             }
 

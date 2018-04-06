@@ -1,7 +1,5 @@
 package org.emstrack.ambulance;
 
-import android.app.AlertDialog;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -98,7 +96,7 @@ public class AmbulanceListActivity extends AppCompatActivity {
 
                             Log.d(TAG, "Current ambulance " + ambulance.getIdentifier());
                             Log.d(TAG, "Requesting location updates? " +
-                                    (AmbulanceForegroundService.isRequestingLocationUpdates() ? "TRUE" : "FALSE"));
+                                    (AmbulanceForegroundService.isUpdatingLocation() ? "TRUE" : "FALSE"));
 
                             if (ambulance.getId() == selectedAmbulance.getAmbulanceId()) {
 
@@ -111,7 +109,7 @@ public class AmbulanceListActivity extends AppCompatActivity {
                                 return;
 
                             } else // ambulance.getId() != selectedAmbulance.getAmbulanceId()
-                                if (AmbulanceForegroundService.isRequestingLocationUpdates()) {
+                                if (AmbulanceForegroundService.isUpdatingLocation()) {
 
                                 // Can't do: stop location updates first!
                                 Log.d(TAG, "Switching ambulance during location updates");

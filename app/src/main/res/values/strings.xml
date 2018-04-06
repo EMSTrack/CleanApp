@@ -95,13 +95,20 @@
     <string name="anotherClientIsStreamingLocations">Another client is currently streaming locations.</string>
     <string name="startedStreamingLocation">Location streaming started.</string>
     <string name="forceLocationUpdates">Force location updates?</string>
-    <string name="forcingLocationUpdates">Forcing location updates. Click switch one more time to start tracking.</string>
+    <string name="forcingLocationUpdates">Forcing location updates...</string>
     <string name="anotherClientRequestedLocations">Another client requested to stream locations.</string>
     <string name="requestingToStreamLocation">Requesting to stream location.</string>
     <string name="EMSTrack">EMSTrack</string>
     <string name="couldNotProcessBuffer">Could not process entire buffer, %1$d messages left.</string>
     <string name="localBufferIsEmpty">Server is online, local buffer is empty.</string>
     <string name="serverIsOffline">Server is offline. Buffering updates.</string>
+    <string name="cannotUseLocationServices">Application cannot use location services. Please modify permissions on Settings.</string>
+    <string name="noAmbulanceSelected">No ambulance is currently selected.</string>
+    <string name="inadequateLocationSettings">Location settings are inadequate, and cannot be fixed here.</string>
+    <string name="failedToStartLocationUpdates">Failed to start location updates.</string>
+    <string name="anotherClientReporting">Another client is currently reporting locations.</string>
+    <string name="succeededForcingLocationUpdates">Success! Toggle switch one more time to start tracking.</string>
+    <string name="couldNotForceLocationUpdate">Could not force updating location.</string>
 
     <string-array name="spinner_list_item_array">
         <item>@string/dispatch</item>
