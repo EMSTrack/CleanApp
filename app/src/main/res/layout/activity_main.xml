@@ -38,6 +38,16 @@
                     android:scaleType="fitCenter"
                     app:srcCompat="@drawable/ic_exclamation_triangle" />
 
+                <ImageView
+                    android:id="@+id/trackingIcon"
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"
+                    android:layout_gravity="right"
+                    android:layout_marginRight="10dp"
+                    android:adjustViewBounds="true"
+                    android:background="@drawable/button_states"
+                    android:scaleType="fitCenter"
+                    app:srcCompat="@drawable/ic_shipping_fast" />
 
             </android.support.v7.widget.Toolbar>
 

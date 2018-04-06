@@ -8,7 +8,6 @@ import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -100,7 +99,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
     private static MqttProfileClient client;
     private static Ambulance _ambulance;
     private static Map<Integer, Hospital> _hospitals;
-    private static Map<Integer, Ambulance> _ambulances;
+    private static Map<Integer, Ambulance> _otherAmbulances;
     private static LocationUpdate _lastLocation;
     private static Date _lastServerUpdate;
     private static boolean updatingLocation = false;
@@ -137,6 +136,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         public static final String AMBULANCES_UPDATE = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastaction.AMBULANCES_UPDATE";
         public final static String AMBULANCE_UPDATE = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastaction.AMBULANCE_UPDATE";
         public final static String LOCATION_UPDATE = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastaction.LOCATION_UPDATE";
+        public final static String LOCATION_CHANGE = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastaction.LOCATION_CHANGE";
         public final static String SUCCESS = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastaction.SUCCESS";
         public final static String FAILURE = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastaction.FAILURE";
     }
@@ -405,11 +405,8 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
             Log.i(TAG, "STOP_LOCATION_UPDATES Foreground Intent");
 
-            if (canUpdateLocation())
-                // stop requesting location updates
-                stopLocationUpdates(uuid);
-            else
-                Log.i(TAG,"Cannot update location. Ignoring intent.");
+            // stop requesting location updates
+            stopLocationUpdates(uuid);
 
         } else if (intent.getAction().equals(Actions.UPDATE_AMBULANCE)) {
 
@@ -488,17 +485,6 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
     }
 
     /**
-     * Get the MqttProfileClient.
-     *
-     * @return The MqttProfileClient
-     */
-    public static MqttProfileClient getProfileClient() throws Exception {
-        if (client == null)
-            throw new Exception("ProfileClient has not been created yet!");
-        return client;
-    }
-
-    /**
      * Get current ambulance
      *
      * @return the ambulance
@@ -528,7 +514,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
      *
      * @return the list of ambulances
      */
-    public static Map<Integer, Ambulance> getAmbulances() { return _ambulances; }
+    public static Map<Integer, Ambulance> getOtherAmbulances() { return _otherAmbulances; }
 
     /**
      * Return true if requesting location updates
@@ -836,7 +822,7 @@ s     * Allowing arbitrary updates might be too broad and a security concern
         removeHospitals();
 
         // remove ambulance map
-        removeAmbulances();
+        removeOtherAmbulances();
 
         // disconnect mqttclient
         MqttProfileClient profileClient = getProfileClient(this);
@@ -901,7 +887,7 @@ s     * Allowing arbitrary updates might be too broad and a security concern
         Log.d(TAG, "onSuccess after reconnect. Restoring subscriptions.");
 
         final boolean hasAmbulance = _ambulance != null;
-        final boolean hasAmbulances = _ambulances != null;
+        final boolean hasAmbulances = _otherAmbulances != null;
         final boolean hasHospitals = _hospitals != null;
         final boolean updatingLocation = isUpdatingLocation();
 
@@ -936,7 +922,7 @@ s     * Allowing arbitrary updates might be too broad and a security concern
 
                         // Remove ambulances
                         // TODO: Does it need to be asynchrounous?
-                        removeAmbulances(true);
+                        removeOtherAmbulances(true);
 
                         // Retrieve ambulance
                         Intent ambulanceIntent = new Intent(AmbulanceForegroundService.this,
@@ -1161,7 +1147,7 @@ s     * Allowing arbitrary updates might be too broad and a security concern
 
         // Remove current ambulances
         // TODO: Does it need to be asynchrounous?
-        removeAmbulances();
+        removeOtherAmbulances();
 
         // Retrieve client
         MqttProfileClient profileClient = getProfileClient(this);
@@ -1306,17 +1292,14 @@ s     * Allowing arbitrary updates might be too broad and a security concern
             return;
         }
 
-        // Remove current ambulance first
-        _ambulance = null;
-
-        // get ambulance id
-        int ambulanceId = ambulance.getId();
-
         // remove location updates
         stopLocationUpdates(null);
 
         // Logout and unsubscribe if not a reconnect
         if (!reconnect) {
+
+            // get ambulance id
+            int ambulanceId = ambulance.getId();
 
             // Retrieve client
             final MqttProfileClient profileClient = getProfileClient(this);
@@ -1340,6 +1323,10 @@ s     * Allowing arbitrary updates might be too broad and a security concern
             } catch (MqttException exception) {
                 Log.d(TAG, "Could not unsubscribe to 'ambulance/" + ambulanceId + "/data'");
             }
+
+
+            // Remove ambulance
+            _ambulance = null;
 
         }
 
@@ -1450,22 +1437,27 @@ s     * Allowing arbitrary updates might be too broad and a security concern
             return;
         }
 
-        // Retrieve client
-        final MqttProfileClient profileClient = getProfileClient(this);
+        // Unsubscribe only if not reconnect
+        if (!reconnect) {
 
-        // Loop over all hospitals
-        for (Map.Entry<Integer, Hospital> entry : hospitals.entrySet()) {
+            // Retrieve client
+            final MqttProfileClient profileClient = getProfileClient(this);
 
-            // Get hospital
-            Hospital hospital = entry.getValue();
+            // Loop over all hospitals
+            for (Map.Entry<Integer, Hospital> entry : hospitals.entrySet()) {
 
-            try {
+                // Get hospital
+                Hospital hospital = entry.getValue();
 
-                // Unsubscribe to hospital data
-                profileClient.unsubscribe("hospital/" + hospital.getId() + "/data");
+                try {
 
-            } catch (MqttException exception) {
-                Log.d(TAG, "Could not unsubscribe to 'hospital/" + hospital.getId() + "/data'");
+                    // Unsubscribe to hospital data
+                    profileClient.unsubscribe("hospital/" + hospital.getId() + "/data");
+
+                } catch (MqttException exception) {
+                    Log.d(TAG, "Could not unsubscribe to 'hospital/" + hospital.getId() + "/data'");
+                }
+
             }
 
         }
@@ -1482,7 +1474,7 @@ s     * Allowing arbitrary updates might be too broad and a security concern
 
         // Remove current ambulance map
         // TODO: Does it need to be asynchrounous?
-        removeAmbulances();
+        removeOtherAmbulances();
 
         // Retrieve ambulance data
         final MqttProfileClient profileClient = getProfileClient(this);
@@ -1515,7 +1507,7 @@ s     * Allowing arbitrary updates might be too broad and a security concern
                             public void messageArrived(String topic, MqttMessage message) {
 
                                 // first time?
-                                boolean firstTime = (_ambulances == null);
+                                boolean firstTime = (_otherAmbulances == null);
 
                                 // Parse ambulance
                                 GsonBuilder gsonBuilder = new GsonBuilder();
@@ -1536,8 +1528,8 @@ s     * Allowing arbitrary updates might be too broad and a security concern
 
                                         Log.d(TAG, "Done retrieving all ambulances");
 
-                                        // set _ambulances
-                                        _ambulances = ambulances;
+                                        // set _otherAmbulances
+                                        _otherAmbulances = ambulances;
 
                                         // Broadcast success
                                         Intent localIntent = new Intent(BroadcastActions.SUCCESS);
@@ -1575,14 +1567,14 @@ s     * Allowing arbitrary updates might be too broad and a security concern
     /**
      * Remove current ambulances
      */
-    public void removeAmbulances() { removeAmbulance(false); }
+    public void removeOtherAmbulances() { removeOtherAmbulances(false); }
 
     /**
      * Remove current ambulances
      */
-    public void removeAmbulances(boolean reconnect) {
+    public void removeOtherAmbulances(boolean reconnect) {
 
-        Map<Integer, Ambulance> ambulances = getAmbulances();
+        Map<Integer, Ambulance> ambulances = getOtherAmbulances();
         if (ambulances == null || ambulances.size() == 0) {
             Log.i(TAG, "No ambulances to remove.");
             return;
@@ -1614,7 +1606,7 @@ s     * Allowing arbitrary updates might be too broad and a security concern
         }
 
         // Remove ambulances
-        _ambulances = null;
+        _otherAmbulances = null;
 
     }
 
@@ -1625,7 +1617,7 @@ s     * Allowing arbitrary updates might be too broad and a security concern
 
         // Remove current ambulance map
         // TODO: Does it need to be asynchrounous?
-        removeAmbulances();
+        removeOtherAmbulances();
 
         // Broadcast success
         Intent localIntent = new Intent(BroadcastActions.SUCCESS);
@@ -1813,6 +1805,10 @@ s     * Allowing arbitrary updates might be too broad and a security concern
                             Intent localIntent = new Intent(BroadcastActions.SUCCESS);
                             sendBroadcastWithUUID(localIntent, uuid);
 
+                            // Broadcast location change
+                            Intent changeIntent = new Intent(BroadcastActions.LOCATION_CHANGE);
+                            sendBroadcastWithUUID(changeIntent, uuid);
+
                         }
                     })
                     .addOnFailureListener(new OnFailureListener() {
@@ -1886,8 +1882,14 @@ s     * Allowing arbitrary updates might be too broad and a security concern
                 .addOnSuccessListener(new OnSuccessListener<Void>() {
                     @Override
                     public void onSuccess(Void aVoid) {
+
                         Log.i(TAG, "Stopping location updates");
                         updatingLocation = false;
+
+                        // Broadcast location change
+                        Intent changeIntent = new Intent(BroadcastActions.LOCATION_CHANGE);
+                        sendBroadcastWithUUID(changeIntent, uuid);
+
                     }
                 })
                 .addOnFailureListener(new OnFailureListener() {

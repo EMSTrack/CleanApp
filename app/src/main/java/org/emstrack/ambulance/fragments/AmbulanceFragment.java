@@ -83,7 +83,22 @@ public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSel
                     Log.i(TAG, "AMBULANCE_UPDATE");
                     update(AmbulanceForegroundService.getAmbulance());
 
+                } else if (action.equals(AmbulanceForegroundService.BroadcastActions.LOCATION_CHANGE)) {
+
+                    // stop location upates?
+                    if (startTrackingSwitch.isChecked() && !AmbulanceForegroundService.isUpdatingLocation()) {
+
+                        // set switch off
+                        // will trigger event handler
+                        startTrackingSwitch.setChecked(false);
+
+                        // Toast to warn user
+                        Toast.makeText(getContext(), R.string.anotherClientRequestedLocations, Toast.LENGTH_SHORT).show();
+
+                    }
+
                 }
+
             }
         }
     };
@@ -163,6 +178,7 @@ public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSel
         // Register receiver
         IntentFilter filter = new IntentFilter();
         filter.addAction(AmbulanceForegroundService.BroadcastActions.AMBULANCE_UPDATE);
+        filter.addAction(AmbulanceForegroundService.BroadcastActions.LOCATION_CHANGE);
         receiver = new AmbulanceFragment.AmbulancesUpdateBroadcastReceiver();
         getLocalBroadcastManager().registerReceiver(receiver, filter);
 
@@ -181,18 +197,6 @@ public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSel
     }
 
     public void update(Ambulance ambulance) {
-
-        // stop location upates?
-        if (startTrackingSwitch.isChecked() && !AmbulanceForegroundService.isUpdatingLocation()) {
-
-            // set switch off
-            // will trigger event handler
-            startTrackingSwitch.setChecked(false);
-
-            // Toast to warn user
-            Toast.makeText(getContext(), R.string.anotherClientRequestedLocations, Toast.LENGTH_SHORT).show();
-
-        }
 
         // set spinner only if position changed
         // this helps to prevent a possible server loop
