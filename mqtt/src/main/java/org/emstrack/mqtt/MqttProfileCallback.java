@@ -6,6 +6,8 @@ package org.emstrack.mqtt;
 
 public interface MqttProfileCallback {
 
+    void onReconnect();
+
     void onSuccess();
 
     void onFailure(Throwable exception);
