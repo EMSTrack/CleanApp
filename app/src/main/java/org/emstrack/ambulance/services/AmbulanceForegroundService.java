@@ -105,7 +105,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
     private static boolean _updatingLocation = false;
     private static boolean _canUpdateLocation = false;
     private static ArrayList<String> _updateBuffer = new ArrayList<>();
-    private static boolean _offlineUpdatingLocation = false;
+    private static boolean _reconnecting = false;
 
     private static LocationSettingsRequest locationSettingsRequest;
     private static LocationRequest locationRequest;
@@ -522,6 +522,13 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
     public static Map<Integer, Ambulance> getOtherAmbulances() { return _otherAmbulances; }
 
     /**
+     * Return true if reconnecting
+     *
+     * @return true if reconnecting
+     */
+    public static boolean isReconnecting() { return _reconnecting; }
+
+    /**
      * Return true if requesting location updates
      *
      * @return the location updates status
@@ -836,6 +843,13 @@ s     * Allowing arbitrary updates might be too broad and a security concern
             profileClient.disconnect(new MqttProfileCallback() {
 
                 @Override
+                public void onReconnect() {
+
+                    Log.d(TAG, "onReconnect during disconnect. Should never happen.");
+
+                }
+
+                @Override
                 public void onSuccess() {
 
                     Log.d(TAG, "Successfully disconnected from broker.");
@@ -883,6 +897,16 @@ s     * Allowing arbitrary updates might be too broad and a security concern
 
     }
 
+    @Override
+    public void onReconnect() {
+
+        Log.d(TAG, "onReconnect.");
+
+        // Suppress changes in updating location until reconnect is complete
+        _reconnecting = true;
+
+    }
+
     /**
      * Callback after handling successful connection
      */
@@ -894,12 +918,16 @@ s     * Allowing arbitrary updates might be too broad and a security concern
         final boolean hasAmbulance = _ambulance != null;
         final boolean hasAmbulances = _otherAmbulances != null;
         final boolean hasHospitals = _hospitals != null;
-        final boolean updatingLocation = _offlineUpdatingLocation;
+        final boolean updatingLocation = isUpdatingLocation();
 
         if (hasAmbulance) {
 
             final int ambulanceId = _ambulance.getId();
             final String ambulanceIdentifier = _ambulance.getIdentifier();
+
+            // Remove current ambulance
+            // TODO: Does it need to be asynchrounous?
+            removeAmbulance(true);
 
             // Retrieve ambulance
             Intent ambulanceIntent = new Intent(this, AmbulanceForegroundService.class);
@@ -918,9 +946,38 @@ s     * Allowing arbitrary updates might be too broad and a security concern
 
                     Log.i(TAG, String.format("Subscribed to ambulance %1$s", ambulanceIdentifier));
 
+                    // clear reconnecting flag
+                    _reconnecting = false;
+
+                    if (updatingLocation) {
+
+                        // Process buffer
+                        consumeBuffer();
+
+                        // Start location updates
+                        Intent locationUpdatesIntent = new Intent(AmbulanceForegroundService.this,
+                                AmbulanceForegroundService.class);
+                        locationUpdatesIntent.setAction(AmbulanceForegroundService.Actions.START_LOCATION_UPDATES);
+                        startService(locationUpdatesIntent);
+
+                    } else {
+
+                        // This may not be necessary
+                        // Stop location updates
+                        Intent locationUpdatesIntent = new Intent(AmbulanceForegroundService.this,
+                                AmbulanceForegroundService.class);
+                        locationUpdatesIntent.setAction(AmbulanceForegroundService.Actions.STOP_LOCATION_UPDATES);
+                        startService(locationUpdatesIntent);
+
+                    }
+
                     if (hasAmbulances) {
 
                         Log.i(TAG, "Subscribing to ambulances.");
+
+                        // Remove ambulances
+                        // TODO: Does it need to be asynchrounous?
+                        removeOtherAmbulances(true);
 
                         // Retrieve ambulance
                         Intent ambulanceIntent = new Intent(AmbulanceForegroundService.this,
@@ -934,6 +991,10 @@ s     * Allowing arbitrary updates might be too broad and a security concern
 
                         Log.i(TAG, "Subscribing to hospitals.");
 
+                        // Remove hospitals
+                        // TODO: Does it need to be asynchrounous?
+                        removeHospitals(true);
+
                         // Retrieve hospital
                         Intent hospitalIntent = new Intent(AmbulanceForegroundService.this,
                                 AmbulanceForegroundService.class);
@@ -943,25 +1004,26 @@ s     * Allowing arbitrary updates might be too broad and a security concern
                         
                     }
 
-                    if (updatingLocation) {
+                }
 
-                        // Process buffer
-                        consumeBuffer();
+                @Override
+                public void onFailure(Bundle extras) {
 
-                        // Start location updates
-                        Intent locationUpdatesIntent = new Intent(AmbulanceForegroundService.this,
-                                AmbulanceForegroundService.class);
-                        locationUpdatesIntent.setAction(AmbulanceForegroundService.Actions.START_LOCATION_UPDATES);
-                        locationUpdatesIntent.putExtra("RECONNECT", true);
-                        startService(locationUpdatesIntent);
+                    // clear reconnecting flag
+                    _reconnecting = false;
 
-                    }
+                    super.onFailure(extras);
 
                 }
 
             }
                     .setFailureMessage(getResources().getString(R.string.couldNotRetrieveAmbulance,
                             ambulanceIdentifier));
+
+        } else {
+
+            // clear reconnecting flag
+            _reconnecting = false;
 
         }
 
@@ -976,9 +1038,6 @@ s     * Allowing arbitrary updates might be too broad and a security concern
     public void onFailure(Throwable exception) {
 
         Log.d(TAG, "onFailure: " + exception);
-
-        // Save offline location update state
-        _offlineUpdatingLocation = isUpdatingLocation();
 
         // Notify user and return
 
@@ -1018,6 +1077,14 @@ s     * Allowing arbitrary updates might be too broad and a security concern
 
         // Set callback to be called after profile is retrieved
         profileClient.setCallback(new MqttProfileCallback() {
+
+            @Override
+            public void onReconnect() {
+
+                Log.d(TAG, "onReconnect after connection. Could happen.");
+                // TODO: but I am not sure how to handle it yet.
+
+            }
 
             @Override
             public void onSuccess() {
@@ -1061,6 +1128,13 @@ s     * Allowing arbitrary updates might be too broad and a security concern
 
             // Attempt to connect
             profileClient.connect(username, password, new MqttProfileCallback() {
+
+                @Override
+                public void onReconnect() {
+
+                    Log.d(TAG, "onReconnect during connection. Should not happen.");
+
+                }
 
                 @Override
                 public void onSuccess() {
@@ -1217,16 +1291,20 @@ s     * Allowing arbitrary updates might be too broad and a security concern
                                 // Set current ambulance
                                 _ambulance = ambulance;
 
-                                // stop updates?
-                                MqttProfileClient profileClient = getProfileClient(AmbulanceForegroundService.this);
-                                String clientId = profileClient.getClientId();
-                                if (ambulance.getLocationClientId() == null ||
-                                                !clientId.equals(ambulance.getLocationClientId())) {
+                                if (!isReconnecting()) {
 
-                                    // turn off tracking
-                                    Intent localIntent = new Intent(AmbulanceForegroundService.this, AmbulanceForegroundService.class);
-                                    localIntent.setAction(AmbulanceForegroundService.Actions.STOP_LOCATION_UPDATES);
-                                    startService(localIntent);
+                                    // stop updates?
+                                    MqttProfileClient profileClient = getProfileClient(AmbulanceForegroundService.this);
+                                    String clientId = profileClient.getClientId();
+                                    if (ambulance.getLocationClientId() == null ||
+                                            !clientId.equals(ambulance.getLocationClientId())) {
+
+                                        // turn off tracking
+                                        Intent localIntent = new Intent(AmbulanceForegroundService.this, AmbulanceForegroundService.class);
+                                        localIntent.setAction(AmbulanceForegroundService.Actions.STOP_LOCATION_UPDATES);
+                                        startService(localIntent);
+
+                                    }
 
                                 }
 
@@ -1333,7 +1411,7 @@ s     * Allowing arbitrary updates might be too broad and a security concern
 
         // Remove current hospital map
         // TODO: Does it need to be asynchrounous?
-        removeHospitals();
+        removeHospitals(reconnect);
 
         // Retrieve hospital data
         final MqttProfileClient profileClient = getProfileClient(this);

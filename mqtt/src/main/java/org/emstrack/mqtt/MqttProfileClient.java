@@ -154,6 +154,12 @@ public class MqttProfileClient implements MqttCallbackExtended {
         this.callback = callback;
     }
 
+    public void callOnReconnect() {
+        if (callback != null) {
+            callback.onReconnect();
+        }
+    }
+
     public void callOnSuccess() {
         if (callback != null) {
             callback.onSuccess();
@@ -314,9 +320,10 @@ public class MqttProfileClient implements MqttCallbackExtended {
     public void connectComplete(final boolean reconnect, String serverURI) {
 
          // TODO: Handle reconnection properly
-        if (reconnect)
-            Log.d(TAG, "Reconnected to broker");
-        else
+        if (reconnect) {
+            Log.d(TAG, "Reconnected to broker, calling reconnect.");
+            callOnReconnect();
+        } else
             Log.d(TAG, "Connected to broker");
 
         try {
