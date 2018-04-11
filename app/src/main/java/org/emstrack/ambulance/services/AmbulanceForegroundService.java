@@ -106,6 +106,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
     private static boolean _canUpdateLocation = false;
     private static ArrayList<String> _updateBuffer = new ArrayList<>();
     private static boolean _reconnecting = false;
+    private static boolean _online = false;
 
     private static LocationSettingsRequest locationSettingsRequest;
     private static LocationRequest locationRequest;
@@ -138,6 +139,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         public final static String AMBULANCE_UPDATE = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastaction.AMBULANCE_UPDATE";
         public final static String LOCATION_UPDATE = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastaction.LOCATION_UPDATE";
         public final static String LOCATION_CHANGE = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastaction.LOCATION_CHANGE";
+        public final static String CONNECTION_CHANGE = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastaction.CONNECTION_CHANGE";
         public final static String SUCCESS = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastaction.SUCCESS";
         public final static String FAILURE = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastaction.FAILURE";
     }
@@ -305,6 +307,9 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                     // Ticker message
                     String ticker = "Welcome " + username + ".";
 
+                    // Set online true
+                    _online = true;
+
                     // Create notification
                     Intent notificationIntent = new Intent(AmbulanceForegroundService.this, MainActivity.class);
                     notificationIntent.setAction(MainActivity.MAIN_ACTION);
@@ -345,6 +350,9 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
                 @Override
                 public void onFailure(Bundle extras) {
+
+                    // Set online false
+                    _online = false;
 
                     // Broadcast failure
                     Intent localIntent = new Intent(BroadcastActions.FAILURE);
@@ -520,6 +528,13 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
      * @return the list of ambulances
      */
     public static Map<Integer, Ambulance> getOtherAmbulances() { return _otherAmbulances; }
+
+    /**
+     * Return true if online
+     *
+     * @return true if online
+     */
+    public static boolean isOnline() { return _online; }
 
     /**
      * Return true if reconnecting
@@ -854,6 +869,9 @@ s     * Allowing arbitrary updates might be too broad and a security concern
 
                     Log.d(TAG, "Successfully disconnected from broker.");
 
+                    // Set online false
+                    _online = false;
+
                     // Broadcast success
                     Intent localIntent = new Intent(BroadcastActions.SUCCESS);
                     sendBroadcastWithUUID(localIntent, uuid);
@@ -864,6 +882,9 @@ s     * Allowing arbitrary updates might be too broad and a security concern
                 public void onFailure(Throwable exception) {
 
                     Log.d(TAG, "Failed to disconnect from brocker.");
+
+                    // Set online false
+                    _online = true;
 
                     String message = getString(R.string.failedToDisconnectFromBroker) + "\n";
                     if (exception instanceof MqttException) {
@@ -914,6 +935,9 @@ s     * Allowing arbitrary updates might be too broad and a security concern
     public void onSuccess() {
 
         Log.d(TAG, "onSuccess after reconnect. Restoring subscriptions.");
+
+        // Set online true
+        _online = true;
 
         final boolean hasAmbulance = _ambulance != null;
         final boolean hasAmbulances = _otherAmbulances != null;
@@ -1039,6 +1063,9 @@ s     * Allowing arbitrary updates might be too broad and a security concern
 
         Log.d(TAG, "onFailure: " + exception);
 
+        // Set online false
+        _online = false;
+
         // Notify user and return
 
         // Create an explicit intent for an Activity in your app
@@ -1141,13 +1168,20 @@ s     * Allowing arbitrary updates might be too broad and a security concern
 
                     Log.d(TAG, "Successfully connected to broker.");
 
+                    // Set online true
+                    _online = true;
+
                     // Do nothing. All work is done on the callback
+
                 }
 
                 @Override
                 public void onFailure(Throwable exception) {
 
                     String message = getString(R.string.failedToConnectToBrocker) + "\n";
+
+                    // Set online false
+                    _online = false;
 
                     if (exception instanceof MqttException) {
 
@@ -1178,6 +1212,9 @@ s     * Allowing arbitrary updates might be too broad and a security concern
             });
 
         } catch (MqttException exception) {
+
+            // Set online false
+            _online = false;
 
             // Build error message
             String message = getResources().getString(R.string.error_connection_failed, exception.toString());
