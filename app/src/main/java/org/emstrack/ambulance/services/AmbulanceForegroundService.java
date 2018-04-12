@@ -21,6 +21,7 @@ import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.text.TextUtils;
+import android.text.style.ForegroundColorSpan;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -42,6 +43,7 @@ import com.google.gson.GsonBuilder;
 import org.eclipse.paho.android.service.MqttAndroidClient;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
+import org.emstrack.ambulance.LoginActivity;
 import org.emstrack.ambulance.MainActivity;
 import org.emstrack.ambulance.R;
 import org.emstrack.ambulance.util.LocationFilter;
@@ -65,6 +67,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.TimeZone;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Created by mauricio on 3/18/2018.
@@ -83,10 +86,11 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
     // Notification channel
     public static final int NOTIFICATION_ID = 101;
-    public static final int ERROR_NOTIFICATION_ID = 102;
-    public static final int WARNING_NOTIFICATION_ID = 103;
     public static final String PRIMARY_CHANNEL = "default";
     public static final String PRIMARY_CHANNEL_LABEL = "Default channel";
+
+    // Notification id
+    private final static AtomicInteger notificationId = new AtomicInteger(NOTIFICATION_ID + 1);
 
     // SharedPreferences
     public static final String PREFERENCES_NAME = "org.emstrack.ambulance";
@@ -214,12 +218,23 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                         }
 
                         // Notification message
-                        String message = "Last update at "
+                        // TODO: These need to be internationalized but cannot be retrieved without a context
+                        String message = "Last location update at "
                                 + new SimpleDateFormat("d MMM HH:mm:ss z", Locale.getDefault()).format(new Date());
 
                         if (_lastServerUpdate != null)
                             message += "\nLast server update at "
                                     + new SimpleDateFormat("d MMM HH:mm:ss z", Locale.getDefault()).format(_lastServerUpdate);
+
+                        if (isOnline())
+                            message += "\nServer is online";
+                        else
+                            message += "\nServer is offline";
+
+                        if (_updateBuffer.size() > 1)
+                            message += ", " + String.format("%1$d messages on buffer", _updateBuffer.size());
+                        else if (_updateBuffer.size() > 0)
+                            message += ", " + String.format("1 message on buffer");
 
                         // modify foreground service notification
                         Intent notificationIntent = new Intent(context, AmbulanceForegroundService.class);
@@ -288,6 +303,9 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
             // Notify user
             Toast.makeText(this, "Logging in '" + username + "'", Toast.LENGTH_SHORT).show();
 
+            // Set online false
+            _online = false;
+
             // What to do when login completes?
             OnServiceComplete onServiceComplete = new OnServiceComplete(this,
                     AmbulanceForegroundService.BroadcastActions.SUCCESS,
@@ -311,10 +329,8 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                     _online = true;
 
                     // Create notification
-                    Intent notificationIntent = new Intent(AmbulanceForegroundService.this, MainActivity.class);
-                    notificationIntent.setAction(MainActivity.MAIN_ACTION);
-                    notificationIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK
-                            | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                    Intent notificationIntent = new Intent(AmbulanceForegroundService.this, LoginActivity.class);
+                    notificationIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                     PendingIntent pendingIntent = PendingIntent.getActivity(AmbulanceForegroundService.this, 0,
                             notificationIntent, 0);
 
@@ -354,6 +370,17 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                     // Set online false
                     _online = false;
 
+                    // Create notification
+                    NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(AmbulanceForegroundService.this, PRIMARY_CHANNEL)
+                            .setSmallIcon(R.mipmap.ic_launcher)
+                            .setContentTitle("EMSTrack")
+                            .setContentText(getString(R.string.couldNotLogin, username))
+                            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                            .setAutoCancel(true);
+
+                    NotificationManagerCompat notificationManager = NotificationManagerCompat.from(AmbulanceForegroundService.this);
+                    notificationManager.notify(notificationId.getAndIncrement(), mBuilder.build());
+
                     // Broadcast failure
                     Intent localIntent = new Intent(BroadcastActions.FAILURE);
                     if (extras != null)
@@ -367,6 +394,9 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         } else if (intent.getAction().equals(Actions.LOGOUT)) {
 
             Log.i(TAG, "LOGOUT Foreground Intent");
+
+            // Set online false
+            _online = false;
 
             // logout
             logout(uuid);
@@ -611,13 +641,13 @@ s     * Allowing arbitrary updates might be too broad and a security concern
      *
      * @param updates string array
      */
-    public void updateAmbulance(ArrayList<String> updates) {
+    public boolean updateAmbulance(ArrayList<String> updates) {
 
         // Join updates in array
         String updateArray = "[" + TextUtils.join(",", updates) + "]";
 
         // send to server
-        updateAmbulance(updateArray);
+        return updateAmbulance(updateArray);
     }
 
     /**
@@ -631,25 +661,8 @@ s     * Allowing arbitrary updates might be too broad and a security concern
         // TODO: limit size of buffer or write to disk
         _updateBuffer.add(update);
 
-        // Log and add notification
+        // Log
         Log.d(TAG, "MQTT Client is not online. Buffering update.");
-
-        // Create an explicit intent for an Activity in your app
-        Intent intent = new Intent(this, MainActivity.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, 0);
-
-        NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(this, PRIMARY_CHANNEL)
-                .setSmallIcon(R.mipmap.ic_launcher)
-                .setContentTitle("EMSTrack")
-                .setContentText(String.format("MQTT client is not online, buffering %1$d messages.",
-                        _updateBuffer.size()))
-                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-                .setContentIntent(pendingIntent)
-                .setAutoCancel(true);
-
-        NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
-        notificationManager.notify(WARNING_NOTIFICATION_ID, mBuilder.build());
 
     }
 
@@ -661,86 +674,19 @@ s     * Allowing arbitrary updates might be too broad and a security concern
         // Log and add notification
         Log.d(TAG, "Attempting to consume update buffer.");
 
-        // Has ambulance?
-        Ambulance ambulance = getAmbulance();
-        if (ambulance != null ) {
+        // Loop through buffer unless it failed
+        Iterator<String> iterator = _updateBuffer.iterator();
+        boolean success = true;
+        while (success && iterator.hasNext()) {
 
-            String topic = String.format("user/%1$s/ambulance/%2$d/data",
-                    profileClient.getUsername(), ambulance.getId());
+            // Retrieve update and remove from buffer
+            String update = iterator.next();
+            iterator.remove();
 
-            // Are there pending updates in the buffer?
-            Iterator<String> iterator = _updateBuffer.iterator();
-            while (iterator.hasNext()) {
-
-                boolean stillOnline;
-                try {
-
-                    // return if not online
-                    if (getProfileClient(this).isConnected() ) {
-
-                        // Publish to MQTT
-                        profileClient.publish(topic, iterator.next(), 1, false);
-                        stillOnline = true;
-
-                    } else
-                        stillOnline = false;
-
-                } catch (Exception e) {
-
-                    Log.d(TAG,"Could not consume buffer.");
-                    stillOnline = false;
-
-                }
-
-                // still online?
-                if (stillOnline)
-
-                    // Remove from buffer
-                    iterator.remove();
-
-                else {
-
-                    // Notify user and return
-
-                    // Create notification
-                    Intent intent = new Intent(this, MainActivity.class);
-                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                    PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, 0);
-
-                    NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(this, PRIMARY_CHANNEL)
-                            .setSmallIcon(R.mipmap.ic_launcher)
-                            .setContentTitle(getString(R.string.EMSTrack))
-                            .setContentText(String.format(getString(R.string.couldNotProcessBuffer), _updateBuffer.size()))
-                            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-                            .setContentIntent(pendingIntent)
-                            .setAutoCancel(true);
-
-                    NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
-                    notificationManager.notify(WARNING_NOTIFICATION_ID, mBuilder.build());
-
-                    return;
-
-                }
-
-            }
+            // update ambulance
+            success = updateAmbulance(update);
 
         }
-
-        // Create notification
-        Intent intent = new Intent(this, MainActivity.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, 0);
-
-        NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(this, PRIMARY_CHANNEL)
-                .setSmallIcon(R.mipmap.ic_launcher)
-                .setContentTitle(getString(R.string.EMSTrack))
-                .setContentText(getString(R.string.localBufferIsEmpty))
-                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-                .setContentIntent(pendingIntent)
-                .setAutoCancel(true);
-
-        NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
-        notificationManager.notify(WARNING_NOTIFICATION_ID, mBuilder.build());
 
     }
 
@@ -750,20 +696,20 @@ s     * Allowing arbitrary updates might be too broad and a security concern
      *
      * @param update string
      */
-    public void updateAmbulance(String update) {
+    public boolean updateAmbulance(String update) {
 
         // Error message
-        String message = getString(R.string.couldNotUpdateAmbulanceOnServer) + "\n";
+        String message = getString(R.string.couldNotUpdateAmbulanceOnServer);
 
         try {
 
-            // is connected?
+            // is online or connected?
             final MqttProfileClient profileClient = getProfileClient(AmbulanceForegroundService.this);
-            if (!profileClient.isConnected()) {
+            if (!isOnline() || !profileClient.isConnected()) {
 
                 // add to buffer and return
                 addToBuffer(update);
-                return;
+                return false;
 
             }
 
@@ -771,42 +717,37 @@ s     * Allowing arbitrary updates might be too broad and a security concern
             Ambulance ambulance = getAmbulance();
             if (ambulance != null ) {
 
-                // Are there pending updates in the buffer?
-                consumeBuffer();
-
                 // Publish current update to MQTT
                 profileClient.publish(String.format("user/%1$s/ambulance/%2$d/data",
                         profileClient.getUsername(), ambulance.getId()), update, 1, false);
-                return;
+                return true;
 
             } else {
 
-                message += "Could not find ambulance";
+                message += "\n" + "Could not find ambulance";
 
             }
 
         }
-        catch (MqttException e) { message += e.toString(); }
-        catch (Exception e) { message += e.toString(); }
+        catch (MqttException e) { message += "\n" + e.toString(); }
+        catch (Exception e) { message += "\n" + e.toString(); }
 
         // Log and build a notification in case of error
         Log.i(TAG,message);
 
-        // Create an explicit intent for an Activity in your app
-        Intent intent = new Intent(this, MainActivity.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, 0);
-
+        // Create notification
         NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(this, PRIMARY_CHANNEL)
                 .setSmallIcon(R.mipmap.ic_launcher)
                 .setContentTitle("EMSTrack")
                 .setContentText(message)
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-                .setContentIntent(pendingIntent)
                 .setAutoCancel(true);
 
         NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
-        notificationManager.notify(ERROR_NOTIFICATION_ID, mBuilder.build());
+        notificationManager.notify(notificationId.getAndIncrement(), mBuilder.build());
+
+        // and return false
+        return false;
 
     }
 
@@ -817,10 +758,11 @@ s     * Allowing arbitrary updates might be too broad and a security concern
      */
     public void updateNotification(String message) {
 
-        // Create an explicit intent for an Activity in your app
-        Intent intent = new Intent(this, MainActivity.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, 0);
+        // Create notification
+        Intent notificationIntent = new Intent(AmbulanceForegroundService.this, LoginActivity.class);
+        notificationIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        PendingIntent pendingIntent = PendingIntent.getActivity(AmbulanceForegroundService.this, 0,
+                notificationIntent, 0);
 
         Notification notification = new NotificationCompat.Builder(this, PRIMARY_CHANNEL)
                 .setContentTitle("EMSTrack")
@@ -869,9 +811,6 @@ s     * Allowing arbitrary updates might be too broad and a security concern
 
                     Log.d(TAG, "Successfully disconnected from broker.");
 
-                    // Set online false
-                    _online = false;
-
                     // Broadcast success
                     Intent localIntent = new Intent(BroadcastActions.SUCCESS);
                     sendBroadcastWithUUID(localIntent, uuid);
@@ -882,9 +821,6 @@ s     * Allowing arbitrary updates might be too broad and a security concern
                 public void onFailure(Throwable exception) {
 
                     Log.d(TAG, "Failed to disconnect from brocker.");
-
-                    // Set online false
-                    _online = true;
 
                     String message = getString(R.string.failedToDisconnectFromBroker) + "\n";
                     if (exception instanceof MqttException) {
@@ -925,6 +861,20 @@ s     * Allowing arbitrary updates might be too broad and a security concern
 
         // Suppress changes in updating location until reconnect is complete
         _reconnecting = true;
+
+        // Set online false
+        _online = false;
+
+        // Create notification
+        NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(this, PRIMARY_CHANNEL)
+                .setSmallIcon(R.mipmap.ic_launcher)
+                .setContentTitle("EMSTrack")
+                .setContentText(getString(R.string.attemptingToReconnect))
+                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                .setAutoCancel(true);
+
+        NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
+        notificationManager.notify(notificationId.getAndIncrement(), mBuilder.build());
 
     }
 
@@ -973,15 +923,26 @@ s     * Allowing arbitrary updates might be too broad and a security concern
                     // clear reconnecting flag
                     _reconnecting = false;
 
-                    if (updatingLocation) {
+                    // Create notification
+                    NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(AmbulanceForegroundService.this, PRIMARY_CHANNEL)
+                            .setSmallIcon(R.mipmap.ic_launcher)
+                            .setContentTitle("EMSTrack")
+                            .setContentText(getString(R.string.serverIsBackOnline))
+                            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                            .setAutoCancel(true);
 
-                        // Process buffer
-                        consumeBuffer();
+                    NotificationManagerCompat notificationManager = NotificationManagerCompat.from(AmbulanceForegroundService.this);
+                    notificationManager.notify(notificationId.getAndIncrement(), mBuilder.build());
+
+                    // Consume buffer
+                    consumeBuffer();
+
+                    if (updatingLocation) {
 
                         // Start location updates
                         Intent locationUpdatesIntent = new Intent(AmbulanceForegroundService.this,
                                 AmbulanceForegroundService.class);
-                        locationUpdatesIntent.setAction(AmbulanceForegroundService.Actions.START_LOCATION_UPDATES);
+                        locationUpdatesIntent.setAction(Actions.START_LOCATION_UPDATES);
                         startService(locationUpdatesIntent);
 
                     } else {
@@ -990,7 +951,7 @@ s     * Allowing arbitrary updates might be too broad and a security concern
                         // Stop location updates
                         Intent locationUpdatesIntent = new Intent(AmbulanceForegroundService.this,
                                 AmbulanceForegroundService.class);
-                        locationUpdatesIntent.setAction(AmbulanceForegroundService.Actions.STOP_LOCATION_UPDATES);
+                        locationUpdatesIntent.setAction(Actions.STOP_LOCATION_UPDATES);
                         startService(locationUpdatesIntent);
 
                     }
@@ -1036,6 +997,18 @@ s     * Allowing arbitrary updates might be too broad and a security concern
                     // clear reconnecting flag
                     _reconnecting = false;
 
+                    // Create notification
+                    NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(AmbulanceForegroundService.this, PRIMARY_CHANNEL)
+                            .setSmallIcon(R.mipmap.ic_launcher)
+                            .setContentTitle("EMSTrack")
+                            .setContentText(getString(R.string.failedToReconnect))
+                            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                            .setAutoCancel(true);
+
+                    NotificationManagerCompat notificationManager = NotificationManagerCompat.from(AmbulanceForegroundService.this);
+                    notificationManager.notify(notificationId.getAndIncrement(), mBuilder.build());
+
+
                     super.onFailure(extras);
 
                 }
@@ -1067,22 +1040,15 @@ s     * Allowing arbitrary updates might be too broad and a security concern
         _online = false;
 
         // Notify user and return
-
-        // Create an explicit intent for an Activity in your app
-        Intent intent = new Intent(this, MainActivity.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, 0);
-
         NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(this, PRIMARY_CHANNEL)
                 .setSmallIcon(R.mipmap.ic_launcher)
                 .setContentTitle(getString(R.string.EMSTrack))
                 .setContentText(getString(R.string.serverIsOffline))
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-                .setContentIntent(pendingIntent)
                 .setAutoCancel(true);
 
         NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
-        notificationManager.notify(WARNING_NOTIFICATION_ID, mBuilder.build());
+        notificationManager.notify(notificationId.getAndIncrement(), mBuilder.build());
 
         return;
 
@@ -1129,7 +1095,7 @@ s     * Allowing arbitrary updates might be too broad and a security concern
                 Intent localIntent = new Intent(BroadcastActions.SUCCESS);
                 sendBroadcastWithUUID(localIntent, uuid);
 
-                // set callback
+                // set callback for handling loss of connection/reconnection
                 getProfileClient(AmbulanceForegroundService.this).setCallback(AmbulanceForegroundService.this);
 
             }
@@ -1168,9 +1134,6 @@ s     * Allowing arbitrary updates might be too broad and a security concern
 
                     Log.d(TAG, "Successfully connected to broker.");
 
-                    // Set online true
-                    _online = true;
-
                     // Do nothing. All work is done on the callback
 
                 }
@@ -1179,9 +1142,6 @@ s     * Allowing arbitrary updates might be too broad and a security concern
                 public void onFailure(Throwable exception) {
 
                     String message = getString(R.string.failedToConnectToBrocker) + "\n";
-
-                    // Set online false
-                    _online = false;
 
                     if (exception instanceof MqttException) {
 
@@ -1212,9 +1172,6 @@ s     * Allowing arbitrary updates might be too broad and a security concern
             });
 
         } catch (MqttException exception) {
-
-            // Set online false
-            _online = false;
 
             // Build error message
             String message = getResources().getString(R.string.error_connection_failed, exception.toString());

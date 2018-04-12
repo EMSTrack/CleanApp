@@ -38,8 +38,6 @@ public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = MainActivity.class.getSimpleName();
 
-    public static String MAIN_ACTION = "org.emstrack.ambulance.action.main";
-
     private ViewPager viewPager;
     private FragmentPager adapter;
 
@@ -95,7 +93,10 @@ public class MainActivity extends AppCompatActivity {
 
         // Tracking icon
         trackingIcon = (ImageView) findViewById(R.id.trackingIcon);
-        trackingIcon.setVisibility(View.INVISIBLE);
+        if (AmbulanceForegroundService.isUpdatingLocation())
+            trackingIcon.setVisibility(View.VISIBLE);
+        else
+            trackingIcon.setVisibility(View.INVISIBLE);
 
         // Set a Toolbar to replace the ActionBar.
         toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -198,6 +199,11 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onResume() {
         super.onResume();
+
+        if (AmbulanceForegroundService.isUpdatingLocation())
+            trackingIcon.setVisibility(View.VISIBLE);
+        else
+            trackingIcon.setVisibility(View.INVISIBLE);
 
         // Register receiver
         IntentFilter filter = new IntentFilter();
