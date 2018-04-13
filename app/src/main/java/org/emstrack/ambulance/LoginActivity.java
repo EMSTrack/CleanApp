@@ -120,6 +120,8 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         // Logout first?
         if (logout) {
 
+            Log.d(TAG,"Logout first.");
+
             // Stop foreground activity
             Intent intent = new Intent(this, AmbulanceForegroundService.class);
             intent.setAction(AmbulanceForegroundService.Actions.STOP_SERVICE);
@@ -139,7 +141,9 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
                     // Initialize service to make sure it gets bound to service
                     Intent intent = new Intent(LoginActivity.this, AmbulanceForegroundService.class);
+                    intent.putExtra("ADD_STOP_ACTION", true);
                     intent.setAction(AmbulanceForegroundService.Actions.START_SERVICE);
+                    startService(intent);
 
                     // TODO: is this safe to do asynchronously?
 
@@ -195,7 +199,9 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
                 // Initialize service to make sure it gets bound to service
                 Intent intent = new Intent(this, AmbulanceForegroundService.class);
+                intent.putExtra("ADD_STOP_ACTION", true);
                 intent.setAction(AmbulanceForegroundService.Actions.START_SERVICE);
+                startService(intent);
 
                 // TODO: is this safe to do asynchronously?
 
@@ -263,6 +269,8 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
         else {
 
+            Log.d(TAG, "Will offer credentials");
+
             // Login at service
             Intent intent = new Intent(LoginActivity.this, AmbulanceForegroundService.class);
             intent.setAction(AmbulanceForegroundService.Actions.LOGIN);
@@ -276,7 +284,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
                 @Override
                 public void onSuccess(Bundle extras) {
-                    Log.i(TAG, "onSuccess");
+                    Log.i(TAG, "onClick:OnServiceComplete:onSuccess");
 
                     // Toast
                     Toast.makeText(LoginActivity.this,

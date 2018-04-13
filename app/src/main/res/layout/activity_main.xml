@@ -39,6 +39,17 @@
                     app:srcCompat="@drawable/ic_exclamation_triangle" />
 
                 <ImageView
+                    android:id="@+id/onlineIcon"
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"
+                    android:layout_gravity="right"
+                    android:layout_marginRight="10dp"
+                    android:adjustViewBounds="true"
+                    android:background="@drawable/button_states"
+                    android:scaleType="fitCenter"
+                    app:srcCompat="@drawable/ic_wifi" />
+
+                <ImageView
                     android:id="@+id/trackingIcon"
                     android:layout_width="30dp"
                     android:layout_height="30dp"
@@ -48,6 +59,14 @@
                     android:background="@drawable/button_states"
                     android:scaleType="fitCenter"
                     app:srcCompat="@drawable/ic_shipping_fast" />
+
+                <TextView
+                    android:id="@+id/headerText"
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginRight="10dp"
+                    android:textColor="@android:color/black"
+                    android:textSize="25sp" />
 
             </android.support.v7.widget.Toolbar>
 
@@ -69,16 +88,6 @@
                 android:layout_alignParentLeft="true"
                 android:layout_alignParentStart="true"
                 android:layout_below="@+id/tab_layout_home" />
-
-            <TextView
-                android:id="@+id/headerText"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_above="@+id/tab_layout_home"
-                android:layout_centerHorizontal="true"
-                android:layout_marginBottom="11dp"
-                android:textColor="@android:color/black"
-                android:textSize="25sp" />
 
         </RelativeLayout>
 

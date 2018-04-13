@@ -52,7 +52,9 @@ public class LocationFilter {
         double[] dandb = calculateDistanceAndBearing(location.getLocation(), update);
         double distance = dandb[0];
         double brn = dandb[1];
-        double vel = distance / dt;
+        double vel = location.getVelocity();
+        if (dt > 0)
+            vel = distance / dt;
 
         // filter velocity
         double Kv = 0.9;

@@ -16,6 +16,7 @@ import org.emstrack.ambulance.services.AmbulanceForegroundService;
 import org.emstrack.ambulance.services.OnServiceComplete;
 import org.emstrack.models.Ambulance;
 import org.emstrack.models.AmbulancePermission;
+import org.emstrack.models.Profile;
 import org.emstrack.mqtt.MqttProfileClient;
 
 import java.util.ArrayList;
@@ -40,15 +41,15 @@ public class AmbulanceListActivity extends AppCompatActivity {
         setContentView(R.layout.activity_ambulance_list);
 
         // Retrieve ambulances
-        List<AmbulancePermission> ambulancePermissions;
+        List<AmbulancePermission> ambulancePermissions = new ArrayList<>();
         try {
 
             final MqttProfileClient profileClient = AmbulanceForegroundService.getProfileClient();
-            ambulancePermissions = profileClient.getProfile().getAmbulances();
+            Profile profile = profileClient.getProfile();
+            if (profile != null)
+                ambulancePermissions = profile.getAmbulances();
 
         } catch (AmbulanceForegroundService.ProfileClientException e ){
-
-            ambulancePermissions = new ArrayList<>();
 
         }
 

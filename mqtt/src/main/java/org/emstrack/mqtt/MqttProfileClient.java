@@ -141,6 +141,12 @@ public class MqttProfileClient implements MqttCallbackExtended {
                         }
                     });
 
+        } else {
+
+            // Make sure callback is called
+            if (disconnectCallback != null)
+                disconnectCallback.onSuccess();
+
         }
 
         subscribedTopics = new HashMap<>();
