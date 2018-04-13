@@ -5,10 +5,8 @@ import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -147,8 +145,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         public final static String HOSPITALS_UPDATE = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastaction.HOSPITALS_UPDATE";
         public static final String AMBULANCES_UPDATE = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastaction.AMBULANCES_UPDATE";
         public final static String AMBULANCE_UPDATE = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastaction.AMBULANCE_UPDATE";
-        public final static String LOCATION_UPDATE = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastaction.LOCATION_UPDATE";
-        public final static String LOCATION_CHANGE = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastaction.LOCATION_CHANGE";
+        public final static String LOCATION_UPDATE_CHANGE = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastaction.LOCATION_UPDATE_CHANGE";
         public final static String CONNECTIVITY_CHANGE = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastaction.CONNECTIVITY_CHANGE";
         public final static String SUCCESS = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastaction.SUCCESS";
         public final static String FAILURE = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastaction.FAILURE";
@@ -693,21 +690,6 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
     }
 
     /**
-     * Send bulk updates to current ambulance
-s     * Allowing arbitrary updates might be too broad and a security concern
-     *
-     * @param updates string array
-     */
-    public boolean updateAmbulance(ArrayList<String> updates) {
-
-        // Join updates in array
-        String updateArray = "[" + TextUtils.join(",", updates) + "]";
-
-        // send to server
-        return updateAmbulance(updateArray);
-    }
-
-    /**
      * Add update to buffer for later processing
      *
      * @param update
@@ -747,6 +729,49 @@ s     * Allowing arbitrary updates might be too broad and a security concern
 
         return success;
 
+    }
+
+    /**
+     * Send bulk updates to current ambulance
+     * Allowing arbitrary updates might be too broad and a security concern
+     *
+     * @param updates string array
+     */
+    public boolean updateAmbulance(List<LocationUpdate> updates) {
+
+        boolean success = true;
+        for (LocationUpdate update : updates) {
+
+            // Set last location
+            _lastLocation = update;
+
+            // update ambulance
+            success = updateAmbulance(getUpdateString(update)) && success;
+
+        }
+
+        if (!success) {
+
+            // update locally as well
+
+        }
+
+        return success;
+    }
+
+    /**
+     * Send bulk updates to current ambulance
+     * Allowing arbitrary updates might be too broad and a security concern
+     *
+     * @param updates string array
+     */
+    public boolean updateAmbulance(ArrayList<String> updates) {
+
+        // Join updates in array
+        String updateArray = "[" + TextUtils.join(",", updates) + "]";
+
+        // send to server
+        return updateAmbulance(updateArray);
     }
 
     /**
@@ -2064,35 +2089,35 @@ s     * Allowing arbitrary updates might be too broad and a security concern
                     // Filter location
                     List<LocationUpdate> filteredLocations = locationFilter.update(locations);
 
-                    // Add to updates
-                    ArrayList<String> mqttUpdates = new ArrayList<>();
-                    for (LocationUpdate newLocation : filteredLocations) {
+                    if (true) {
 
-                        // Set last location
-                        _lastLocation = newLocation;
+                        updateAmbulance(filteredLocations);
 
-                        // add to update list
-                        mqttUpdates.add(getUpdateString(_lastLocation));
+                    } else {
 
-                    }
+                        // Add to updates
+                        ArrayList<String> mqttUpdates = new ArrayList<>();
+                        for (LocationUpdate newLocation : filteredLocations) {
 
-                    // any updates?
-                    if (mqttUpdates.size() > 0) {
+                            // Set last location
+                            _lastLocation = newLocation;
 
-                        // Submit updates
-                        Intent updateIntent = new Intent(AmbulanceForegroundService.this, AmbulanceForegroundService.class);
-                        updateIntent.setAction(AmbulanceForegroundService.Actions.UPDATE_AMBULANCE);
-                        Bundle bundle = new Bundle();
-                        bundle.putStringArrayList("UPDATES", mqttUpdates);
-                        updateIntent.putExtras(bundle);
-                        startService(updateIntent);
+                            // add to update list
+                            mqttUpdates.add(getUpdateString(_lastLocation));
 
-                        Ambulance ambulance = AmbulanceForegroundService.getAmbulance();
-                        if (!isOnline() && ambulance != null) {
+                        }
 
-                            // Update locally
-                            android.location.Location location = _lastLocation.getLocation();
-                            ambulance.setLocation(new Location(location.getLatitude(), location.getLongitude()));
+                        // any updates?
+                        if (mqttUpdates.size() > 0) {
+
+                            // Submit updates
+                            Intent updateIntent = new Intent(AmbulanceForegroundService.this, AmbulanceForegroundService.class);
+                            updateIntent.setAction(AmbulanceForegroundService.Actions.UPDATE_AMBULANCE);
+                            Bundle bundle = new Bundle();
+                            bundle.putStringArrayList("UPDATES", mqttUpdates);
+                            updateIntent.putExtras(bundle);
+                            startService(updateIntent);
+
 
                         }
 
@@ -2144,7 +2169,7 @@ s     * Allowing arbitrary updates might be too broad and a security concern
                             sendBroadcastWithUUID(localIntent, uuid);
 
                             // Broadcast location change
-                            Intent changeIntent = new Intent(BroadcastActions.LOCATION_CHANGE);
+                            Intent changeIntent = new Intent(BroadcastActions.LOCATION_UPDATE_CHANGE);
                             sendBroadcastWithUUID(changeIntent, uuid);
 
                         }
@@ -2225,7 +2250,7 @@ s     * Allowing arbitrary updates might be too broad and a security concern
                         _updatingLocation = false;
 
                         // Broadcast location change
-                        Intent changeIntent = new Intent(BroadcastActions.LOCATION_CHANGE);
+                        Intent changeIntent = new Intent(BroadcastActions.LOCATION_UPDATE_CHANGE);
                         sendBroadcastWithUUID(changeIntent, uuid);
 
                     }

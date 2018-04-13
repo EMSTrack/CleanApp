@@ -83,7 +83,7 @@ public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSel
                     Log.i(TAG, "AMBULANCE_UPDATE");
                     update(AmbulanceForegroundService.getAmbulance());
 
-                } else if (action.equals(AmbulanceForegroundService.BroadcastActions.LOCATION_CHANGE)) {
+                } else if (action.equals(AmbulanceForegroundService.BroadcastActions.LOCATION_UPDATE_CHANGE)) {
 
                     if (startTrackingSwitch.isChecked() && !AmbulanceForegroundService.isUpdatingLocation()) {
 
@@ -194,7 +194,7 @@ public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSel
         // Register receiver
         IntentFilter filter = new IntentFilter();
         filter.addAction(AmbulanceForegroundService.BroadcastActions.AMBULANCE_UPDATE);
-        filter.addAction(AmbulanceForegroundService.BroadcastActions.LOCATION_CHANGE);
+        filter.addAction(AmbulanceForegroundService.BroadcastActions.LOCATION_UPDATE_CHANGE);
         receiver = new AmbulanceFragment.AmbulancesUpdateBroadcastReceiver();
         getLocalBroadcastManager().registerReceiver(receiver, filter);
 
