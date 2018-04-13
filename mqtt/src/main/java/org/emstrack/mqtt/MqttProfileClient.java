@@ -86,16 +86,16 @@ public class MqttProfileClient implements MqttCallbackExtended {
         return settings;
     }
 
-    public void disconnect() throws MqttException {
-        // if connected, disconnect
-        if (isConnected()) {
-            mqttClient.disconnect();
-            setUsername("");
+    public void close() {
+        if (mqttClient != null) {
+            mqttClient.unregisterResources();
+            // mqttClient.close();
         }
-        subscribedTopics = new HashMap<>();
     }
 
     public String getClientId() { return mqttClient.getClientId(); }
+
+    public void disconnect() throws MqttException { disconnect(null); }
 
     public void disconnect(final MqttProfileCallback disconnectCallback) throws MqttException {
 
@@ -140,11 +140,11 @@ public class MqttProfileClient implements MqttCallbackExtended {
                                 disconnectCallback.onFailure(exception);
                         }
                     });
+
         }
 
         subscribedTopics = new HashMap<>();
     }
-
 
     public boolean isConnected() {
         return mqttClient.isConnected();
@@ -290,20 +290,6 @@ public class MqttProfileClient implements MqttCallbackExtended {
 
                     @Override
                     public void onFailure(IMqttToken asyncActionToken, Throwable exception) {
-
-                        if (exception instanceof MqttException) {
-
-                            int reason = ((MqttException) exception).getReasonCode();
-
-                            if (reason == MqttException.REASON_CODE_CLIENT_CONNECTED) {
-
-                                // Not an error, already connected, just log
-                                Log.d(TAG, "Tried to connect, but already connected.");
-                                return;
-
-                            }
-
-                        }
 
                         Log.d(TAG, "Connection to broker failed");
 

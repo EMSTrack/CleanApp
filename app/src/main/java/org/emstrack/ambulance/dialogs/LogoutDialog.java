@@ -57,7 +57,7 @@ public class LogoutDialog {
 
                         // Stop foreground activity
                         Intent intent = new Intent(activity, AmbulanceForegroundService.class);
-                        intent.setAction(AmbulanceForegroundService.Actions.LOGOUT);
+                        intent.setAction(AmbulanceForegroundService.Actions.STOP_SERVICE);
 
                         // What to do when service completes?
                         new OnServiceComplete(activity,

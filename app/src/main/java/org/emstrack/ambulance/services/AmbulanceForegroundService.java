@@ -1,6 +1,7 @@
 package org.emstrack.ambulance.services;
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -15,13 +16,13 @@ import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.os.SystemClock;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.text.TextUtils;
-import android.text.style.ForegroundColorSpan;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -44,7 +45,6 @@ import org.eclipse.paho.android.service.MqttAndroidClient;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.emstrack.ambulance.LoginActivity;
-import org.emstrack.ambulance.MainActivity;
 import org.emstrack.ambulance.R;
 import org.emstrack.ambulance.util.LocationFilter;
 import org.emstrack.ambulance.util.LocationUpdate;
@@ -98,7 +98,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
     public static final String PREFERENCES_PASSWORD = "PASSWORD";
 
     private static final String serverUri = "ssl://cruzroja.ucsd.edu:8883";
-    private static final String baseClientId = "v_0_2_2_AndroidAppClient_";
+    private static final String baseClientId = "v_0_2_3_AndroidAppClient_";
 
     private static MqttProfileClient client;
     private static Ambulance _ambulance;
@@ -121,6 +121,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
     private SharedPreferences sharedPreferences;
 
     public class Actions {
+        public final static String START_SERVICE = "org.emstrack.ambulance.ambulanceforegroundservice.action.START_SERVICE";
         public final static String LOGIN = "org.emstrack.ambulance.ambulanceforegroundservice.action.LOGIN";
         public final static String GET_AMBULANCE = "org.emstrack.ambulance.ambulanceforegroundservice.action.GET_AMBULANCE";
         public final static String GET_AMBULANCES= "org.emstrack.ambulance.ambulanceforegroundservice.action.GET_AMBULANCES";
@@ -131,6 +132,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         public final static String UPDATE_AMBULANCE = "org.emstrack.ambulance.ambulanceforegroundservice.action.UPDATE_AMBULANCE";
         public final static String UPDATE_NOTIFICATION = "org.emstrack.ambulance.ambulanceforegroundservice.action.UPDATE_NOTIFICATION";
         public final static String LOGOUT = "org.emstrack.ambulance.ambulanceforegroundservice.action.LOGOUT";
+        public final static String STOP_SERVICE = "org.emstrack.ambulance.ambulanceforegroundservice.action.STOP_SERVICE";
     }
 
     public class BroadcastExtras {
@@ -146,6 +148,10 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         public final static String CONNECTION_CHANGE = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastaction.CONNECTION_CHANGE";
         public final static String SUCCESS = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastaction.SUCCESS";
         public final static String FAILURE = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastaction.FAILURE";
+    }
+
+    public static class ProfileClientException extends Exception {
+
     }
 
     public static class LocationUpdatesBroadcastReceiver extends BroadcastReceiver {
@@ -291,7 +297,111 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         // retrieve uuid
         final String uuid = intent.getStringExtra(OnServiceComplete.UUID);
 
-        if (intent.getAction().equals(Actions.LOGIN)) {
+        if (intent.getAction().equals(Actions.START_SERVICE)) {
+
+            Log.i(TAG, "START_SERVICE Foreground Intent ");
+
+            // Make sure client is bound to service
+            AmbulanceForegroundService.getProfileClient(this);
+
+            // Create notification
+
+            // Login intent
+            Intent notificationIntent = new Intent(AmbulanceForegroundService.this, LoginActivity.class);
+            notificationIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            PendingIntent pendingIntent = PendingIntent.getActivity(AmbulanceForegroundService.this, 0,
+                    notificationIntent, 0);
+
+            // Stop intent
+            Intent stopServiceIntent = new Intent(AmbulanceForegroundService.this, LoginActivity.class);
+            stopServiceIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            stopServiceIntent.setAction(LoginActivity.LOGOUT);
+            PendingIntent stopServicePendingIntent = PendingIntent.getActivity(AmbulanceForegroundService.this, 0,
+                    stopServiceIntent, 0);
+
+            // Icon
+            Bitmap icon = BitmapFactory.decodeResource(getResources(),
+                    R.mipmap.ic_launcher);
+
+            NotificationCompat.Builder notificationBuilder;
+            if (Build.VERSION.SDK_INT >= 26)
+                notificationBuilder = new NotificationCompat.Builder(AmbulanceForegroundService.this,
+                        AmbulanceForegroundService.PRIMARY_CHANNEL);
+            else
+                notificationBuilder = new NotificationCompat.Builder(AmbulanceForegroundService.this);
+
+            Notification notification = notificationBuilder
+                    .setContentTitle("EMSTrack")
+                    .setTicker(getString(R.string.pleaseLogin))
+                    .setContentText(getString(R.string.pleaseLogin))
+                    .setSmallIcon(R.mipmap.ic_launcher)
+                    .setLargeIcon(Bitmap.createScaledBitmap(icon, 128, 128, false))
+                    .setContentIntent(pendingIntent)
+                    .setOngoing(true)
+                    .addAction(android.R.drawable.ic_menu_close_clear_cancel, getString(R.string.stopText), stopServicePendingIntent)
+                    .build();
+
+            // start service
+            startForeground(NOTIFICATION_ID, notification);
+
+            // Broadcast success
+            Intent localIntent = new Intent(BroadcastActions.SUCCESS);
+            sendBroadcastWithUUID(localIntent, uuid);
+
+        } else if (intent.getAction().equals(Actions.STOP_SERVICE)) {
+
+            Log.i(TAG, "STOP_SERVICE Foreground Intent");
+
+            // Set online false
+            _online = false;
+
+            // What to do when login completes?
+            new OnServiceComplete(this,
+                    AmbulanceForegroundService.BroadcastActions.SUCCESS,
+                    AmbulanceForegroundService.BroadcastActions.FAILURE,
+                    null) {
+
+                public void run() {
+
+                    // logout
+                    logout(getUuid());
+
+                }
+
+                @Override
+                public void onSuccess(Bundle extras) {
+
+                    // close client
+                    client.close();
+
+                    // set client to null
+                    client = null;
+
+                    // stop service
+                    stopForeground(true);
+                    stopSelf();
+
+                    // Broadcast success
+                    Intent localIntent = new Intent(BroadcastActions.SUCCESS);
+                    sendBroadcastWithUUID(localIntent, uuid);
+
+                }
+
+                @Override
+                public void onFailure(Bundle extras) {
+
+                    // Broadcast failure
+                    Intent localIntent = new Intent(BroadcastActions.FAILURE);
+                    if (extras != null)
+                        localIntent.putExtras(extras);
+                    sendBroadcastWithUUID(localIntent, uuid);
+
+                }
+
+            };
+
+
+        } else if (intent.getAction().equals(Actions.LOGIN)) {
 
             Log.i(TAG, "LOGIN Foreground Intent ");
 
@@ -307,7 +417,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
             _online = false;
 
             // What to do when login completes?
-            OnServiceComplete onServiceComplete = new OnServiceComplete(this,
+            new OnServiceComplete(this,
                     AmbulanceForegroundService.BroadcastActions.SUCCESS,
                     AmbulanceForegroundService.BroadcastActions.FAILURE,
                     null) {
@@ -322,39 +432,11 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                 @Override
                 public void onSuccess(Bundle extras) {
 
-                    // Ticker message
-                    String ticker = "Welcome " + username + ".";
-
                     // Set online true
                     _online = true;
 
-                    // Create notification
-                    Intent notificationIntent = new Intent(AmbulanceForegroundService.this, LoginActivity.class);
-                    notificationIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                    PendingIntent pendingIntent = PendingIntent.getActivity(AmbulanceForegroundService.this, 0,
-                            notificationIntent, 0);
-
-                    Bitmap icon = BitmapFactory.decodeResource(getResources(),
-                            R.mipmap.ic_launcher);
-
-                    NotificationCompat.Builder notificationBuilder;
-                    if (Build.VERSION.SDK_INT >= 26)
-                        notificationBuilder = new NotificationCompat.Builder(AmbulanceForegroundService.this,
-                                AmbulanceForegroundService.PRIMARY_CHANNEL);
-                    else
-                        notificationBuilder = new NotificationCompat.Builder(AmbulanceForegroundService.this);
-
-                    Notification notification = notificationBuilder
-                            .setContentTitle("EMSTrack")
-                            .setTicker(ticker)
-                            .setContentText(ticker)
-                            .setSmallIcon(R.mipmap.ic_launcher)
-                            .setLargeIcon(Bitmap.createScaledBitmap(icon, 128, 128, false))
-                            .setContentIntent(pendingIntent)
-                            .setOngoing(true)
-                            .build();
-
-                    startForeground(NOTIFICATION_ID, notification);
+                    // Update notification
+                    updateNotification(getString(R.string.welcomeUser, username));
 
                     // Broadcast success
                     Intent localIntent = new Intent(BroadcastActions.SUCCESS);
@@ -400,10 +482,6 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
             // logout
             logout(uuid);
-
-            // stop service
-            stopForeground(true);
-            stopSelf();
 
         } else if (intent.getAction().equals(Actions.GET_AMBULANCE)) {
 
@@ -517,15 +595,31 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
      * @param context Context
      * @return The MqttProfileClient
      */
-    public static MqttProfileClient getProfileClient(Context context) {
+    protected static MqttProfileClient getProfileClient(Context context) {
+
         // lazy initialization
         if (client == null) {
             String clientId = baseClientId + UUID.randomUUID().toString();
             MqttAndroidClient androidClient = new MqttAndroidClient(context, serverUri, clientId);
             client = new MqttProfileClient(androidClient);
         }
+
         return client;
     }
+
+    public static MqttProfileClient getProfileClient() throws ProfileClientException {
+
+        // lazy initialization
+        if (client != null)
+            return client;
+
+        // otherwise log and throw exception
+        Log.e(TAG,"Failed to get profile client.");
+        throw new ProfileClientException();
+
+    }
+
+    public static boolean hasProfileClient() { return client != null; }
 
     /**
      * Get current ambulance
@@ -666,7 +760,7 @@ s     * Allowing arbitrary updates might be too broad and a security concern
 
     }
 
-    public void consumeBuffer() {
+    public boolean consumeBuffer() {
 
         // Get client
         final MqttProfileClient profileClient = getProfileClient(AmbulanceForegroundService.this);
@@ -687,6 +781,8 @@ s     * Allowing arbitrary updates might be too broad and a security concern
             success = updateAmbulance(update);
 
         }
+
+        return success;
 
     }
 
@@ -759,10 +855,19 @@ s     * Allowing arbitrary updates might be too broad and a security concern
     public void updateNotification(String message) {
 
         // Create notification
+
+        // Login intent
         Intent notificationIntent = new Intent(AmbulanceForegroundService.this, LoginActivity.class);
         notificationIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         PendingIntent pendingIntent = PendingIntent.getActivity(AmbulanceForegroundService.this, 0,
                 notificationIntent, 0);
+
+        // Stop intent
+        Intent stopServiceIntent = new Intent(AmbulanceForegroundService.this, LoginActivity.class);
+        stopServiceIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        stopServiceIntent.setAction(LoginActivity.LOGOUT);
+        PendingIntent stopServicePendingIntent = PendingIntent.getActivity(AmbulanceForegroundService.this, 0,
+                stopServiceIntent, 0);
 
         Notification notification = new NotificationCompat.Builder(this, PRIMARY_CHANNEL)
                 .setContentTitle("EMSTrack")
@@ -772,7 +877,9 @@ s     * Allowing arbitrary updates might be too broad and a security concern
                         .bigText(message))
                 .setSmallIcon(R.mipmap.ic_launcher)
                 .setContentIntent(pendingIntent)
-                .setOngoing(true).build();
+                .setOngoing(true)
+                .addAction(android.R.drawable.ic_menu_close_clear_cancel, getString(R.string.stopText), stopServicePendingIntent)
+                .build();
 
         NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
         notificationManager.notify(NOTIFICATION_ID, notification);
@@ -783,6 +890,15 @@ s     * Allowing arbitrary updates might be too broad and a security concern
      * Logout
      */
     public void logout(final String uuid) {
+
+        // buffer to be consumed?
+        if (!consumeBuffer()) {
+
+            // could not consume entire buffer, log and empty anyway
+            Log.e(TAG, "Could not empty buffer before logging out.");
+            _updateBuffer = new ArrayList<>();
+
+        }
 
         // remove ambulance
         removeAmbulance();
@@ -1035,6 +1151,24 @@ s     * Allowing arbitrary updates might be too broad and a security concern
     public void onFailure(Throwable exception) {
 
         Log.d(TAG, "onFailure: " + exception);
+
+        if (exception instanceof MqttException) {
+
+            int reason = ((MqttException) exception).getReasonCode();
+
+            if (reason == MqttException.REASON_CODE_CLIENT_CONNECTED) {
+
+                // Not an error, already connected, just log
+                Log.d(TAG, "Tried to connect, but already connected.");
+
+                // Set online true
+                _online = true;
+
+                return;
+
+            }
+
+        }
 
         // Set online false
         _online = false;

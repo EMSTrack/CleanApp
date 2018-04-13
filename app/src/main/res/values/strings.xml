@@ -114,6 +114,10 @@
     <string name="serverIsBackOnline">Server is back online.</string>
     <string name="failedToReconnect">Failed to reconnect to server.</string>
     <string name="couldNotLogin">Could not login user \'%1$s\'</string>
+    <string name="pleaseLogin">Please login.</string>
+    <string name="welcomeUser">Welcome %1$s</string>
+    <string name="stopText">Restart</string>
+    <string name="couldNotStartService">Could not start foreground service.</string>
 
     <string-array name="spinner_list_item_array">
         <item>@string/dispatch</item>

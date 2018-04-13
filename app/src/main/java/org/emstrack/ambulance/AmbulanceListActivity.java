@@ -40,10 +40,20 @@ public class AmbulanceListActivity extends AppCompatActivity {
         setContentView(R.layout.activity_ambulance_list);
 
         // Retrieve ambulances
-        final MqttProfileClient profileClient = AmbulanceForegroundService.getProfileClient(this);
-        final List<AmbulancePermission> ambulances = profileClient.getProfile().getAmbulances();
+        List<AmbulancePermission> ambulancePermissions;
+        try {
+
+            final MqttProfileClient profileClient = AmbulanceForegroundService.getProfileClient();
+            ambulancePermissions = profileClient.getProfile().getAmbulances();
+
+        } catch (AmbulanceForegroundService.ProfileClientException e ){
+
+            ambulancePermissions = new ArrayList<>();
+
+        }
 
         // No ambulances associated with this account
+        final List<AmbulancePermission> ambulances = ambulancePermissions;
         if (ambulances.size() < 1) {
             Toast.makeText(this,
                     "This account has no ambulances associated with it!",

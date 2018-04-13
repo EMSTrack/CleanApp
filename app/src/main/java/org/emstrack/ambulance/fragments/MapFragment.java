@@ -81,6 +81,8 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
     private OrientationEventListener orientationListener;
 
     static float ROTATIONS[] = { 0.f, 90.f, 180.f, 270.f };
+    private Location defaultLocation;
+
     static int degreesToRotation(int degrees) {
         if (degrees > 315 || degrees < 45)
             return Surface.ROTATION_0;
@@ -252,9 +254,18 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
         hospitalMarkers = new HashMap<>();
 
         // Get settings, status and capabilities
-        final MqttProfileClient profileClient = AmbulanceForegroundService.getProfileClient(getContext());
+        try {
 
-        ambulanceStatus = profileClient.getSettings().getAmbulanceStatus();
+            final MqttProfileClient profileClient = AmbulanceForegroundService.getProfileClient();
+            ambulanceStatus = profileClient.getSettings().getAmbulanceStatus();
+            defaultLocation = profileClient.getSettings().getDefaults().getLocation();
+
+        } catch (AmbulanceForegroundService.ProfileClientException e) {
+
+            ambulanceStatus = new HashMap<String,String>();
+            defaultLocation = new Location(0,0);
+
+        }
 
         // Initialize screen rotation
         if (rootView.getDisplay() != null)
@@ -529,9 +540,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
         }
 
         // Otherwise center at default location
-        Location location = AmbulanceForegroundService.getProfileClient(getContext())
-                .getSettings().getDefaults().getLocation();
-        LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
+        LatLng latLng = new LatLng(defaultLocation.getLatitude(), defaultLocation.getLongitude());
 
         googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, zoomLevel));
 
