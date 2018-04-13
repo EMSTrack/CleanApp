@@ -38,6 +38,9 @@ public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = MainActivity.class.getSimpleName();
 
+    private static final float enabledAlpha = 1.0f;
+    private static final float disabledAlpha = 0.25f;
+
     private ViewPager viewPager;
     private FragmentPager adapter;
 
@@ -47,6 +50,7 @@ public class MainActivity extends AppCompatActivity {
     private Toolbar toolbar;
     private TextView headerText;
     private ImageButton panicButton;
+    private ImageView onlineIcon;
     private ImageView trackingIcon;
     private LocationChangeBroadcastReceiver receiver;
 
@@ -58,12 +62,21 @@ public class MainActivity extends AppCompatActivity {
                 final String action = intent.getAction();
                 if (action.equals(AmbulanceForegroundService.BroadcastActions.LOCATION_CHANGE)) {
 
-                    Log.i(TAG, "AMBULANCE_UPDATE");
+                    Log.i(TAG, "LOCATION_CHANGE");
 
                     if (AmbulanceForegroundService.isUpdatingLocation())
-                        trackingIcon.setVisibility(View.VISIBLE);
+                        trackingIcon.setAlpha(enabledAlpha);
                     else
-                        trackingIcon.setVisibility(View.INVISIBLE);
+                        trackingIcon.setAlpha(disabledAlpha);
+
+                } else if (action.equals(AmbulanceForegroundService.BroadcastActions.CONNECTIVITY_CHANGE)) {
+
+                    Log.i(TAG, "CONNECTIVITY_CHANGE");
+
+                    if (AmbulanceForegroundService.isOnline())
+                        onlineIcon.setAlpha(enabledAlpha);
+                    else
+                        onlineIcon.setAlpha(disabledAlpha);
 
                 }
             }
@@ -94,10 +107,17 @@ public class MainActivity extends AppCompatActivity {
         // Tracking icon
         trackingIcon = (ImageView) findViewById(R.id.trackingIcon);
         if (AmbulanceForegroundService.isUpdatingLocation())
-            trackingIcon.setVisibility(View.VISIBLE);
+            trackingIcon.setAlpha(enabledAlpha);
         else
-            trackingIcon.setVisibility(View.INVISIBLE);
+            trackingIcon.setAlpha(disabledAlpha);
 
+        // Online icon
+        onlineIcon = (ImageView) findViewById(R.id.onlineIcon);
+        if (AmbulanceForegroundService.isOnline())
+            onlineIcon.setAlpha(enabledAlpha);
+        else
+            onlineIcon.setAlpha(disabledAlpha);
+        
         // Set a Toolbar to replace the ActionBar.
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -201,13 +221,21 @@ public class MainActivity extends AppCompatActivity {
         super.onResume();
 
         if (AmbulanceForegroundService.isUpdatingLocation())
-            trackingIcon.setVisibility(View.VISIBLE);
+            trackingIcon.setAlpha(enabledAlpha);
         else
-            trackingIcon.setVisibility(View.INVISIBLE);
+            trackingIcon.setAlpha(disabledAlpha);
+
+        // Online icon
+        onlineIcon = (ImageView) findViewById(R.id.onlineIcon);
+        if (AmbulanceForegroundService.isOnline())
+            onlineIcon.setAlpha(enabledAlpha);
+        else
+            onlineIcon.setAlpha(disabledAlpha);
 
         // Register receiver
         IntentFilter filter = new IntentFilter();
         filter.addAction(AmbulanceForegroundService.BroadcastActions.LOCATION_CHANGE);
+        filter.addAction(AmbulanceForegroundService.BroadcastActions.CONNECTIVITY_CHANGE);
         receiver = new LocationChangeBroadcastReceiver();
         getLocalBroadcastManager().registerReceiver(receiver, filter);
 

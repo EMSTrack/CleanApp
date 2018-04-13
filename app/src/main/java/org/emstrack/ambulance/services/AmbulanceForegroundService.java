@@ -1,7 +1,6 @@
 package org.emstrack.ambulance.services;
 
 import android.annotation.SuppressLint;
-import android.app.Activity;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -16,7 +15,6 @@ import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.os.SystemClock;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationCompat;
@@ -52,6 +50,7 @@ import org.emstrack.models.Ambulance;
 import org.emstrack.models.AmbulancePermission;
 import org.emstrack.models.Hospital;
 import org.emstrack.models.HospitalPermission;
+import org.emstrack.models.Location;
 import org.emstrack.mqtt.MqttProfileCallback;
 import org.emstrack.mqtt.MqttProfileClient;
 import org.emstrack.mqtt.MqttProfileMessageCallback;
@@ -144,7 +143,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         public final static String AMBULANCE_UPDATE = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastaction.AMBULANCE_UPDATE";
         public final static String LOCATION_UPDATE = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastaction.LOCATION_UPDATE";
         public final static String LOCATION_CHANGE = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastaction.LOCATION_CHANGE";
-        public final static String CONNECTION_CHANGE = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastaction.CONNECTION_CHANGE";
+        public final static String CONNECTIVITY_CHANGE = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastaction.CONNECTIVITY_CHANGE";
         public final static String SUCCESS = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastaction.SUCCESS";
         public final static String FAILURE = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastaction.FAILURE";
     }
@@ -219,6 +218,15 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                             bundle.putStringArrayList("UPDATES", mqttUpdates);
                             updateIntent.putExtras(bundle);
                             context.startService(updateIntent);
+
+                            Ambulance ambulance = AmbulanceForegroundService.getAmbulance();
+                            if (!isOnline() && ambulance != null) {
+
+                                // Update locally
+                                android.location.Location location = _lastLocation.getLocation();
+                                ambulance.setLocation(new Location(location.getLatitude(),location.getLongitude()));
+                                
+                            }
 
                         }
 
@@ -300,6 +308,8 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
             Log.i(TAG, "START_SERVICE Foreground Intent ");
 
+            final boolean addStopAction = intent.getBooleanExtra("ADD_STOP_ACTION", false);
+
             // Make sure client is bound to service
             AmbulanceForegroundService.getProfileClient(this);
 
@@ -311,13 +321,19 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
             PendingIntent pendingIntent = PendingIntent.getActivity(AmbulanceForegroundService.this, 0,
                     notificationIntent, 0);
 
-            // Stop intent
-            Intent stopServiceIntent = new Intent(AmbulanceForegroundService.this, LoginActivity.class);
-            stopServiceIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-            stopServiceIntent.setAction(LoginActivity.LOGOUT);
-            PendingIntent stopServicePendingIntent = PendingIntent.getActivity(AmbulanceForegroundService.this, 0,
-                    stopServiceIntent, 0);
+            // Restart intent
+            Intent restartServiceIntent = new Intent(AmbulanceForegroundService.this, LoginActivity.class);
+            restartServiceIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            restartServiceIntent.setAction(LoginActivity.LOGOUT);
+            PendingIntent restartServicePendingIntent = PendingIntent.getActivity(AmbulanceForegroundService.this, 0,
+                    restartServiceIntent, 0);
 
+            // Stop intent
+            Intent stopServiceIntent = new Intent(AmbulanceForegroundService.this, AmbulanceForegroundService.class);
+            stopServiceIntent.setAction(Actions.STOP_SERVICE);
+            PendingIntent stopServicePendingIntent = PendingIntent.getService(AmbulanceForegroundService.this, 0,
+                    stopServiceIntent, 0);
+            
             // Icon
             Bitmap icon = BitmapFactory.decodeResource(getResources(),
                     R.mipmap.ic_launcher);
@@ -329,7 +345,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
             else
                 notificationBuilder = new NotificationCompat.Builder(AmbulanceForegroundService.this);
 
-            Notification notification = notificationBuilder
+            notificationBuilder
                     .setContentTitle("EMSTrack")
                     .setTicker(getString(R.string.pleaseLogin))
                     .setContentText(getString(R.string.pleaseLogin))
@@ -337,8 +353,12 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                     .setLargeIcon(Bitmap.createScaledBitmap(icon, 128, 128, false))
                     .setContentIntent(pendingIntent)
                     .setOngoing(true)
-                    .addAction(android.R.drawable.ic_menu_close_clear_cancel, getString(R.string.stopText), stopServicePendingIntent)
-                    .build();
+                    .addAction(android.R.drawable.ic_menu_close_clear_cancel, getString(R.string.restartText), restartServicePendingIntent);
+
+            if (addStopAction)
+                notificationBuilder.addAction(android.R.drawable.ic_menu_close_clear_cancel, getString(R.string.stopText), stopServicePendingIntent);
+
+            Notification notification = notificationBuilder.build();
 
             // start service
             startForeground(NOTIFICATION_ID, notification);
@@ -351,10 +371,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
             Log.i(TAG, "STOP_SERVICE Foreground Intent");
 
-            // Set online false
-            _online = false;
-
-            // What to do when login completes?
+            // What to do when logout completes?
             new OnServiceComplete(this,
                     AmbulanceForegroundService.BroadcastActions.SUCCESS,
                     AmbulanceForegroundService.BroadcastActions.FAILURE,
@@ -369,6 +386,11 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
                 @Override
                 public void onSuccess(Bundle extras) {
+
+                    Log.d(TAG, "STOP_SERVICE::onSuccess.");
+
+                    // Set online false
+                    setOnline(false);
 
                     // close client
                     client.close();
@@ -388,6 +410,8 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
                 @Override
                 public void onFailure(Bundle extras) {
+
+                    Log.d(TAG, "STOP_SERVICE::onFailure.");
 
                     // Broadcast failure
                     Intent localIntent = new Intent(BroadcastActions.FAILURE);
@@ -413,7 +437,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
             Toast.makeText(this, "Logging in '" + username + "'", Toast.LENGTH_SHORT).show();
 
             // Set online false
-            _online = false;
+            setOnline(false);
 
             // What to do when login completes?
             new OnServiceComplete(this,
@@ -432,7 +456,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                 public void onSuccess(Bundle extras) {
 
                     // Set online true
-                    _online = true;
+                    setOnline(true);
 
                     // Update notification
                     updateNotification(getString(R.string.welcomeUser, username));
@@ -449,7 +473,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                 public void onFailure(Bundle extras) {
 
                     // Set online false
-                    _online = false;
+                    setOnline(false);
 
                     // Create notification
                     NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(AmbulanceForegroundService.this, PRIMARY_CHANNEL)
@@ -477,7 +501,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
             Log.i(TAG, "LOGOUT Foreground Intent");
 
             // Set online false
-            _online = false;
+            setOnline(false);
 
             // logout
             logout(uuid);
@@ -658,6 +682,33 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
      * @return true if online
      */
     public static boolean isOnline() { return _online; }
+
+    /**
+     * Set online status
+     *
+     * @return true if online
+     */
+    public void setOnline(boolean online) { setOnline(online, this); }
+
+    /**
+     * Set online status
+     *
+     * @return true if online
+     */
+    public static void setOnline(boolean online, Context context) {
+
+        if (context != null && online != _online) {
+
+            // broadcast change of connectivity status
+            Intent localIntent = new Intent(BroadcastActions.CONNECTIVITY_CHANGE);
+            localIntent.putExtra("ONLINE", online);
+            getLocalBroadcastManager(context).sendBroadcast(localIntent);
+
+        }
+
+        _online = online;
+
+    }
 
     /**
      * Return true if reconnecting
@@ -877,7 +928,7 @@ s     * Allowing arbitrary updates might be too broad and a security concern
                 .setSmallIcon(R.mipmap.ic_launcher)
                 .setContentIntent(pendingIntent)
                 .setOngoing(true)
-                .addAction(android.R.drawable.ic_menu_close_clear_cancel, getString(R.string.stopText), stopServicePendingIntent)
+                .addAction(android.R.drawable.ic_menu_close_clear_cancel, getString(R.string.restartText), stopServicePendingIntent)
                 .build();
 
         NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
@@ -962,7 +1013,16 @@ s     * Allowing arbitrary updates might be too broad and a security concern
 
             // Broadcast failure
             Intent localIntent = new Intent(BroadcastActions.FAILURE);
-            localIntent.putExtra(BroadcastExtras.MESSAGE, "Could not disconnect.");
+            localIntent.putExtra(BroadcastExtras.MESSAGE, "Could not disconnect: " + e.toString());
+            sendBroadcastWithUUID(localIntent, uuid);
+
+        } catch (Exception e) {
+
+            Log.d(TAG, "Failed to disconnect.");
+
+            // Broadcast failure
+            Intent localIntent = new Intent(BroadcastActions.FAILURE);
+            localIntent.putExtra(BroadcastExtras.MESSAGE, "Could not disconnect: " + e.toString());
             sendBroadcastWithUUID(localIntent, uuid);
 
         }
@@ -978,7 +1038,7 @@ s     * Allowing arbitrary updates might be too broad and a security concern
         _reconnecting = true;
 
         // Set online false
-        _online = false;
+        setOnline(false);
 
         // Create notification
         NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(this, PRIMARY_CHANNEL)
@@ -1002,12 +1062,19 @@ s     * Allowing arbitrary updates might be too broad and a security concern
         Log.d(TAG, "onSuccess after reconnect. Restoring subscriptions.");
 
         // Set online true
-        _online = true;
+        setOnline(true);
 
         final boolean hasAmbulance = _ambulance != null;
         final boolean hasAmbulances = _otherAmbulances != null;
         final boolean hasHospitals = _hospitals != null;
         final boolean updatingLocation = isUpdatingLocation();
+
+        // Retrieve credentials
+        String username = sharedPreferences.getString(PREFERENCES_USERNAME, null);
+
+        // Subscribe to error topic
+        if (username != null)
+            subscribeToError(username);
 
         if (hasAmbulance) {
 
@@ -1048,9 +1115,6 @@ s     * Allowing arbitrary updates might be too broad and a security concern
 
                     NotificationManagerCompat notificationManager = NotificationManagerCompat.from(AmbulanceForegroundService.this);
                     notificationManager.notify(notificationId.getAndIncrement(), mBuilder.build());
-
-                    // Consume buffer
-                    consumeBuffer();
 
                     if (updatingLocation) {
 
@@ -1161,7 +1225,7 @@ s     * Allowing arbitrary updates might be too broad and a security concern
                 Log.d(TAG, "Tried to connect, but already connected.");
 
                 // Set online true
-                _online = true;
+                setOnline(true);
 
                 return;
 
@@ -1170,7 +1234,7 @@ s     * Allowing arbitrary updates might be too broad and a security concern
         }
 
         // Set online false
-        _online = false;
+        setOnline(false);
 
         // Notify user and return
         NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(this, PRIMARY_CHANNEL)
@@ -1187,6 +1251,45 @@ s     * Allowing arbitrary updates might be too broad and a security concern
 
     }
 
+
+    public void subscribeToError(final String username) {
+
+        MqttProfileClient profileClient = getProfileClient(AmbulanceForegroundService.this);
+        try {
+
+            profileClient.subscribe(String.format("user/%1$s/error", username),
+                    1, new MqttProfileMessageCallback() {
+
+                        @Override
+                        public void messageArrived(String topic, MqttMessage message) {
+
+                            Log.d(TAG, "MQTT error message.");
+
+                            // Create notification
+                            NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(AmbulanceForegroundService.this, PRIMARY_CHANNEL)
+                                    .setSmallIcon(R.mipmap.ic_launcher)
+                                    .setContentTitle("EMSTrack")
+                                    .setContentText(getString(R.string.serverError, String.valueOf(message.getPayload())))
+                                    .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                                    .setAutoCancel(true);
+
+                            NotificationManagerCompat notificationManager = NotificationManagerCompat.from(AmbulanceForegroundService.this);
+                            notificationManager.notify(notificationId.getAndIncrement(), mBuilder.build());
+
+                        }
+
+                    });
+
+        } catch (MqttException e1) {
+
+            Log.d(TAG, "Could not subscribe to error topic.");
+
+        }
+
+    }
+
+
+
     /**
      * Login user
      *
@@ -1195,105 +1298,135 @@ s     * Allowing arbitrary updates might be too broad and a security concern
      */
     public void login(final String username, final String password, final String uuid) {
 
-        // logout first
-        logout(uuid);
+        // What to do when logout completes?
+        new OnServiceComplete(this,
+                AmbulanceForegroundService.BroadcastActions.SUCCESS,
+                AmbulanceForegroundService.BroadcastActions.FAILURE,
+                null) {
 
-        // Retrieve client
-        final MqttProfileClient profileClient = getProfileClient(this);
+            public void run() {
 
-        // Set callback to be called after profile is retrieved
-        profileClient.setCallback(new MqttProfileCallback() {
-
-            @Override
-            public void onReconnect() {
-
-                Log.d(TAG, "onReconnect after connection. Could happen.");
-                // TODO: but I am not sure how to handle it yet.
+                // logout
+                logout(getUuid());
 
             }
 
             @Override
-            public void onSuccess() {
+            public void onSuccess(Bundle extras) {
 
-                // Get preferences editor
-                SharedPreferences.Editor editor = sharedPreferences.edit();
+                // Retrieve client
+                final MqttProfileClient profileClient = getProfileClient(AmbulanceForegroundService.this);
 
-                // Save credentials
-                Log.d(TAG, "Storing credentials");
-                editor.putString(PREFERENCES_USERNAME, username);
-                editor.putString(PREFERENCES_PASSWORD, password);
-                editor.apply();
+                // Set callback to be called after profile is retrieved
+                profileClient.setCallback(new MqttProfileCallback() {
 
-                // Broadcast success
-                Intent localIntent = new Intent(BroadcastActions.SUCCESS);
-                sendBroadcastWithUUID(localIntent, uuid);
+                    @Override
+                    public void onReconnect() {
 
-                // set callback for handling loss of connection/reconnection
-                getProfileClient(AmbulanceForegroundService.this).setCallback(AmbulanceForegroundService.this);
+                        Log.d(TAG, "onReconnect after connection. Could happen.");
+                        // TODO: but I am not sure how to handle it yet.
 
-            }
+                    }
 
-            @Override
-            public void onFailure(Throwable exception) {
+                    @Override
+                    public void onSuccess() {
 
-                Log.d(TAG, "Failed to retrieve profile.");
+                        // Get preferences editor
+                        SharedPreferences.Editor editor = sharedPreferences.edit();
 
-                // Build error message
-                String message = exception.toString();
+                        // Save credentials
+                        Log.d(TAG, "Storing credentials");
+                        editor.putString(PREFERENCES_USERNAME, username);
+                        editor.putString(PREFERENCES_PASSWORD, password);
+                        editor.apply();
 
-                // Broadcast failure
-                Intent localIntent = new Intent(BroadcastActions.FAILURE);
-                localIntent.putExtra(BroadcastExtras.MESSAGE, message);
-                sendBroadcastWithUUID(localIntent, uuid);
+                        // Broadcast success
+                        Intent localIntent = new Intent(BroadcastActions.SUCCESS);
+                        sendBroadcastWithUUID(localIntent, uuid);
 
-            }
+                        // Subscribe to error topic
+                        subscribeToError(username);
 
-        });
+                        // set callback for handling loss of connection/reconnection
+                        getProfileClient(AmbulanceForegroundService.this).setCallback(AmbulanceForegroundService.this);
 
-        try {
+                    }
 
-            // Attempt to connect
-            profileClient.connect(username, password, new MqttProfileCallback() {
+                    @Override
+                    public void onFailure(Throwable exception) {
 
-                @Override
-                public void onReconnect() {
+                        Log.d(TAG, "Failed to retrieve profile.");
 
-                    Log.d(TAG, "onReconnect during connection. Should not happen.");
+                        // Build error message
+                        String message = exception.toString();
 
-                }
+                        // Broadcast failure
+                        Intent localIntent = new Intent(BroadcastActions.FAILURE);
+                        localIntent.putExtra(BroadcastExtras.MESSAGE, message);
+                        sendBroadcastWithUUID(localIntent, uuid);
 
-                @Override
-                public void onSuccess() {
+                    }
 
-                    Log.d(TAG, "Successfully connected to broker.");
+                });
 
-                    // Do nothing. All work is done on the callback
+                try {
 
-                }
+                    // Attempt to connect
+                    profileClient.connect(username, password, new MqttProfileCallback() {
 
-                @Override
-                public void onFailure(Throwable exception) {
+                        @Override
+                        public void onReconnect() {
 
-                    String message = getString(R.string.failedToConnectToBrocker) + "\n";
+                            Log.d(TAG, "onReconnect during connection. Should not happen.");
 
-                    if (exception instanceof MqttException) {
+                        }
 
-                        int reason = ((MqttException) exception).getReasonCode();
+                        @Override
+                        public void onSuccess() {
 
-                        if (reason == MqttException.REASON_CODE_FAILED_AUTHENTICATION ||
-                                reason == MqttException.REASON_CODE_NOT_AUTHORIZED ||
-                                reason == MqttException.REASON_CODE_INVALID_CLIENT_ID)
+                            Log.d(TAG, "Successfully connected to broker.");
 
-                            message += getResources().getString(R.string.error_invalid_credentials);
+                            // Do nothing. All work is done on the callback
 
-                        else
+                        }
 
-                            message += getResources().getString(R.string.error_connection_failed, exception.toString());
+                        @Override
+                        public void onFailure(Throwable exception) {
 
-                    } else
-                        message += getString(R.string.Exception) + exception.toString();
+                            String message = getString(R.string.failedToConnectToBrocker) + "\n";
 
-                    Log.d(TAG, "message = " + message);
+                            if (exception instanceof MqttException) {
+
+                                int reason = ((MqttException) exception).getReasonCode();
+
+                                if (reason == MqttException.REASON_CODE_FAILED_AUTHENTICATION ||
+                                        reason == MqttException.REASON_CODE_NOT_AUTHORIZED ||
+                                        reason == MqttException.REASON_CODE_INVALID_CLIENT_ID)
+
+                                    message += getResources().getString(R.string.error_invalid_credentials);
+
+                                else
+
+                                    message += getResources().getString(R.string.error_connection_failed, exception.toString());
+
+                            } else
+                                message += getString(R.string.Exception) + exception.toString();
+
+                            Log.d(TAG, "message = " + message);
+
+                            // Broadcast failure
+                            Intent localIntent = new Intent(BroadcastActions.FAILURE);
+                            localIntent.putExtra(BroadcastExtras.MESSAGE, message);
+                            sendBroadcastWithUUID(localIntent, uuid);
+
+                        }
+
+                    });
+
+                } catch (MqttException exception) {
+
+                    // Build error message
+                    String message = getResources().getString(R.string.error_connection_failed, exception.toString());
 
                     // Broadcast failure
                     Intent localIntent = new Intent(BroadcastActions.FAILURE);
@@ -1302,19 +1435,20 @@ s     * Allowing arbitrary updates might be too broad and a security concern
 
                 }
 
-            });
+            }
 
-        } catch (MqttException exception) {
+            @Override
+            public void onFailure(Bundle extras) {
 
-            // Build error message
-            String message = getResources().getString(R.string.error_connection_failed, exception.toString());
+                // Broadcast failure
+                Intent localIntent = new Intent(BroadcastActions.FAILURE);
+                if (extras != null)
+                    localIntent.putExtras(extras);
+                sendBroadcastWithUUID(localIntent, uuid);
 
-            // Broadcast failure
-            Intent localIntent = new Intent(BroadcastActions.FAILURE);
-            localIntent.putExtra(BroadcastExtras.MESSAGE, message);
-            sendBroadcastWithUUID(localIntent, uuid);
+            }
 
-        }
+        };
 
     }
 
@@ -1824,7 +1958,7 @@ s     * Allowing arbitrary updates might be too broad and a security concern
 
     }
 
-    private void startLocationUpdates(final String uuid, boolean reconnect) {
+    private void startLocationUpdates(final String uuid, final boolean reconnect) {
 
         // Already started?
         if (_updatingLocation) {
@@ -1879,7 +2013,12 @@ s     * Allowing arbitrary updates might be too broad and a security concern
                         @Override
                         public void onSuccess(LocationSettingsResponse locationSettingsResponse) {
 
-                            Log.i(TAG, "All location settings are satisfied. Starting location updates.");
+                            Log.i(TAG, "All location settings are satisfied.");
+
+                            Log.i(TAG, "Consuming buffer.");
+                            consumeBuffer();
+
+                            Log.i(TAG, "Starting location updates.");
                             beginLocationUpdates(uuid);
 
                         }
@@ -1936,7 +2075,7 @@ s     * Allowing arbitrary updates might be too broad and a security concern
 
                     // Try again with right permissions
                     // TODO: This could potentially lead to a loop, add counter to prevent infinite recursion
-                    startLocationUpdates(uuid, false);
+                    startLocationUpdates(uuid, reconnect);
 
                 }
 
@@ -2121,4 +2260,12 @@ s     * Allowing arbitrary updates might be too broad and a security concern
         return LocalBroadcastManager.getInstance(this);
     }
 
+    /**
+     * Get LocalBroadcastManager
+     *
+     * @return the LocalBroadcastManager
+     */
+    private static LocalBroadcastManager getLocalBroadcastManager(Context context) {
+        return LocalBroadcastManager.getInstance(context);
+    }
 }

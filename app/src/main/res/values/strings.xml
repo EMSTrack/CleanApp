@@ -118,8 +118,10 @@
     <string name="couldNotLogin">Could not login user \'%1$s\'</string>
     <string name="pleaseLogin">Please login.</string>
     <string name="welcomeUser">Welcome %1$s</string>
-    <string name="stopText">Restart</string>
+    <string name="restartText">Restart</string>
     <string name="couldNotStartService">Could not start foreground service.</string>
+    <string name="serverError">Server error: %1$s</string>
+    <string name="stopText">Stop</string>
 
     <string-array name="spinner_list_item_array">
         <item>@string/dispatch</item>

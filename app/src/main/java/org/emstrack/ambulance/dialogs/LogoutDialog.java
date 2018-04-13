@@ -55,30 +55,11 @@ public class LogoutDialog {
 
                         Log.i(TAG,"LogoutDialog: OK Button Clicked");
 
-                        // Stop foreground activity
-                        Intent intent = new Intent(activity, AmbulanceForegroundService.class);
-                        intent.setAction(AmbulanceForegroundService.Actions.STOP_SERVICE);
-
-                        // What to do when service completes?
-                        new OnServiceComplete(activity,
-                                AmbulanceForegroundService.BroadcastActions.SUCCESS,
-                                AmbulanceForegroundService.BroadcastActions.FAILURE,
-                                intent) {
-
-                            @Override
-                            public void onSuccess(Bundle extras) {
-                                Log.i(TAG, "onSuccess");
-
-                                // Start login activity
-                                Intent loginIntent = new Intent(activity, LoginActivity.class);
-                                loginIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP|Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                                activity.startActivity(loginIntent);
-
-                            }
-
-                        }
-                                .setFailureMessage(activity.getString(R.string.couldNotLogout))
-                                .setAlert(new AlertSnackbar(activity));
+                        // Start login activity
+                        Intent loginIntent = new Intent(activity, LoginActivity.class);
+                        loginIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP|Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                        loginIntent.setAction(LoginActivity.LOGOUT);
+                        activity.startActivity(loginIntent);
 
                     }
                 });
