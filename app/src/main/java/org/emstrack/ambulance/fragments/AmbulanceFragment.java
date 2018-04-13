@@ -116,17 +116,25 @@ public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSel
         // inflate view
         view = inflater.inflate(R.layout.fragment_ambulance, container, false);
 
-        // Get settings, status and capabilities
-        final MqttProfileClient profileClient = AmbulanceForegroundService.getProfileClient(getContext());
+        try {
 
-        ambulanceStatus = profileClient.getSettings().getAmbulanceStatus();
+            // Get settings, status and capabilities
+            final MqttProfileClient profileClient = AmbulanceForegroundService.getProfileClient();
 
-        ambulanceStatusList = new ArrayList<String>(ambulanceStatus.values());
-        Collections.sort(ambulanceStatusList);
+            ambulanceStatus = profileClient.getSettings().getAmbulanceStatus();
 
-        ambulanceCapabilities = profileClient.getSettings().getAmbulanceCapability();
-        ambulanceCapabilityList = new ArrayList<String>(ambulanceCapabilities.values());
-        Collections.sort(ambulanceCapabilityList);
+            ambulanceStatusList = new ArrayList<String>(ambulanceStatus.values());
+            Collections.sort(ambulanceStatusList);
+
+            ambulanceCapabilities = profileClient.getSettings().getAmbulanceCapability();
+            ambulanceCapabilityList = new ArrayList<String>(ambulanceCapabilities.values());
+            Collections.sort(ambulanceCapabilityList);
+
+        } catch (AmbulanceForegroundService.ProfileClientException e) {
+
+            ambulanceStatusList = new ArrayList<String>();
+
+        }
 
         // Retrieve identifier
         identifierText = (TextView) view.findViewById(R.id.headerText);
@@ -311,15 +319,24 @@ public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSel
             return false;
 
         // can write?
-        final MqttProfileClient profileClient = AmbulanceForegroundService.getProfileClient(getContext());
         boolean canWrite = false;
-        for (AmbulancePermission permission : profileClient.getProfile().getAmbulances()) {
-            if (permission.getAmbulanceId() == ambulance.getId()) {
-                if (permission.isCanWrite()) {
-                    canWrite = true;
+
+        try {
+
+            final MqttProfileClient profileClient = AmbulanceForegroundService.getProfileClient();
+            for (AmbulancePermission permission : profileClient.getProfile().getAmbulances()) {
+                if (permission.getAmbulanceId() == ambulance.getId()) {
+                    if (permission.isCanWrite()) {
+                        canWrite = true;
+                    }
+                    break;
                 }
-                break;
             }
+
+        } catch (AmbulanceForegroundService.ProfileClientException e) {
+
+            /* no need to do anything */
+
         }
 
         return canWrite;

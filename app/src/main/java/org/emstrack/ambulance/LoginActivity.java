@@ -46,20 +46,28 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
     private static final String TAG = LoginActivity.class.getSimpleName();
 
+    public static final String LOGOUT = "org.emstrack.ambulance.LoginActivity.LOGOUT";
+
     private static final int REQUEST_PERMISSIONS_REQUEST_CODE = 34;
     private static final int REQUEST_CHECK_SETTINGS = 0x1;
-    private boolean enableLocationUpdates;
 
     private SharedPreferences sharedPreferences;
     private Button loginSubmitButton;
     private TextView usernameField;
     private TextView passwordField;
+    private boolean logout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
+
+        Log.d(TAG, "onCreate");
+
+        // get action
+        String action = getIntent().getAction();
+        logout = LOGOUT.equals(action);
 
         // Find username and password from layout
         usernameField = (TextView) findViewById(R.id.editUserName);
@@ -104,47 +112,96 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
     public void enableLogin() {
 
+        Log.d(TAG, "enableLogin");
+
         // Enable login
         loginSubmitButton.setOnClickListener(this);
 
-        // Already logged in?
-        final MqttProfileClient profileClient = AmbulanceForegroundService.getProfileClient(this);
-        Profile profile = profileClient.getProfile();
-        if (profile != null) {
+        // Logout first?
+        if (logout) {
 
-            // Get user info & remove whitespace
-            final String username = usernameField.getText().toString().trim();
+            // Stop foreground activity
+            Intent intent = new Intent(this, AmbulanceForegroundService.class);
+            intent.setAction(AmbulanceForegroundService.Actions.STOP_SERVICE);
 
-            // Create intent
-            Intent intent = new Intent(LoginActivity.this,
-                    AmbulanceListActivity.class);
+            // What to do when service completes?
+            new OnServiceComplete(this,
+                    AmbulanceForegroundService.BroadcastActions.SUCCESS,
+                    AmbulanceForegroundService.BroadcastActions.FAILURE,
+                    intent) {
 
-            Ambulance ambulance = AmbulanceForegroundService.getAmbulance();
-            if (ambulance != null) {
+                @Override
+                public void onSuccess(Bundle extras) {
+                    Log.i(TAG, "onSuccess");
 
-                Log.i(TAG, "Already logged in with ambulance");
+                    // Set logout to false
+                    logout = false;
 
-                intent.putExtra("SKIP_AMBULANCE_SELECTION", true);
+                    // Initialize service to make sure it gets bound to service
+                    Intent intent = new Intent(LoginActivity.this, AmbulanceForegroundService.class);
+                    intent.setAction(AmbulanceForegroundService.Actions.START_SERVICE);
 
-            } else {
+                    // TODO: is this safe to do asynchronously?
 
-                Log.i(TAG, "Already logged in without ambulance");
+                }
+
+            }
+                    .setFailureMessage(this.getString(R.string.couldNotLogout))
+                    .setAlert(new AlertSnackbar(this));
+
+        } else {
+
+            try {
+
+                // Already logged in?
+                final MqttProfileClient profileClient = AmbulanceForegroundService.getProfileClient();
+                Profile profile = profileClient.getProfile();
+                if (profile != null) {
+
+                    // Get user info & remove whitespace
+                    final String username = usernameField.getText().toString().trim();
+
+                    // Create intent
+                    Intent intent = new Intent(LoginActivity.this,
+                            AmbulanceListActivity.class);
+
+                    Ambulance ambulance = AmbulanceForegroundService.getAmbulance();
+                    if (ambulance != null) {
+
+                        Log.i(TAG, "Already logged in with ambulance");
+
+                        intent.putExtra("SKIP_AMBULANCE_SELECTION", true);
+
+                    } else {
+
+                        Log.i(TAG, "Already logged in without ambulance");
+
+                    }
+
+                    Log.i(TAG, "Starting AmbulanceListActivity");
+
+                    // Toast
+                    Toast.makeText(LoginActivity.this,
+                            getResources().getString(R.string.loginSuccessMessage, username),
+                            Toast.LENGTH_SHORT).show();
+
+                    // initiate AmbulanceListActivity
+                    startActivity(intent);
+
+                    return;
+                }
+
+            } catch (AmbulanceForegroundService.ProfileClientException e) {
+
+                // Initialize service to make sure it gets bound to service
+                Intent intent = new Intent(this, AmbulanceForegroundService.class);
+                intent.setAction(AmbulanceForegroundService.Actions.START_SERVICE);
+
+                // TODO: is this safe to do asynchronously?
 
             }
 
-            Log.i(TAG, "Starting AmbulanceListActivity");
-
-            // Toast
-            Toast.makeText(LoginActivity.this,
-                    getResources().getString(R.string.loginSuccessMessage, username),
-                    Toast.LENGTH_SHORT).show();
-
-            // initiate AmbulanceListActivity
-            startActivity(intent);
-
-            return;
         }
-
 
         if (AmbulanceForegroundService.canUpdateLocation()) {
 
@@ -164,6 +221,8 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     @Override
     public void onResume() {
         super.onResume();
+
+        Log.d(TAG, "onResume");
 
         // Disable login
         disableLogin();
@@ -234,6 +293,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
             }
                     .setFailureMessage(getResources().getString(R.string.couldNotLoginUser, username))
                     .setAlert(new AlertSnackbar(LoginActivity.this));
+
 
         }
 
