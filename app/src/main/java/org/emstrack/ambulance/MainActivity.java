@@ -60,9 +60,9 @@ public class MainActivity extends AppCompatActivity {
         public void onReceive(Context context, Intent intent ) {
             if (intent != null) {
                 final String action = intent.getAction();
-                if (action.equals(AmbulanceForegroundService.BroadcastActions.LOCATION_CHANGE)) {
+                if (action.equals(AmbulanceForegroundService.BroadcastActions.LOCATION_UPDATE_CHANGE)) {
 
-                    Log.i(TAG, "LOCATION_CHANGE");
+                    Log.i(TAG, "LOCATION_UPDATE_CHANGE");
 
                     if (AmbulanceForegroundService.isUpdatingLocation())
                         trackingIcon.setAlpha(enabledAlpha);
@@ -234,7 +234,7 @@ public class MainActivity extends AppCompatActivity {
 
         // Register receiver
         IntentFilter filter = new IntentFilter();
-        filter.addAction(AmbulanceForegroundService.BroadcastActions.LOCATION_CHANGE);
+        filter.addAction(AmbulanceForegroundService.BroadcastActions.LOCATION_UPDATE_CHANGE);
         filter.addAction(AmbulanceForegroundService.BroadcastActions.CONNECTIVITY_CHANGE);
         receiver = new LocationChangeBroadcastReceiver();
         getLocalBroadcastManager().registerReceiver(receiver, filter);
