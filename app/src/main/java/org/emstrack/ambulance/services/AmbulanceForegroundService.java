@@ -98,7 +98,6 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
     public static final String PREFERENCES_PASSWORD = "PASSWORD";
 
     private static final String serverUri = "ssl://cruzroja.ucsd.edu:8883";
-    private static final String baseClientId = "v_0_2_3_AndroidAppClient_";
 
     private static MqttProfileClient client;
     private static Ambulance _ambulance;
@@ -599,7 +598,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
         // lazy initialization
         if (client == null) {
-            String clientId = baseClientId + UUID.randomUUID().toString();
+            String clientId = context.getString(R.string.app_version) + context.getString(R.string.client_name) + UUID.randomUUID().toString();
             MqttAndroidClient androidClient = new MqttAndroidClient(context, serverUri, clientId);
             client = new MqttProfileClient(androidClient);
         }
