@@ -8,6 +8,7 @@ import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -26,6 +27,7 @@ import android.widget.Toast;
 
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
@@ -118,6 +120,10 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
     private FusedLocationProviderClient fusedLocationClient;
     private SharedPreferences sharedPreferences;
 
+    public LocationFilter locationFilter = new LocationFilter(null);
+
+    private LocationCallback locationCallback;
+
     public class Actions {
         public final static String START_SERVICE = "org.emstrack.ambulance.ambulanceforegroundservice.action.START_SERVICE";
         public final static String LOGIN = "org.emstrack.ambulance.ambulanceforegroundservice.action.LOGIN";
@@ -152,113 +158,20 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
     }
 
-    public static class LocationUpdatesBroadcastReceiver extends BroadcastReceiver {
+    public static String getUpdateString(LocationUpdate lastLocation) {
+        double latitude = lastLocation.getLocation().getLatitude();
+        double longitude = lastLocation.getLocation().getLongitude();
+        double orientation = lastLocation.getBearing();
 
-        public final String TAG = LocationUpdatesBroadcastReceiver.class.getSimpleName();
-        public LocationFilter filter = new LocationFilter(null);
+        // format timestamp
+        DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+        df.setTimeZone(TimeZone.getTimeZone("UTC"));
+        String timestamp = df.format(lastLocation.getTimestamp());
 
-        public static String getUpdateString(LocationUpdate lastLocation) {
-            double latitude = lastLocation.getLocation().getLatitude();
-            double longitude = lastLocation.getLocation().getLongitude();
-            double orientation = lastLocation.getBearing();
+        String updateString =  "{\"orientation\":" + orientation + ",\"location\":{" +
+                "\"latitude\":"+ latitude + ",\"longitude\":" + longitude +"},\"timestamp\":\"" + timestamp + "\"}";
 
-            // format timestamp
-            DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
-            df.setTimeZone(TimeZone.getTimeZone("UTC"));
-            String timestamp = df.format(lastLocation.getTimestamp());
-
-            String updateString =  "{\"orientation\":" + orientation + ",\"location\":{" +
-                    "\"latitude\":"+ latitude + ",\"longitude\":" + longitude +"},\"timestamp\":\"" + timestamp + "\"}";
-
-            return updateString;
-        }
-
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            if (intent != null) {
-                final String action = intent.getAction();
-                if (BroadcastActions.LOCATION_UPDATE.equals(action)) {
-
-                    // get profile client
-                    final MqttProfileClient profileClient = AmbulanceForegroundService.getProfileClient(context);
-
-                    // Retrieve results
-                    LocationResult result = LocationResult.extractResult(intent);
-                    if (result != null) {
-
-                        List<android.location.Location> locations = result.getLocations();
-                        Log.i(TAG, "Received " + locations.size() + " location updates");
-
-                        // Initialize filter
-                        if (_lastLocation != null)
-                            filter.setLocation(_lastLocation);
-
-                        // Filter location
-                        List<LocationUpdate> filteredLocations = filter.update(locations);
-
-                        // Add to updates
-                        ArrayList<String> mqttUpdates = new ArrayList<>();
-                        for (LocationUpdate newLocation : filteredLocations) {
-
-                            // Set last location
-                            _lastLocation = newLocation;
-
-                            // add to update list
-                            mqttUpdates.add(getUpdateString(_lastLocation));
-
-                        }
-
-                        // any updates?
-                        if (mqttUpdates.size() > 0) {
-
-                            // Submit updates
-                            Intent updateIntent = new Intent(context, AmbulanceForegroundService.class);
-                            updateIntent.setAction(AmbulanceForegroundService.Actions.UPDATE_AMBULANCE);
-                            Bundle bundle = new Bundle();
-                            bundle.putStringArrayList("UPDATES", mqttUpdates);
-                            updateIntent.putExtras(bundle);
-                            context.startService(updateIntent);
-
-                            Ambulance ambulance = AmbulanceForegroundService.getAmbulance();
-                            if (!isOnline() && ambulance != null) {
-
-                                // Update locally
-                                android.location.Location location = _lastLocation.getLocation();
-                                ambulance.setLocation(new Location(location.getLatitude(),location.getLongitude()));
-                                
-                            }
-
-                        }
-
-                        // Notification message
-                        // TODO: These need to be internationalized but cannot be retrieved without a context
-                        String message = "Last location update at "
-                                + new SimpleDateFormat("d MMM HH:mm:ss z", Locale.getDefault()).format(new Date());
-
-                        if (_lastServerUpdate != null)
-                            message += "\nLast server update at "
-                                    + new SimpleDateFormat("d MMM HH:mm:ss z", Locale.getDefault()).format(_lastServerUpdate);
-
-                        if (isOnline())
-                            message += "\nServer is online";
-                        else
-                            message += "\nServer is offline";
-
-                        if (_updateBuffer.size() > 1)
-                            message += ", " + String.format("%1$d messages on buffer", _updateBuffer.size());
-                        else if (_updateBuffer.size() > 0)
-                            message += ", " + String.format("1 message on buffer");
-
-                        // modify foreground service notification
-                        Intent notificationIntent = new Intent(context, AmbulanceForegroundService.class);
-                        notificationIntent.setAction(AmbulanceForegroundService.Actions.UPDATE_NOTIFICATION);
-                        notificationIntent.putExtra("MESSAGE", message);
-                        context.startService(notificationIntent);
-
-                    }
-                }
-            }
-        }
+        return updateString;
     }
 
     @Nullable
@@ -2129,9 +2042,96 @@ s     * Allowing arbitrary updates might be too broad and a security concern
      */
     public void beginLocationUpdates(final String uuid) {
 
+        // Create location callback
+        locationCallback = new LocationCallback() {
+
+            @Override
+            public void onLocationResult(LocationResult result) {
+
+                // get profile client
+                final MqttProfileClient profileClient = AmbulanceForegroundService.getProfileClient(AmbulanceForegroundService.this);
+
+                // Retrieve results
+                if (result != null) {
+
+                    List<android.location.Location> locations = result.getLocations();
+                    Log.i(TAG, "Received " + locations.size() + " location updates");
+
+                    // Initialize locationFilter
+                    if (_lastLocation != null)
+                        locationFilter.setLocation(_lastLocation);
+
+                    // Filter location
+                    List<LocationUpdate> filteredLocations = locationFilter.update(locations);
+
+                    // Add to updates
+                    ArrayList<String> mqttUpdates = new ArrayList<>();
+                    for (LocationUpdate newLocation : filteredLocations) {
+
+                        // Set last location
+                        _lastLocation = newLocation;
+
+                        // add to update list
+                        mqttUpdates.add(getUpdateString(_lastLocation));
+
+                    }
+
+                    // any updates?
+                    if (mqttUpdates.size() > 0) {
+
+                        // Submit updates
+                        Intent updateIntent = new Intent(AmbulanceForegroundService.this, AmbulanceForegroundService.class);
+                        updateIntent.setAction(AmbulanceForegroundService.Actions.UPDATE_AMBULANCE);
+                        Bundle bundle = new Bundle();
+                        bundle.putStringArrayList("UPDATES", mqttUpdates);
+                        updateIntent.putExtras(bundle);
+                        startService(updateIntent);
+
+                        Ambulance ambulance = AmbulanceForegroundService.getAmbulance();
+                        if (!isOnline() && ambulance != null) {
+
+                            // Update locally
+                            android.location.Location location = _lastLocation.getLocation();
+                            ambulance.setLocation(new Location(location.getLatitude(), location.getLongitude()));
+
+                        }
+
+                    }
+
+                    // Notification message
+                    // TODO: These need to be internationalized but cannot be retrieved without a context
+                    String message = "Last location update at "
+                            + new SimpleDateFormat("d MMM HH:mm:ss z", Locale.getDefault()).format(new Date());
+
+                    if (_lastServerUpdate != null)
+                        message += "\nLast server update at "
+                                + new SimpleDateFormat("d MMM HH:mm:ss z", Locale.getDefault()).format(_lastServerUpdate);
+
+                    if (isOnline())
+                        message += "\nServer is online";
+                    else
+                        message += "\nServer is offline";
+
+                    if (_updateBuffer.size() > 1)
+                        message += ", " + String.format("%1$d messages on buffer", _updateBuffer.size());
+                    else if (_updateBuffer.size() > 0)
+                        message += ", " + String.format("1 message on buffer");
+
+                    // modify foreground service notification
+                    Intent notificationIntent = new Intent(AmbulanceForegroundService.this, AmbulanceForegroundService.class);
+                    notificationIntent.setAction(AmbulanceForegroundService.Actions.UPDATE_NOTIFICATION);
+                    notificationIntent.putExtra("MESSAGE", message);
+                    startService(notificationIntent);
+
+                }
+
+            }
+
+        };
+
         try {
 
-            fusedLocationClient.requestLocationUpdates(getLocationRequest(), getPendingIntent())
+            fusedLocationClient.requestLocationUpdates(getLocationRequest(), locationCallback, null)
                     .addOnSuccessListener(new OnSuccessListener<Void>() {
                         @Override
                         public void onSuccess(Void aVoid) {
@@ -2216,7 +2216,7 @@ s     * Allowing arbitrary updates might be too broad and a security concern
         }
 
         // remove on fusedLocationclient
-        fusedLocationClient.removeLocationUpdates(getPendingIntent())
+        fusedLocationClient.removeLocationUpdates(locationCallback)
                 .addOnSuccessListener(new OnSuccessListener<Void>() {
                     @Override
                     public void onSuccess(Void aVoid) {
@@ -2238,17 +2238,6 @@ s     * Allowing arbitrary updates might be too broad and a security concern
                     }
                 });
 
-    }
-
-    /**
-     * Get the service's PendingIntent.
-     * Override to customize.
-     * @return the service's PendingIntent
-     */
-    protected PendingIntent getPendingIntent() {
-        Intent intent = new Intent(this, LocationUpdatesBroadcastReceiver.class);
-        intent.setAction(BroadcastActions.LOCATION_UPDATE);
-        return PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
     }
 
     /**

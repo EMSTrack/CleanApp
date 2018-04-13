@@ -56,13 +56,13 @@ public class LocationFilter {
         if (dt > 0)
             vel = distance / dt;
 
-        // filter velocity
+        // locationFilter velocity
         double Kv = 0.9;
         double velocity = location.getVelocity();
         velocity += Kv * (vel - velocity);
         location.setVelocity(velocity);
 
-        // filter bearing
+        // locationFilter bearing
         double Kb = 0.9;
         double bearing = location.getBearing();
         bearing += Kb * (brn - bearing);
@@ -148,7 +148,7 @@ public class LocationFilter {
      *       0, 1, 0, 0];
      *
      *
-     * Extended Kalman filter
+     * Extended Kalman locationFilter
      *
      * Prediction:
      *

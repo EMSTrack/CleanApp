@@ -45,12 +45,14 @@
         <service android:name="org.eclipse.paho.android.service.MqttService"/>
         <service android:name=".services.AmbulanceForegroundService"/>
 
+        <!--
         <receiver android:name=".services.AmbulanceForegroundService$LocationUpdatesBroadcastReceiver"
             android:exported="true">
-            <intent-filter>
+            <intent-locationFilter>
                 <action android:name=".AmbulanceForegroundService.BroadcastActions.LOCATION_UPDATE" />
-            </intent-filter>
+            </intent-locationFilter>
         </receiver>
+        -->
 
 
         <meta-data
