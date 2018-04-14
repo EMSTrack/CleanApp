@@ -40,7 +40,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
 
-public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSelectedListener, CompoundButton.OnCheckedChangeListener{
+public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSelectedListener {
 
     private static final String TAG = AmbulanceFragment.class.getSimpleName();;
 
@@ -83,28 +83,6 @@ public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSel
                     Log.i(TAG, "AMBULANCE_UPDATE");
                     update(AmbulanceForegroundService.getAmbulance());
 
-                } else if (action.equals(AmbulanceForegroundService.BroadcastActions.LOCATION_UPDATE_CHANGE)) {
-
-                    if (startTrackingSwitch.isChecked() && !AmbulanceForegroundService.isUpdatingLocation()) {
-
-                        // set switch off
-                        // will trigger event handler
-                        setSwitch(false);
-
-                        // Toast to warn user
-                        Toast.makeText(getContext(), R.string.anotherClientRequestedLocations, Toast.LENGTH_SHORT).show();
-
-                    } if (!startTrackingSwitch.isChecked() && AmbulanceForegroundService.isUpdatingLocation()) {
-
-                        // set switch on
-                        // will no trigger event handler
-                        setSwitch(true);
-
-                        // Toast to warn user
-                        Toast.makeText(getContext(), R.string.startedStreamingLocation, Toast.LENGTH_SHORT).show();
-
-                    }
-
                 }
 
             }
@@ -145,14 +123,6 @@ public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSel
         timestampText = (TextView) view.findViewById(R.id.timestampText);
         orientationText = (TextView) view.findViewById(R.id.orientationText);
 
-        // To track or not to track?
-        startTrackingSwitch = (Switch) view.findViewById(R.id.startTrackingSwitch);
-        startTrackingSwitch.setChecked(AmbulanceForegroundService.isUpdatingLocation());
-        startTrackingSwitch.setOnCheckedChangeListener(this);
-
-        // Can track
-        startTrackingSwitch.setEnabled(AmbulanceForegroundService.canUpdateLocation());
-
         // Other text
         capabilityText = (TextView) view.findViewById(R.id.capabilityText);
         commentText = (TextView) view.findViewById(R.id.commentText);
@@ -167,9 +137,6 @@ public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSel
                         ambulanceStatusList);
         statusSpinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         statusSpinner.setAdapter(statusSpinnerAdapter);
-
-        // initialize requestingToStreamLocation
-        requestingToStreamLocation = MAX_NUMBER_OF_LOCATION_REQUESTS_ATTEMPTS;
 
         // Update ambulance
         Ambulance ambulance = AmbulanceForegroundService.getAmbulance();
@@ -194,7 +161,6 @@ public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSel
         // Register receiver
         IntentFilter filter = new IntentFilter();
         filter.addAction(AmbulanceForegroundService.BroadcastActions.AMBULANCE_UPDATE);
-        filter.addAction(AmbulanceForegroundService.BroadcastActions.LOCATION_UPDATE_CHANGE);
         receiver = new AmbulanceFragment.AmbulancesUpdateBroadcastReceiver();
         getLocalBroadcastManager().registerReceiver(receiver, filter);
 
@@ -282,237 +248,6 @@ public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSel
 
     }
 
-    public void setSwitch(boolean isChecked) {
-
-        // temporarily disconnect listener to prevent loop
-        Log.i(TAG, "Suppressing listener");
-        startTrackingSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                /* do nothing */
-                Log.i(TAG,"Ignoring change in switch. Checked = '" + isChecked + "' selected.");
-            }
-
-        });
-
-        // update spinner
-        startTrackingSwitch.setChecked(isChecked);
-
-        // connect listener
-        // this is tricky, see
-        // https://stackoverflow.com/questions/2562248/how-to-keep-onitemselected-from-firing-off-on-a-newly-instantiated-spinner
-        startTrackingSwitch.post(new Runnable() {
-            public void run() {
-                Log.i(TAG, "Restoring listener");
-                startTrackingSwitch.setOnCheckedChangeListener(AmbulanceFragment.this);
-            }
-        });
-
-    }
-
-    public boolean canWrite() {
-
-        Ambulance ambulance = AmbulanceForegroundService.getAmbulance();
-
-        // has ambulance?
-        if (ambulance == null)
-            return false;
-
-        // can write?
-        boolean canWrite = false;
-
-        try {
-
-            final MqttProfileClient profileClient = AmbulanceForegroundService.getProfileClient();
-            for (AmbulancePermission permission : profileClient.getProfile().getAmbulances()) {
-                if (permission.getAmbulanceId() == ambulance.getId()) {
-                    if (permission.isCanWrite()) {
-                        canWrite = true;
-                    }
-                    break;
-                }
-            }
-
-        } catch (AmbulanceForegroundService.ProfileClientException e) {
-
-            /* no need to do anything */
-
-        }
-
-        return canWrite;
-
-    }
-
-    @Override
-    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-
-        if (isChecked) {
-
-            Log.d(TAG, "onCheckedChanged: isChecked");
-
-            // reset switch
-            startTrackingSwitch.setChecked(false);
-
-            if (canWrite()) {
-
-                // Toast to warn user
-                Toast.makeText(getContext(), R.string.requestingToStreamLocation,
-                        Toast.LENGTH_SHORT).show();
-
-                // turn on tracking
-                Intent intent = new Intent(getContext(), AmbulanceForegroundService.class);
-                intent.setAction(AmbulanceForegroundService.Actions.START_LOCATION_UPDATES);
-
-                new OnServiceComplete(getContext(),
-                        AmbulanceForegroundService.BroadcastActions.SUCCESS,
-                        AmbulanceForegroundService.BroadcastActions.FAILURE,
-                        intent) {
-
-                    @Override
-                    public void onSuccess(Bundle extras) {
-
-                        // set switch
-                        setSwitch(true);
-
-                        // reset requestingLocation to maximum number of attempts
-                        requestingToStreamLocation = MAX_NUMBER_OF_LOCATION_REQUESTS_ATTEMPTS;
-
-                        // Toast to warn user
-                        Toast.makeText(getContext(), R.string.startedStreamingLocation,
-                                Toast.LENGTH_SHORT).show();
-
-                    }
-
-                    @Override
-                    public void onFailure(Bundle extras) {
-
-                        if (--requestingToStreamLocation > 0) {
-
-                            // call super to display error message
-                            super.onFailure(extras);
-
-                        } else {
-
-                            // Otherwise ask user if wants to force
-                            AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(getActivity());
-
-                            alertDialogBuilder.setTitle(R.string.alert_warning_title);
-                            alertDialogBuilder.setMessage(R.string.forceLocationUpdates);
-
-                            // Cancel button
-                            alertDialogBuilder.setNegativeButton(
-                                    R.string.alert_button_negative_text,
-                                    new DialogInterface.OnClickListener() {
-                                        @Override
-                                        public void onClick(DialogInterface dialog, int which) {
-                                            // do nothing
-                                        }
-                                    });
-
-                            // Create the OK button that logs user out
-                            alertDialogBuilder.setPositiveButton(
-                                    R.string.alert_button_positive_text,
-                                    new DialogInterface.OnClickListener() {
-                                        @Override
-                                        public void onClick(DialogInterface dialog, int which) {
-
-                                            Log.i(TAG, "ForceLocationUpdatesDialog: OK Button Clicked");
-
-                                            // Toast to warn user
-                                            Toast.makeText(getContext(), R.string.forcingLocationUpdates,
-                                                    Toast.LENGTH_LONG).show();
-
-                                            // Reset location_client
-                                            String payload = "{\"location_client_id\":\"\"}";
-                                            Intent intent = new Intent(getContext(), AmbulanceForegroundService.class);
-                                            intent.setAction(AmbulanceForegroundService.Actions.UPDATE_AMBULANCE);
-                                            Bundle bundle = new Bundle();
-                                            bundle.putString("UPDATE", payload);
-                                            intent.putExtras(bundle);
-
-                                            // What to do when service completes?
-                                            new OnServicesComplete(getContext(),
-                                                    new String[] {
-                                                            AmbulanceForegroundService.BroadcastActions.SUCCESS,
-                                                            AmbulanceForegroundService.BroadcastActions.AMBULANCE_UPDATE
-                                                    },
-                                                    new String[] {AmbulanceForegroundService.BroadcastActions.FAILURE},
-                                                    intent) {
-
-                                                @Override
-                                                public void onSuccess(Bundle extras) {
-                                                    Log.i(TAG, "onSuccess");
-
-                                                    // Toast to warn user
-                                                    Toast.makeText(getContext(), R.string.succeededForcingLocationUpdates,
-                                                            Toast.LENGTH_LONG).show();
-
-                                                }
-
-                                                @Override
-                                                public void onReceive(Context context, Intent intent) {
-
-                                                    // Retrieve action
-                                                    String action = intent.getAction();
-
-                                                    // Intercept success
-                                                    if (action.equals(AmbulanceForegroundService.BroadcastActions.SUCCESS))
-                                                        // prevent propagation, still waiting for AMBULANCE_UPDATE
-                                                        return;
-
-                                                    // Intercept AMBULANCE_UPDATE
-                                                    if (action.equals(AmbulanceForegroundService.BroadcastActions.AMBULANCE_UPDATE))
-                                                        // Inject uuid into AMBULANCE_UPDATE
-                                                        intent.putExtra(OnServicesComplete.UUID, getUuid());
-
-                                                    // Call super
-                                                    super.onReceive(context, intent);
-                                                }
-
-                                            }
-                                                    .setFailureMessage(getString(R.string.couldNotForceLocationUpdate))
-                                                    .setAlert(new AlertSnackbar(getActivity()));
-
-                                        }
-
-                                    });
-
-                            alertDialogBuilder.create().show();
-
-                        }
-
-                    }
-
-                }
-                        .setFailureMessage(getResources().getString(R.string.anotherClientIsStreamingLocations))
-                        .setAlert(new AlertSnackbar(getActivity()));
-
-            } else {
-
-                // Toast to warn user
-                Toast.makeText(getContext(), R.string.cantModifyAmbulance, Toast.LENGTH_LONG).show();
-
-            }
-
-        } else {
-
-            Log.d(TAG, "onCheckedChanged: isNotChecked");
-
-            if (canWrite()) {
-
-                Log.d(TAG, "onCheckedChanged: requesting to stop streaming location");
-
-                // turn off tracking
-                Intent intent = new Intent(getContext(), AmbulanceForegroundService.class);
-                intent.setAction(AmbulanceForegroundService.Actions.STOP_LOCATION_UPDATES);
-                getActivity().startService(intent);
-
-            }
-
-        }
-
-    }
-
     @Override
     public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
 
@@ -525,7 +260,7 @@ public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSel
 
         Log.i(TAG, "Processing status spinner update.");
 
-        if (!canWrite()) {
+        if (!((MainActivity) getActivity()).canWrite()) {
 
             // Toast to warn user
             Toast.makeText(getContext(), R.string.cantModifyAmbulance, Toast.LENGTH_LONG).show();

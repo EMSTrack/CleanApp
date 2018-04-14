@@ -60,18 +60,6 @@
         android:textSize="18dp"
         android:layout_below="@+id/statusLabel"/>
 
-    <Switch
-        android:id="@+id/startTrackingSwitch"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:checked="false"
-        android:switchTextAppearance="@style/TextAppearance.AppCompat.Widget.Switch"
-        android:text="@string/gps_startTrackingSwitchText"
-        android:layout_marginTop="20dp"
-        android:gravity="right"
-        android:layout_below="@+id/statusSpinner"
-        android:layout_toRightOf="@+id/locationLabel"/>
-
     <TextView
         android:id="@+id/latitudeLabel"
         android:layout_height="wrap_content"
