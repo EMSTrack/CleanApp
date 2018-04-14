@@ -112,9 +112,9 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
 
                     }
 
-                } else if (action.equals(AmbulanceForegroundService.BroadcastActions.AMBULANCES_UPDATE)) {
+                } else if (action.equals(AmbulanceForegroundService.BroadcastActions.OTHER_AMBULANCES_UPDATE)) {
 
-                    Log.i(TAG, "AMBULANCES_UPDATE");
+                    Log.i(TAG, "OTHER_AMBULANCES_UPDATE");
 
                     // update markers without centering
                     updateMarkers();
@@ -421,7 +421,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
 
          // Register receiver
          IntentFilter filter = new IntentFilter();
-         filter.addAction(AmbulanceForegroundService.BroadcastActions.AMBULANCES_UPDATE);
+         filter.addAction(AmbulanceForegroundService.BroadcastActions.OTHER_AMBULANCES_UPDATE);
          filter.addAction(AmbulanceForegroundService.BroadcastActions.AMBULANCE_UPDATE);
          receiver = new AmbulancesUpdateBroadcastReceiver();
          getLocalBroadcastManager().registerReceiver(receiver, filter);

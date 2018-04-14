@@ -280,15 +280,6 @@ public class MqttProfileClient implements MqttCallbackExtended {
                         disconnectedBufferOptions.setDeleteOldestMessages(false);
                         mqttClient.setBufferOpts(disconnectedBufferOptions);
 
-                        try {
-
-                            // publish online to connectTopic
-                            MqttProfileClient.this.publish(topic, "online", 2, true);
-
-                        } catch (MqttException e) {
-                            Log.e(TAG,"Could not publish to connect topic");
-                        }
-
                         // Forward callback
                         if (connectCallback != null)
                             connectCallback.onSuccess();
@@ -318,10 +309,22 @@ public class MqttProfileClient implements MqttCallbackExtended {
         } else
             Log.d(TAG, "Connected to broker");
 
+        // Publish online
+        try {
+
+            // publish online to connectTopic
+            MqttProfileClient.this.publish(
+                    String.format(connectTopic, username, mqttClient.getClientId()),
+                    "online", 2, true);
+
+        } catch (MqttException e) {
+            Log.e(TAG,"Could not publish to connect topic");
+        }
+
         try {
 
             // Subscribe to username/{username}/profile
-            subscribe("user/" + username + "/profile", 2, new MqttProfileMessageCallback() {
+            subscribe(String.format("user/%1$s/profile", username), 2, new MqttProfileMessageCallback() {
 
                 @Override
                 public void messageArrived(String topic, MqttMessage message) {
@@ -357,10 +360,11 @@ public class MqttProfileClient implements MqttCallbackExtended {
                     try {
 
                         // Subscribe to error
-                        subscribe("user/" + username + "/error", 1);
+                        subscribe(String.format("user/%1$s/client/%2$s/error", username, mqttClient.getClientId()), 1);
 
                     } catch (MqttException e) {
-                        callOnFailure(new Exception("Failed to subscribe to 'user/" + username + "/error'"));
+                        callOnFailure(new Exception(String.format("Failed to subscribe to 'user/%1$s/client/%2$s/error",
+                                username, mqttClient.getClientId())));
                         return;
                     }
 
@@ -409,7 +413,7 @@ public class MqttProfileClient implements MqttCallbackExtended {
             });
 
         } catch (MqttException e) {
-            callOnFailure(new Exception("Failed to subscribe to 'user/" + username + "/profile'"));
+            callOnFailure(new Exception(String.format("Failed to subscribe to 'user/%1$s/profile'", username)));
         }
 
     }
