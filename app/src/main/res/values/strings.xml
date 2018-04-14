@@ -122,6 +122,7 @@
     <string name="couldNotStartService">Could not start foreground service.</string>
     <string name="serverError">Server error: %1$s</string>
     <string name="stopText">Stop</string>
+    <string name="stopedStreamingLocation">Stopped streaming location.</string>
 
     <string-array name="spinner_list_item_array">
         <item>@string/dispatch</item>

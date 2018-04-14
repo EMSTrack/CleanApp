@@ -109,6 +109,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
     private static ArrayList<String> _updateBuffer = new ArrayList<>();
     private static boolean _reconnecting = false;
     private static boolean _online = false;
+    private static ReconnectionInformation _reconnectionInformation;
 
     private static LocationSettingsRequest locationSettingsRequest;
     private static LocationRequest locationRequest;
@@ -152,6 +153,36 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
     }
 
     public static class ProfileClientException extends Exception {
+
+    }
+
+    public class ReconnectionInformation {
+
+        private boolean hasAmbulance;
+        private boolean hasOtherAmbulances;
+        private boolean hasHospitals;
+        private boolean isUpdatingLocation;
+
+        public ReconnectionInformation(boolean hasAmbulance, boolean hasOtherAmbulances,
+                                       boolean hasHospitals, boolean isUpdatingLocation) {
+
+            this.hasAmbulance = hasAmbulance;
+            this.hasOtherAmbulances = hasOtherAmbulances;
+            this.hasHospitals = hasHospitals;
+            this.isUpdatingLocation = isUpdatingLocation;
+
+        }
+
+        public boolean hasAmbulance() { return hasAmbulance; }
+        public boolean hasOtherAmbulances() { return hasOtherAmbulances; }
+        public boolean hasHospitals() { return hasHospitals; }
+        public boolean isUpdatingLocation() { return isUpdatingLocation; }
+
+        @Override
+        public String toString() {
+            return String.format("hasAmbulance = %1$b, hasOtherAmbulances = %2$b, hasHospitals = %3$b, isUpdatingLocation = %4$b",
+                    hasAmbulance, hasOtherAmbulances, hasHospitals, isUpdatingLocation);
+        }
 
     }
 
@@ -992,6 +1023,13 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         // Suppress changes in updating location until reconnect is complete
         _reconnecting = true;
 
+        // Store reconnection information
+        _reconnectionInformation = new ReconnectionInformation(
+                _ambulance != null,
+                _otherAmbulances != null,
+                _hospitals != null,
+                isUpdatingLocation());
+
         // Set online false
         setOnline(false);
 
@@ -1019,15 +1057,14 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         // Set online true
         setOnline(true);
 
-        final boolean hasAmbulance = _ambulance != null;
-        final boolean hasOtherAmbulances = _otherAmbulances != null;
-        final boolean hasHospitals = _hospitals != null;
-        final boolean updatingLocation = isUpdatingLocation();
+        if (_reconnectionInformation == null) {
 
-        Log.d(TAG, "hasAmbulance = " + hasAmbulance);
-        Log.d(TAG, "hasOtherAmbulances = " + hasOtherAmbulances);
-        Log.d(TAG, "hasHospitals = " + hasHospitals);
-        Log.d(TAG, "updatingLocation = " + updatingLocation);
+            Log.e(TAG, "Null reconnection information. Aborting...");
+            return;
+
+        }
+
+        Log.d(TAG, "Reconnection information = " + _reconnectionInformation.toString());
 
         // Retrieve credentials
         String username = sharedPreferences.getString(PREFERENCES_USERNAME, null);
@@ -1036,7 +1073,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         if (username != null)
             subscribeToError(username);
 
-        if (hasAmbulance) {
+        if (_reconnectionInformation.hasAmbulance()) {
 
             final int ambulanceId = _ambulance.getId();
             final String ambulanceIdentifier = _ambulance.getIdentifier();
@@ -1076,7 +1113,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                     NotificationManagerCompat notificationManager = NotificationManagerCompat.from(AmbulanceForegroundService.this);
                     notificationManager.notify(notificationId.getAndIncrement(), mBuilder.build());
 
-                    if (updatingLocation) {
+                    if (_reconnectionInformation.isUpdatingLocation()) {
 
                         // can stream location?
                         MqttProfileClient profileClient = getProfileClient(AmbulanceForegroundService.this);
@@ -1165,7 +1202,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
                     }
 
-                    if (hasOtherAmbulances) {
+                    if (_reconnectionInformation.hasOtherAmbulances()) {
 
                         Log.i(TAG, "Subscribing to ambulances.");
 
@@ -1181,7 +1218,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
                     }
 
-                    if (hasHospitals) {
+                    if (_reconnectionInformation.hasHospitals()) {
 
                         Log.i(TAG, "Subscribing to hospitals.");
 
