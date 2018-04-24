@@ -25,6 +25,9 @@ import android.widget.Toast;
 
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.Geofence;
+import com.google.android.gms.location.GeofencingClient;
+import com.google.android.gms.location.GeofencingRequest;
 import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationResult;
@@ -35,6 +38,7 @@ import com.google.android.gms.location.LocationSettingsStatusCodes;
 import com.google.android.gms.location.SettingsClient;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -67,6 +71,8 @@ import java.util.Map;
 import java.util.TimeZone;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import static com.google.android.gms.location.Geofence.NEVER_EXPIRE;
 
 /**
  * Created by mauricio on 3/18/2018.
@@ -122,6 +128,8 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
     public LocationFilter locationFilter = new LocationFilter(null);
 
     private LocationCallback locationCallback;
+    private GeofencingClient fenceClient;
+    private PendingIntent geofenceIntent;
 
     public class Actions {
         public final static String START_SERVICE = "org.emstrack.ambulance.ambulanceforegroundservice.action.START_SERVICE";
@@ -135,6 +143,8 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         public final static String UPDATE_AMBULANCE = "org.emstrack.ambulance.ambulanceforegroundservice.action.UPDATE_AMBULANCE";
         public final static String UPDATE_NOTIFICATION = "org.emstrack.ambulance.ambulanceforegroundservice.action.UPDATE_NOTIFICATION";
         public final static String LOGOUT = "org.emstrack.ambulance.ambulanceforegroundservice.action.LOGOUT";
+        public final static String GEOFENCE_START = "org.emstrack.ambulance.ambulanceforegroundservice.action.GEOFENCE_START";
+        public final static String GEOFENCE_END = "org.emstrack.ambulance.ambulanceforegroundservice.action.GEOFENCE_END";
         public final static String STOP_SERVICE = "org.emstrack.ambulance.ambulanceforegroundservice.action.STOP_SERVICE";
     }
 
@@ -230,6 +240,9 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
         // Initialize fused location client
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+
+        // Initialize geofence client
+        fenceClient = LocationServices.getGeofencingClient(this);
 
     }
 
@@ -525,6 +538,17 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
             String message = intent.getStringExtra("MESSAGE");
             if (message != null)
                 updateNotification(message);
+
+        } else if (intent.getAction().equals(Actions.GEOFENCE_START)) {
+
+            Log.i(TAG, "GEOFENCE_START Foreground Intent");
+
+            // Retrieve latitude and longitude
+            Float latitude = intent.getFloatExtra("LATITUDE", 0.f);
+            Float longitude = intent.getFloatExtra("LONGITUDE", 0.f);
+            Float radius = intent.getFloatExtra("RADIUS", 5.f);
+
+            startGeofence(uuid, latitude, longitude, radius);
 
         } else
 
@@ -2075,7 +2099,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
             SettingsClient settingsClient = LocationServices.getSettingsClient(this);
 
             // Check if the device has the necessary location settings.
-            settingsClient.checkLocationSettings(locationSettingsRequest)
+            settingsClient.checkLocationSettings(getLocationSettingsRequest())
                     .addOnSuccessListener(new OnSuccessListener<LocationSettingsResponse>() {
                         @SuppressLint("MissingPermission")
                         @Override
@@ -2363,6 +2387,105 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                     }
                 });
 
+    }
+
+    private GeofencingRequest getGeofencingRequest(Geofence geo) {
+
+        Log.i(TAG, "GEOFENCE_REQUEST: Built Geofencing Request");
+
+        GeofencingRequest.Builder builder = new GeofencingRequest.Builder();
+        builder.setInitialTrigger(GeofencingRequest.INITIAL_TRIGGER_ENTER);
+        builder.addGeofence(geo);
+
+        return builder.build();
+
+    }
+
+    private PendingIntent getGeofencePendingIntent() {
+
+        // Reuse the PendingIntent if we already have it.
+        if (geofenceIntent != null) {
+            return geofenceIntent;
+        }
+        Intent intent = new Intent(this, GeofenceTransitionsIntentService.class);
+
+        // We use FLAG_UPDATE_CURRENT so that we get the same pending intent back when
+        // calling addGeofences() and removeGeofences().
+        geofenceIntent = PendingIntent.getService(this, 0,
+                intent, PendingIntent.FLAG_UPDATE_CURRENT);
+
+        return geofenceIntent;
+    }
+
+    private void startGeofence(final String uuid, Float latitude, Float longitude, Float radius) {
+
+        Log.d(TAG,String.format("GEOFENCE(%1$f, %2$f, %3$f)", latitude, longitude, radius));
+
+        // Create settings client
+        SettingsClient settingsClient = LocationServices.getSettingsClient(this);
+
+        // Create geofence object
+        Geofence.Builder builder = new Geofence.Builder();
+        builder.setRequestId("test_geofence");
+        builder.setCircularRegion(latitude, longitude, radius);
+        builder.setExpirationDuration(NEVER_EXPIRE);
+        builder.setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER |
+                Geofence.GEOFENCE_TRANSITION_EXIT);
+        final Geofence geo = builder.build();
+
+        // Check if the device has the necessary location settings.
+        settingsClient.checkLocationSettings(getLocationSettingsRequest())
+                .addOnSuccessListener(new OnSuccessListener<LocationSettingsResponse>() {
+                    @SuppressLint("MissingPermission")
+                    @Override
+                    public void onSuccess(LocationSettingsResponse locationSettingsResponse) {
+
+                        Log.i(TAG, "All location settings are satisfied.");
+
+                        Log.i(TAG, "Adding GEOFENCE.");
+
+                        fenceClient.addGeofences(getGeofencingRequest(geo), getGeofencePendingIntent())
+
+                                .addOnSuccessListener(new OnSuccessListener<Void>() {
+
+                                    @Override
+                                    public void onSuccess(Void aVoid) {
+                                        // Geofences added
+                                        Log.i(TAG, "GEOFENCES ADDED.");
+                                    }
+                                })
+                                .addOnFailureListener(new OnFailureListener() {
+                                    @Override
+                                    public void onFailure(@NonNull Exception e) {
+                                        // Failed to add geofences
+                                        Log.e(TAG, "FAILED TO ADD GEOFENCES: " + e.toString());
+                                    }
+                                });
+
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        int statusCode = ((ApiException) e).getStatusCode();
+                        String message = getString(R.string.inadequateLocationSettings);
+                        switch (statusCode) {
+                            case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
+                                message += "Try restarting app.";
+                                break;
+                            case LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:
+                                message += "Please fix in Settings.";
+                        }
+                        Log.e(TAG, message);
+
+                        // Broadcast failure and return
+                        Intent localIntent = new Intent(BroadcastActions.FAILURE);
+                        localIntent.putExtra(BroadcastExtras.MESSAGE, message);
+                        sendBroadcastWithUUID(localIntent, uuid);
+                            return;
+
+                    }
+                });
     }
 
     /**
