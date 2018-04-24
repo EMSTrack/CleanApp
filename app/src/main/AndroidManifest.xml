@@ -44,6 +44,7 @@
 
         <service android:name="org.eclipse.paho.android.service.MqttService"/>
         <service android:name=".services.AmbulanceForegroundService"/>
+        <service android:name=".services.GeofenceTransitionsIntentService"/>
 
         <!--
         <receiver android:name=".services.AmbulanceForegroundService$LocationUpdatesBroadcastReceiver"
