@@ -5,7 +5,6 @@ import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -28,7 +27,6 @@ import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.Geofence;
 import com.google.android.gms.location.GeofencingClient;
-import com.google.android.gms.location.GeofencingEvent;
 import com.google.android.gms.location.GeofencingRequest;
 import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
@@ -40,7 +38,6 @@ import com.google.android.gms.location.LocationSettingsStatusCodes;
 import com.google.android.gms.location.SettingsClient;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.gms.tasks.Task;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -196,51 +193,6 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         public String toString() {
             return String.format("hasAmbulance = %1$b, hasOtherAmbulances = %2$b, hasHospitals = %3$b, isUpdatingLocation = %4$b",
                     hasAmbulance, hasOtherAmbulances, hasHospitals, isUpdatingLocation);
-        }
-
-    }
-
-    public static class GeofenceBroadcastReceiver extends BroadcastReceiver {
-
-        final String TAG = GeofenceBroadcastReceiver.class.getSimpleName();
-
-        /**
-         * Receives incoming intents.
-         *
-         * @param context the application context.
-         * @param intent  sent by Location Services. This Intent is provided to Location
-         *                Services (inside a PendingIntent) when addGeofences() is called.
-         */
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            // Enqueues a JobIntentService passing the context and intent as parameters
-            Log.d(TAG, "Got broadcast");
-
-            GeofencingEvent geofencingEvent = GeofencingEvent.fromIntent(intent);
-            if (geofencingEvent.hasError()) {
-                //String errorMessage = GeofenceErrorMessages.getErrorString(this,
-                //       geofencingEvent.getErrorCode());
-                //Log.e(TAG, errorMessage);
-                Log.d(TAG, "Geofencing Error");
-                return;
-            }
-
-            // Get the transition type.
-            int geofenceTransition = geofencingEvent.getGeofenceTransition();
-
-            if (geofenceTransition == Geofence.GEOFENCE_TRANSITION_ENTER) {
-                Log.i(TAG, "GEOFENCE_TRIGGERED: ENTER");
-            } else if (geofenceTransition == Geofence.GEOFENCE_TRANSITION_EXIT) {
-                Log.i(TAG, "GEOFENCE_TRIGGERED: EXIT");
-            } else {
-                Log.i(TAG, "GEOFENCE_TRIGGERED: UNKNOWN EVENT " + String.valueOf(geofenceTransition));
-            }
-
-            // Broadcast event
-            // Intent localIntent = new Intent(BroadcastActions.GEOFENCE_EVENT);
-            // localIntent.putExtra(BroadcastExtras.GEOFENCE_TRANSITION, geofenceTransition);
-            // sendBroadcastWithUUID(localIntent);
-
         }
 
     }

@@ -46,7 +46,7 @@
         <service android:name=".services.AmbulanceForegroundService"/>
 
         <receiver
-            android:name=".services.AmbulanceForegroundService$GeofenceBroadcastReceiver"
+            android:name=".services.GeofenceBroadcastReceiver"
             android:enabled="true"
             android:exported="true" />
 
