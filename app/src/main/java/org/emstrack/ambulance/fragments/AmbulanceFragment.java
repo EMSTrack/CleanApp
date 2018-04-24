@@ -152,7 +152,7 @@ public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSel
             serviceIntent.setAction(AmbulanceForegroundService.Actions.GEOFENCE_START);
             serviceIntent.putExtra("LATITUDE", (float) ambulance.getLocation().getLatitude());
             serviceIntent.putExtra("LONGITUDE", (float) ambulance.getLocation().getLongitude());
-            serviceIntent.putExtra("RADIUS", 5.f);
+            serviceIntent.putExtra("RADIUS", 50.f);
             getActivity().startService(serviceIntent);
 
         }

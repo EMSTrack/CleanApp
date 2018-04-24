@@ -5,6 +5,7 @@ import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -27,6 +28,7 @@ import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.Geofence;
 import com.google.android.gms.location.GeofencingClient;
+import com.google.android.gms.location.GeofencingEvent;
 import com.google.android.gms.location.GeofencingRequest;
 import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
@@ -150,6 +152,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
     public class BroadcastExtras {
         public final static String MESSAGE = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastextras.MESSAGE";
+        public final static String GEOFENCE_TRANSITION = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastextras.GEOFENCE_TRANSTION";
     }
 
     public class BroadcastActions {
@@ -157,6 +160,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         public static final String OTHER_AMBULANCES_UPDATE = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastaction.OTHER_AMBULANCES_UPDATE";
         public final static String AMBULANCE_UPDATE = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastaction.AMBULANCE_UPDATE";
         public final static String LOCATION_UPDATE_CHANGE = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastaction.LOCATION_UPDATE_CHANGE";
+        public final static String GEOFENCE_EVENT = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastaction.GEOFENCE_EVENT";
         public final static String CONNECTIVITY_CHANGE = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastaction.CONNECTIVITY_CHANGE";
         public final static String SUCCESS = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastaction.SUCCESS";
         public final static String FAILURE = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastaction.FAILURE";
@@ -192,6 +196,51 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         public String toString() {
             return String.format("hasAmbulance = %1$b, hasOtherAmbulances = %2$b, hasHospitals = %3$b, isUpdatingLocation = %4$b",
                     hasAmbulance, hasOtherAmbulances, hasHospitals, isUpdatingLocation);
+        }
+
+    }
+
+    public static class GeofenceBroadcastReceiver extends BroadcastReceiver {
+
+        final String TAG = GeofenceBroadcastReceiver.class.getSimpleName();
+
+        /**
+         * Receives incoming intents.
+         *
+         * @param context the application context.
+         * @param intent  sent by Location Services. This Intent is provided to Location
+         *                Services (inside a PendingIntent) when addGeofences() is called.
+         */
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            // Enqueues a JobIntentService passing the context and intent as parameters
+            Log.d(TAG, "Got broadcast");
+
+            GeofencingEvent geofencingEvent = GeofencingEvent.fromIntent(intent);
+            if (geofencingEvent.hasError()) {
+                //String errorMessage = GeofenceErrorMessages.getErrorString(this,
+                //       geofencingEvent.getErrorCode());
+                //Log.e(TAG, errorMessage);
+                Log.d(TAG, "Geofencing Error");
+                return;
+            }
+
+            // Get the transition type.
+            int geofenceTransition = geofencingEvent.getGeofenceTransition();
+
+            if (geofenceTransition == Geofence.GEOFENCE_TRANSITION_ENTER) {
+                Log.i(TAG, "GEOFENCE_TRIGGERED: ENTER");
+            } else if (geofenceTransition == Geofence.GEOFENCE_TRANSITION_EXIT) {
+                Log.i(TAG, "GEOFENCE_TRIGGERED: EXIT");
+            } else {
+                Log.i(TAG, "GEOFENCE_TRIGGERED: UNKNOWN EVENT " + String.valueOf(geofenceTransition));
+            }
+
+            // Broadcast event
+            // Intent localIntent = new Intent(BroadcastActions.GEOFENCE_EVENT);
+            // localIntent.putExtra(BroadcastExtras.GEOFENCE_TRANSITION, geofenceTransition);
+            // sendBroadcastWithUUID(localIntent);
+
         }
 
     }
@@ -2407,11 +2456,11 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         if (geofenceIntent != null) {
             return geofenceIntent;
         }
-        Intent intent = new Intent(this, GeofenceTransitionsIntentService.class);
+        Intent intent = new Intent(this, GeofenceBroadcastReceiver.class);
 
         // We use FLAG_UPDATE_CURRENT so that we get the same pending intent back when
         // calling addGeofences() and removeGeofences().
-        geofenceIntent = PendingIntent.getService(this, 0,
+        geofenceIntent = PendingIntent.getBroadcast(this, 0,
                 intent, PendingIntent.FLAG_UPDATE_CURRENT);
 
         return geofenceIntent;
