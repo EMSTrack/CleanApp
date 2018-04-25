@@ -146,7 +146,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         public final static String UPDATE_NOTIFICATION = "org.emstrack.ambulance.ambulanceforegroundservice.action.UPDATE_NOTIFICATION";
         public final static String LOGOUT = "org.emstrack.ambulance.ambulanceforegroundservice.action.LOGOUT";
         public final static String GEOFENCE_START = "org.emstrack.ambulance.ambulanceforegroundservice.action.GEOFENCE_START";
-        public final static String GEOFENCE_END = "org.emstrack.ambulance.ambulanceforegroundservice.action.GEOFENCE_END";
+        public final static String GEOFENCE_STOP = "org.emstrack.ambulance.ambulanceforegroundservice.action.GEOFENCE_STOP";
         public final static String STOP_SERVICE = "org.emstrack.ambulance.ambulanceforegroundservice.action.STOP_SERVICE";
     }
 
@@ -593,11 +593,25 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
             Log.i(TAG, "GEOFENCE_START Foreground Intent");
 
             // Retrieve latitude and longitude
+            // TODO: consider how this works with multiple geofences
             Float latitude = intent.getFloatExtra("LATITUDE", 0.f);
             Float longitude = intent.getFloatExtra("LONGITUDE", 0.f);
             Float radius = intent.getFloatExtra("RADIUS", 5.f);
 
             startGeofence(uuid, latitude, longitude, radius);
+
+        } else if (intent.getAction().equals(Actions.GEOFENCE_STOP)) {
+
+            Log.i(TAG, "GEOFENCE_STOP Foreground Intent");
+
+            // Retrieve request ids
+            // TODO: consider how this works with mutliple geofences
+            // TODO: find somewhere to create intent to remove
+            String requestId = intent.getStringExtra("REQUESTID");
+            List<String> requestIds = new ArrayList<String>();
+            requestIds.add(requestId);
+
+            stopGeofence(uuid, requestIds);
 
         } else
 
@@ -2532,6 +2546,71 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                         localIntent.putExtra(BroadcastExtras.MESSAGE, message);
                         sendBroadcastWithUUID(localIntent, uuid);
                             return;
+
+                    }
+                });
+    }
+
+    private void stopGeofence(final String uuid, final List<String> requestIds) {
+        // log requestId of each geofence to be stopped
+        String geofenceIds = "";
+        for (String requestId : requestIds)
+            geofenceIds += requestId + "\n";
+        Log.d(TAG, geofenceIds);
+
+        // Create settings client
+        SettingsClient settingsClient = LocationServices.getSettingsClient(this);
+
+        // Check if the device has the necessary location settings.
+        settingsClient.checkLocationSettings(getLocationSettingsRequest())
+                .addOnSuccessListener(new OnSuccessListener<LocationSettingsResponse>() {
+                    @SuppressLint("MissingPermission")
+                    @Override
+                    public void onSuccess(LocationSettingsResponse locationSettingsResponse) {
+
+                        Log.i(TAG, "All location settings are satisfied.");
+
+                        Log.i(TAG, "Removing GEOFENCE.");
+
+                        fenceClient.removeGeofences(requestIds)
+
+                                .addOnSuccessListener(new OnSuccessListener<Void>() {
+
+                                    @Override
+                                    public void onSuccess(Void aVoid) {
+                                        // Geofences added
+                                        Log.i(TAG, "GEOFENCES REMOVED.");
+                                    }
+                                })
+                                .addOnFailureListener(new OnFailureListener() {
+                                    @Override
+                                    public void onFailure(@NonNull Exception e) {
+                                        // Failed to add geofences
+                                        Log.e(TAG, "FAILED TO REMOVE GEOFENCES: " + e.toString());
+                                    }
+                                });
+
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        int statusCode = ((ApiException) e).getStatusCode();
+                        String message = getString(R.string.inadequateLocationSettings);
+                        switch (statusCode) {
+                            case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
+                                message += "Try restarting app.";
+                                break;
+                            case LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:
+                                message += "Please fix in Settings.";
+                        }
+                        Log.e(TAG, message);
+
+                        // Broadcast failure and return
+                        Intent localIntent = new Intent(BroadcastActions.FAILURE);
+                        localIntent.putExtra(BroadcastExtras.MESSAGE, message);
+                        sendBroadcastWithUUID(localIntent, uuid);
+                        return;
 
                     }
                 });
