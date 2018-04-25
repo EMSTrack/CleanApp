@@ -49,6 +49,7 @@ import org.eclipse.paho.android.service.MqttAndroidClient;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.emstrack.ambulance.LoginActivity;
+import org.emstrack.ambulance.MainActivity;
 import org.emstrack.ambulance.R;
 import org.emstrack.ambulance.util.LocationFilter;
 import org.emstrack.ambulance.util.LocationUpdate;
@@ -230,7 +231,19 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
             if (geofenceTransition == Geofence.GEOFENCE_TRANSITION_ENTER) {
                 Log.i(TAG, "GEOFENCE_TRIGGERED: ENTER");
+
+                Log.i(TAG, "Attempting to REMOVE GEOFENCE");
+
+                // TODO: remove later, only for testing
+                /*
+                Intent stopIntent = new Intent(context, AmbulanceForegroundService.class);
+                stopIntent.setAction(Actions.GEOFENCE_STOP);
+                stopIntent.putExtra("REQUESTID", "test_geofence");
+                context.startService(stopIntent);
+                */
+
             } else if (geofenceTransition == Geofence.GEOFENCE_TRANSITION_EXIT) {
+                // TODO: figure out how to trigger this
                 Log.i(TAG, "GEOFENCE_TRIGGERED: EXIT");
             } else {
                 Log.i(TAG, "GEOFENCE_TRIGGERED: UNKNOWN EVENT " + String.valueOf(geofenceTransition));
