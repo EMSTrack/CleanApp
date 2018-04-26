@@ -2504,6 +2504,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
     }
 
     private void stopGeofence(final String uuid, final List<String> requestIds) {
+
         // log requestId of each geofence to be stopped
         String geofenceIds = "";
         for (String requestId : requestIds)

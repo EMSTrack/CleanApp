@@ -24,6 +24,7 @@ public class GeofenceBroadcastReceiver extends BroadcastReceiver {
      */
     @Override
     public void onReceive(Context context, Intent intent) {
+
         // Enqueues a JobIntentService passing the context and intent as parameters
         Log.d(TAG, "Got broadcast");
 
@@ -39,19 +40,22 @@ public class GeofenceBroadcastReceiver extends BroadcastReceiver {
         // Get the transition type.
         int geofenceTransition = geofencingEvent.getGeofenceTransition();
 
-        if (geofenceTransition == Geofence.GEOFENCE_TRANSITION_ENTER) {
-            Log.i(TAG, "GEOFENCE_TRIGGERED: ENTER");
-        } else if (geofenceTransition == Geofence.GEOFENCE_TRANSITION_EXIT) {
-            Log.i(TAG, "GEOFENCE_TRIGGERED: EXIT");
+        if (geofenceTransition == Geofence.GEOFENCE_TRANSITION_ENTER || geofenceTransition == Geofence.GEOFENCE_TRANSITION_EXIT) {
+            if (geofenceTransition == Geofence.GEOFENCE_TRANSITION_ENTER) {
+                Log.i(TAG, "GEOFENCE_TRIGGERED: ENTER");
+            } else if (geofenceTransition == Geofence.GEOFENCE_TRANSITION_EXIT) {
+                Log.i(TAG, "GEOFENCE_TRIGGERED: EXIT");
+            }
+
+            // Broadcast event
+            Intent localIntent = new Intent(AmbulanceForegroundService.BroadcastActions.GEOFENCE_EVENT);
+            localIntent.putExtra(AmbulanceForegroundService.BroadcastExtras.GEOFENCE_TRANSITION,
+                    geofenceTransition);
+            getLocalBroadcastManager(context).sendBroadcast(localIntent);
+
         } else {
             Log.i(TAG, "GEOFENCE_TRIGGERED: UNKNOWN EVENT " + String.valueOf(geofenceTransition));
         }
-
-        // Broadcast event
-        Intent localIntent = new Intent(AmbulanceForegroundService.BroadcastActions.GEOFENCE_EVENT);
-        localIntent.putExtra(AmbulanceForegroundService.BroadcastExtras.GEOFENCE_TRANSITION,
-                geofenceTransition);
-        getLocalBroadcastManager(context).sendBroadcast(localIntent);
 
     }
 
