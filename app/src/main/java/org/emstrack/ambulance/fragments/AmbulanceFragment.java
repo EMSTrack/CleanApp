@@ -140,8 +140,22 @@ public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSel
 
         // Update ambulance
         Ambulance ambulance = AmbulanceForegroundService.getAmbulance();
-        if (ambulance != null)
+        if (ambulance != null) {
+
             update(ambulance);
+
+            // TODO: REMOVE, JUST FOR TESTING
+            // Add geofence
+            Log.i(TAG, "Adding geofence");
+            Intent serviceIntent = new Intent(getActivity(),
+                    AmbulanceForegroundService.class);
+            serviceIntent.setAction(AmbulanceForegroundService.Actions.GEOFENCE_START);
+            serviceIntent.putExtra("LATITUDE", (float) ambulance.getLocation().getLatitude());
+            serviceIntent.putExtra("LONGITUDE", (float) ambulance.getLocation().getLongitude());
+            serviceIntent.putExtra("RADIUS", 50.f);
+            getActivity().startService(serviceIntent);
+
+        }
 
         // Process change of status
         statusSpinner.setOnItemSelectedListener(this);
