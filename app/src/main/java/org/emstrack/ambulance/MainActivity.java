@@ -26,6 +26,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import org.emstrack.ambulance.adapters.FragmentPager;
+import org.emstrack.ambulance.dialogs.AboutDialog;
 import org.emstrack.ambulance.dialogs.AlertSnackbar;
 import org.emstrack.ambulance.dialogs.LogoutDialog;
 import org.emstrack.ambulance.fragments.AmbulanceFragment;
@@ -407,7 +408,13 @@ public class MainActivity extends AppCompatActivity {
 
             LogoutDialog.newInstance(this).show();
 
-        } // else if (itemId == R.id.home) {}
+        } else if (itemId == R.id.about) {
+
+            AboutDialog.newInstance(this).show();
+
+        } else if (itemId == R.id.settings) {
+
+        }
 
     }
 
