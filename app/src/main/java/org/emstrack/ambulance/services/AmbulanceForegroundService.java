@@ -639,6 +639,12 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         return _ambulance;
     }
 
+    /**
+     * Convenience method to get current ambulance id.
+     * Returns -1 if one does not exist.
+     *
+     * @return
+     */
     public static int getAmbulanceId() {
         if (_ambulance == null)
             return -1;
