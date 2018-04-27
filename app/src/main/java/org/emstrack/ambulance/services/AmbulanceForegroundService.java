@@ -24,6 +24,7 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.google.android.gms.common.api.ApiException;
+import com.google.android.gms.iid.InstanceID;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.GeofencingClient;
 import com.google.android.gms.location.GeofencingRequest;
@@ -601,9 +602,14 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
         // lazy initialization
         if (client == null) {
-            String clientId = context.getString(R.string.app_version) + context.getString(R.string.client_name) + UUID.randomUUID().toString();
+
+            String clientId = context.getString(R.string.app_version)
+                    + context.getString(R.string.client_name)
+                    + InstanceID.getInstance(context).getId();
+                    //+ UUID.randomUUID().toString();
             MqttAndroidClient androidClient = new MqttAndroidClient(context, serverUri, clientId);
             client = new MqttProfileClient(androidClient);
+
         }
 
         return client;
