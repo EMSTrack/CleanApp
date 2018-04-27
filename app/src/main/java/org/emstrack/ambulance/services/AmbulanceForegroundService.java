@@ -603,6 +603,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         // lazy initialization
         if (client == null) {
 
+            // TODO: This is deprecated. New Firebase service is buggy and poorly documented.
             String clientId = context.getString(R.string.app_version)
                     + context.getString(R.string.client_name)
                     + InstanceID.getInstance(context).getId();
