@@ -25,7 +25,6 @@ import android.widget.Toast;
 
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.location.FusedLocationProviderClient;
-import com.google.android.gms.location.Geofence;
 import com.google.android.gms.location.GeofencingClient;
 import com.google.android.gms.location.GeofencingRequest;
 import com.google.android.gms.location.LocationCallback;
@@ -47,6 +46,7 @@ import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.emstrack.ambulance.LoginActivity;
 import org.emstrack.ambulance.R;
+import org.emstrack.ambulance.util.Geofence;
 import org.emstrack.ambulance.util.LocationFilter;
 import org.emstrack.ambulance.util.LocationUpdate;
 import org.emstrack.models.Ambulance;
@@ -70,8 +70,6 @@ import java.util.Map;
 import java.util.TimeZone;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
-
-import static com.google.android.gms.location.Geofence.NEVER_EXPIRE;
 
 /**
  * Created by mauricio on 3/18/2018.
@@ -115,6 +113,10 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
     private static boolean _reconnecting = false;
     private static boolean _online = false;
     private static ReconnectionInformation _reconnectionInformation;
+
+    // Geofences
+    private final static AtomicInteger geofencesId = new AtomicInteger(1);
+    private static Map<String, Geofence> _geofences;
 
     private static LocationSettingsRequest locationSettingsRequest;
     private static LocationRequest locationRequest;
@@ -241,6 +243,9 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
         // Initialize fused location client
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+
+        // Initialize geofence map
+        _geofences = new HashMap<String, Geofence>();
 
         // Initialize geofence client
         fenceClient = LocationServices.getGeofencingClient(this);
@@ -550,7 +555,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
             Float longitude = intent.getFloatExtra("LONGITUDE", 0.f);
             Float radius = intent.getFloatExtra("RADIUS", 5.f);
 
-            startGeofence(uuid, latitude, longitude, radius);
+            startGeofence(uuid, new Geofence(new Location(latitude, longitude), radius));
 
         } else if (intent.getAction().equals(Actions.GEOFENCE_STOP)) {
 
@@ -983,6 +988,10 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
         // remove ambulance map
         removeOtherAmbulances();
+
+        // stop geofences
+        // TODO: Should we wait for completion?
+        removeGeofences(null);
 
         // disconnect mqttclient
         MqttProfileClient profileClient = getProfileClient(this);
@@ -2404,13 +2413,13 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
     }
 
-    private GeofencingRequest getGeofencingRequest(Geofence geo) {
+    private GeofencingRequest getGeofencingRequest(com.google.android.gms.location.Geofence geofence) {
 
         Log.i(TAG, "GEOFENCE_REQUEST: Built Geofencing Request");
 
         GeofencingRequest.Builder builder = new GeofencingRequest.Builder();
         builder.setInitialTrigger(GeofencingRequest.INITIAL_TRIGGER_ENTER);
-        builder.addGeofence(geo);
+        builder.addGeofence(geofence);
 
         return builder.build();
 
@@ -2432,21 +2441,15 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         return geofenceIntent;
     }
 
-    private void startGeofence(final String uuid, Float latitude, Float longitude, Float radius) {
+    private void startGeofence(final String uuid, final Geofence geofence) {
 
-        Log.d(TAG,String.format("GEOFENCE(%1$f, %2$f, %3$f)", latitude, longitude, radius));
+        Log.d(TAG,String.format("GEOFENCE(%1$s, %2$f)", geofence.getLocation().toString(), geofence.getRadius()));
+
+        // Set unique id
+        final String id = "GEOFENCE_" + geofencesId.getAndIncrement();
 
         // Create settings client
         SettingsClient settingsClient = LocationServices.getSettingsClient(this);
-
-        // Create geofence object
-        Geofence.Builder builder = new Geofence.Builder();
-        builder.setRequestId("test_geofence");
-        builder.setCircularRegion(latitude, longitude, radius);
-        builder.setExpirationDuration(NEVER_EXPIRE);
-        builder.setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER |
-                Geofence.GEOFENCE_TRANSITION_EXIT);
-        final Geofence geo = builder.build();
 
         // Check if the device has the necessary location settings.
         settingsClient.checkLocationSettings(getLocationSettingsRequest())
@@ -2459,87 +2462,36 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
                         Log.i(TAG, "Adding GEOFENCE.");
 
-                        fenceClient.addGeofences(getGeofencingRequest(geo), getGeofencePendingIntent())
-
+                        fenceClient.addGeofences(getGeofencingRequest(geofence.build(id)), getGeofencePendingIntent())
                                 .addOnSuccessListener(new OnSuccessListener<Void>() {
 
                                     @Override
                                     public void onSuccess(Void aVoid) {
                                         // Geofences added
                                         Log.i(TAG, "GEOFENCES ADDED.");
+
+                                        // Add to map
+                                        _geofences.put(id, geofence);
+
+                                        // Broadcast success
+                                        Intent localIntent = new Intent(BroadcastActions.SUCCESS);
+                                        sendBroadcastWithUUID(localIntent, uuid);
+
                                     }
                                 })
                                 .addOnFailureListener(new OnFailureListener() {
                                     @Override
                                     public void onFailure(@NonNull Exception e) {
+
                                         // Failed to add geofences
                                         Log.e(TAG, "FAILED TO ADD GEOFENCES: " + e.toString());
-                                    }
-                                });
 
-                    }
-                })
-                .addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        int statusCode = ((ApiException) e).getStatusCode();
-                        String message = getString(R.string.inadequateLocationSettings);
-                        switch (statusCode) {
-                            case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
-                                message += "Try restarting app.";
-                                break;
-                            case LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:
-                                message += "Please fix in Settings.";
-                        }
-                        Log.e(TAG, message);
+                                        // Broadcast failure and return
+                                        Intent localIntent = new Intent(BroadcastActions.FAILURE);
+                                        localIntent.putExtra(BroadcastExtras.MESSAGE, getString(R.string.failedToAddGeofence));
+                                        sendBroadcastWithUUID(localIntent, uuid);
+                                        return;
 
-                        // Broadcast failure and return
-                        Intent localIntent = new Intent(BroadcastActions.FAILURE);
-                        localIntent.putExtra(BroadcastExtras.MESSAGE, message);
-                        sendBroadcastWithUUID(localIntent, uuid);
-                            return;
-
-                    }
-                });
-    }
-
-    private void stopGeofence(final String uuid, final List<String> requestIds) {
-
-        // log requestId of each geofence to be stopped
-        String geofenceIds = "";
-        for (String requestId : requestIds)
-            geofenceIds += requestId + "\n";
-        Log.d(TAG, geofenceIds);
-
-        // Create settings client
-        SettingsClient settingsClient = LocationServices.getSettingsClient(this);
-
-        // Check if the device has the necessary location settings.
-        settingsClient.checkLocationSettings(getLocationSettingsRequest())
-                .addOnSuccessListener(new OnSuccessListener<LocationSettingsResponse>() {
-                    @SuppressLint("MissingPermission")
-                    @Override
-                    public void onSuccess(LocationSettingsResponse locationSettingsResponse) {
-
-                        Log.i(TAG, "All location settings are satisfied.");
-
-                        Log.i(TAG, "Removing GEOFENCE.");
-
-                        fenceClient.removeGeofences(requestIds)
-
-                                .addOnSuccessListener(new OnSuccessListener<Void>() {
-
-                                    @Override
-                                    public void onSuccess(Void aVoid) {
-                                        // Geofences added
-                                        Log.i(TAG, "GEOFENCES REMOVED.");
-                                    }
-                                })
-                                .addOnFailureListener(new OnFailureListener() {
-                                    @Override
-                                    public void onFailure(@NonNull Exception e) {
-                                        // Failed to add geofences
-                                        Log.e(TAG, "FAILED TO REMOVE GEOFENCES: " + e.toString());
                                     }
                                 });
 
@@ -2567,6 +2519,71 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
                     }
                 });
+    }
+
+
+    private void removeGeofences(final String uuid) {
+
+        fenceClient.removeGeofences(getGeofencePendingIntent())
+                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void aVoid) {
+
+                        // Geofences removed
+                        Log.i(TAG, "GEOFENCES REMOVED.");
+
+                        // Clear all ids
+                        _geofences.clear();
+
+                        // Broadcast success
+                        Intent localIntent = new Intent(BroadcastActions.SUCCESS);
+                        sendBroadcastWithUUID(localIntent, uuid);
+
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+
+                        // Failed to remove geofences
+                        Log.e(TAG, "FAILED TO REMOVE GEOFENCES: " + e.toString());
+
+                        // Broadcast failure and return
+                        Intent localIntent = new Intent(BroadcastActions.FAILURE);
+                        localIntent.putExtra(BroadcastExtras.MESSAGE, getString(R.string.failedToRemoveGeofence));
+                        sendBroadcastWithUUID(localIntent, uuid);
+                        return;
+
+                    }
+                });
+
+    }
+
+    private void stopGeofence(final String uuid, final List<String> requestIds) {
+
+        fenceClient.removeGeofences(requestIds)
+                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void aVoid) {
+
+                        // Geofences removed
+                        Log.i(TAG, "GEOFENCES REMOVED.");
+
+                        // Loop through list of ids and remove them
+                        for (String id : requestIds) {
+                            _geofences.remove(id);
+                        }
+
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        // Failed to remove geofences
+                        Log.e(TAG, "FAILED TO REMOVE GEOFENCES: " + e.toString());
+                    }
+                });
+
     }
 
     /**
