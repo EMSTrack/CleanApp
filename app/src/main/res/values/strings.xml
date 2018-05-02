@@ -2,7 +2,7 @@
 <resources>
 
     <string name="app_name">EMSTrack</string>
-    <string name="app_version">v0_3_0</string>
+    <string name="app_version">v0_3_1</string>
     <string name="client_name">_AndroidClient_</string>
 
     <string name="drawer_open">Open navigation drawer</string>
@@ -123,6 +123,14 @@
     <string name="serverError">Server error: %1$s</string>
     <string name="stopText">Stop</string>
     <string name="stopedStreamingLocation">Stopped streaming location.</string>
+    <string name="app_descrip">Use this app to track emergency resources using the EMSTrack system.</string>
+    <string name="app_credits">The following open source projects were used to build this app:</string>
+    <string name="credits">Credits:</string>
+    <string name="build_date">Build date:</string>
+    <string name="build_version">Build version:</string>
+    <string name="about">About:</string>
+    <string name="failedToAddGeofence">Failed to add geofence</string>
+    <string name="failedToRemoveGeofence">Failed to remove geofence.</string>
 
     <string-array name="spinner_list_item_array">
         <item>@string/dispatch</item>
