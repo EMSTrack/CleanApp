@@ -2525,6 +2525,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
                         Log.i(TAG, "Removing GEOFENCE.");
 
+                        // handles the actual geofence removal
                         fenceClient.removeGeofences(requestIds)
 
                                 .addOnSuccessListener(new OnSuccessListener<Void>() {
