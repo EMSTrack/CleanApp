@@ -3,13 +3,18 @@
     <group android:checkableBehavior="single">
 
         <item
-            android:id="@+id/home"
-            android:icon="@drawable/message"
-            android:title="Dispatch" />
+            android:id="@+id/about"
+            android:icon="@drawable/ic_info_circle"
+            android:title="About" />
+
+        <item
+            android:id="@+id/settings"
+            android:icon="@drawable/ic_wrench"
+            android:title="Settings" />
 
         <item
             android:id="@+id/logout"
-            android:icon="@drawable/logout"
+            android:icon="@drawable/ic_sign_out_alt"
             android:title="Logout" />
 
     </group>
