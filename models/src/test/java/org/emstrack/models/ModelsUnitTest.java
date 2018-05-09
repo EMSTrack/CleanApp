@@ -589,7 +589,38 @@ public class ModelsUnitTest {
 
         double epsilon = 1e-4;
 
-        Call call = new Call(3,"");
+        Call call = new Call();
+
+        Gson gson = new Gson();
+
+        String to_json = gson.toJson(call);
+
+        Call from_json = gson.fromJson(to_json, Call.class);
+        System.out.println("to_json = " + to_json + "'");
+
+        Integer expectedId = call.getId();
+        Integer answerId = from_json.getId();
+        assertEquals(expectedId, answerId);
+
+        String expectedString = call.getCity();
+        String answerString = from_json.getCity();
+        assertEquals(expectedString, answerString);
+
+        expectedString = call.getDetails();
+        answerString = from_json.getDetails();
+        assertEquals(expectedString, answerString);
+
+        //expectedString = call.get();
+        answerString = from_json.getCity();
+        assertEquals(expectedString, answerString);
+
+        expectedString = call.getCountry();
+        answerString = from_json.getCity();
+        assertEquals(expectedString, answerString);
+
+        expectedString = call.getCountry();
+        answerString = from_json.getCity();
+        assertEquals(expectedString, answerString);
 
     }
 }
