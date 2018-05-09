@@ -131,6 +131,8 @@
     <string name="about">About:</string>
     <string name="failedToAddGeofence">Failed to add geofence</string>
     <string name="failedToRemoveGeofence">Failed to remove geofence.</string>
+    <string name="couldNotSubscribeToCalls">Could not subscribe to calls</string>
+    <string name="couldNotParseCall">Could not parse call</string>
 
     <string-array name="spinner_list_item_array">
         <item>@string/dispatch</item>

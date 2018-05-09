@@ -52,6 +52,7 @@ import org.emstrack.ambulance.util.LocationFilter;
 import org.emstrack.ambulance.util.LocationUpdate;
 import org.emstrack.models.Ambulance;
 import org.emstrack.models.AmbulancePermission;
+import org.emstrack.models.Call;
 import org.emstrack.models.Hospital;
 import org.emstrack.models.HospitalPermission;
 import org.emstrack.models.Location;
@@ -1734,6 +1735,45 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         }
 
         // maybe try block for subscription to calls here
+        try {
+            profileClient.subscribe(String.format("ambulance/%1$d/data/call/+/status", ambulanceId),
+                    1, new MqttProfileMessageCallback() {
+                        @Override
+                        public void messageArrived(String topic, MqttMessage message) {
+
+                            // Keep subscription to calls to make sure we receive latest updates
+
+                            Log.i(TAG, "Retrieving calls");
+
+                            // parse call data
+                            GsonBuilder gsonBuilder = new GsonBuilder();
+                            gsonBuilder.setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES);
+                            Gson gson = gsonBuilder.create();
+
+                            try {
+                                // parse the call
+                                Call call = gson.fromJson(new String(message.getPayload()),
+                                                Call.class);
+                            } catch (Exception e) {
+
+                                Log.i(TAG, "Could not parse call");
+
+                                // Broadcast failure
+                                Intent localIntent = new Intent(BroadcastActions.FAILURE);
+                                localIntent.putExtra(BroadcastExtras.MESSAGE, getString(R.string.couldNotParseCall));
+                                sendBroadcastWithUUID(localIntent, uuid);
+                            }
+                        }
+                    });
+        } catch (MqttException e) {
+
+            Log.d(TAG, "Could not subscribe to calls");
+
+            // Broadcast failure
+            Intent localIntent = new Intent(BroadcastActions.FAILURE);
+            localIntent.putExtra(BroadcastExtras.MESSAGE, getString(R.string.couldNotSubscribeToCalls));
+            sendBroadcastWithUUID(localIntent, uuid);
+        }
 
     }
 
