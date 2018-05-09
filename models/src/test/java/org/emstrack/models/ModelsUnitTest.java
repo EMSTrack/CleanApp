@@ -583,4 +583,13 @@ public class ModelsUnitTest {
 
         }
     }
+
+    @Test
+    public void test_call() throws Exception {
+
+        double epsilon = 1e-4;
+
+        Call call = new Call(3,"");
+
+    }
 }
