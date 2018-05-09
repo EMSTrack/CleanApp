@@ -4,6 +4,7 @@ package org.emstrack.models;
  * Created by Leon on 5/8/2018.
  */
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -16,18 +17,18 @@ public class Call {
     private String priority;
     private String number;
     private String street;
-    private Object unit;
-    private Object neighborhood;
+    private String unit;
+    private String neighborhood;
     private String city;
     private String state;
     private String zipcode;
     private String country;
     private Location location;
     private String createdAt;
-    private Object pendingAt;
-    private Object startedAt;
-    private Object endedAt;
-    private Object comment;
+    private Date pendingAt;
+    private Date startedAt;
+    private Date endedAt;
+    private Date comment;
     private Integer updatedBy;
     private String updatedOn;
     private List<Object> ambulancecallSet = null;
@@ -86,7 +87,7 @@ public class Call {
         return unit;
     }
 
-    public void setUnit(Object unit) {
+    public void setUnit(String unit) {
         this.unit = unit;
     }
 
@@ -94,7 +95,7 @@ public class Call {
         return neighborhood;
     }
 
-    public void setNeighborhood(Object neighborhood) {
+    public void setNeighborhood(String neighborhood) {
         this.neighborhood = neighborhood;
     }
 
@@ -150,7 +151,7 @@ public class Call {
         return pendingAt;
     }
 
-    public void setPendingAt(Object pendingAt) {
+    public void setPendingAt(Date pendingAt) {
         this.pendingAt = pendingAt;
     }
 
@@ -158,7 +159,7 @@ public class Call {
         return startedAt;
     }
 
-    public void setStartedAt(Object startedAt) {
+    public void setStartedAt(Date startedAt) {
         this.startedAt = startedAt;
     }
 
@@ -166,7 +167,7 @@ public class Call {
         return endedAt;
     }
 
-    public void setEndedAt(Object endedAt) {
+    public void setEndedAt(Date endedAt) {
         this.endedAt = endedAt;
     }
 
@@ -174,7 +175,7 @@ public class Call {
         return comment;
     }
 
-    public void setComment(Object comment) {
+    public void setComment(Date comment) {
         this.comment = comment;
     }
 
