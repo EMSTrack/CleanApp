@@ -1,11 +1,13 @@
 package org.emstrack.ambulance.services;
 
 import android.annotation.SuppressLint;
+import android.app.AlertDialog;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
@@ -46,7 +48,9 @@ import org.eclipse.paho.android.service.MqttAndroidClient;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.emstrack.ambulance.LoginActivity;
+import org.emstrack.ambulance.MainActivity;
 import org.emstrack.ambulance.R;
+import org.emstrack.ambulance.fragments.AmbulanceFragment;
 import org.emstrack.ambulance.util.Geofence;
 import org.emstrack.ambulance.util.LocationFilter;
 import org.emstrack.ambulance.util.LocationUpdate;
@@ -149,6 +153,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         public final static String GEOFENCE_START = "org.emstrack.ambulance.ambulanceforegroundservice.action.GEOFENCE_START";
         public final static String GEOFENCE_STOP = "org.emstrack.ambulance.ambulanceforegroundservice.action.GEOFENCE_STOP";
         public final static String STOP_SERVICE = "org.emstrack.ambulance.ambulanceforegroundservice.action.STOP_SERVICE";
+        public final static String PROMPT_CALL = "org.emstrack.ambulance.ambulanceforegroundservice.action.PROMPT_CALL";
     }
 
     public class BroadcastExtras {
@@ -572,11 +577,21 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
             stopGeofence(uuid, requestIds);
 
+        } else if (intent.getAction().equals(Actions.PROMPT_CALL)) {
+//            String callId = intent.getStringExtra("callId");
+//            String clientId = intent.getStringExtra("clientId");
+//
+//            AlertDialog alertDialog = new AlertDialog.Builder().create();
+//            alertDialog.setTitle("Accept Call?");
+//            alertDialog.setMessage("Call with call id: " + callId + "\nClient id: " + clientId);
+//
+//            alertDialog.show();
+
         } else
 
             Log.i(TAG, "Unknown Intent");
 
-        return START_STICKY;
+            return START_STICKY;
     }
 
     /**
@@ -1734,16 +1749,20 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
         }
 
-        // maybe try block for subscription to calls here
+        // subscribe to call stauses
         try {
-            profileClient.subscribe(String.format("ambulance/%1$d/data/call/+/status", ambulanceId),
+            Log.i(TAG, "Subscribing to statuses");
+
+            final String clientId = profileClient.getClientId();
+
+            profileClient.subscribe(String.format("ambulance/%1$d/call/+/status", ambulanceId),
                     1, new MqttProfileMessageCallback() {
                         @Override
                         public void messageArrived(String topic, MqttMessage message) {
 
                             // Keep subscription to calls to make sure we receive latest updates
 
-                            Log.i(TAG, "Retrieving calls");
+                            Log.i(TAG, "Retrieving stauses");
 
                             // parse call data
                             GsonBuilder gsonBuilder = new GsonBuilder();
@@ -1751,27 +1770,51 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                             Gson gson = gsonBuilder.create();
 
                             try {
-                                // parse the call
-                                Call call = gson.fromJson(new String(message.getPayload()),
-                                                Call.class);
+                                // parse the status
+                                String status = new String(message.getPayload());
+                                Log.i(TAG, "payload is: " + status);
+
+                                // check if message is "requested"
+                                // literally has to be "requested" in quotes
+                                if (status.equalsIgnoreCase("\"requested\"")) {
+                                    // retrieve call id
+                                    Log.i(TAG, "STATUS MESSAGE TOPIC: " + topic);
+
+                                    // the call id is the 3rd value
+                                    String callId = topic.split("/")[3];
+
+                                    Log.i(TAG, "STATUS CALL ID: " + callId);
+
+                                    // prompt user to accept call
+                                    Intent dialogIntent = new Intent(getApplicationContext(), AmbulanceForegroundService.class);
+                                    dialogIntent.setAction(Actions.PROMPT_CALL);
+                                    dialogIntent.putExtra("callId", callId);
+                                    dialogIntent.putExtra("clientId", clientId);
+                                    startService(dialogIntent);
+
+                                } else {
+                                    Log.i(TAG, "DID NOT GET REQUESTED STATUS");
+                                }
+
+
                             } catch (Exception e) {
 
-                                Log.i(TAG, "Could not parse call");
+                                Log.i(TAG, "Could not parse status");
 
                                 // Broadcast failure
                                 Intent localIntent = new Intent(BroadcastActions.FAILURE);
-                                localIntent.putExtra(BroadcastExtras.MESSAGE, getString(R.string.couldNotParseCall));
+                                localIntent.putExtra(BroadcastExtras.MESSAGE, getString(R.string.couldNotParseStatus));
                                 sendBroadcastWithUUID(localIntent, uuid);
                             }
                         }
                     });
         } catch (MqttException e) {
 
-            Log.d(TAG, "Could not subscribe to calls");
+            Log.d(TAG, "Could not subscribe to statuses");
 
             // Broadcast failure
             Intent localIntent = new Intent(BroadcastActions.FAILURE);
-            localIntent.putExtra(BroadcastExtras.MESSAGE, getString(R.string.couldNotSubscribeToCalls));
+            localIntent.putExtra(BroadcastExtras.MESSAGE, getString(R.string.couldNotSubscribeToStatuses));
             sendBroadcastWithUUID(localIntent, uuid);
         }
 
@@ -1820,6 +1863,8 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
                 // Unsubscribe to ambulance data
                 profileClient.unsubscribe("ambulance/" + ambulanceId + "/data");
+
+                // TODO: unsubscribe from statuses and call data
 
             } catch (MqttException exception) {
                 Log.d(TAG, "Could not unsubscribe to 'ambulance/" + ambulanceId + "/data'");
