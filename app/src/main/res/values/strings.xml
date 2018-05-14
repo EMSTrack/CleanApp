@@ -135,6 +135,8 @@
     <string name="couldNotParseCall">Could not parse call</string>
     <string name="couldNotSubscribeToStatuses">Could not subscribe to statuses</string>
     <string name="couldNotParseStatus">Could not parse status</string>
+    <string name="couldNotPublish">Could not publish to %1$s</string>
+    <string name="couldNotFindAmbulance">Could not find ambulance</string>
 
     <string-array name="spinner_list_item_array">
         <item>@string/dispatch</item>

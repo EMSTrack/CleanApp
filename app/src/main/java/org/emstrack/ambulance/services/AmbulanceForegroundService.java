@@ -153,7 +153,8 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         public final static String GEOFENCE_START = "org.emstrack.ambulance.ambulanceforegroundservice.action.GEOFENCE_START";
         public final static String GEOFENCE_STOP = "org.emstrack.ambulance.ambulanceforegroundservice.action.GEOFENCE_STOP";
         public final static String STOP_SERVICE = "org.emstrack.ambulance.ambulanceforegroundservice.action.STOP_SERVICE";
-        public final static String PROMPT_CALL = "org.emstrack.ambulance.ambulanceforegroundservice.action.PROMPT_CALL";
+        public final static String CALL_ACCEPTED = "org.emstrack.ambulance.ambulanceforegroundservice.action.CALL_ACCEPTED";
+        public final static String CALL_ONGOING = "org.emstrack.ambulance.ambulanceforegroundservice.action.CALL_ONGOING";
     }
 
     public class BroadcastExtras {
@@ -577,15 +578,23 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
             stopGeofence(uuid, requestIds);
 
-        } else if (intent.getAction().equals(Actions.PROMPT_CALL)) {
-//            String callId = intent.getStringExtra("callId");
-//            String clientId = intent.getStringExtra("clientId");
-//
-//            AlertDialog alertDialog = new AlertDialog.Builder().create();
-//            alertDialog.setTitle("Accept Call?");
-//            alertDialog.setMessage("Call with call id: " + callId + "\nClient id: " + clientId);
-//
-//            alertDialog.show();
+        } else if (intent.getAction().equals(Actions.CALL_ONGOING)) {
+
+            Log.i(TAG, "CALL_ONGOING Foreground Intent");
+
+            String callId = intent.getStringExtra("callId");
+
+            replyToOngoingCall(callId, uuid);
+
+        } else if (intent.getAction().equals(Actions.CALL_ACCEPTED)) {
+
+            Log.i(TAG, "CALL_ACCEPTED Foreground Intent");
+
+            // get the ambulance that accepted the call and the call id
+            String callId = intent.getStringExtra("callId");
+
+            // next steps to publish information to server (steps 3, 4)
+            replyToAcceptCall(callId, uuid);
 
         } else
 
@@ -1785,12 +1794,24 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
                                     Log.i(TAG, "STATUS CALL ID: " + callId);
 
-                                    // prompt user to accept call
-                                    Intent dialogIntent = new Intent(getApplicationContext(), AmbulanceForegroundService.class);
-                                    dialogIntent.setAction(Actions.PROMPT_CALL);
-                                    dialogIntent.putExtra("callId", callId);
-                                    dialogIntent.putExtra("clientId", clientId);
-                                    startService(dialogIntent);
+                                    // TODO: broadcast intent to main activity to create dialog
+                                    // include clientId and callId in intent
+                                    // assume user has accepted call for now
+
+                                } else if (status.equalsIgnoreCase("\"ongoing\"")) {
+
+                                    Log.i(TAG, "Received ongoing");
+
+                                    // the call id is the 3rd value
+                                    String callId = topic.split("/")[3];
+
+                                    // step 5
+                                    Intent localIntent = new Intent(AmbulanceForegroundService.this,
+                                            AmbulanceForegroundService.class);
+                                    localIntent.setAction(Actions.CALL_ONGOING);
+                                    localIntent.putExtra("callId", callId);
+                                    startService(localIntent);
+
 
                                 } else {
                                     Log.i(TAG, "DID NOT GET REQUESTED STATUS");
@@ -1817,6 +1838,83 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
             localIntent.putExtra(BroadcastExtras.MESSAGE, getString(R.string.couldNotSubscribeToStatuses));
             sendBroadcastWithUUID(localIntent, uuid);
         }
+
+    }
+
+    // handles steps 3 and 4 of Accepting Calls
+    public void replyToAcceptCall(String callId, String uuid) {
+        Log.i(TAG, "Replying to server with username, client id, and call id");
+
+        // TODO: ask Mauricio if we need to check if online or not
+        MqttProfileClient profileClient = getProfileClient(AmbulanceForegroundService.this);
+
+        Ambulance ambulance = getAmbulance();
+
+        if (ambulance != null) {
+
+            try {
+
+                // TODO: ask Mauricio about qos and retained
+                // step 3: publish client id to server
+                profileClient.publish(String.format("user/%1$s/client/%2$s/ambulance/%3$s/data",
+                        profileClient.getUsername(), profileClient.getClientId(), callId),
+                        String.format("{\"location_client\": %1$s}", profileClient.getClientId()),
+                        1, false);
+
+                // start streaming location
+                // TODO: ask Mauricio about reconnect
+                startLocationUpdates(uuid, false);
+
+            } catch (MqttException e) {
+
+                String path = String.format("Could not publish to user/%1$s/client/%2$s/ambulance" +
+                                "/%3$s/data",
+                        profileClient.getUsername(), profileClient.getClientId(), callId);
+
+                Log.d(TAG, path);
+
+                // TODO: ask Mauricio if we need this for publishing
+                Intent localIntent = new Intent(BroadcastActions.FAILURE);
+                localIntent.putExtra(BroadcastExtras.MESSAGE, getString(R.string.couldNotPublish, path));
+                sendBroadcastWithUUID(localIntent, uuid);
+            }
+
+            try {
+
+                // TODO: check if server looks for "Accepted", Accepted, or some other way
+                // publish accepted to server (step 4)
+                profileClient.publish(String.format("Could not publish to user/%1$s/client/%2$s/" +
+                                "ambulance/%3$s/call/%4$s/status",
+                        profileClient.getUsername(), profileClient.getClientId(), ambulance.getId(),
+                        callId), "\"Accepted\"", 1, false);
+
+            } catch (MqttException e) {
+
+                String path = String.format("Could not publish to user/%1$s/client/%2$s/ambulance/" +
+                                "%3$s/call/%4$s/status",
+                        profileClient.getUsername(), profileClient.getClientId(), ambulance.getId(),
+                        callId);
+
+                Log.d(TAG, path);
+
+                Intent localIntent = new Intent(BroadcastActions.FAILURE);
+                localIntent.putExtra(BroadcastExtras.MESSAGE, getString(R.string.couldNotPublish, path));
+                sendBroadcastWithUUID(localIntent, uuid);
+            }
+        } else {
+            Log.d(TAG, "Ambulance not found while in replyToAcceptCall()");
+
+            Intent localIntent = new Intent(BroadcastActions.FAILURE);
+            localIntent.putExtra(BroadcastExtras.MESSAGE, getString(R.string.couldNotFindAmbulance));
+            sendBroadcastWithUUID(localIntent, uuid);
+        }
+    }
+
+    // TODO: wesley start here
+    // do steps 6 and 7 here, create geofence intent right after step 7
+    // do steps 8 and 9 in GeofenceBroadcastReceiver
+    // handles steps 6 to 10
+    public void replyToOngoingCall(String callId, String uuid) {
 
     }
 
