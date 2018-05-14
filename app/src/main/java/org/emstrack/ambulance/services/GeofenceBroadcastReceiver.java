@@ -10,6 +10,7 @@ import com.google.android.gms.location.Geofence;
 import com.google.android.gms.location.GeofencingEvent;
 
 import org.emstrack.models.Ambulance;
+import org.emstrack.mqtt.MqttProfileClient;
 
 public class GeofenceBroadcastReceiver extends BroadcastReceiver {
 
@@ -42,6 +43,13 @@ public class GeofenceBroadcastReceiver extends BroadcastReceiver {
 
         if (geofenceTransition == Geofence.GEOFENCE_TRANSITION_ENTER || geofenceTransition == Geofence.GEOFENCE_TRANSITION_EXIT) {
             if (geofenceTransition == Geofence.GEOFENCE_TRANSITION_ENTER) {
+
+                try {
+                    MqttProfileClient profileClient = AmbulanceForegroundService.getProfileClient();
+                } catch (Exception e) {
+                    Log.d(TAG, e.toString());
+                }
+
                 Log.i(TAG, "GEOFENCE_TRIGGERED: ENTER");
             } else if (geofenceTransition == Geofence.GEOFENCE_TRANSITION_EXIT) {
                 Log.i(TAG, "GEOFENCE_TRIGGERED: EXIT");
