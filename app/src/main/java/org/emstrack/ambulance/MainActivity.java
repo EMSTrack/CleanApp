@@ -102,6 +102,8 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+
+
         // Identifier text
         headerText = (TextView) findViewById(R.id.headerText);
 
@@ -281,6 +283,8 @@ public class MainActivity extends AppCompatActivity {
 
                     }
 
+
+
                 }
             }
         });
@@ -332,6 +336,8 @@ public class MainActivity extends AppCompatActivity {
         tabLayout.getTabAt(0).setIcon(R.drawable.ic_ambulance);
         tabLayout.getTabAt(1).setIcon(R.drawable.ic_hospital);
         tabLayout.getTabAt(2).setIcon(R.drawable.ic_globe);
+
+
 
     }
 
@@ -499,6 +505,27 @@ public class MainActivity extends AppCompatActivity {
      */
     private LocalBroadcastManager getLocalBroadcastManager() {
         return LocalBroadcastManager.getInstance(this);
+    }
+
+    // TODO - figure out what arguments this should take
+    private void createAcceptDialog() {
+
+            // Use the Builder class for convenient dialog construction
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setMessage("Accept Call?")
+                    .setPositiveButton("Accept", new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int id) {
+                            Toast.makeText(MainActivity.this, "Call accepted", Toast.LENGTH_SHORT).show();
+                        }
+                    })
+                    .setNegativeButton("Decline", new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int id) {
+                            Toast.makeText(MainActivity.this, "Call declined", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+            // Create the AlertDialog object and return it
+            builder.create().show();
+
     }
 
 }
