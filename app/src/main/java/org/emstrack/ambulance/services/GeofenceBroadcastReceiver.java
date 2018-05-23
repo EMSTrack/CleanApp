@@ -9,6 +9,8 @@ import android.util.Log;
 import com.google.android.gms.location.Geofence;
 import com.google.android.gms.location.GeofencingEvent;
 
+import org.eclipse.paho.client.mqttv3.MqttException;
+import org.emstrack.ambulance.R;
 import org.emstrack.models.Ambulance;
 import org.emstrack.mqtt.MqttProfileClient;
 
@@ -38,20 +40,68 @@ public class GeofenceBroadcastReceiver extends BroadcastReceiver {
             return;
         }
 
+        // Get call id data
+        String callId = intent.getStringExtra("CALLID");
+
         // Get the transition type.
         int geofenceTransition = geofencingEvent.getGeofenceTransition();
 
         if (geofenceTransition == Geofence.GEOFENCE_TRANSITION_ENTER || geofenceTransition == Geofence.GEOFENCE_TRANSITION_EXIT) {
             if (geofenceTransition == Geofence.GEOFENCE_TRANSITION_ENTER) {
-
+                // step 8
                 try {
+
                     MqttProfileClient profileClient = AmbulanceForegroundService.getProfileClient();
+
+                    try {
+
+                        // TODO: ask Mauricio about qos and retained
+                        // step 3: publish patient bound to server
+                        profileClient.publish(String.format("user/%1$s/client/%2$s/ambulance/%3$s/data",
+                                profileClient.getUsername(), profileClient.getClientId(), callId),
+                                "at patient", 2, false);
+
+                    } catch (MqttException e) {
+
+                        String path = String.format("Could not publish to user/%1$s/client/%2$s/ambulance" +
+                                        "/%3$s/data",
+                                profileClient.getUsername(), profileClient.getClientId(), callId);
+
+                        Log.d(TAG, path);
+                    }
+
                 } catch (Exception e) {
                     Log.d(TAG, e.toString());
                 }
 
                 Log.i(TAG, "GEOFENCE_TRIGGERED: ENTER");
             } else if (geofenceTransition == Geofence.GEOFENCE_TRANSITION_EXIT) {
+                // step 8
+                try {
+
+                    MqttProfileClient profileClient = AmbulanceForegroundService.getProfileClient();
+
+                    try {
+
+                        // TODO: ask Mauricio about qos and retained
+                        // step 3: publish patient bound to server
+                        profileClient.publish(String.format("user/%1$s/client/%2$s/ambulance/%3$s/data",
+                                profileClient.getUsername(), profileClient.getClientId(), callId),
+                                "hospital bound", 2, false);
+
+                    } catch (MqttException e) {
+
+                        String path = String.format("Could not publish to user/%1$s/client/%2$s/ambulance" +
+                                        "/%3$s/data",
+                                profileClient.getUsername(), profileClient.getClientId(), callId);
+
+                        Log.d(TAG, path);
+                    }
+
+                } catch (Exception e) {
+                    Log.d(TAG, e.toString());
+                }
+
                 Log.i(TAG, "GEOFENCE_TRIGGERED: EXIT");
             }
 
