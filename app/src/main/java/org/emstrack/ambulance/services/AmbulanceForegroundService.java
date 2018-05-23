@@ -559,11 +559,14 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
             // Retrieve latitude and longitude
             // TODO: consider how this works with multiple geofences
+            String username = intent.getStringExtra("USERNAME");
+            String clientId = intent.getStringExtra("CLIENTID");
+            String callId = intent.getStringExtra("CALLID");
             Float latitude = intent.getFloatExtra("LATITUDE", 0.f);
             Float longitude = intent.getFloatExtra("LONGITUDE", 0.f);
             Float radius = intent.getFloatExtra("RADIUS", 5.f);
-
-            startGeofence(uuid, new Geofence(new Location(latitude, longitude), radius));
+            // CHANGED:
+            startGeofence(uuid, new Geofence(new Location(latitude, longitude), radius), callId);
 
         } else if (intent.getAction().equals(Actions.GEOFENCE_STOP)) {
 
@@ -1215,8 +1218,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                             Intent locationUpdatesIntent = new Intent(AmbulanceForegroundService.this,
                                     AmbulanceForegroundService.class);
                             locationUpdatesIntent.setAction(Actions.START_LOCATION_UPDATES);
-                            startService(locationUpdatesIntentcmd
-                            );
+                            startService(locationUpdatesIntent);
 
                         } else if (ambulanceLocationClientId == null) {
 
@@ -1929,14 +1931,85 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
     // do steps 6 and 7 here, create geofence intent right after step 7
     // do steps 8 and 9 in GeofenceBroadcastReceiver
     // handles steps 6 to 10
-    public void replyToOngoingCall(String callId, String uuid) {
+    public void replyToOngoingCall(final String callId, final String uuid) {
+        // step 6 & 7
         Log.i(TAG, "Replying to server with client id, and call id");
 
         // TODO: ask Mauricio if we need to check if online or not
-        MqttProfileClient profileClient = getProfileClient(AmbulanceForegroundService.this);
+        final MqttProfileClient profileClient = getProfileClient(AmbulanceForegroundService.this);
 
-        Ambulance ambulance = getAmbulance();
+        final Ambulance ambulance = getAmbulance();
 
+        // step 6
+        // subscribe to call id
+        try {
+
+            Log.i(TAG, "Subscribing to call data");
+
+            final String clientId = profileClient.getClientId();
+
+            profileClient.subscribe(String.format("call/%1$d/data", callId),
+                    2, new MqttProfileMessageCallback() {
+                        @Override
+                        public void messageArrived(String topic, MqttMessage message) {
+
+                            // Keep subscription to calls to make sure we receive latest updates
+
+                            Log.i(TAG, "Retrieving call data");
+
+                            // parse call id data
+                            GsonBuilder gsonBuilder = new GsonBuilder();
+                            gsonBuilder.setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES);
+                            Gson gson = gsonBuilder.create();
+
+                            try {
+
+                                // Parse and set call id data
+                                Call call = gson
+                                        .fromJson(new String(message.getPayload()),
+                                                Call.class);
+
+                                // Add geofence
+                                Log.i(TAG, "Adding geofence");
+                                Intent serviceIntent = new Intent(AmbulanceForegroundService.this,
+                                        AmbulanceForegroundService.class);
+                                serviceIntent.setAction(AmbulanceForegroundService.Actions.GEOFENCE_START);
+                                serviceIntent.putExtra("USERNAME",
+                                        profileClient.getUsername());
+                                serviceIntent.putExtra("CLIENTID",
+                                        profileClient.getClientId());
+                                serviceIntent.putExtra("CALLID",
+                                        callId);
+                                serviceIntent.putExtra("LATITUDE",
+                                        (float) call.getLocation().getLatitude());
+                                serviceIntent.putExtra("LONGITUDE",
+                                        (float) call.getLocation().getLongitude());
+                                serviceIntent.putExtra("RADIUS", 50.f);
+                                startService(serviceIntent);
+
+                            } catch (Exception e) {
+
+                                Log.i(TAG, "Could not parse call id update.");
+
+                                // Broadcast failure
+                                Intent localIntent = new Intent(BroadcastActions.FAILURE);
+                                localIntent.putExtra(BroadcastExtras.MESSAGE, getString(R.string.couldNotParseCallData));
+                                sendBroadcastWithUUID(localIntent, uuid);
+
+                            }
+                        }
+                    });
+        } catch (MqttException e) {
+
+            Log.d(TAG, "Could not subscribe to call id data");
+
+            // Broadcast failure
+            Intent localIntent = new Intent(BroadcastActions.FAILURE);
+            localIntent.putExtra(BroadcastExtras.MESSAGE, getString(R.string.couldNotSubscribeToStatuses));
+            sendBroadcastWithUUID(localIntent, uuid);
+        }
+
+        // step 7
         if (ambulance != null) {
             try {
 
@@ -2672,14 +2745,15 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         return builder.build();
 
     }
-
-    private PendingIntent getGeofencePendingIntent() {
+    // CHANGED
+    private PendingIntent getGeofencePendingIntent(final String callId) {
 
         // Reuse the PendingIntent if we already have it.
         if (geofenceIntent != null) {
             return geofenceIntent;
         }
         Intent intent = new Intent(this, GeofenceBroadcastReceiver.class);
+        intent.putExtra("CALLID", callId);
 
         // We use FLAG_UPDATE_CURRENT so that we get the same pending intent back when
         // calling addGeofences() and removeGeofences().
@@ -2689,7 +2763,8 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         return geofenceIntent;
     }
 
-    private void startGeofence(final String uuid, final Geofence geofence) {
+    // CHANGED:
+    private void startGeofence(final String uuid, final Geofence geofence, final String callId) {
 
         Log.d(TAG,String.format("GEOFENCE(%1$s, %2$f)", geofence.getLocation().toString(), geofence.getRadius()));
 
@@ -2709,8 +2784,9 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                         Log.i(TAG, "All location settings are satisfied.");
 
                         Log.i(TAG, "Adding GEOFENCE.");
-
-                        fenceClient.addGeofences(getGeofencingRequest(geofence.build(id)), getGeofencePendingIntent())
+                        // CHANGED
+                        fenceClient.addGeofences(getGeofencingRequest(geofence.build(id)),
+                                getGeofencePendingIntent(callId))
                                 .addOnSuccessListener(new OnSuccessListener<Void>() {
 
                                     @Override
@@ -2771,8 +2847,8 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
 
     private void removeGeofences(final String uuid) {
-
-        fenceClient.removeGeofences(getGeofencePendingIntent())
+        // CHANGED: Ask if this is even okay?
+        fenceClient.removeGeofences(getGeofencePendingIntent(""))
                 .addOnSuccessListener(new OnSuccessListener<Void>() {
                     @Override
                     public void onSuccess(Void aVoid) {
