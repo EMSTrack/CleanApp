@@ -171,6 +171,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         public final static String CONNECTIVITY_CHANGE = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastaction.CONNECTIVITY_CHANGE";
         public final static String SUCCESS = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastaction.SUCCESS";
         public final static String FAILURE = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastaction.FAILURE";
+        public final static String PROMPT_CALL = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastaction.PROMPT_CALL";
     }
 
     public static class ProfileClientException extends Exception {
@@ -1795,11 +1796,15 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                                     // TODO: broadcast intent to main activity to create dialog
                                     // include clientId and callId in intent
                                     // assume user has accepted call for now
-                                    Intent localIntent = new Intent(AmbulanceForegroundService.this,
-                                            AmbulanceForegroundService.class);
-                                    localIntent.setAction(Actions.CALL_ACCEPTED);
-                                    localIntent.putExtra("callId", callId);
-                                    startService(localIntent);
+                                    Intent callPromptIntent = new Intent(BroadcastActions.PROMPT_CALL);
+                                    callPromptIntent.putExtra("CALLID", callId);
+                                    sendBroadcastWithUUID(callPromptIntent, uuid);
+
+//                                    Intent localIntent = new Intent(AmbulanceForegroundService.this,
+//                                            AmbulanceForegroundService.class);
+//                                    localIntent.setAction(Actions.CALL_ACCEPTED);
+//                                    localIntent.putExtra("callId", callId);
+//                                    startService(localIntent);
 
                                 } else {
                                     Log.i(TAG, "DID NOT GET REQUESTED STATUS");
@@ -1948,7 +1953,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
             final String clientId = profileClient.getClientId();
 
-            profileClient.subscribe(String.format("call/%1$d/data", callId),
+            profileClient.subscribe(String.format("call/%1$s/data", callId),
                     2, new MqttProfileMessageCallback() {
                         @Override
                         public void messageArrived(String topic, MqttMessage message) {
