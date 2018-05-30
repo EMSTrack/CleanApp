@@ -11,8 +11,11 @@ import com.google.android.gms.location.GeofencingEvent;
 
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.emstrack.ambulance.R;
+import org.emstrack.ambulance.fragments.AmbulanceFragment;
 import org.emstrack.models.Ambulance;
 import org.emstrack.mqtt.MqttProfileClient;
+
+import java.util.List;
 
 public class GeofenceBroadcastReceiver extends BroadcastReceiver {
 
@@ -40,21 +43,34 @@ public class GeofenceBroadcastReceiver extends BroadcastReceiver {
             return;
         }
 
-        // Get call id data
-        String callId = intent.getStringExtra("CALLID");
-
         // Get the transition type.
         int geofenceTransition = geofencingEvent.getGeofenceTransition();
 
+        List<Geofence> triggeringGeofences = geofencingEvent.getTriggeringGeofences();
+
+        if (triggeringGeofences != null) {
+            for (Geofence geofence : triggeringGeofences) {
+                String geoInfo = geofence.getRequestId();
+                Log.i(TAG, "TRIGGERED GEOFENCE: " + geoInfo);
+            }
+        }
+
         if (geofenceTransition == Geofence.GEOFENCE_TRANSITION_ENTER || geofenceTransition == Geofence.GEOFENCE_TRANSITION_EXIT) {
             if (geofenceTransition == Geofence.GEOFENCE_TRANSITION_ENTER) {
+
+                // broadcast change on ambulance status when it enters geofence
+                Intent localIntent = new Intent(context, AmbulanceForegroundService.class);
+                localIntent.setAction(AmbulanceForegroundService.Actions.GEOFENCE_ENTER);
+                context.startService(localIntent);
+
                 // step 8
+                /*
                 try {
 
                     MqttProfileClient profileClient = AmbulanceForegroundService.getProfileClient();
 
                     try {
-
+                        // TODO: ask Mauricio about qos and retained
                         // step 3: publish patient bound to server
                         profileClient.publish(String.format("user/%1$s/client/%2$s/ambulance/%3$s/data",
                                 profileClient.getUsername(), profileClient.getClientId(), callId),
@@ -72,10 +88,17 @@ public class GeofenceBroadcastReceiver extends BroadcastReceiver {
                 } catch (Exception e) {
                     Log.d(TAG, e.toString());
                 }
-
+                */
                 Log.i(TAG, "GEOFENCE_TRIGGERED: ENTER");
             } else if (geofenceTransition == Geofence.GEOFENCE_TRANSITION_EXIT) {
+
+                // broadcast change on ambulance status when it exits geofence
+                Intent localIntent = new Intent(context, AmbulanceForegroundService.class);
+                localIntent.setAction(AmbulanceForegroundService.Actions.GEOFENCE_EXIT);
+                context.startService(localIntent);
+
                 // step 8
+                /*
                 try {
 
                     MqttProfileClient profileClient = AmbulanceForegroundService.getProfileClient();
@@ -99,7 +122,7 @@ public class GeofenceBroadcastReceiver extends BroadcastReceiver {
                 } catch (Exception e) {
                     Log.d(TAG, e.toString());
                 }
-
+                */
                 Log.i(TAG, "GEOFENCE_TRIGGERED: EXIT");
             }
 
