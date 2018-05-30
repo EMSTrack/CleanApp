@@ -62,6 +62,7 @@ public class MainActivity extends AppCompatActivity {
     private ImageView onlineIcon;
     private ImageView trackingIcon;
     private LocationChangeBroadcastReceiver receiver;
+    private CallPromptReceiver promptReceiver;
     private int requestingToStreamLocation;
 
     public class LocationChangeBroadcastReceiver extends BroadcastReceiver {
@@ -88,6 +89,24 @@ public class MainActivity extends AppCompatActivity {
                     else
                         onlineIcon.setAlpha(disabledAlpha);
 
+                }
+            }
+        }
+    };
+
+    public class CallPromptReceiver extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Log.i(TAG, "received broadcast for call prompt");
+            if (intent != null) {
+                final String action = intent.getAction();
+
+                if (action.equals(AmbulanceForegroundService.BroadcastActions.PROMPT_CALL)) {
+                    Log.i(TAG, "PROMPT_CALL");
+
+                    String callId = intent.getStringExtra("CALLID");
+
+                    createAcceptDialog(callId);
                 }
             }
         }
@@ -463,6 +482,13 @@ public class MainActivity extends AppCompatActivity {
         receiver = new LocationChangeBroadcastReceiver();
         getLocalBroadcastManager().registerReceiver(receiver, filter);
 
+        Log.i(TAG, "Creating CallPromptReceiver");
+
+        IntentFilter callFilter = new IntentFilter();
+        callFilter.addAction(AmbulanceForegroundService.BroadcastActions.PROMPT_CALL);
+        promptReceiver = new CallPromptReceiver();
+        getLocalBroadcastManager().registerReceiver(promptReceiver, callFilter);
+
     }
 
     @Override
@@ -473,6 +499,12 @@ public class MainActivity extends AppCompatActivity {
         if (receiver != null) {
             getLocalBroadcastManager().unregisterReceiver(receiver);
             receiver = null;
+        }
+
+        // Unregister prompt receiver
+        if (promptReceiver != null) {
+            getLocalBroadcastManager().unregisterReceiver(promptReceiver);
+            promptReceiver = null;
         }
     }
 
@@ -508,7 +540,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     // TODO - figure out what arguments this should take
-    private void createAcceptDialog() {
+    private void createAcceptDialog(final String callId) {
+
+            Log.i(TAG, "Creating accept dialog");
 
             // Use the Builder class for convenient dialog construction
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -516,11 +550,21 @@ public class MainActivity extends AppCompatActivity {
                     .setPositiveButton("Accept", new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int id) {
                             Toast.makeText(MainActivity.this, "Call accepted", Toast.LENGTH_SHORT).show();
+
+                            Log.i(TAG, "Call accepted");
+
+                            Intent serviceIntent = new Intent(MainActivity.this, AmbulanceForegroundService.class);
+                            serviceIntent.setAction(AmbulanceForegroundService.Actions.CALL_ACCEPTED);
+                            serviceIntent.putExtra("CALLID", callId);
+                            startService(serviceIntent);
+
                         }
                     })
                     .setNegativeButton("Decline", new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int id) {
                             Toast.makeText(MainActivity.this, "Call declined", Toast.LENGTH_SHORT).show();
+
+                            Log.i(TAG, "Call declined");
                         }
                     });
             // Create the AlertDialog object and return it

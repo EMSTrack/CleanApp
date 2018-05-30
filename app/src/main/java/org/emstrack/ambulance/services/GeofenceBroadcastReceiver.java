@@ -55,7 +55,6 @@ public class GeofenceBroadcastReceiver extends BroadcastReceiver {
 
                     try {
 
-                        // TODO: ask Mauricio about qos and retained
                         // step 3: publish patient bound to server
                         profileClient.publish(String.format("user/%1$s/client/%2$s/ambulance/%3$s/data",
                                 profileClient.getUsername(), profileClient.getClientId(), callId),
@@ -83,7 +82,6 @@ public class GeofenceBroadcastReceiver extends BroadcastReceiver {
 
                     try {
 
-                        // TODO: ask Mauricio about qos and retained
                         // step 3: publish patient bound to server
                         profileClient.publish(String.format("user/%1$s/client/%2$s/ambulance/%3$s/data",
                                 profileClient.getUsername(), profileClient.getClientId(), callId),

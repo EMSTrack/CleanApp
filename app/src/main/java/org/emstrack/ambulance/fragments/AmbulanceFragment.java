@@ -146,14 +146,14 @@ public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSel
 
             // TODO: REMOVE, JUST FOR TESTING
             // Add geofence
-            Log.i(TAG, "Adding geofence");
-            Intent serviceIntent = new Intent(getActivity(),
-                    AmbulanceForegroundService.class);
-            serviceIntent.setAction(AmbulanceForegroundService.Actions.GEOFENCE_START);
-            serviceIntent.putExtra("LATITUDE", (float) 32.881150);
-            serviceIntent.putExtra("LONGITUDE", (float) -117.238200);
-            serviceIntent.putExtra("RADIUS", 50.f);
-            getActivity().startService(serviceIntent);
+//            Log.i(TAG, "Adding geofence");
+//            Intent serviceIntent = new Intent(getActivity(),
+//                    AmbulanceForegroundService.class);
+//            serviceIntent.setAction(AmbulanceForegroundService.Actions.GEOFENCE_START);
+//            serviceIntent.putExtra("LATITUDE", (float) 32.881150);
+//            serviceIntent.putExtra("LONGITUDE", (float) -117.238200);
+//            serviceIntent.putExtra("RADIUS", 50.f);
+//            getActivity().startService(serviceIntent);
 
         }
 
