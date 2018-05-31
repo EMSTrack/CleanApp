@@ -63,32 +63,6 @@ public class GeofenceBroadcastReceiver extends BroadcastReceiver {
                 localIntent.setAction(AmbulanceForegroundService.Actions.GEOFENCE_ENTER);
                 context.startService(localIntent);
 
-                // step 8
-                /*
-                try {
-
-                    MqttProfileClient profileClient = AmbulanceForegroundService.getProfileClient();
-
-                    try {
-                        // TODO: ask Mauricio about qos and retained
-                        // step 3: publish patient bound to server
-                        profileClient.publish(String.format("user/%1$s/client/%2$s/ambulance/%3$s/data",
-                                profileClient.getUsername(), profileClient.getClientId(), callId),
-                                "at patient", 2, false);
-
-                    } catch (MqttException e) {
-
-                        String path = String.format("Could not publish to user/%1$s/client/%2$s/ambulance" +
-                                        "/%3$s/data",
-                                profileClient.getUsername(), profileClient.getClientId(), callId);
-
-                        Log.d(TAG, path);
-                    }
-
-                } catch (Exception e) {
-                    Log.d(TAG, e.toString());
-                }
-                */
                 Log.i(TAG, "GEOFENCE_TRIGGERED: ENTER");
             } else if (geofenceTransition == Geofence.GEOFENCE_TRANSITION_EXIT) {
 
@@ -97,32 +71,6 @@ public class GeofenceBroadcastReceiver extends BroadcastReceiver {
                 localIntent.setAction(AmbulanceForegroundService.Actions.GEOFENCE_EXIT);
                 context.startService(localIntent);
 
-                // step 8
-                /*
-                try {
-
-                    MqttProfileClient profileClient = AmbulanceForegroundService.getProfileClient();
-
-                    try {
-
-                        // step 3: publish patient bound to server
-                        profileClient.publish(String.format("user/%1$s/client/%2$s/ambulance/%3$s/data",
-                                profileClient.getUsername(), profileClient.getClientId(), callId),
-                                "hospital bound", 2, false);
-
-                    } catch (MqttException e) {
-
-                        String path = String.format("Could not publish to user/%1$s/client/%2$s/ambulance" +
-                                        "/%3$s/data",
-                                profileClient.getUsername(), profileClient.getClientId(), callId);
-
-                        Log.d(TAG, path);
-                    }
-
-                } catch (Exception e) {
-                    Log.d(TAG, e.toString());
-                }
-                */
                 Log.i(TAG, "GEOFENCE_TRIGGERED: EXIT");
             }
 
