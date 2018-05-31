@@ -1879,6 +1879,26 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
     }
 
+    public void publishToPath(final String payload, final String path, final String uuid) {
+
+        MqttProfileClient profileClient = getProfileClient(this);
+
+        try {
+
+            Log.i(TAG, "publishing " + payload + " to " + path);
+
+            profileClient.publish(path, payload, 2, false);
+
+        } catch (MqttException e) {
+
+            Log.d(TAG, path);
+
+            Intent localIntent = new Intent(BroadcastActions.FAILURE);
+            localIntent.putExtra(BroadcastExtras.MESSAGE, getString(R.string.couldNotPublish, path));
+            sendBroadcastWithUUID(localIntent, uuid);
+        }
+    }
+
     // handles steps 3 and 4 of Accepting Calls
     public void replyToAcceptCall(final String callId, String uuid) {
         Log.i(TAG, "Replying to server with username, client id, and call id");
@@ -1889,56 +1909,24 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
         if (ambulance != null) {
 
-            try {
+            String path = String.format("user/%1$s/client/%2$s/ambulance/%3$s/data",
+                    profileClient.getUsername(), profileClient.getClientId(), callId);
 
-                Log.i(TAG, "publishing location client to user/{username}/client/{client-id}" +
-                        "/ambulance/{call-id}/data");
-                // step 3: publish client id to server
-                profileClient.publish(String.format("user/%1$s/client/%2$s/ambulance/%3$s/data",
-                        profileClient.getUsername(), profileClient.getClientId(), callId),
-                        String.format("{\"location_client\": %1$s}", profileClient.getClientId()),
-                        2, false);
+            String payload = String.format("{\"location_client\": %1$s}", profileClient.getClientId());
 
-                // start streaming location
-                startLocationUpdates(uuid, false);
+            // step 3: publish client id to server
+            publishToPath(payload, path, uuid);
 
-            } catch (MqttException e) {
+            // start streaming location
+            startLocationUpdates(uuid, false);
 
-                String path = String.format("Could not publish to user/%1$s/client/%2$s/ambulance" +
-                                "/%3$s/data",
-                        profileClient.getUsername(), profileClient.getClientId(), callId);
+            // step 4: publish accepted to server
+            path = String.format("user/%1$s/client/%2$s/" +
+                            "ambulance/%3$s/call/%4$s/status",
+                    profileClient.getUsername(), profileClient.getClientId(), ambulance.getId(), callId);
 
-                Log.d(TAG, path);
-
-                // TODO: ask Mauricio if we need this for publishing
-                Intent localIntent = new Intent(BroadcastActions.FAILURE);
-                localIntent.putExtra(BroadcastExtras.MESSAGE, getString(R.string.couldNotPublish, path));
-                sendBroadcastWithUUID(localIntent, uuid);
-            }
-
-            try {
-
-                Log.i(TAG, "publishing accepted to user/{username}/client/{client-id}/" +
-                        "ambulance/{ambulance-id}/call/{call-id}/status");
-                // publish accepted to server (step 4)
-                profileClient.publish(String.format("user/%1$s/client/%2$s/" +
-                                "ambulance/%3$s/call/%4$s/status",
-                        profileClient.getUsername(), profileClient.getClientId(), ambulance.getId(),
-                        callId), "\"Accepted\"", 2, false);
-
-            } catch (MqttException e) {
-
-                String path = String.format("Could not publish to user/%1$s/client/%2$s/ambulance/" +
-                                "%3$s/call/%4$s/status",
-                        profileClient.getUsername(), profileClient.getClientId(), ambulance.getId(),
-                        callId);
-
-                Log.d(TAG, path);
-
-                Intent localIntent = new Intent(BroadcastActions.FAILURE);
-                localIntent.putExtra(BroadcastExtras.MESSAGE, getString(R.string.couldNotPublish, path));
-                sendBroadcastWithUUID(localIntent, uuid);
-            }
+            // publish "Accepted" to server
+            publishToPath("\"Accepted\"", path, uuid);
 
             try {
                 profileClient.subscribe(String.format("ambulance/%1$d/call/%2$s/status",
@@ -1964,10 +1952,10 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                         });
             } catch (MqttException e) {
 
-                String path = String.format("Could not subscribe to ambulance/%1$s/call/%2$s/status",
+                String subscribePath = String.format("Could not subscribe to ambulance/%1$s/call/%2$s/status",
                         ambulance.getId(), callId);
 
-                Log.d(TAG, path);
+                Log.d(TAG, subscribePath);
 
                 Intent localIntent = new Intent(BroadcastActions.FAILURE);
                 localIntent.putExtra(BroadcastExtras.MESSAGE, path);
@@ -2062,27 +2050,13 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
         // step 7
         if (ambulance != null) {
-            try {
 
-                // TODO: ask Mauricio about qos and retained
-                // step 3: publish patient bound to server
-                profileClient.publish(String.format("user/%1$s/client/%2$s/ambulance/%3$s/data",
-                        profileClient.getUsername(), profileClient.getClientId(), callId),
-                        "patient bound", 2, false);
+            String path = String.format("user/%1$s/client/%2$s/ambulance/%3$s/data",
+                    profileClient.getUsername(), profileClient.getClientId(), callId);
 
-            } catch (MqttException e) {
+            // step 7: publish patient bound to server
+            publishToPath("patient bound", path, uuid);
 
-                String path = String.format("Could not publish to user/%1$s/client/%2$s/ambulance" +
-                                "/%3$s/data",
-                        profileClient.getUsername(), profileClient.getClientId(), callId);
-
-                Log.d(TAG, path);
-
-                // TODO: ask Mauricio if we need this for publishing
-                Intent localIntent = new Intent(BroadcastActions.FAILURE);
-                localIntent.putExtra(BroadcastExtras.MESSAGE, getString(R.string.couldNotPublish, path));
-                sendBroadcastWithUUID(localIntent, uuid);
-            }
         } else {
 
             Log.d(TAG, "Ambulance not found while in replyToOngoingCall()");
@@ -2097,37 +2071,21 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
      **
      */
     public void replyToGeofenceTransitions(final String callId, final String uuid, final boolean enter) {
-        // step 6 & 7
-        Log.i(TAG, "Replying to server with username, client id, and call id");
-
-        // TODO: ask Mauricio if we need to check if online or not
         final MqttProfileClient profileClient = getProfileClient(AmbulanceForegroundService.this);
 
         final Ambulance ambulance = getAmbulance();
 
         // step 7
         if (ambulance != null) {
-            try {
-                String payload = enter ? "at patient" : "hospital bound";
 
-                // step 3: publish patient bound to server
-                profileClient.publish(String.format("user/%1$s/client/%2$s/ambulance/%3$s/data",
-                        profileClient.getUsername(), profileClient.getClientId(), callId),
-                        payload, 2, false);
+            String path = String.format("user/%1$s/client/%2$s/ambulance/%3$s/data",
+                    profileClient.getUsername(), profileClient.getClientId(), callId);
 
-            } catch (MqttException e) {
+            String payload = enter ? "at patient" : "hospital bound";
 
-                String path = String.format("Could not publish to user/%1$s/client/%2$s/ambulance" +
-                                "/%3$s/data",
-                        profileClient.getUsername(), profileClient.getClientId(), callId);
+            // step 8: publish other status updates to server
+            publishToPath(payload, path, uuid);
 
-                Log.d(TAG, path);
-
-                // TODO: ask Mauricio if we need this for publishing
-                Intent localIntent = new Intent(BroadcastActions.FAILURE);
-                localIntent.putExtra(BroadcastExtras.MESSAGE, getString(R.string.couldNotPublish, path));
-                sendBroadcastWithUUID(localIntent, uuid);
-            }
         } else {
             Log.d(TAG, "Ambulance not found while in replyToTransition()");
 

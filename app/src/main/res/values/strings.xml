@@ -136,6 +136,7 @@
     <string name="couldNotSubscribeToStatuses">Could not subscribe to statuses</string>
     <string name="couldNotParseStatus">Could not parse status</string>
     <string name="couldNotPublish">Could not publish to %1$s</string>
+    <string name="couldNotSubscribe">Could not subscribe to %1$s</string>
     <string name="couldNotFindAmbulance">Could not find ambulance</string>
     <string name="couldNotParseCallData">Could not parse call data</string>
 
