@@ -33,7 +33,6 @@ public class Call {
     private String updatedOn;
     private List<Object> ambulancecallSet = null;
     private List<Object> patientSet = null;
-    private Map<String, Object> additionalProperties = new HashMap<String, Object>();
 
     public Integer getId() {
         return id;
@@ -209,14 +208,6 @@ public class Call {
 
     public void setPatientSet(List<Object> patientSet) {
         this.patientSet = patientSet;
-    }
-
-    public Map<String, Object> getAdditionalProperties() {
-        return this.additionalProperties;
-    }
-
-    public void setAdditionalProperty(String name, Object value) {
-        this.additionalProperties.put(name, value);
     }
 
 }

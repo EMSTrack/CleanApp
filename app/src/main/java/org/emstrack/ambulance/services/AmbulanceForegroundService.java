@@ -70,9 +70,11 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Queue;
 import java.util.TimeZone;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -139,6 +141,10 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
     private PendingIntent geofenceIntent;
 
     private String currCallId;
+    // is the user currently on a call
+    private boolean onCall = false;
+    // hold the callIds of pending calls
+    private Queue<String> pendingCalls;
 
     public class Actions {
         public final static String START_SERVICE = "org.emstrack.ambulance.ambulanceforegroundservice.action.START_SERVICE";
@@ -263,6 +269,8 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         // Initialize geofence client
         fenceClient = LocationServices.getGeofencingClient(this);
 
+        // initialize list of pending calls
+        pendingCalls = new LinkedList<String>();
     }
 
     @Override
@@ -1818,22 +1826,30 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                                     // the call id is the 3rd value
                                     String callId = topic.split("/")[3];
 
+                                    if (!onCall) {
+                                        onCall = true;
+                                        // subscribe to call data then prompt user to accept
+                                        // TODO: add subscription to call data here
+
+
+                                        // create intent to prompt user
+                                        Intent callPromptIntent = new Intent(BroadcastActions.PROMPT_CALL);
+                                        callPromptIntent.putExtra("CALLID", callId);
+                                        sendBroadcastWithUUID(callPromptIntent, uuid);
+
+//                                    Intent localIntent = new Intent(AmbulanceForegroundService.this,
+//                                            AmbulanceForegroundService.class);
+//                                    localIntent.setAction(Actions.CALL_ACCEPTED);
+//                                    localIntent.putExtra("CALLID", callId);
+//                                    startService(localIntent);
+                                    } else {
+                                        // add call id to pendingCalls
+                                        pendingCalls.add(callId);
+                                    }
+
                                     currCallId = callId;
 
                                     Log.i(TAG, "STATUS CALL ID: " + callId);
-
-                                    // TODO: broadcast intent to main activity to create dialog
-                                    // include clientId and callId in intent
-                                    // assume user has accepted call for now
-                                    Intent callPromptIntent = new Intent(BroadcastActions.PROMPT_CALL);
-                                    callPromptIntent.putExtra("CALLID", callId);
-                                    sendBroadcastWithUUID(callPromptIntent, uuid);
-
-                                    Intent localIntent = new Intent(AmbulanceForegroundService.this,
-                                            AmbulanceForegroundService.class);
-                                    localIntent.setAction(Actions.CALL_ACCEPTED);
-                                    localIntent.putExtra("CALLID", callId);
-                                    startService(localIntent);
 
                                 } else {
                                     Log.i(TAG, "DID NOT GET REQUESTED STATUS");
@@ -1877,7 +1893,6 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
                 Log.i(TAG, "publishing location client to user/{username}/client/{client-id}" +
                         "/ambulance/{call-id}/data");
-                // TODO: ask Mauricio about qos and retained
                 // step 3: publish client id to server
                 profileClient.publish(String.format("user/%1$s/client/%2$s/ambulance/%3$s/data",
                         profileClient.getUsername(), profileClient.getClientId(), callId),
@@ -1926,18 +1941,25 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
             }
 
             try {
-                profileClient.subscribe(String.format("ambulance/%1$d/call/+/status", ambulance.getId()),
+                profileClient.subscribe(String.format("ambulance/%1$d/call/%2$s/status",
+                        ambulance.getId(), callId),
                         2, new MqttProfileMessageCallback() {
                             @Override
                             public void messageArrived(String topic, MqttMessage message) {
-                                Log.i(TAG, "Received ongoing");
 
-                                // step 5
-                                Intent localIntent = new Intent(AmbulanceForegroundService.this,
-                                        AmbulanceForegroundService.class);
-                                localIntent.setAction(Actions.CALL_ONGOING);
-                                localIntent.putExtra("CALLID", callId);
-                                startService(localIntent);
+                                String status = new String(message.getPayload());
+
+                                if (status.equalsIgnoreCase("\"Ongoing\"")) {
+
+                                    Log.i(TAG, "Received ongoing");
+
+                                    // step 5
+                                    Intent localIntent = new Intent(AmbulanceForegroundService.this,
+                                            AmbulanceForegroundService.class);
+                                    localIntent.setAction(Actions.CALL_ONGOING);
+                                    localIntent.putExtra("CALLID", callId);
+                                    startService(localIntent);
+                                }
                             }
                         });
             } catch (MqttException e) {
