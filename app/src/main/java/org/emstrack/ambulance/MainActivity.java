@@ -101,12 +101,17 @@ public class MainActivity extends AppCompatActivity {
             if (intent != null) {
                 final String action = intent.getAction();
 
-                if (action.equals(AmbulanceForegroundService.BroadcastActions.PROMPT_CALL)) {
-                    Log.i(TAG, "PROMPT_CALL");
+                if (action.equals(AmbulanceForegroundService.BroadcastActions.PROMPT_CALL_ACCEPT)) {
+                    Log.i(TAG, "PROMPT_CALL_ACCEPT");
 
                     String callId = intent.getStringExtra("CALLID");
+                    String callDetails = intent.getStringExtra("CALL_DETAILS");
 
-                    createAcceptDialog(callId);
+                    createAcceptDialog(callId, callDetails);
+                } else if (action.equals(AmbulanceForegroundService.BroadcastActions.PROMPT_CALL_END)) {
+                    Log.i(TAG, "PROMPT_CALL_END");
+
+                    createEndDialog();
                 }
             }
         }
@@ -484,11 +489,11 @@ public class MainActivity extends AppCompatActivity {
 
         Log.i(TAG, "Creating CallPromptReceiver");
 
-        IntentFilter callFilter = new IntentFilter();
-        callFilter.addAction(AmbulanceForegroundService.BroadcastActions.PROMPT_CALL);
+        IntentFilter promptFilter = new IntentFilter();
+        promptFilter.addAction(AmbulanceForegroundService.BroadcastActions.PROMPT_CALL_ACCEPT);
+        promptFilter.addAction(AmbulanceForegroundService.BroadcastActions.PROMPT_CALL_END);
         promptReceiver = new CallPromptReceiver();
-        getLocalBroadcastManager().registerReceiver(promptReceiver, callFilter);
-
+        getLocalBroadcastManager().registerReceiver(promptReceiver, promptFilter);
     }
 
     @Override
@@ -539,14 +544,14 @@ public class MainActivity extends AppCompatActivity {
         return LocalBroadcastManager.getInstance(this);
     }
 
-    // TODO - figure out what arguments this should take
-    private void createAcceptDialog(final String callId) {
+    private void createAcceptDialog(final String callId, final String callDetails) {
 
             Log.i(TAG, "Creating accept dialog");
 
             // Use the Builder class for convenient dialog construction
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setMessage("Accept Call?")
+            builder.setMessage(callDetails)
+                    .setTitle("Accept Incoming Call?")
                     .setPositiveButton("Accept", new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int id) {
                             Toast.makeText(MainActivity.this, "Call accepted", Toast.LENGTH_SHORT).show();
@@ -565,11 +570,45 @@ public class MainActivity extends AppCompatActivity {
                             Toast.makeText(MainActivity.this, "Call declined", Toast.LENGTH_SHORT).show();
 
                             Log.i(TAG, "Call declined");
+
+                            Intent serviceIntent = new Intent(MainActivity.this, AmbulanceForegroundService.class);
+                            serviceIntent.setAction(AmbulanceForegroundService.Actions.CALL_DECLINED);
+                            startService(serviceIntent);
                         }
                     });
             // Create the AlertDialog object and return it
             builder.create().show();
 
+    }
+
+    private void createEndDialog() {
+
+        Log.i(TAG, "Creating end call dialog");
+
+        // Use the Builder class for convenient dialog construction
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Finish Current Call?")
+                .setPositiveButton("Accept", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        Toast.makeText(MainActivity.this, "Call ending", Toast.LENGTH_SHORT).show();
+
+                        Log.i(TAG, "Call ending");
+
+                        Intent serviceIntent = new Intent(MainActivity.this, AmbulanceForegroundService.class);
+                        serviceIntent.setAction(AmbulanceForegroundService.Actions.CALL_FINISHED);
+                        startService(serviceIntent);
+
+                    }
+                })
+                .setNegativeButton("Decline", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        Toast.makeText(MainActivity.this, "Continuing call", Toast.LENGTH_SHORT).show();
+
+                        Log.i(TAG, "Call not finished");
+                    }
+                });
+        // Create the AlertDialog object and return it
+        builder.create().show();
     }
 
 }
