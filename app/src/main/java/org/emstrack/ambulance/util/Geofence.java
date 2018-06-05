@@ -14,15 +14,19 @@ public class Geofence {
 
     Location location;
     float radius;
+    boolean isHospital;
 
-    public Geofence(Location location, float radius) {
+    public Geofence(Location location, float radius, boolean isHospital) {
         this.location = location;
         this.radius = radius;
+        this.isHospital = isHospital;
     }
 
     public Location getLocation() { return location; }
 
     public float getRadius() { return radius; }
+
+    public boolean isHospital() { return isHospital; }
 
     public com.google.android.gms.location.Geofence build(String id) {
         return build(id, GEOFENCE_TRANSITION_ENTER | GEOFENCE_TRANSITION_EXIT);
