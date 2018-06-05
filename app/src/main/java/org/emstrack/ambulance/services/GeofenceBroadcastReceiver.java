@@ -9,7 +9,14 @@ import android.util.Log;
 import com.google.android.gms.location.Geofence;
 import com.google.android.gms.location.GeofencingEvent;
 
+import org.eclipse.paho.client.mqttv3.MqttException;
+import org.emstrack.ambulance.R;
+import org.emstrack.ambulance.fragments.AmbulanceFragment;
 import org.emstrack.models.Ambulance;
+import org.emstrack.mqtt.MqttProfileClient;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class GeofenceBroadcastReceiver extends BroadcastReceiver {
 
@@ -40,10 +47,39 @@ public class GeofenceBroadcastReceiver extends BroadcastReceiver {
         // Get the transition type.
         int geofenceTransition = geofencingEvent.getGeofenceTransition();
 
+        List<Geofence> triggeringGeofences = geofencingEvent.getTriggeringGeofences();
+        List<String> geofenceIds = new ArrayList<String>();
+
+        if (triggeringGeofences != null) {
+            for (Geofence geofence : triggeringGeofences) {
+
+                String geoId = geofence.getRequestId();
+                geofenceIds.add(geoId);
+
+                Log.i(TAG, "TRIGGERED GEOFENCE: " + geoId);
+            }
+        }
+
+        String[] triggeredGeofences = geofenceIds.toArray(new String[geofenceIds.size()]);
+
         if (geofenceTransition == Geofence.GEOFENCE_TRANSITION_ENTER || geofenceTransition == Geofence.GEOFENCE_TRANSITION_EXIT) {
             if (geofenceTransition == Geofence.GEOFENCE_TRANSITION_ENTER) {
+
+                // broadcast change on ambulance status when it enters geofence
+                Intent localIntent = new Intent(context, AmbulanceForegroundService.class);
+                localIntent.setAction(AmbulanceForegroundService.Actions.GEOFENCE_ENTER);
+                localIntent.putExtra("TRIGGERED_GEOFENCES", triggeredGeofences);
+                context.startService(localIntent);
+
                 Log.i(TAG, "GEOFENCE_TRIGGERED: ENTER");
             } else if (geofenceTransition == Geofence.GEOFENCE_TRANSITION_EXIT) {
+
+                // broadcast change on ambulance status when it exits geofence
+                Intent localIntent = new Intent(context, AmbulanceForegroundService.class);
+                localIntent.setAction(AmbulanceForegroundService.Actions.GEOFENCE_EXIT);
+                localIntent.putExtra("TRIGGERED_GEOFENCES", triggeredGeofences);
+                context.startService(localIntent);
+
                 Log.i(TAG, "GEOFENCE_TRIGGERED: EXIT");
             }
 
