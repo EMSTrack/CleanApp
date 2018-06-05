@@ -581,7 +581,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
             Float latitude = intent.getFloatExtra("LATITUDE", 0.f);
             Float longitude = intent.getFloatExtra("LONGITUDE", 0.f);
             Float radius = intent.getFloatExtra("RADIUS", 50.f);
-            // CHANGED:
+
             startGeofence(uuid, new Geofence(new Location(latitude, longitude), radius, isHospital));
 
         } else if (intent.getAction().equals(Actions.GEOFENCE_STOP)) {
@@ -1726,7 +1726,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         removeOtherAmbulances(reconnect);
 
         // Retrieve client
-        final MqttProfileClient profileClient = getProfileClient(this);
+        MqttProfileClient profileClient = getProfileClient(this);
 
         try {
 
@@ -2901,7 +2901,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         return builder.build();
 
     }
-    // CHANGEDm
+
     private PendingIntent getGeofencePendingIntent() {
 
         // Reuse the PendingIntent if we already have it.
@@ -2918,7 +2918,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         return geofenceIntent;
     }
 
-    // CHANGED:
+
     private void startGeofence(final String uuid, final Geofence geofence) {
 
         Log.d(TAG,String.format("GEOFENCE(%1$s, %2$f)", geofence.getLocation().toString(), geofence.getRadius()));
@@ -2939,7 +2939,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                         Log.i(TAG, "All location settings are satisfied.");
 
                         Log.i(TAG, "Adding GEOFENCE.");
-                        // CHANGED
+
                         fenceClient.addGeofences(getGeofencingRequest(geofence.build(id)),
                                 getGeofencePendingIntent())
                                 .addOnSuccessListener(new OnSuccessListener<Void>() {
@@ -3002,7 +3002,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
 
     private void removeGeofences(final String uuid) {
-        // CHANGED: Ask if this is even okay?
+
         fenceClient.removeGeofences(getGeofencePendingIntent())
                 .addOnSuccessListener(new OnSuccessListener<Void>() {
                     @Override
