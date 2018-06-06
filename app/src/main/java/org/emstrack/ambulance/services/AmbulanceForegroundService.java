@@ -116,8 +116,8 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
     private static ReconnectionInformation _reconnectionInformation;
 
     // hold the callIds of pending calls
-    private int currentCallId;
-    private Map<Integer, Call> pendingCalls;
+    private static int currentCallId;
+    private static Map<Integer, Call> pendingCalls;
 
     // Geofences
     private final static AtomicInteger geofencesId = new AtomicInteger(1);
@@ -736,6 +736,21 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
             return -1;
         else
             return getAmbulance().getId();
+    }
+
+    /**
+     * @return current call or nul
+     */
+    public static Call getCall() {
+        return getCall(currentCallId);
+    }
+
+    /**
+     * @param callId
+     * @return call with id callId or null
+     */
+    public static Call getCall(int callId) {
+        return pendingCalls.get(callId);
     }
 
     /**
@@ -2576,8 +2591,19 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
                                 } else if (status.equalsIgnoreCase("\"ongoing\"")) {
 
-                                    // reply to ongoing
-                                    setCallOngoing(callId, uuid);
+                                    if (currentCallId > 0) {
+
+                                        // reply to ongoing
+                                        setCallOngoing(callId, uuid);
+
+                                    } else {
+
+                                        // subscribe to call data then prompt user to accept
+                                        subscribeToCall(callId, uuid);
+
+                                        // TODO: Resume call instead of accept fresh
+
+                                    }
 
                                 } else {
                                     Log.i(TAG, "Unknown status '" + status + "'");
@@ -2726,7 +2752,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
     public void finishCall(String uuid, boolean processNext) {
 
         // if currently not serving call
-        if (currentCallId < 0) {
+        if (currentCallId <= 0) {
 
             Log.d(TAG, "Can't finish call: not serving any call.");
 
@@ -2736,6 +2762,25 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
         // publish finished status to server
         setCallStatus(currentCallId, "finished", uuid);
+
+        // unsubscribe from call
+        Log.i(TAG, "Unsubscribe from call/" + currentCallId);
+        try {
+            // get profile client
+            MqttProfileClient profileClient = AmbulanceForegroundService.getProfileClient(this);
+            profileClient.unsubscribe("call/" + currentCallId + "/data");
+        } catch (MqttException e) {
+            Log.d(TAG, "Could not unsubscribe to 'call/" + currentCallId + "/data'");
+        }
+
+        // publish available to server
+        String payload = String.format("{\"status\":\"%1$s\"}", "AV");
+        Intent intent = new Intent(this, AmbulanceForegroundService.class);
+        intent.setAction(Actions.UPDATE_AMBULANCE);
+        Bundle bundle = new Bundle();
+        bundle.putString("UPDATE", payload);
+        intent.putExtras(bundle);
+        startService(intent);
 
         // remove call from the queu
         pendingCalls.remove(currentCallId);
@@ -2767,6 +2812,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
         // remove call from the queu
         pendingCalls.remove(callId);
+        currentCallId = -1;
 
         // process next call
         processNextCall(uuid);
@@ -2775,14 +2821,23 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
     public void processNextCall(String uuid) {
 
-        // if no current call prompt user
+        // if current call, bark
         if (currentCallId > 0) {
 
-            Log.d(TAG, "Will no process next call: currently serving call/" + currentCallId);
+            Log.d(TAG, "Will not process next call: currently serving call/" + currentCallId);
 
             Intent localIntent = new Intent(BroadcastActions.FAILURE);
             localIntent.putExtra(BroadcastExtras.MESSAGE, getString(R.string.willNotProcessNextCall));
             sendBroadcastWithUUID(localIntent, uuid);
+
+            return;
+
+        }
+
+        // if prompting user, ignore
+        if (currentCallId == 0) {
+
+            Log.d(TAG, "Will not process next call: currently prompting user to accept call.");
 
             return;
 
@@ -2795,6 +2850,9 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
             Log.i(TAG, "Will prompt user to accept call");
 
             Map.Entry<Integer, Call> pair = iterator.next();
+
+            // set curentCallId to zero
+            currentCallId = 0;
 
             // create intent to prompt user
             Intent callPromptIntent = new Intent(BroadcastActions.PROMPT_CALL_ACCEPT);
@@ -2891,8 +2949,8 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                 AmbulanceForegroundService.class);
         serviceIntent.setAction(AmbulanceForegroundService.Actions.GEOFENCE_START);
         serviceIntent.putExtra("GEOFENCE_TYPE", false);
-        serviceIntent.putExtra("LATITUDE", call.getLocation().getLatitude());
-        serviceIntent.putExtra("LONGITUDE", call.getLocation().getLongitude());
+        serviceIntent.putExtra("LATITUDE", (float) call.getLocation().getLatitude());
+        serviceIntent.putExtra("LONGITUDE", (float) call.getLocation().getLongitude());
         serviceIntent.putExtra("RADIUS", 50.f);
         startService(serviceIntent);
 
@@ -2931,7 +2989,6 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
      **
      */
     public void replyToGeofenceTransitions(String uuid, boolean enter, boolean isHospital) {
-
 
         // if currently not serving call
         if (currentCallId < 0) {

@@ -37,7 +37,10 @@ import org.emstrack.ambulance.services.OnServiceComplete;
 import org.emstrack.ambulance.services.OnServicesComplete;
 import org.emstrack.models.Ambulance;
 import org.emstrack.models.AmbulancePermission;
+import org.emstrack.models.Call;
 import org.emstrack.mqtt.MqttProfileClient;
+
+import java.util.concurrent.Callable;
 
 /**
  * This is the main activity -- the default screen
@@ -62,14 +65,15 @@ public class MainActivity extends AppCompatActivity {
     private ImageView onlineIcon;
     private ImageView trackingIcon;
     private LocationChangeBroadcastReceiver receiver;
-    private CallPromptReceiver promptReceiver;
     private int requestingToStreamLocation;
 
     public class LocationChangeBroadcastReceiver extends BroadcastReceiver {
 
         @Override
         public void onReceive(Context context, Intent intent ) {
+
             if (intent != null) {
+
                 final String action = intent.getAction();
                 if (action.equals(AmbulanceForegroundService.BroadcastActions.LOCATION_UPDATE_CHANGE)) {
 
@@ -89,29 +93,18 @@ public class MainActivity extends AppCompatActivity {
                     else
                         onlineIcon.setAlpha(disabledAlpha);
 
-                }
-            }
-        }
-    };
+                } else if (action.equals(AmbulanceForegroundService.BroadcastActions.PROMPT_CALL_ACCEPT)) {
 
-    public class CallPromptReceiver extends BroadcastReceiver {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            Log.i(TAG, "received broadcast for call prompt");
-            if (intent != null) {
-                final String action = intent.getAction();
-
-                if (action.equals(AmbulanceForegroundService.BroadcastActions.PROMPT_CALL_ACCEPT)) {
                     Log.i(TAG, "PROMPT_CALL_ACCEPT");
 
-                    String callId = intent.getStringExtra("CALLID");
-                    String callDetails = intent.getStringExtra("CALL_DETAILS");
+                    int callId = intent.getIntExtra("CALL_ID", -1);
+                    acceptCallDialog(callId);
 
-                    createAcceptDialog(callId, callDetails);
                 } else if (action.equals(AmbulanceForegroundService.BroadcastActions.PROMPT_CALL_END)) {
-                    Log.i(TAG, "PROMPT_CALL_END");
 
-                    createEndDialog();
+                    Log.i(TAG, "PROMPT_CALL_END");
+                    endCallDialog();
+
                 }
             }
         }
@@ -125,8 +118,6 @@ public class MainActivity extends AppCompatActivity {
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-
 
         // Identifier text
         headerText = (TextView) findViewById(R.id.headerText);
@@ -151,22 +142,36 @@ public class MainActivity extends AppCompatActivity {
 
                 if (AmbulanceForegroundService.isUpdatingLocation()) {
 
-                    // stop updating location
+                    // is handling call?
+                    Call currentCall = AmbulanceForegroundService.getCall();
+                    if (currentCall != null) {
 
-                    if (canWrite()) {
+                        Log.d(TAG, "In call: prompt user");
 
-                        // turn off tracking
-                        Intent intent = new Intent(MainActivity.this, AmbulanceForegroundService.class);
-                        intent.setAction(AmbulanceForegroundService.Actions.STOP_LOCATION_UPDATES);
-                        startService(intent);
+                        // currently handling call, prompt if want to end call
+                        endCallDialog();
 
-                        // reset requestingLocation to maximum number of attempts
-                        requestingToStreamLocation = MAX_NUMBER_OF_LOCATION_REQUESTS_ATTEMPTS;
+                    } else {
 
-                        // Toast to warn user
-                        Toast.makeText(MainActivity.this, R.string.stopedStreamingLocation,
-                                Toast.LENGTH_SHORT).show();
+                        Log.d(TAG, "No call: stop location updates");
 
+                        // stop updating location
+
+                        if (canWrite()) {
+
+                            // turn off tracking
+                            Intent intent = new Intent(MainActivity.this, AmbulanceForegroundService.class);
+                            intent.setAction(AmbulanceForegroundService.Actions.STOP_LOCATION_UPDATES);
+                            startService(intent);
+
+                            // reset requestingLocation to maximum number of attempts
+                            requestingToStreamLocation = MAX_NUMBER_OF_LOCATION_REQUESTS_ATTEMPTS;
+
+                            // Toast to warn user
+                            Toast.makeText(MainActivity.this, R.string.stopedStreamingLocation,
+                                    Toast.LENGTH_SHORT).show();
+
+                        }
                     }
 
                 } else {
@@ -484,16 +489,11 @@ public class MainActivity extends AppCompatActivity {
         IntentFilter filter = new IntentFilter();
         filter.addAction(AmbulanceForegroundService.BroadcastActions.LOCATION_UPDATE_CHANGE);
         filter.addAction(AmbulanceForegroundService.BroadcastActions.CONNECTIVITY_CHANGE);
+        filter.addAction(AmbulanceForegroundService.BroadcastActions.PROMPT_CALL_ACCEPT);
+        filter.addAction(AmbulanceForegroundService.BroadcastActions.PROMPT_CALL_END);
         receiver = new LocationChangeBroadcastReceiver();
         getLocalBroadcastManager().registerReceiver(receiver, filter);
 
-        Log.i(TAG, "Creating CallPromptReceiver");
-
-        IntentFilter promptFilter = new IntentFilter();
-        promptFilter.addAction(AmbulanceForegroundService.BroadcastActions.PROMPT_CALL_ACCEPT);
-        promptFilter.addAction(AmbulanceForegroundService.BroadcastActions.PROMPT_CALL_END);
-        promptReceiver = new CallPromptReceiver();
-        getLocalBroadcastManager().registerReceiver(promptReceiver, promptFilter);
     }
 
     @Override
@@ -506,11 +506,6 @@ public class MainActivity extends AppCompatActivity {
             receiver = null;
         }
 
-        // Unregister prompt receiver
-        if (promptReceiver != null) {
-            getLocalBroadcastManager().unregisterReceiver(promptReceiver);
-            promptReceiver = null;
-        }
     }
 
     public void panicPopUp() {
@@ -544,52 +539,73 @@ public class MainActivity extends AppCompatActivity {
         return LocalBroadcastManager.getInstance(this);
     }
 
-    private void createAcceptDialog(final String callId, final String callDetails) {
+    private void acceptCallDialog(final int callId) {
 
-            Log.i(TAG, "Creating accept dialog");
+        Log.i(TAG, "Creating accept dialog");
 
-            // Use the Builder class for convenient dialog construction
-            AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setMessage(callDetails)
-                    .setTitle("Accept Incoming Call?")
-                    .setPositiveButton("Accept", new DialogInterface.OnClickListener() {
+        // Gather call details
+        Call call = AmbulanceForegroundService.getCall(callId);
+
+        if (call == null) {
+
+            Log.d(TAG, "Invalid call/" + callId);
+            return;
+
+        }
+
+        String callDetails = String.format("Priority: %1$s\n%2$s %3$s, %4$s, %5$s %6$s",
+                call.getPriority(),
+                call.getStreet(), call.getNumber(),
+                call.getCity(), call.getState(), call.getZipcode());
+
+        // Use the Builder class for convenient dialog construction
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage(callDetails)
+                .setTitle("Accept Incoming Call?")
+                .setPositiveButton("Accept", new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int id) {
+
                             Toast.makeText(MainActivity.this, "Call accepted", Toast.LENGTH_SHORT).show();
 
                             Log.i(TAG, "Call accepted");
 
                             Intent serviceIntent = new Intent(MainActivity.this, AmbulanceForegroundService.class);
                             serviceIntent.setAction(AmbulanceForegroundService.Actions.CALL_ACCEPT);
-                            serviceIntent.putExtra("CALLID", callId);
+                            serviceIntent.putExtra("CALL_ID", callId);
                             startService(serviceIntent);
 
                         }
-                    })
-                    .setNegativeButton("Decline", new DialogInterface.OnClickListener() {
+                })
+                .setNegativeButton("Decline", new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int id) {
+
                             Toast.makeText(MainActivity.this, "Call declined", Toast.LENGTH_SHORT).show();
 
                             Log.i(TAG, "Call declined");
 
                             Intent serviceIntent = new Intent(MainActivity.this, AmbulanceForegroundService.class);
                             serviceIntent.setAction(AmbulanceForegroundService.Actions.CALL_DECLINE);
+                            serviceIntent.putExtra("CALL_ID", callId);
                             startService(serviceIntent);
+
                         }
-                    });
-            // Create the AlertDialog object and return it
-            builder.create().show();
+                });
+
+        // Create the AlertDialog object and display it
+        builder.create().show();
 
     }
 
-    private void createEndDialog() {
+    private void endCallDialog() {
 
         Log.i(TAG, "Creating end call dialog");
 
         // Use the Builder class for convenient dialog construction
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Finish Current Call?")
-                .setPositiveButton("Accept", new DialogInterface.OnClickListener() {
+                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
+
                         Toast.makeText(MainActivity.this, "Call ending", Toast.LENGTH_SHORT).show();
 
                         Log.i(TAG, "Call ending");
@@ -600,11 +616,13 @@ public class MainActivity extends AppCompatActivity {
 
                     }
                 })
-                .setNegativeButton("Decline", new DialogInterface.OnClickListener() {
+                .setNegativeButton("No", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
+
                         Toast.makeText(MainActivity.this, "Continuing call", Toast.LENGTH_SHORT).show();
 
                         Log.i(TAG, "Call not finished");
+
                     }
                 });
         // Create the AlertDialog object and return it
