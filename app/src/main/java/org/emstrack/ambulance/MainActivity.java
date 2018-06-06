@@ -559,7 +559,7 @@ public class MainActivity extends AppCompatActivity {
                             Log.i(TAG, "Call accepted");
 
                             Intent serviceIntent = new Intent(MainActivity.this, AmbulanceForegroundService.class);
-                            serviceIntent.setAction(AmbulanceForegroundService.Actions.CALL_ACCEPTED);
+                            serviceIntent.setAction(AmbulanceForegroundService.Actions.CALL_ACCEPT);
                             serviceIntent.putExtra("CALLID", callId);
                             startService(serviceIntent);
 
@@ -572,7 +572,7 @@ public class MainActivity extends AppCompatActivity {
                             Log.i(TAG, "Call declined");
 
                             Intent serviceIntent = new Intent(MainActivity.this, AmbulanceForegroundService.class);
-                            serviceIntent.setAction(AmbulanceForegroundService.Actions.CALL_DECLINED);
+                            serviceIntent.setAction(AmbulanceForegroundService.Actions.CALL_DECLINE);
                             startService(serviceIntent);
                         }
                     });
@@ -595,7 +595,7 @@ public class MainActivity extends AppCompatActivity {
                         Log.i(TAG, "Call ending");
 
                         Intent serviceIntent = new Intent(MainActivity.this, AmbulanceForegroundService.class);
-                        serviceIntent.setAction(AmbulanceForegroundService.Actions.CALL_FINISHED);
+                        serviceIntent.setAction(AmbulanceForegroundService.Actions.CALL_FINISH);
                         startService(serviceIntent);
 
                     }

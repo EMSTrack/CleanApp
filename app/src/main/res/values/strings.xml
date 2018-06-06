@@ -139,6 +139,9 @@
     <string name="couldNotSubscribe">Could not subscribe to %1$s</string>
     <string name="couldNotFindAmbulance">Could not find ambulance</string>
     <string name="couldNotParseCallData">Could not parse call data</string>
+    <string name="couldNotDeclineCall">Cannot decline call. Currently serving another call.</string>
+    <string name="willNotProcessNextCall">Will not process next call. Currently serving call.</string>
+    <string name="cannotSetCallOngoing">Can\'t set call as ongoing: already servicing call</string>
 
     <string-array name="spinner_list_item_array">
         <item>@string/dispatch</item>
