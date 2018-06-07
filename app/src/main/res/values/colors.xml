@@ -8,4 +8,5 @@
     <color name="common_action_bar_splitter">#000000</color>
     <color name="mapButtonOff">#8FFF</color>
     <color name="mapButtonOn">#8888</color>
+    <color name="colorRed">#FFFF0000</color>
 </resources>

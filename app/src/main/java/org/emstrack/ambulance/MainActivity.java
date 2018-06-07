@@ -6,10 +6,12 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.res.Configuration;
+import android.graphics.PorterDuff;
 import android.os.Bundle;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
@@ -39,8 +41,6 @@ import org.emstrack.models.Ambulance;
 import org.emstrack.models.AmbulancePermission;
 import org.emstrack.models.Call;
 import org.emstrack.mqtt.MqttProfileClient;
-
-import java.util.concurrent.Callable;
 
 /**
  * This is the main activity -- the default screen
@@ -106,6 +106,23 @@ public class MainActivity extends AppCompatActivity {
                     endCallDialog();
 
                 }
+                else if (action.equals(AmbulanceForegroundService.BroadcastActions.CALL_ONGOING)) {
+
+                    Log.i(TAG, "CALL_ONGOING");
+
+                    // change button color to red
+                    int myVectorColor = ContextCompat.getColor(MainActivity.this, R.color.colorRed);
+                    trackingIcon.setColorFilter(myVectorColor, PorterDuff.Mode.SRC_IN);
+
+                } else if (action.equals(AmbulanceForegroundService.BroadcastActions.CALL_FINISHED)) {
+
+                    Log.i(TAG, "CALL_FINISHED");
+
+                    // change button color to black
+                    int myVectorColor = ContextCompat.getColor(MainActivity.this, R.color.colorBlack);
+                    trackingIcon.setColorFilter(myVectorColor, PorterDuff.Mode.SRC_IN);
+
+                }
             }
         }
     };
@@ -143,7 +160,7 @@ public class MainActivity extends AppCompatActivity {
                 if (AmbulanceForegroundService.isUpdatingLocation()) {
 
                     // is handling call?
-                    Call currentCall = AmbulanceForegroundService.getCall();
+                    Call currentCall = AmbulanceForegroundService.getCurrentCall();
                     if (currentCall != null) {
 
                         Log.d(TAG, "In call: prompt user");
@@ -491,6 +508,8 @@ public class MainActivity extends AppCompatActivity {
         filter.addAction(AmbulanceForegroundService.BroadcastActions.CONNECTIVITY_CHANGE);
         filter.addAction(AmbulanceForegroundService.BroadcastActions.PROMPT_CALL_ACCEPT);
         filter.addAction(AmbulanceForegroundService.BroadcastActions.PROMPT_CALL_END);
+        filter.addAction(AmbulanceForegroundService.BroadcastActions.CALL_ONGOING);
+        filter.addAction(AmbulanceForegroundService.BroadcastActions.CALL_FINISHED);
         receiver = new LocationChangeBroadcastReceiver();
         getLocalBroadcastManager().registerReceiver(receiver, filter);
 
@@ -560,8 +579,8 @@ public class MainActivity extends AppCompatActivity {
 
         // Use the Builder class for convenient dialog construction
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setMessage(callDetails)
-                .setTitle("Accept Incoming Call?")
+        builder.setTitle("Accept Incoming Call?")
+                .setMessage(callDetails)
                 .setPositiveButton("Accept", new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int id) {
 
@@ -602,26 +621,36 @@ public class MainActivity extends AppCompatActivity {
 
         // Use the Builder class for convenient dialog construction
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Finish Current Call?")
-                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+        builder.setTitle("Currently handling call")
+                .setMessage("What do you want to do?")
+                .setNegativeButton("Continue", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
 
-                        Toast.makeText(MainActivity.this, "Call ending", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(MainActivity.this, "Continuing to handle call", Toast.LENGTH_SHORT).show();
 
-                        Log.i(TAG, "Call ending");
+                        Log.i(TAG, "Continuing with call");
+
+                    }
+                })
+                .setNeutralButton("Suspend", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+
+                        Toast.makeText(MainActivity.this, "Suspending call", Toast.LENGTH_SHORT).show();
+
+                        Log.i(TAG, "Suspending call");
+
+                    }
+                })
+                .setPositiveButton("End", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+
+                        Toast.makeText(MainActivity.this, "Ending call", Toast.LENGTH_SHORT).show();
+
+                        Log.i(TAG, "Ending call");
 
                         Intent serviceIntent = new Intent(MainActivity.this, AmbulanceForegroundService.class);
                         serviceIntent.setAction(AmbulanceForegroundService.Actions.CALL_FINISH);
                         startService(serviceIntent);
-
-                    }
-                })
-                .setNegativeButton("No", new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int id) {
-
-                        Toast.makeText(MainActivity.this, "Continuing call", Toast.LENGTH_SHORT).show();
-
-                        Log.i(TAG, "Call not finished");
 
                     }
                 });

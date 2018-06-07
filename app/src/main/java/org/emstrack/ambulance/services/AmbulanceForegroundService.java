@@ -176,6 +176,8 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         public final static String FAILURE = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastaction.FAILURE";
         public final static String PROMPT_CALL_ACCEPT = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastaction.PROMPT_CALL_ACCEPT";
         public final static String PROMPT_CALL_END = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastaction.PROMPT_CALL_END";
+        public static final String CALL_ONGOING = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastaction.CALL_ONGOING";
+        public static final String CALL_FINISHED = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastaction.CALL_FINISHED";
     }
 
     public static class ProfileClientException extends Exception {
@@ -741,7 +743,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
     /**
      * @return current call or nul
      */
-    public static Call getCall() {
+    public static Call getCurrentCall() {
         return getCall(currentCallId);
     }
 
@@ -2570,7 +2572,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                         public void messageArrived(String topic, MqttMessage message) {
 
                             // Keep subscription to calls to make sure we receive latest updates
-                            Log.i(TAG, "Retrieving statuses");
+                            Log.i(TAG, "Retrieving statuses, currentCallId = " + currentCallId);
 
                             try {
 
@@ -2591,15 +2593,12 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
                                 } else if (status.equalsIgnoreCase("\"ongoing\"")) {
 
-                                    if (currentCallId > 0) {
+                                    if (currentCallId <= 0) {
 
                                         // reply to ongoing
                                         setCallOngoing(callId, uuid);
 
                                     } else {
-
-                                        // subscribe to call data then prompt user to accept
-                                        subscribeToCall(callId, uuid);
 
                                         // TODO: Resume call instead of accept fresh
 
@@ -2640,7 +2639,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
         try {
 
-            Log.i(TAG, "Subscribing to call data");
+            Log.i(TAG, "Subscribing to call/" + callId);
 
             profileClient.subscribe(String.format("call/%1$s/data", callId),
                     2, new MqttProfileMessageCallback() {
@@ -2785,6 +2784,10 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         // remove call from the queu
         pendingCalls.remove(currentCallId);
         currentCallId = -1;
+
+        // broadcast CALL_FINISHED
+        Intent callFinishedIntent = new Intent(BroadcastActions.CALL_FINISHED);
+        sendBroadcastWithUUID(callFinishedIntent, uuid);
 
         if (processNext) {
 
@@ -2962,6 +2965,10 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         bundle.putString("UPDATE", payload);
         intent.putExtras(bundle);
         startService(intent);
+
+        // broadcast CALL_ONGOING
+        Intent callOngoingIntent = new Intent(BroadcastActions.CALL_ONGOING);
+        sendBroadcastWithUUID(callOngoingIntent, uuid);
 
     }
 
