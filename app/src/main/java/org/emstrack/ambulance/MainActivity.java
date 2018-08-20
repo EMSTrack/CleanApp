@@ -67,6 +67,25 @@ public class MainActivity extends AppCompatActivity {
     private LocationChangeBroadcastReceiver receiver;
     private int requestingToStreamLocation;
 
+    public class TrackingClickListener implements View.OnClickListener {
+
+        @Override
+        public void onClick(android.view.View v) {
+
+            if (AmbulanceForegroundService.isUpdatingLocation()) {
+
+                // stop updating location
+                stopUpdatingLocation();
+
+            } else {
+
+                // start updating location
+                startUpdatingLocation();
+
+            }
+        }
+    }
+
     public class LocationChangeBroadcastReceiver extends BroadcastReceiver {
 
         @Override
@@ -151,202 +170,6 @@ public class MainActivity extends AppCompatActivity {
         // initialize requestingToStreamLocation
         requestingToStreamLocation = MAX_NUMBER_OF_LOCATION_REQUESTS_ATTEMPTS;
 
-        // Tracking icon
-        trackingIcon = (ImageView) findViewById(R.id.trackingIcon);
-        trackingIcon.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-                if (AmbulanceForegroundService.isUpdatingLocation()) {
-
-                    // is handling call?
-                    Call currentCall = AmbulanceForegroundService.getCurrentCall();
-                    if (currentCall != null) {
-
-                        Log.d(TAG, "In call: prompt user");
-
-                        // currently handling call, prompt if want to end call
-                        endCallDialog();
-
-                    } else {
-
-                        Log.d(TAG, "No call: stop location updates");
-
-                        // stop updating location
-
-                        if (canWrite()) {
-
-                            // turn off tracking
-                            Intent intent = new Intent(MainActivity.this, AmbulanceForegroundService.class);
-                            intent.setAction(AmbulanceForegroundService.Actions.STOP_LOCATION_UPDATES);
-                            startService(intent);
-
-                            // reset requestingLocation to maximum number of attempts
-                            requestingToStreamLocation = MAX_NUMBER_OF_LOCATION_REQUESTS_ATTEMPTS;
-
-                            // Toast to warn user
-                            Toast.makeText(MainActivity.this, R.string.stopedStreamingLocation,
-                                    Toast.LENGTH_SHORT).show();
-
-                        }
-                    }
-
-                } else {
-
-                    // start updating location
-
-                    if (canWrite()) {
-
-                        // start updating location
-                        Intent intent = new Intent(MainActivity.this, AmbulanceForegroundService.class);
-                        intent.setAction(AmbulanceForegroundService.Actions.START_LOCATION_UPDATES);
-
-                        new OnServiceComplete(MainActivity.this,
-                                AmbulanceForegroundService.BroadcastActions.SUCCESS,
-                                AmbulanceForegroundService.BroadcastActions.FAILURE,
-                                intent) {
-
-                            @Override
-                            public void onSuccess(Bundle extras) {
-
-                                // reset requestingLocation to maximum number of attempts
-                                requestingToStreamLocation = MAX_NUMBER_OF_LOCATION_REQUESTS_ATTEMPTS;
-
-                                // Toast to warn user
-                                Toast.makeText(MainActivity.this, R.string.startedStreamingLocation,
-                                        Toast.LENGTH_SHORT).show();
-
-                            }
-
-                            @Override
-                            public void onFailure(Bundle extras) {
-
-                                if (--requestingToStreamLocation > 0) {
-
-                                    // call super to display error message
-                                    super.onFailure(extras);
-
-                                } else {
-
-                                    // Otherwise ask user if wants to force
-                                    AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(MainActivity.this);
-
-                                    alertDialogBuilder.setTitle(R.string.alert_warning_title);
-                                    alertDialogBuilder.setMessage(R.string.forceLocationUpdates);
-
-                                    // Cancel button
-                                    alertDialogBuilder.setNegativeButton(
-                                            R.string.alert_button_negative_text,
-                                            new DialogInterface.OnClickListener() {
-                                                @Override
-                                                public void onClick(DialogInterface dialog, int which) {
-                                                    // do nothing
-                                                }
-                                            });
-
-                                    // Create the OK button that logs user out
-                                    alertDialogBuilder.setPositiveButton(
-                                            R.string.alert_button_positive_text,
-                                            new DialogInterface.OnClickListener() {
-                                                @Override
-                                                public void onClick(DialogInterface dialog, int which) {
-
-                                                    Log.i(TAG, "ForceLocationUpdatesDialog: OK Button Clicked");
-
-                                                    // Toast to warn user
-                                                    Toast.makeText(MainActivity.this, R.string.forcingLocationUpdates,
-                                                            Toast.LENGTH_LONG).show();
-
-                                                    // Reset location_client
-                                                    String payload = "{\"location_client_id\":\"\"}";
-                                                    Intent intent = new Intent(MainActivity.this, AmbulanceForegroundService.class);
-                                                    intent.setAction(AmbulanceForegroundService.Actions.UPDATE_AMBULANCE);
-                                                    Bundle bundle = new Bundle();
-                                                    bundle.putString("UPDATE", payload);
-                                                    intent.putExtras(bundle);
-
-                                                    // What to do when service completes?
-                                                    new OnServicesComplete(MainActivity.this,
-                                                            new String[]{
-                                                                    AmbulanceForegroundService.BroadcastActions.SUCCESS,
-                                                                    AmbulanceForegroundService.BroadcastActions.AMBULANCE_UPDATE
-                                                            },
-                                                            new String[]{AmbulanceForegroundService.BroadcastActions.FAILURE},
-                                                            intent) {
-
-                                                        @Override
-                                                        public void onSuccess(Bundle extras) {
-                                                            Log.i(TAG, "onSuccess");
-
-                                                            // Toast to warn user
-                                                            Toast.makeText(MainActivity.this, R.string.succeededForcingLocationUpdates,
-                                                                    Toast.LENGTH_LONG).show();
-
-                                                        }
-
-                                                        @Override
-                                                        public void onReceive(Context context, Intent intent) {
-
-                                                            // Retrieve action
-                                                            String action = intent.getAction();
-
-                                                            // Intercept success
-                                                            if (action.equals(AmbulanceForegroundService.BroadcastActions.SUCCESS))
-                                                                // prevent propagation, still waiting for AMBULANCE_UPDATE
-                                                                return;
-
-                                                            // Intercept AMBULANCE_UPDATE
-                                                            if (action.equals(AmbulanceForegroundService.BroadcastActions.AMBULANCE_UPDATE))
-                                                                // Inject uuid into AMBULANCE_UPDATE
-                                                                intent.putExtra(OnServicesComplete.UUID, getUuid());
-
-                                                            // Call super
-                                                            super.onReceive(context, intent);
-                                                        }
-
-                                                    }
-                                                            .setFailureMessage(getString(R.string.couldNotForceLocationUpdate))
-                                                            .setAlert(new AlertSnackbar(MainActivity.this));
-
-                                                }
-
-                                            });
-
-                                    alertDialogBuilder.create().show();
-
-                                }
-
-                            }
-
-                        }
-                                .setFailureMessage(getResources().getString(R.string.anotherClientIsStreamingLocations))
-                                .setAlert(new AlertSnackbar(MainActivity.this));
-
-                    } else {
-
-                        // Toast to warn user
-                        Toast.makeText(MainActivity.this, R.string.cantModifyAmbulance, Toast.LENGTH_LONG).show();
-
-                    }
-
-
-
-                }
-            }
-        });
-
-        if (AmbulanceForegroundService.isUpdatingLocation())
-            trackingIcon.setAlpha(enabledAlpha);
-        else
-            trackingIcon.setAlpha(disabledAlpha);
-
-        // Online icon
-        onlineIcon = (ImageView) findViewById(R.id.onlineIcon);
-        if (AmbulanceForegroundService.isOnline())
-            onlineIcon.setAlpha(enabledAlpha);
-        else
-            onlineIcon.setAlpha(disabledAlpha);
-        
         // Set a Toolbar to replace the ActionBar.
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -383,7 +206,25 @@ public class MainActivity extends AppCompatActivity {
         tabLayout.getTabAt(1).setIcon(R.drawable.ic_hospital);
         tabLayout.getTabAt(2).setIcon(R.drawable.ic_globe);
 
+        // Online icon
+        onlineIcon = (ImageView) findViewById(R.id.onlineIcon);
+        if (AmbulanceForegroundService.isOnline())
+            onlineIcon.setAlpha(enabledAlpha);
+        else
+            onlineIcon.setAlpha(disabledAlpha);
 
+        // Tracking icon
+        trackingIcon = (ImageView) findViewById(R.id.trackingIcon);
+        trackingIcon.setOnClickListener(new TrackingClickListener());
+
+        if (AmbulanceForegroundService.isUpdatingLocation())
+            trackingIcon.setAlpha(enabledAlpha);
+        else {
+            trackingIcon.setAlpha(disabledAlpha);
+            // Automatically attempting to start streaming
+            Log.i(TAG, "Automatically attempting to start streaming");
+            startUpdatingLocation();
+        }
 
     }
 
@@ -656,6 +497,187 @@ public class MainActivity extends AppCompatActivity {
                 });
         // Create the AlertDialog object and return it
         builder.create().show();
+    }
+
+    void startUpdatingLocation() {
+
+        // start updating location
+
+        if (canWrite()) {
+
+            // Toast to warn user
+            Toast.makeText(MainActivity.this, R.string.requestToStreamLocation,
+                    Toast.LENGTH_SHORT).show();
+
+
+            // start updating location
+            Intent intent = new Intent(MainActivity.this, AmbulanceForegroundService.class);
+            intent.setAction(AmbulanceForegroundService.Actions.START_LOCATION_UPDATES);
+
+            new OnServiceComplete(MainActivity.this,
+                    AmbulanceForegroundService.BroadcastActions.SUCCESS,
+                    AmbulanceForegroundService.BroadcastActions.FAILURE,
+                    intent) {
+
+                @Override
+                public void onSuccess(Bundle extras) {
+
+                    // reset requestingLocation to maximum number of attempts
+                    requestingToStreamLocation = MAX_NUMBER_OF_LOCATION_REQUESTS_ATTEMPTS;
+
+                    // Toast to warn user
+                    Toast.makeText(MainActivity.this, R.string.startedStreamingLocation,
+                            Toast.LENGTH_SHORT).show();
+
+                }
+
+                @Override
+                public void onFailure(Bundle extras) {
+
+                    if (--requestingToStreamLocation > 0) {
+
+                        // call super to display error message
+                        super.onFailure(extras);
+
+                    } else {
+
+                        // Otherwise ask user if wants to force
+                        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(MainActivity.this);
+
+                        alertDialogBuilder.setTitle(R.string.alert_warning_title);
+                        alertDialogBuilder.setMessage(R.string.forceLocationUpdates);
+
+                        // Cancel button
+                        alertDialogBuilder.setNegativeButton(
+                                R.string.alert_button_negative_text,
+                                new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        // do nothing
+                                    }
+                                });
+
+                        // Create the OK button that logs user out
+                        alertDialogBuilder.setPositiveButton(
+                                R.string.alert_button_positive_text,
+                                new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+
+                                        Log.i(TAG, "ForceLocationUpdatesDialog: OK Button Clicked");
+
+                                        // Toast to warn user
+                                        Toast.makeText(MainActivity.this, R.string.forcingLocationUpdates,
+                                                Toast.LENGTH_LONG).show();
+
+                                        // Reset location_client
+                                        String payload = "{\"location_client_id\":\"\"}";
+                                        Intent intent = new Intent(MainActivity.this, AmbulanceForegroundService.class);
+                                        intent.setAction(AmbulanceForegroundService.Actions.UPDATE_AMBULANCE);
+                                        Bundle bundle = new Bundle();
+                                        bundle.putString("UPDATE", payload);
+                                        intent.putExtras(bundle);
+
+                                        // What to do when service completes?
+                                        new OnServicesComplete(MainActivity.this,
+                                                new String[]{
+                                                        AmbulanceForegroundService.BroadcastActions.SUCCESS,
+                                                        AmbulanceForegroundService.BroadcastActions.AMBULANCE_UPDATE
+                                                },
+                                                new String[]{AmbulanceForegroundService.BroadcastActions.FAILURE},
+                                                intent) {
+
+                                            @Override
+                                            public void onSuccess(Bundle extras) {
+                                                Log.i(TAG, "onSuccess");
+
+                                                // Toast to warn user
+                                                Toast.makeText(MainActivity.this, R.string.succeededForcingLocationUpdates,
+                                                        Toast.LENGTH_LONG).show();
+
+                                            }
+
+                                            @Override
+                                            public void onReceive(Context context, Intent intent) {
+
+                                                // Retrieve action
+                                                String action = intent.getAction();
+
+                                                // Intercept success
+                                                if (action.equals(AmbulanceForegroundService.BroadcastActions.SUCCESS))
+                                                    // prevent propagation, still waiting for AMBULANCE_UPDATE
+                                                    return;
+
+                                                // Intercept AMBULANCE_UPDATE
+                                                if (action.equals(AmbulanceForegroundService.BroadcastActions.AMBULANCE_UPDATE))
+                                                    // Inject uuid into AMBULANCE_UPDATE
+                                                    intent.putExtra(OnServicesComplete.UUID, getUuid());
+
+                                                // Call super
+                                                super.onReceive(context, intent);
+                                            }
+
+                                        }
+                                                .setFailureMessage(getString(R.string.couldNotForceLocationUpdate))
+                                                .setAlert(new AlertSnackbar(MainActivity.this));
+
+                                    }
+
+                                });
+
+                        alertDialogBuilder.create().show();
+
+                    }
+
+                }
+
+            }
+                    .setFailureMessage(getResources().getString(R.string.anotherClientIsStreamingLocations))
+                    .setAlert(new AlertSnackbar(MainActivity.this));
+
+        } else {
+
+            // Toast to warn user
+            Toast.makeText(MainActivity.this, R.string.cantModifyAmbulance, Toast.LENGTH_LONG).show();
+
+        }
+
+    }
+
+    void stopUpdatingLocation() {
+
+        // is handling call?
+        Call currentCall = AmbulanceForegroundService.getCurrentCall();
+        if (currentCall != null) {
+
+            Log.d(TAG, "In call: prompt user");
+
+            // currently handling call, prompt if want to end call
+            endCallDialog();
+
+        } else {
+
+            Log.d(TAG, "No call: stop location updates");
+
+            // stop updating location
+
+            if (canWrite()) {
+
+                // turn off tracking
+                Intent intent = new Intent(MainActivity.this, AmbulanceForegroundService.class);
+                intent.setAction(AmbulanceForegroundService.Actions.STOP_LOCATION_UPDATES);
+                startService(intent);
+
+                // reset requestingLocation to maximum number of attempts
+                requestingToStreamLocation = MAX_NUMBER_OF_LOCATION_REQUESTS_ATTEMPTS;
+
+                // Toast to warn user
+                Toast.makeText(MainActivity.this, R.string.stopedStreamingLocation,
+                        Toast.LENGTH_SHORT).show();
+
+            }
+        }
+
     }
 
 }

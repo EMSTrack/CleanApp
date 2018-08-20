@@ -142,6 +142,7 @@
     <string name="couldNotDeclineCall">Cannot decline call. Currently serving another call.</string>
     <string name="willNotProcessNextCall">Will not process next call. Currently serving call.</string>
     <string name="cannotSetCallOngoing">Can\'t set call as ongoing: already servicing call</string>
+    <string name="requestToStreamLocation">Requesting to stream updates...</string>
 
     <string-array name="spinner_list_item_array">
         <item>@string/dispatch</item>
