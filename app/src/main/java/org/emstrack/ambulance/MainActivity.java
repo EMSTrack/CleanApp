@@ -659,26 +659,58 @@ public class MainActivity extends AppCompatActivity {
 
         } else {
 
-            Log.d(TAG, "No call: stop location updates");
+            Log.d(TAG, "Not in call: prompt user");
 
-            // stop updating location
+            endUpdateDialog();
 
-            if (canWrite()) {
-
-                // turn off tracking
-                Intent intent = new Intent(MainActivity.this, AmbulanceForegroundService.class);
-                intent.setAction(AmbulanceForegroundService.Actions.STOP_LOCATION_UPDATES);
-                startService(intent);
-
-                // reset requestingLocation to maximum number of attempts
-                requestingToStreamLocation = MAX_NUMBER_OF_LOCATION_REQUESTS_ATTEMPTS;
-
-                // Toast to warn user
-                Toast.makeText(MainActivity.this, R.string.stopedStreamingLocation,
-                        Toast.LENGTH_SHORT).show();
-
-            }
         }
+
+    }
+
+    private void endUpdateDialog() {
+
+        Log.i(TAG, "Creating end update dialog");
+
+        // Use the Builder class for convenient dialog construction
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Stop server updates")
+                .setMessage("Stoping updates will prevent you from relaying your GPS position, receiving calls or otherwise updating the ambulance status on the server. Do you want to stop server updates?")
+                .setNegativeButton("No", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+
+                        Log.i(TAG, "Continue updating");
+
+                    }
+                })
+                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+
+                        Toast.makeText(MainActivity.this, "Stopping updates", Toast.LENGTH_SHORT).show();
+
+                        Log.d(TAG, "Stop location updates");
+
+                        // stop updating location
+
+                        if (canWrite()) {
+
+                            // turn off tracking
+                            Intent intent = new Intent(MainActivity.this, AmbulanceForegroundService.class);
+                            intent.setAction(AmbulanceForegroundService.Actions.STOP_LOCATION_UPDATES);
+                            startService(intent);
+
+                            // reset requestingLocation to maximum number of attempts
+                            requestingToStreamLocation = MAX_NUMBER_OF_LOCATION_REQUESTS_ATTEMPTS;
+
+                            // Toast to warn user
+                            Toast.makeText(MainActivity.this, R.string.stopedStreamingLocation,
+                                    Toast.LENGTH_SHORT).show();
+
+                        }
+
+                    }
+                });
+        // Create the AlertDialog object and return it
+        builder.create().show();
 
     }
 
