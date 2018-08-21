@@ -64,7 +64,7 @@ public class MainActivity extends AppCompatActivity {
     private ImageButton panicButton;
     private ImageView onlineIcon;
     private ImageView trackingIcon;
-    private LocationChangeBroadcastReceiver receiver;
+    private MainActivityBroadcastReceiver receiver;
     private int requestingToStreamLocation;
 
     public class TrackingClickListener implements View.OnClickListener {
@@ -86,7 +86,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public class LocationChangeBroadcastReceiver extends BroadcastReceiver {
+    public class MainActivityBroadcastReceiver extends BroadcastReceiver {
 
         @Override
         public void onReceive(Context context, Intent intent ) {
@@ -156,7 +156,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         // Identifier text
-        headerText = (TextView) findViewById(R.id.headerText);
+        headerText = (TextView) findViewById(R.id.identifierText);
 
         // Panic button
         panicButton = (ImageButton) findViewById(R.id.panicButton);
@@ -222,7 +222,7 @@ public class MainActivity extends AppCompatActivity {
         else {
             trackingIcon.setAlpha(disabledAlpha);
             // Automatically attempting to start streaming
-            Log.i(TAG, "Automatically attempting to start streaming");
+            Log.i(TAG, "Attempting to start streaming");
             startUpdatingLocation();
         }
 
@@ -254,6 +254,7 @@ public class MainActivity extends AppCompatActivity {
         } catch (AmbulanceForegroundService.ProfileClientException e) {
 
             /* no need to do anything */
+            Log.e(TAG, "Failed to get ambulance read/write permissions.");
 
         }
 
@@ -331,6 +332,7 @@ public class MainActivity extends AppCompatActivity {
     public void onResume() {
         super.onResume();
 
+        // Update location icon
         if (AmbulanceForegroundService.isUpdatingLocation())
             trackingIcon.setAlpha(enabledAlpha);
         else
@@ -351,7 +353,7 @@ public class MainActivity extends AppCompatActivity {
         filter.addAction(AmbulanceForegroundService.BroadcastActions.PROMPT_CALL_END);
         filter.addAction(AmbulanceForegroundService.BroadcastActions.CALL_ONGOING);
         filter.addAction(AmbulanceForegroundService.BroadcastActions.CALL_FINISHED);
-        receiver = new LocationChangeBroadcastReceiver();
+        receiver = new MainActivityBroadcastReceiver();
         getLocalBroadcastManager().registerReceiver(receiver, filter);
 
     }

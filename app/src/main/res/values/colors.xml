@@ -9,4 +9,18 @@
     <color name="mapButtonOff">#8FFF</color>
     <color name="mapButtonOn">#8888</color>
     <color name="colorRed">#FFFF0000</color>
+    <color name="colorAvailable">#4CAF50</color>
+
+    <color name="statusBlue">#FF33B5E5</color>
+    <color name="statusPurple">#FFAA66CC</color>
+    <color name="statusGreen">#FF99CC00</color>
+    <color name="statusOrange">#FFFFBB33</color>
+    <color name="statusRed">#FFFF4444</color>
+    <color name="statusDarkBlue">#FF0099CC</color>
+    <color name="statusDarkPurple">#FF9933CC</color>
+    <color name="statusDarkGreen">#FF669900</color>
+    <color name="statusDarkOrange">#FFFF8800</color>
+    <color name="statusDarkRed">#FFCC0000</color>
+
+
 </resources>

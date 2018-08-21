@@ -61,7 +61,7 @@
                     app:srcCompat="@drawable/ic_shipping_fast" />
 
                 <TextView
-                    android:id="@+id/headerText"
+                    android:id="@+id/identifierText"
                     android:layout_width="fill_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginRight="10dp"
