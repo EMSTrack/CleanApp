@@ -2,35 +2,30 @@ package org.emstrack.ambulance.fragments;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.LocalBroadcastManager;
-import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.CompoundButton;
 import android.widget.Spinner;
 import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import org.emstrack.ambulance.dialogs.AlertSnackbar;
+import org.emstrack.ambulance.adapters.StatusSpinnerAdapter;
 import org.emstrack.ambulance.services.AmbulanceForegroundService;
 import org.emstrack.ambulance.MainActivity;
 import org.emstrack.ambulance.R;
-import org.emstrack.ambulance.services.OnServiceComplete;
-import org.emstrack.ambulance.services.OnServicesComplete;
 import org.emstrack.models.Ambulance;
-import org.emstrack.models.AmbulancePermission;
 import org.emstrack.mqtt.MqttProfileClient;
 
+import java.io.StringBufferInputStream;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -45,8 +40,6 @@ public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSel
     private static final String TAG = AmbulanceFragment.class.getSimpleName();;
 
     private View view;
-
-    private TextView identifierText;
 
     private Spinner statusSpinner;
 
@@ -65,6 +58,7 @@ public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSel
 
     private Map<String,String> ambulanceStatus;
     private List<String> ambulanceStatusList;
+    private ArrayList<Integer> ambulanceStatusColorList;
     private Map<String,String> ambulanceCapabilities;
     private List<String> ambulanceCapabilityList;
 
@@ -100,9 +94,14 @@ public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSel
             final MqttProfileClient profileClient = AmbulanceForegroundService.getProfileClient();
 
             ambulanceStatus = profileClient.getSettings().getAmbulanceStatus();
-
             ambulanceStatusList = new ArrayList<String>(ambulanceStatus.values());
             Collections.sort(ambulanceStatusList);
+
+            int colors [] = getResources().getIntArray(R.array.statusColors);
+            ambulanceStatusColorList = new ArrayList<Integer>();
+            for (int i = 0; i < ambulanceStatusList.size(); i++) {
+                ambulanceStatusColorList.add(colors[i]);
+            }
 
             ambulanceCapabilities = profileClient.getSettings().getAmbulanceCapability();
             ambulanceCapabilityList = new ArrayList<String>(ambulanceCapabilities.values());
@@ -113,9 +112,6 @@ public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSel
             ambulanceStatusList = new ArrayList<String>();
 
         }
-
-        // Retrieve identifier
-        identifierText = (TextView) view.findViewById(R.id.headerText);
 
         // Retrieve location
         latitudeText = (TextView) view.findViewById(R.id.latitudeText);
@@ -132,11 +128,32 @@ public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSel
         statusSpinner = (Spinner) view.findViewById(R.id.statusSpinner);
         // Create an ArrayAdapter using the string array and a default spinner layout
         ArrayAdapter<String> statusSpinnerAdapter =
-                new ArrayAdapter<>(getContext(),
+                new ArrayAdapter<String>(getContext(),
                         R.layout.status_spinner_item,
-                        ambulanceStatusList);
-        statusSpinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                        ambulanceStatusList) {
+
+                    @Override
+                    public View getView(int pos, View view, ViewGroup parent)
+                    {
+                        Context context = AmbulanceFragment.this.getContext();
+                        LayoutInflater inflater = LayoutInflater.from(context);
+                        view = inflater.inflate(R.layout.status_spinner_dropdown_item, null);
+                        TextView textView = (TextView) view.findViewById(R.id.statusSpinnerDropdownItemText);
+                        textView.setBackgroundColor(ambulanceStatusColorList.get(pos));
+                        textView.setTextSize(context.getResources().getDimension(R.dimen.statusTextSize));
+                        textView.setText(ambulanceStatusList.get(pos));
+                        return view;
+                    }
+
+                    @Override
+                    public View getDropDownView(int pos, View view, ViewGroup parent) {
+                        return getView(pos, view, parent);
+                    }
+
+                };
+        //statusSpinnerAdapter.setDropDownViewResource(R.layout.status_spinner_dropdown_item);
         statusSpinner.setAdapter(statusSpinnerAdapter);
+        // statusSpinner.setAdapter(new StatusSpinnerAdapter(getContext(), ambulanceStatusList, ambulanceStatusColorList));
 
         // Update ambulance
         Ambulance ambulance = AmbulanceForegroundService.getAmbulance();
@@ -212,7 +229,6 @@ public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSel
         }
 
         // set identifier
-        identifierText.setText(ambulance.getIdentifier());
         ((MainActivity) getActivity()).setHeader(ambulance.getIdentifier());
 
         // set location
