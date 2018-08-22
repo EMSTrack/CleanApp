@@ -18,7 +18,6 @@ import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import org.emstrack.ambulance.adapters.StatusSpinnerAdapter;
 import org.emstrack.ambulance.services.AmbulanceForegroundService;
 import org.emstrack.ambulance.MainActivity;
 import org.emstrack.ambulance.R;
@@ -153,7 +152,6 @@ public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSel
                 };
         //statusSpinnerAdapter.setDropDownViewResource(R.layout.status_spinner_dropdown_item);
         statusSpinner.setAdapter(statusSpinnerAdapter);
-        // statusSpinner.setAdapter(new StatusSpinnerAdapter(getContext(), ambulanceStatusList, ambulanceStatusColorList));
 
         // Update ambulance
         Ambulance ambulance = AmbulanceForegroundService.getAmbulance();
