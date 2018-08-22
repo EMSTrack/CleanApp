@@ -3042,16 +3042,26 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
                 Log.i(TAG, "User has entered hospital");
 
-                // create intent to prompt user to end call
-                Intent callPromptIntent = new Intent(BroadcastActions.PROMPT_CALL_END);
-                callPromptIntent.putExtra("CALL_ID", currentCallId);
-                sendBroadcastWithUUID(callPromptIntent, uuid);
+                String status = "AH";
+
+                String payload = String.format("{\"status\":\"%1$s\"}", status);
+                Intent intent = new Intent(this, AmbulanceForegroundService.class);
+                intent.setAction(Actions.UPDATE_AMBULANCE);
+                Bundle bundle = new Bundle();
+                bundle.putString("UPDATE", payload);
+                intent.putExtras(bundle);
+                startService(intent);
 
             } else {
 
                 // user is leaving the hospital
 
                 Log.i(TAG, "User is leaving hospital");
+
+                // create intent to prompt user to end call
+                Intent callPromptIntent = new Intent(BroadcastActions.PROMPT_CALL_END);
+                callPromptIntent.putExtra("CALL_ID", currentCallId);
+                sendBroadcastWithUUID(callPromptIntent, uuid);
 
             }
 
