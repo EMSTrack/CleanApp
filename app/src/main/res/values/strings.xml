@@ -2,7 +2,7 @@
 <resources>
 
     <string name="app_name">EMSTrack</string>
-    <string name="app_version">v0_3_1</string>
+    <string name="app_version">v0_3_2</string>
     <string name="client_name">_AndroidClient_</string>
 
     <string name="drawer_open">Open navigation drawer</string>
