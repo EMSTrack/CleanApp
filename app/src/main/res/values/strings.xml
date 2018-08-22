@@ -96,7 +96,7 @@
     <string name="cantModifyAmbulance">You do not have permission to modify this ambulance.</string>
     <string name="anotherClientIsStreamingLocations">Another client is currently streaming locations.</string>
     <string name="startedStreamingLocation">Location streaming started.</string>
-    <string name="forceLocationUpdates">Force location updates?</string>
+    <string name="forceLocationUpdates">Could not start sending updates to server. This probably means another user is logged in on the same ambulance. Would you like to force sending updates? This will disconnect the other user from the current ambulance.</string>
     <string name="forcingLocationUpdates">Forcing location updates...</string>
     <string name="anotherClientRequestedLocations">Another client requested to stream locations.</string>
     <string name="requestingToStreamLocation">Requesting to stream location.</string>
@@ -109,7 +109,7 @@
     <string name="inadequateLocationSettings">Location settings are inadequate, and cannot be fixed here.</string>
     <string name="failedToStartLocationUpdates">Failed to start location updates.</string>
     <string name="anotherClientReporting">Another client is currently reporting locations.</string>
-    <string name="succeededForcingLocationUpdates">Success! Toggle switch one more time to start tracking.</string>
+    <string name="succeededForcingLocationUpdates">Success! Will attempt to start sending updates.</string>
     <string name="couldNotForceLocationUpdate">Could not force updating location.</string>
     <string name="serverIsNotOnlineMessages">Server is not online, %1$d message(s) in the buffer.</string>
     <string name="attemptingToReconnect">Attempting to reconnect to server.</string>
