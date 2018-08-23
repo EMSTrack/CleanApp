@@ -22,9 +22,10 @@ import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import org.emstrack.ambulance.adapters.FragmentPager;
@@ -40,7 +41,11 @@ import org.emstrack.ambulance.services.OnServicesComplete;
 import org.emstrack.models.Ambulance;
 import org.emstrack.models.AmbulancePermission;
 import org.emstrack.models.Call;
+import org.emstrack.models.Profile;
 import org.emstrack.mqtt.MqttProfileClient;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * This is the main activity -- the default screen
@@ -51,16 +56,18 @@ public class MainActivity extends AppCompatActivity {
 
     private static final float enabledAlpha = 1.0f;
     private static final float disabledAlpha = 0.25f;
-    private static final int MAX_NUMBER_OF_LOCATION_REQUESTS_ATTEMPTS = 2;
 
     private ViewPager viewPager;
     private FragmentPager adapter;
+
+    private Button ambulanceButton;
+    List<AmbulancePermission> ambulancePermissions;
+    ArrayAdapter<String> ambulanceListAdapter;
 
     private DrawerLayout mDrawer;
     private NavigationView nvDrawer;
     private ActionBarDrawerToggle drawerToggle;
     private Toolbar toolbar;
-    private TextView headerText;
     private ImageButton panicButton;
     private ImageView onlineIcon;
     private ImageView trackingIcon;
@@ -69,7 +76,7 @@ public class MainActivity extends AppCompatActivity {
     public class TrackingClickListener implements View.OnClickListener {
 
         @Override
-        public void onClick(android.view.View v) {
+        public void onClick(View v) {
 
             if (AmbulanceForegroundService.isUpdatingLocation()) {
 
@@ -82,6 +89,57 @@ public class MainActivity extends AppCompatActivity {
                 startUpdatingLocation();
 
             }
+        }
+    }
+
+    public class AmbulanceButtonClickListener implements View.OnClickListener {
+
+        @Override
+        public void onClick(View v) {
+
+            new AlertDialog.Builder(
+                    MainActivity.this)
+                    .setTitle(R.string.selectAmbulance)
+                    .setAdapter(ambulanceListAdapter,
+                            new DialogInterface.OnClickListener() {
+
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+
+                                    AmbulancePermission selectedAmbulance = ambulancePermissions.get(which);
+                                    Log.d(TAG, "Selected ambulance " + selectedAmbulance.getAmbulanceIdentifier());
+
+                                    // Any ambulance currently selected?
+                                    final Ambulance ambulance = AmbulanceForegroundService.getAmbulance();
+
+                                    // Warn if current ambulance
+                                    if (ambulance != null) {
+
+                                        Log.d(TAG, "Current ambulance " + ambulance.getIdentifier());
+                                        Log.d(TAG, "Requesting location updates? " +
+                                                (AmbulanceForegroundService.isUpdatingLocation() ? "TRUE" : "FALSE"));
+
+                                        // If same ambulance, just return
+                                        if (ambulance.getId() == selectedAmbulance.getAmbulanceId())
+                                            return;
+
+                                        if (AmbulanceForegroundService.isUpdatingLocation()) {
+
+                                            // confirm first
+                                            switchAmbulanceDialog(selectedAmbulance);
+                                            return;
+                                        }
+
+                                    }
+
+                                    // otherwise go ahead!
+                                    retrieveAmbulance(selectedAmbulance);
+                                    dialog.dismiss();
+
+                                }
+                            })
+                    .create()
+                    .show();
         }
     }
 
@@ -154,8 +212,8 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // Identifier text
-        headerText = (TextView) findViewById(R.id.identifierText);
+        // Ambulance spinner
+        ambulanceButton = (Button) findViewById(R.id.ambulanceButton);
 
         // Panic button
         panicButton = (ImageButton) findViewById(R.id.panicButton);
@@ -190,8 +248,8 @@ public class MainActivity extends AppCompatActivity {
 
         // Setup Adapter for tabLayout
         adapter = new FragmentPager(getSupportFragmentManager(),
-                new Fragment[] {new AmbulanceFragment(), new HospitalFragment(), new MapFragment()},
-                new CharSequence[] {"Ambulance", "Hospitals", "Map"});
+                new Fragment[] {new AmbulanceFragment(), new MapFragment(), new HospitalFragment()},
+                new CharSequence[] {"Ambulance", "Map", "Hospitals"});
         viewPager.setAdapter(adapter);
 
         //set up TabLayout Structure
@@ -199,8 +257,8 @@ public class MainActivity extends AppCompatActivity {
         tabLayout.setTabGravity(TabLayout.GRAVITY_FILL);
         tabLayout.setupWithViewPager(viewPager);
         tabLayout.getTabAt(0).setIcon(R.drawable.ic_ambulance);
-        tabLayout.getTabAt(1).setIcon(R.drawable.ic_hospital);
-        tabLayout.getTabAt(2).setIcon(R.drawable.ic_globe);
+        tabLayout.getTabAt(1).setIcon(R.drawable.ic_globe);
+        tabLayout.getTabAt(2).setIcon(R.drawable.ic_hospital);
 
         // Online icon
         onlineIcon = (ImageView) findViewById(R.id.onlineIcon);
@@ -213,97 +271,54 @@ public class MainActivity extends AppCompatActivity {
         trackingIcon = (ImageView) findViewById(R.id.trackingIcon);
         trackingIcon.setOnClickListener(new TrackingClickListener());
 
-        if (AmbulanceForegroundService.isUpdatingLocation())
+        if (AmbulanceForegroundService.isUpdatingLocation()) {
             trackingIcon.setAlpha(enabledAlpha);
-        else {
+        } else {
             trackingIcon.setAlpha(disabledAlpha);
-            // Automatically attempting to start streaming
-            Log.i(TAG, "Attempting to start streaming");
-            startUpdatingLocation();
         }
 
-    }
-
-    public boolean canWrite() {
-
-        Ambulance ambulance = AmbulanceForegroundService.getAmbulance();
-
-        // has ambulance?
-        if (ambulance == null)
-            return false;
-
-        // can write?
-        boolean canWrite = false;
-
+        // Set up ambulance spinner
         try {
 
-            final MqttProfileClient profileClient = AmbulanceForegroundService.getProfileClient();
-            for (AmbulancePermission permission : profileClient.getProfile().getAmbulances()) {
-                if (permission.getAmbulanceId() == ambulance.getId()) {
-                    if (permission.isCanWrite()) {
-                        canWrite = true;
-                    }
-                    break;
-                }
+            ambulancePermissions = new ArrayList<>();
+            MqttProfileClient profileClient = AmbulanceForegroundService.getProfileClient();
+            Profile profile = profileClient.getProfile();
+            if (profile != null)
+                ambulancePermissions = profile.getAmbulances();
+
+            // Creates string arraylist of ambulance names
+            ArrayList<String> ambulanceList = new ArrayList<>();
+            for (AmbulancePermission ambulancePermission : ambulancePermissions)
+                ambulanceList.add(ambulancePermission.getAmbulanceIdentifier());
+
+            // Create the adapter
+            ambulanceListAdapter = new ArrayAdapter<>(this,
+                    android.R.layout.simple_spinner_dropdown_item, ambulanceList);
+            ambulanceListAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+
+            // Set the spinner's adapter
+            ambulanceButton.setOnClickListener(new AmbulanceButtonClickListener());
+
+            // Any ambulance currently selected?
+            Ambulance ambulance = AmbulanceForegroundService.getAmbulance();
+            if (ambulance != null) {
+
+                // Set button
+                setAmbulanceButtonText(ambulance.getIdentifier());
+
+                // Automatically attempting to start streaming
+                Log.i(TAG, "Attempting to start streaming");
+                startUpdatingLocation();
+
+            } else {
+
+                // Invoke ambulance selection
+                ambulanceButton.performClick();
+
             }
 
-        } catch (AmbulanceForegroundService.ProfileClientException e) {
-
-            /* no need to do anything */
-            Log.e(TAG, "Failed to get ambulance read/write permissions.");
-
-        }
-
-        return canWrite;
-
-    }
-
-    /**
-     * Set header text
-     *
-     * @param header the header
-     */
-    public void setHeader(String header) {
-        headerText.setText(header);
-    }
-
-    // Hamburger Menu setup
-    private ActionBarDrawerToggle setupDrawerToggle() {
-        return new ActionBarDrawerToggle(this, mDrawer, toolbar, R.string.drawer_open, R.string.drawer_close);
-    }
-
-    // Hamburger Menu Listener
-    private void setupDrawerContent(NavigationView navigationView) {
-        navigationView.setNavigationItemSelectedListener(
-                new NavigationView.OnNavigationItemSelectedListener() {
-                    @Override
-                    public boolean onNavigationItemSelected(MenuItem menuItem) {
-                        selectDrawerItem(menuItem);
-                        return true;
-                    }
-                });
-    }
-
-    // Start selected activity in Hamburger
-    public void selectDrawerItem(MenuItem menuItem) {
-
-        // Close drawer
-        mDrawer.closeDrawers();
-
-        // Get menuitem
-        int itemId = menuItem.getItemId();
-
-        // Actions
-        if (itemId == R.id.logout) {
-
-            LogoutDialog.newInstance(this).show();
-
-        } else if (itemId == R.id.about) {
-
-            AboutDialog.newInstance(this).show();
-
-        } else if (itemId == R.id.settings) {
-
+        } catch (AmbulanceForegroundService.ProfileClientException e ){
+            Log.e(TAG, "Could not retrieve list of ambulances.");
         }
 
     }
@@ -362,6 +377,122 @@ public class MainActivity extends AppCompatActivity {
         if (receiver != null) {
             getLocalBroadcastManager().unregisterReceiver(receiver);
             receiver = null;
+        }
+
+    }
+
+    public void retrieveAmbulance(final AmbulancePermission selectedAmbulance) {
+
+        // Retrieve ambulance
+        Intent ambulanceIntent = new Intent(this, AmbulanceForegroundService.class);
+        ambulanceIntent.setAction(AmbulanceForegroundService.Actions.GET_AMBULANCE);
+        ambulanceIntent.putExtra("AMBULANCE_ID", selectedAmbulance.getAmbulanceId());
+
+        // What to do when GET_AMBULANCE service completes?
+        new OnServiceComplete(this,
+                AmbulanceForegroundService.BroadcastActions.SUCCESS,
+                AmbulanceForegroundService.BroadcastActions.FAILURE,
+                ambulanceIntent) {
+
+            @Override
+            public void onSuccess(Bundle extras) {
+
+                // Start MainActivity
+                setAmbulanceButtonText(selectedAmbulance.getAmbulanceIdentifier());
+
+                // Start updating
+                startUpdatingLocation();
+
+            }
+
+        }
+                .setFailureMessage(getResources().getString(R.string.couldNotRetrieveAmbulance,
+                        selectedAmbulance.getAmbulanceIdentifier()))
+                .setAlert(new AlertSnackbar(this));
+
+    }
+
+    public boolean canWrite() {
+
+        Ambulance ambulance = AmbulanceForegroundService.getAmbulance();
+
+        // has ambulance?
+        if (ambulance == null)
+            return false;
+
+        // can write?
+        boolean canWrite = false;
+
+        try {
+
+            final MqttProfileClient profileClient = AmbulanceForegroundService.getProfileClient();
+            for (AmbulancePermission permission : profileClient.getProfile().getAmbulances()) {
+                if (permission.getAmbulanceId() == ambulance.getId()) {
+                    if (permission.isCanWrite()) {
+                        canWrite = true;
+                    }
+                    break;
+                }
+            }
+
+        } catch (AmbulanceForegroundService.ProfileClientException e) {
+
+            /* no need to do anything */
+            Log.e(TAG, "Failed to get ambulance read/write permissions.");
+
+        }
+
+        return canWrite;
+
+    }
+
+    /**
+     * Set ambulance text
+     *
+     * @param ambulance the ambulance
+     */
+    public void setAmbulanceButtonText(String ambulance) {
+        // Set ambulance selection button
+        ambulanceButton.setText(ambulance);
+    }
+
+    // Hamburger Menu setup
+    private ActionBarDrawerToggle setupDrawerToggle() {
+        return new ActionBarDrawerToggle(this, mDrawer, toolbar, R.string.drawer_open, R.string.drawer_close);
+    }
+
+    // Hamburger Menu Listener
+    private void setupDrawerContent(NavigationView navigationView) {
+        navigationView.setNavigationItemSelectedListener(
+                new NavigationView.OnNavigationItemSelectedListener() {
+                    @Override
+                    public boolean onNavigationItemSelected(MenuItem menuItem) {
+                        selectDrawerItem(menuItem);
+                        return true;
+                    }
+                });
+    }
+
+    // Start selected activity in Hamburger
+    public void selectDrawerItem(MenuItem menuItem) {
+
+        // Close drawer
+        mDrawer.closeDrawers();
+
+        // Get menuitem
+        int itemId = menuItem.getItemId();
+
+        // Actions
+        if (itemId == R.id.logout) {
+
+            LogoutDialog.newInstance(this).show();
+
+        } else if (itemId == R.id.about) {
+
+            AboutDialog.newInstance(this).show();
+
+        } else if (itemId == R.id.settings) {
+
         }
 
     }
@@ -654,6 +785,23 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    void doStopUpdatingLocation() {
+
+        if (canWrite()) {
+
+            // turn off tracking
+            Intent intent = new Intent(MainActivity.this, AmbulanceForegroundService.class);
+            intent.setAction(AmbulanceForegroundService.Actions.STOP_LOCATION_UPDATES);
+            startService(intent);
+
+            // Toast to warn user
+            Toast.makeText(MainActivity.this, R.string.stopedStreamingLocation,
+                    Toast.LENGTH_SHORT).show();
+
+        }
+
+    }
+
     private void endUpdateDialog() {
 
         Log.i(TAG, "Creating end update dialog");
@@ -677,24 +825,52 @@ public class MainActivity extends AppCompatActivity {
                         Log.d(TAG, "Stop location updates");
 
                         // stop updating location
-
-                        if (canWrite()) {
-
-                            // turn off tracking
-                            Intent intent = new Intent(MainActivity.this, AmbulanceForegroundService.class);
-                            intent.setAction(AmbulanceForegroundService.Actions.STOP_LOCATION_UPDATES);
-                            startService(intent);
-
-                            // Toast to warn user
-                            Toast.makeText(MainActivity.this, R.string.stopedStreamingLocation,
-                                    Toast.LENGTH_SHORT).show();
-
-                        }
+                        doStopUpdatingLocation();
 
                     }
                 });
         // Create the AlertDialog object and return it
         builder.create().show();
+
+    }
+
+    private void switchAmbulanceDialog(final AmbulancePermission newAmbulance) {
+
+        Log.i(TAG, "Creating switch ambulance dialog");
+
+        // Use the Builder class for convenient dialog construction
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Switch ambulance")
+                .setMessage(String.format("Do you want to swtich to ambulance %1$s?", newAmbulance.getAmbulanceIdentifier()))
+                .setNegativeButton("No", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+
+                        Log.i(TAG, "Continue with same ambulance");
+
+                    }
+                })
+                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+
+                        Log.d(TAG, String.format("Switching to ambulance %1$s", newAmbulance.getAmbulanceIdentifier()));
+
+                        // stop updating first
+                        doStopUpdatingLocation();
+
+                        // then retrieve new ambulance
+                        retrieveAmbulance(newAmbulance);
+
+                    }
+                });
+        // Create the AlertDialog object and return it
+        builder.create().show();
+
+    }
+
+    @Override
+    public void onBackPressed() {
+
+        LogoutDialog.newInstance(this).show();
 
     }
 

@@ -24,7 +24,6 @@ import org.emstrack.ambulance.R;
 import org.emstrack.models.Ambulance;
 import org.emstrack.mqtt.MqttProfileClient;
 
-import java.io.StringBufferInputStream;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -62,8 +61,6 @@ public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSel
     private List<String> ambulanceCapabilityList;
 
     AmbulancesUpdateBroadcastReceiver receiver;
-    private int requestingToStreamLocation;
-    private final int MAX_NUMBER_OF_LOCATION_REQUESTS_ATTEMPTS = 2;
 
     public class AmbulancesUpdateBroadcastReceiver extends BroadcastReceiver {
 
@@ -159,17 +156,6 @@ public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSel
 
             update(ambulance);
 
-            // TODO: REMOVE, JUST FOR TESTING
-            // Add geofence
-//            Log.i(TAG, "Adding geofence");
-//            Intent serviceIntent = new Intent(getActivity(),
-//                    AmbulanceForegroundService.class);
-//            serviceIntent.setAction(AmbulanceForegroundService.Actions.GEOFENCE_START);
-//            serviceIntent.putExtra("LATITUDE", (float) 32.881150);
-//            serviceIntent.putExtra("LONGITUDE", (float) -117.238200);
-//            serviceIntent.putExtra("RADIUS", 50.f);
-//            getActivity().startService(serviceIntent);
-
         }
 
         // Process change of status
@@ -227,7 +213,7 @@ public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSel
         }
 
         // set identifier
-        ((MainActivity) getActivity()).setHeader(ambulance.getIdentifier());
+        ((MainActivity) getActivity()).setAmbulanceButtonText(ambulance.getIdentifier());
 
         // set location
         latitudeText.setText(String.format("%.6f", ambulance.getLocation().getLatitude()));
@@ -288,21 +274,15 @@ public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSel
 
         Log.i(TAG, "Processing status spinner update.");
 
-        if (!((MainActivity) getActivity()).canWrite()) {
+        Ambulance ambulance = AmbulanceForegroundService.getAmbulance();
+        if ((ambulance != null) && !((MainActivity) getActivity()).canWrite()) {
 
             // Toast to warn user
             Toast.makeText(getContext(), R.string.cantModifyAmbulance, Toast.LENGTH_LONG).show();
 
             // set spinner
-            Ambulance ambulance = AmbulanceForegroundService.getAmbulance();
-            if (ambulance != null) {
-
-                int oldPosition = ambulanceStatusList.indexOf(ambulanceStatus.get(ambulance.getStatus()));
-                setSpinner(oldPosition);
-
-            } else {
-                Log.d(TAG,"Could not retrieve ambulance.");
-            }
+            int oldPosition = ambulanceStatusList.indexOf(ambulanceStatus.get(ambulance.getStatus()));
+            setSpinner(oldPosition);
 
             // Return
             return;

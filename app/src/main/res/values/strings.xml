@@ -95,9 +95,9 @@
     <string name="couldNotUnsubscribeToAmbulances">Could not unsubscribe to ambulances</string>
     <string name="cantModifyAmbulance">You do not have permission to modify this ambulance.</string>
     <string name="anotherClientIsStreamingLocations">Another client is currently streaming locations.</string>
-    <string name="startedStreamingLocation">Location streaming started.</string>
+    <string name="startedStreamingLocation">Started streaming updates.</string>
     <string name="forceLocationUpdates">Could not start sending updates to server. This probably means another user is logged in on the same ambulance. Would you like to force sending updates? This will disconnect the other user from the current ambulance.</string>
-    <string name="forcingLocationUpdates">Forcing location updates...</string>
+    <string name="forcingLocationUpdates">Forcing updates…</string>
     <string name="anotherClientRequestedLocations">Another client requested to stream locations.</string>
     <string name="requestingToStreamLocation">Requesting to stream location.</string>
     <string name="EMSTrack">EMSTrack</string>
@@ -143,6 +143,8 @@
     <string name="willNotProcessNextCall">Will not process next call. Currently serving call.</string>
     <string name="cannotSetCallOngoing">Can\'t set call as ongoing: already servicing call</string>
     <string name="requestToStreamLocation">Requesting to stream updates...</string>
+    <string name="selectAmbulance">Select ambulance:</string>
+    <string name="ambulanceButtonDefaultText">Select ambulance</string>
 
     <string-array name="spinner_list_item_array">
         <item>@string/dispatch</item>
