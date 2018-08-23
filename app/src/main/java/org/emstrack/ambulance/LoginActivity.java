@@ -167,8 +167,9 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
                     // Create intent
                     Intent intent = new Intent(LoginActivity.this,
-                            AmbulanceListActivity.class);
+                            MainActivity.class);
 
+                    /*
                     Ambulance ambulance = AmbulanceForegroundService.getAmbulance();
                     if (ambulance != null) {
 
@@ -181,15 +182,16 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                         Log.i(TAG, "Already logged in without ambulance");
 
                     }
+                    */
 
-                    Log.i(TAG, "Starting AmbulanceListActivity");
+                    Log.i(TAG, "Starting MainActivity");
 
                     // Toast
                     Toast.makeText(LoginActivity.this,
                             getResources().getString(R.string.loginSuccessMessage, username),
                             Toast.LENGTH_SHORT).show();
 
-                    // initiate AmbulanceListActivity
+                    // initiate MainActivity
                     startActivity(intent);
 
                     return;
@@ -291,9 +293,9 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                             getResources().getString(R.string.loginSuccessMessage, username),
                             Toast.LENGTH_SHORT).show();
 
-                    // initiate AmbulanceListActivity
+                    // initiate MainActivity
                     Intent intent = new Intent(LoginActivity.this,
-                            AmbulanceListActivity.class);
+                            MainActivity.class);
                     startActivity(intent);
 
                 }

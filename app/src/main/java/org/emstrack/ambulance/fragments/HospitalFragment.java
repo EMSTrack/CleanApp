@@ -14,8 +14,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import org.emstrack.ambulance.AmbulanceListActivity;
-import org.emstrack.ambulance.MainActivity;
 import org.emstrack.ambulance.dialogs.AlertSnackbar;
 import org.emstrack.ambulance.services.AmbulanceForegroundService;
 import org.emstrack.ambulance.R;

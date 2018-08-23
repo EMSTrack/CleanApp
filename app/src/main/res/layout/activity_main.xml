@@ -60,13 +60,25 @@
                     android:scaleType="fitCenter"
                     app:srcCompat="@drawable/ic_shipping_fast" />
 
-                <TextView
+                <!--TextView
                     android:id="@+id/identifierText"
-                    android:layout_width="fill_parent"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginRight="10dp"
                     android:textColor="@android:color/black"
-                    android:textSize="25sp" />
+                    android:textSize="25sp" /-->
+
+                <Button
+                    android:id="@+id/ambulanceButton"
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/ambulanceButtonDefaultText"
+                    android:textColor="@android:color/black"
+                    android:textSize="24sp"
+                    android:textAllCaps="false"
+                    android:layout_marginRight="10dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:gravity="left|center_vertical" />
 
             </android.support.v7.widget.Toolbar>
 
