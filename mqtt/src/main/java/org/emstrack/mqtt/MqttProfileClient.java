@@ -10,7 +10,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import android.content.Intent;
-import android.os.Handler;
 import android.util.Log;
 
 import com.google.gson.FieldNamingPolicy;
@@ -51,23 +50,6 @@ public class MqttProfileClient implements MqttCallbackExtended {
         }
     }
 
-    class TimerRunnable implements Runnable {
-        private String topic;
-
-        public TimerRunnable(String topic) {
-            this.topic = topic;
-        }
-
-        @Override
-        public void run() {
-            Log.d(TAG, "TIMER RAN OUT! TIMER RAN OUT! Topic: " + topic);
-
-            // reset timer
-            timerHandler.postDelayed(this, 70000);
-            Log.d(TAG, "RESETTING TIMER! RESETTING TIMER! Topic: " + topic);
-        }
-    }
-
     private static final String TAG = MqttProfileClient.class.getSimpleName();
 
     private final String connectTopic = "user/%1$s/client/%2$s/status";
@@ -81,14 +63,9 @@ public class MqttProfileClient implements MqttCallbackExtended {
     private Map<String,CallbackTuple> subscribedTopics;
     private MqttProfileCallback callback;
 
-    private Handler timerHandler;
-    private Map<String, TimerRunnable> timers;
-
     public MqttProfileClient(MqttAndroidClient mqttClient) {
         this.mqttClient = mqttClient;
         this.subscribedTopics = new HashMap<>();
-        this.timerHandler = new Handler();
-        this.timers = new HashMap<>();
     }
 
     public void setUsername(String username) {
@@ -206,14 +183,6 @@ public class MqttProfileClient implements MqttCallbackExtended {
     public void publish(String topic, String payload, int qos, boolean retained) throws MqttException {
         mqttClient.publish(topic, payload.getBytes(), qos, retained);
         Log.d(TAG,String.format("Published '%1$s' to '%2$s'",payload, topic));
-
-        // create a timer to run every 70ish seconds if one for the topic doesnt already exist
-        if (!timers.containsKey(topic)) {
-            TimerRunnable timerRunnable = new TimerRunnable(topic);
-            timerHandler.postDelayed(timerRunnable, 70000);
-            timers.put(topic, timerRunnable);
-            Log.d(TAG, "SCHEDULED TIMER! SCHEDULED TIMER! Topic: " + topic);
-        }
     }
 
     public void subscribe(String topic, int qos) throws MqttException {
@@ -261,10 +230,6 @@ public class MqttProfileClient implements MqttCallbackExtended {
         // Remove callback
         subscribedTopics.remove(topic);
 
-        // remove timer for this topic
-        TimerRunnable timerRunnable = timers.get(topic);
-        timerHandler.removeCallbacks(timerRunnable);
-        timers.remove(topic);
     }
 
     /**
@@ -337,7 +302,7 @@ public class MqttProfileClient implements MqttCallbackExtended {
     @Override
     public void connectComplete(final boolean reconnect, String serverURI) {
 
-         // TODO: Handle reconnection properly
+        // TODO: Handle reconnection properly
         if (reconnect) {
             Log.d(TAG, "Reconnected to broker, calling reconnect.");
             callOnReconnect();
@@ -486,13 +451,6 @@ public class MqttProfileClient implements MqttCallbackExtended {
                 // Perform callback
                 Log.d(TAG, "Found match. Calling back...");
                 callback.messageArrived(topic, message);
-
-                // received message, reset timer
-                TimerRunnable timerRunnable = timers.get(topic);
-                timerHandler.removeCallbacks(timerRunnable);
-                timerHandler.postDelayed(timerRunnable, 70000);
-                Log.d(TAG,"RESETTING TIMER! RESETTING TIMER! Topic: " + topic);
-
                 return;
             }
 
