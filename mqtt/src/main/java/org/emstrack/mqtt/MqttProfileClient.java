@@ -213,6 +213,11 @@ public class MqttProfileClient implements MqttCallbackExtended {
             timerHandler.postDelayed(timerRunnable, 70000);
             timers.put(topic, timerRunnable);
             Log.d(TAG, "SCHEDULED TIMER! SCHEDULED TIMER! Topic: " + topic);
+        } else {
+            TimerRunnable timerRunnable = timers.get(topic);
+            timerHandler.removeCallbacks(timerRunnable);
+            timerHandler.postDelayed(timerRunnable, 70000);
+            Log.d(TAG,"RESETTING TIMER! RESETTING TIMER! Topic: " + topic);
         }
     }
 
