@@ -18,7 +18,9 @@ import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -55,7 +57,12 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     private Button loginSubmitButton;
     private TextView usernameField;
     private TextView passwordField;
+    private Spinner serverField;
     private boolean logout;
+
+    ArrayAdapter<CharSequence> serverNames;
+    ArrayAdapter<CharSequence> serverList;
+//    ArrayAdapter<CharSequence> serverURLs;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -73,12 +80,44 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         usernameField = (TextView) findViewById(R.id.editUserName);
         passwordField = (TextView) findViewById(R.id.editPassword);
 
+        // Populate server list
+        serverField = (Spinner) findViewById(R.id.spinnerServer);
+
+        serverList = ArrayAdapter.createFromResource(this,
+                R.array.spinner_list_item_array_server, android.R.layout.simple_spinner_item);
+        serverNames = new ArrayAdapter(this, android.R.layout.simple_spinner_item);
+
+        Log.d(TAG, "Populating server list!");
+        for (int i = 0; i < serverList.getCount(); i++) {
+            String serverName = serverList.getItem(i).toString().split(":", 2)[0];
+            serverNames.add(serverName);
+        }
+
+        serverNames.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        serverField.setAdapter(serverNames);
+
+/*
+        serverURLs = ArrayAdapter.createFromResource(this,
+                R.array.list_item_array_server_url, android.R.layout.simple_spinner_item);
+*/
+
         // Retrieving credentials
         sharedPreferences = getSharedPreferences(AmbulanceForegroundService.PREFERENCES_NAME, MODE_PRIVATE);
 
         // Retrieve past credentials
         usernameField.setText(sharedPreferences.getString(AmbulanceForegroundService.PREFERENCES_USERNAME, null));
         passwordField.setText(sharedPreferences.getString(AmbulanceForegroundService.PREFERENCES_PASSWORD, null));
+
+        String serverUrl = sharedPreferences.getString(AmbulanceForegroundService.PREFERENCES_SERVER, null).substring(6);
+        int lastServerPos = 0;
+
+        for (int i = 0; i < serverList.getCount(); i++) {
+            String serverEntry = serverList.getItem(i).toString();
+            if (serverEntry.contains(serverUrl)) {
+                lastServerPos = i;
+            }
+        }
+        serverField.setSelection(lastServerPos);
 
         // Submit button
         loginSubmitButton = (Button) findViewById(R.id.buttonLogin);
@@ -262,13 +301,34 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         // Get user info & remove whitespace
         final String username = usernameField.getText().toString().trim();
         final String password = passwordField.getText().toString().trim();
-        final String server = "";
+
+        String serverName = serverField.getSelectedItem().toString();
+        String serverURL = "";
+
+        Log.d(TAG, "Retrieving server URL!");
+        for (int i = 0; i < serverList.getCount(); i++) {
+            String serverEntry = serverList.getItem(i).toString();
+            if (serverEntry.contains(serverName)) {
+                serverURL = serverEntry.split(":", 2)[1];
+            }
+        }
+
+        final String server = "ssl://" + serverURL;
+        Log.d(TAG, "Logging into server: " + server);
+
+        /*String serverName = serverField.getSelectedItem().toString();
+        int serverPos = serverList.getPosition(serverName);
+        final String server = serverURLs.getItem(serverPos).toString();*/
 
         if (username.isEmpty())
             new AlertSnackbar(LoginActivity.this).alert(getResources().getString(R.string.error_empty_username));
 
         else if (password.isEmpty())
             new AlertSnackbar(LoginActivity.this).alert(getResources().getString(R.string.error_empty_password));
+
+        else if (server.isEmpty())
+            new AlertSnackbar(LoginActivity.this).alert(getResources().getString(R.string.error_invalid_server));
+
 
         else {
 
