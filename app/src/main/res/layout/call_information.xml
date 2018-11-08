@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="right">
+
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="right">
+
+        <TextView
+            android:id="@+id/callPriorityLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="fill_parent"
+            android:layout_marginTop="5dp"
+            android:text="Priority:"
+            android:gravity="top"
+            android:textStyle="bold"
+            android:layout_weight="1"/>
+
+        <Button
+            android:id="@+id/callPriorityButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Button" />
+
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/callDetailsLabel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Details:"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/callDetailsText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Details" />
+
+    <TextView
+        android:id="@+id/callAddressLabel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Address:"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/callAddressText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Address" />
+
+    <TextView
+        android:id="@+id/callPatientsLabel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Patients:"
+        android:textStyle="bold" />
+
+</LinearLayout>

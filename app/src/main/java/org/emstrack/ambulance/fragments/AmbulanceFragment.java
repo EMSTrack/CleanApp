@@ -13,8 +13,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.Spinner;
-import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -22,6 +23,7 @@ import org.emstrack.ambulance.services.AmbulanceForegroundService;
 import org.emstrack.ambulance.MainActivity;
 import org.emstrack.ambulance.R;
 import org.emstrack.models.Ambulance;
+import org.emstrack.models.Call;
 import org.emstrack.mqtt.MqttProfileClient;
 
 import java.text.DateFormat;
@@ -41,12 +43,12 @@ public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSel
 
     private Spinner statusSpinner;
 
+    /*
     private TextView latitudeText;
     private TextView longitudeText;
     private TextView timestampText;
     private TextView orientationText;
-
-    private Switch startTrackingSwitch;
+    */
 
     private TextView capabilityText;
 
@@ -61,6 +63,12 @@ public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSel
     private List<String> ambulanceCapabilityList;
 
     AmbulancesUpdateBroadcastReceiver receiver;
+    private LinearLayout callLayout;
+    private boolean hasCurrentCall;
+    private TextView callDescriptionTextView;
+    private Button callPriorityButton;
+    private TextView callAddressTextView;
+    private Button callEndButton;
 
     public class AmbulancesUpdateBroadcastReceiver extends BroadcastReceiver {
 
@@ -83,6 +91,14 @@ public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSel
 
         // inflate view
         view = inflater.inflate(R.layout.fragment_ambulance, container, false);
+
+        // get callLayout
+        callLayout = (LinearLayout) view.findViewById(R.id.callLayout);
+
+        // setup as no current call
+        View child = getLayoutInflater().inflate(R.layout.no_calls, null);
+        callLayout.addView(child);
+        hasCurrentCall = false;
 
         try {
 
@@ -109,11 +125,13 @@ public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSel
 
         }
 
+        /*
         // Retrieve location
         latitudeText = (TextView) view.findViewById(R.id.latitudeText);
         longitudeText = (TextView) view.findViewById(R.id.longitudeText);
         timestampText = (TextView) view.findViewById(R.id.timestampText);
         orientationText = (TextView) view.findViewById(R.id.orientationText);
+        */
 
         // Other text
         capabilityText = (TextView) view.findViewById(R.id.capabilityText);
@@ -215,11 +233,59 @@ public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSel
         // set identifier
         ((MainActivity) getActivity()).setAmbulanceButtonText(ambulance.getIdentifier());
 
+        // Are there calls?
+        Call currentCall = AmbulanceForegroundService.getCurrentCall();
+        if ((currentCall == null ^ !hasCurrentCall)) {
+
+            // destroy current view
+            callLayout.removeAllViews();
+
+            // create new layout
+            View child;
+            if (currentCall == null) {
+                child = getLayoutInflater().inflate(R.layout.no_calls, null);
+                hasCurrentCall = false;
+            } else {
+                child = getLayoutInflater().inflate(R.layout.calls, null);
+                callPriorityButton = (Button) child.findViewById(R.id.callPriorityButton);
+                callDescriptionTextView = (TextView) child.findViewById(R.id.callDetailsText);
+                callAddressTextView = (TextView) child.findViewById(R.id.callAddressText);
+                callEndButton = (Button) child.findViewById(R.id.callEndButton);
+                callEndButton.setOnClickListener(
+                        new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                if (AmbulanceForegroundService.isUpdatingLocation()) {
+
+                                    // stop updating location
+                                    ((MainActivity) getActivity()).stopUpdatingLocation();
+
+                                }
+                            }
+                        }
+                );
+                hasCurrentCall = true;
+            }
+            callLayout.addView(child);
+
+        }
+
+        // Call content
+        if (currentCall != null) {
+
+            callPriorityButton.setText(currentCall.getPriority());
+            callDescriptionTextView.setText(currentCall.getDetails());
+            callAddressTextView.setText(currentCall.getAddress().toString());
+
+        }
+
+        /*
         // set location
         latitudeText.setText(String.format("%.6f", ambulance.getLocation().getLatitude()));
         longitudeText.setText(String.format("%.6f", ambulance.getLocation().getLongitude()));
         orientationText.setText(String.format("%.1f", ambulance.getOrientation()));
         timestampText.setText(ambulance.getTimestamp().toString());
+        */
 
         // set status and comment
         commentText.setText(ambulance.getComment());

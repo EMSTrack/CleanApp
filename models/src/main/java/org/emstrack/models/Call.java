@@ -210,4 +210,8 @@ public class Call {
         this.patientSet = patientSet;
     }
 
+    public Address getAddress() {
+        return new Address(this.number, this.street, this.unit, this.neighborhood,this.city,this.state,this.zipcode,this.country);
+    }
+
 }

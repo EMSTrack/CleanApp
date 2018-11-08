@@ -111,4 +111,23 @@ public class Address {
         this.location = location;
     }
 
+    public String toString() {
+        String retValue = "";
+        retValue += this.number + " " + this.street;
+        if (this.unit != null && !this.unit.isEmpty())
+            retValue += " " + this.unit;
+        if (this.neighborhood != null && !this.neighborhood.isEmpty())
+            retValue += ", " + this.neighborhood;
+        if (this.city != null && !this.city.isEmpty())
+            retValue += ", " + this.city;
+        if (this.state != null && !this.state.isEmpty())
+            retValue += ", " + this.state;
+        if (this.zipcode != null && !this.zipcode.isEmpty())
+            retValue += " " + this.zipcode;
+        if (this.country != null && !this.country.isEmpty())
+            retValue += ", " + this.country;
+        return retValue;
+    }
+
 }
+

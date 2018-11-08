@@ -65,6 +65,7 @@
 
     <string name="unknown">unknown</string>
 
+    <string name="callLabel">Calls:</string>
     <string name="gps_startTrackingSwitchText">Start tracking:</string>
     <string name="gpsLocationLabel">Location:</string>
     <string name="gpsLatitudeLabel">Latitude:</string>
@@ -145,6 +146,7 @@
     <string name="requestToStreamLocation">Requesting to stream updates...</string>
     <string name="selectAmbulance">Select ambulance:</string>
     <string name="ambulanceButtonDefaultText">Select ambulance</string>
+    <string name="noIncomingCallsText">No incoming calls.</string>
 
     <string-array name="spinner_list_item_array">
         <item>@string/dispatch</item>
