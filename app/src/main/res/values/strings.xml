@@ -29,7 +29,7 @@
     <string name="error_invalid_credentials">Please provide valid credentials.</string>
     <string name="error_connection_failed">Connection failed. Reason: \'%1$s\'</string>
     <string name="error_no_hospitals">No hospitals are associated with this account.</string>
-    <string name="error_invalid_server">No server selected</string>
+    <string name="error_invalid_server">Please select server</string>
 
     <string name="hospital_button_text">OK</string>
 
@@ -144,14 +144,10 @@
     <string name="couldNotDeclineCall">Cannot decline call. Currently serving another call.</string>
     <string name="willNotProcessNextCall">Will not process next call. Currently serving call.</string>
     <string name="cannotSetCallOngoing">Can\'t set call as ongoing: already servicing call</string>
-    <string name="requestToStreamLocation">Requesting to stream updates...</string>
+    <string name="requestToStreamLocation">Requesting to stream updates…</string>
     <string name="selectAmbulance">Select ambulance:</string>
     <string name="ambulanceButtonDefaultText">Select ambulance</string>
     <string name="noIncomingCallsText">No incoming calls.</string>
-
-    <!--<string name="server_url_select"></string>
-    <string name="server_url_tijuana">ssl://cruzroja.ucsd.edu:8883</string>
-    <string name="server_url_admin">ssl://cruzroja.ucsd.edu:8883</string>-->
 
     <string-array name="spinner_list_item_array">
         <item>@string/dispatch</item>
@@ -165,17 +161,10 @@
     </string-array>
 
     <string name="server_select">Select server:</string>
-
     <string-array name="spinner_list_item_array_server">
         <item>@string/server_select</item>
         <item>Tijuana Red Cross:tijuana.emstrack.org:8883</item>
         <item>UCSD:cruzroja.ucsd.edu:8883</item>
     </string-array>
-
-    <!--<string-array name="list_item_array_server_url">
-        <item>@string/server_url_select</item>
-        <item>@string/server_url_tijuana</item>
-        <item>@string/server_url_admin</item>
-    </string-array>-->
 
 </resources>
