@@ -26,6 +26,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import org.emstrack.ambulance.adapters.FragmentPager;
@@ -542,15 +543,18 @@ public class MainActivity extends AppCompatActivity {
 
         }
 
-        String callDetails = String.format("Priority: %1$s\n%2$s %3$s, %4$s, %5$s %6$s",
-                call.getPriority(),
-                call.getStreet(), call.getNumber(),
-                call.getCity(), call.getState(), call.getZipcode());
-
         // Use the Builder class for convenient dialog construction
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
+
+        // Create call view
+        View view = getLayoutInflater().inflate(R.layout.call_dialog, null);
+        ((Button) view.findViewById(R.id.callPriorityButton)).setText(call.getPriority());
+        ((TextView) view.findViewById(R.id.callAddressText)).setText(call.getAddress().toString());
+        ((TextView) view.findViewById(R.id.callDetailsText)).setText(call.getDetails());
+
+        // build dialog
         builder.setTitle("Accept Incoming Call?")
-                .setMessage(callDetails)
+                .setView(view)
                 .setPositiveButton("Accept", new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int id) {
 
@@ -764,7 +768,7 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    void stopUpdatingLocation() {
+    public void stopUpdatingLocation() {
 
         // is handling call?
         Call currentCall = AmbulanceForegroundService.getCurrentCall();
