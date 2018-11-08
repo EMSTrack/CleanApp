@@ -302,7 +302,7 @@ public class MqttProfileClient implements MqttCallbackExtended {
     @Override
     public void connectComplete(final boolean reconnect, String serverURI) {
 
-         // TODO: Handle reconnection properly
+        // TODO: Handle reconnection properly
         if (reconnect) {
             Log.d(TAG, "Reconnected to broker, calling reconnect.");
             callOnReconnect();
