@@ -99,8 +99,10 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
     public static final String PREFERENCES_NAME = "org.emstrack.ambulance";
     public static final String PREFERENCES_USERNAME = "USERNAME";
     public static final String PREFERENCES_PASSWORD = "PASSWORD";
+    public static final String PREFERENCES_SERVER = "SERVER";
 
-    private static final String serverUri = "ssl://cruzroja.ucsd.edu:8883";
+    // Server URI
+    private static String serverUri = "ssl://cruzroja.ucsd.edu:8883";
 
     private static MqttProfileClient client;
     private static Ambulance _ambulance;
@@ -411,6 +413,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
             String[] loginInfo = intent.getStringArrayExtra("CREDENTIALS");
             final String username = loginInfo[0];
             final String password = loginInfo[1];
+            final String server = loginInfo[2];
 
             // Notify user
             Toast.makeText(this, "Logging in '" + username + "'", Toast.LENGTH_SHORT).show();
@@ -427,7 +430,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                 public void run() {
 
                     // Login user
-                    login(username, password, getUuid());
+                    login(username, password, server, getUuid());
 
                 }
 
@@ -1528,7 +1531,23 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
      * @param username Username
      * @param password Password
      */
-    public void login(final String username, final String password, final String uuid) {
+    public void login(final String username, final String password, final String server, final String uuid) {
+
+        // Retrieve current profile client
+        MqttProfileClient profileClient = getProfileClient(this);
+
+        // Has server changed?
+        final String serverURI;
+        if (server != null && !server.isEmpty())
+            serverURI = server;
+        else
+            serverURI = serverUri;
+
+        final boolean serverChange;
+        if (serverURI.equals(profileClient.getServerURI()))
+            serverChange = false;
+        else
+            serverChange = true;
 
         // What to do when logout completes?
         new OnServiceComplete(this,
@@ -1545,6 +1564,15 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
             @Override
             public void onSuccess(Bundle extras) {
+
+                // Has server changed?
+                if (serverChange) {
+                    // invalidate server and set new uri before connecting
+                    client = null;
+                    serverUri = serverURI;
+                    Log.d(TAG,"Server has changed. Invalidating current client");
+                } else
+                    Log.d(TAG,"Server has not changed.");
 
                 // Retrieve client
                 final MqttProfileClient profileClient = getProfileClient(AmbulanceForegroundService.this);
@@ -1570,6 +1598,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                         Log.d(TAG, "Storing credentials");
                         editor.putString(PREFERENCES_USERNAME, username);
                         editor.putString(PREFERENCES_PASSWORD, password);
+                        editor.putString(PREFERENCES_SERVER, server);
                         editor.apply();
 
                         // Broadcast success

@@ -95,6 +95,8 @@ public class MqttProfileClient implements MqttCallbackExtended {
 
     public String getClientId() { return mqttClient.getClientId(); }
 
+    public String getServerURI() { return mqttClient.getServerURI(); }
+
     public void disconnect() throws MqttException { disconnect(null); }
 
     public void disconnect(final MqttProfileCallback disconnectCallback) throws MqttException {

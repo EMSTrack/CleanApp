@@ -262,6 +262,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         // Get user info & remove whitespace
         final String username = usernameField.getText().toString().trim();
         final String password = passwordField.getText().toString().trim();
+        final String server = "";
 
         if (username.isEmpty())
             new AlertSnackbar(LoginActivity.this).alert(getResources().getString(R.string.error_empty_username));
@@ -276,7 +277,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
             // Login at service
             Intent intent = new Intent(LoginActivity.this, AmbulanceForegroundService.class);
             intent.setAction(AmbulanceForegroundService.Actions.LOGIN);
-            intent.putExtra("CREDENTIALS", new String[]{username, password});
+            intent.putExtra("CREDENTIALS", new String[]{username, password, server});
 
             // What to do when service completes?
             new OnServiceComplete(LoginActivity.this,
