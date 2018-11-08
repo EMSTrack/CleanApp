@@ -63,7 +63,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
     ArrayAdapter<CharSequence> serverNames;
     String[] serverList;
-    ArrayList<String> serverURIs;
+    List<String> serverURIs;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -87,9 +87,10 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         // Populate server list
         Log.d(TAG, "Populating server list");
         serverNames = new ArrayAdapter(this, android.R.layout.simple_spinner_item);
+        serverURIs = new ArrayList<>();
         for (String server: serverList) {
             try {
-                String[] splits = server.split(":", 2);
+                String[] splits = server.split(":", 3);
                 serverNames.add(splits[0]);
                 if (!splits[1].isEmpty()) {
                     serverURIs.add("ssl://" + splits[1] + ":" + splits[2]);
@@ -100,6 +101,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                 Log.d(TAG, "Malformed server string. Skipping.");
             }
         }
+        Log.d(TAG, serverURIs.toString());
 
         // Create server spinner
         serverField = (Spinner) findViewById(R.id.spinnerServer);
@@ -120,7 +122,10 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         String serverUri = sharedPreferences.getString(AmbulanceForegroundService.PREFERENCES_SERVER, null);
 
         // set server item
-        int serverPos = serverURIs.indexOf(serverUri);
+        int serverPos = 0;
+        if (serverUri != null) {
+            serverPos = serverURIs.indexOf(serverUri);
+        }
         if (serverPos < 0)
             serverPos = 0;
         serverField.setSelection(serverPos);
