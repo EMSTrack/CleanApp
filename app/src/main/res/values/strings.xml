@@ -29,6 +29,7 @@
     <string name="error_invalid_credentials">Please provide valid credentials.</string>
     <string name="error_connection_failed">Connection failed. Reason: \'%1$s\'</string>
     <string name="error_no_hospitals">No hospitals are associated with this account.</string>
+    <string name="error_invalid_server">No server selected</string>
 
     <string name="hospital_button_text">OK</string>
 
@@ -148,6 +149,14 @@
     <string name="ambulanceButtonDefaultText">Select ambulance</string>
     <string name="noIncomingCallsText">No incoming calls.</string>
 
+    <string name="server_select">Select server:</string>
+    <string name="server_tijuana">Tijuana:cruzroja.ucsd.edu:8883</string>
+    <string name="server_admin">Admin:cruzroja.ucsd.edu:8883</string>
+
+    <!--<string name="server_url_select"></string>
+    <string name="server_url_tijuana">ssl://cruzroja.ucsd.edu:8883</string>
+    <string name="server_url_admin">ssl://cruzroja.ucsd.edu:8883</string>-->
+
     <string-array name="spinner_list_item_array">
         <item>@string/dispatch</item>
         <item>@string/hospital</item>
@@ -158,4 +167,17 @@
         <item>@string/hospital</item>
         <item>@string/gps</item>
     </string-array>
+
+    <string-array name="spinner_list_item_array_server">
+        <item>@string/server_select</item>
+        <item>@string/server_tijuana</item>
+        <item>@string/server_admin</item>
+    </string-array>
+
+    <!--<string-array name="list_item_array_server_url">
+        <item>@string/server_url_select</item>
+        <item>@string/server_url_tijuana</item>
+        <item>@string/server_url_admin</item>
+    </string-array>-->
+
 </resources>
