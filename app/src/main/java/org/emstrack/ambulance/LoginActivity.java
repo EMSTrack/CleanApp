@@ -42,6 +42,7 @@ import org.emstrack.models.Profile;
 import org.emstrack.mqtt.MqttProfileCallback;
 import org.emstrack.mqtt.MqttProfileClient;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class LoginActivity extends AppCompatActivity implements View.OnClickListener {
@@ -61,8 +62,8 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     private boolean logout;
 
     ArrayAdapter<CharSequence> serverNames;
-    ArrayAdapter<CharSequence> serverList;
-//    ArrayAdapter<CharSequence> serverURLs;
+    String[] serverList;
+    ArrayList<String> serverURIs;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -80,19 +81,28 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         usernameField = (TextView) findViewById(R.id.editUserName);
         passwordField = (TextView) findViewById(R.id.editPassword);
 
+        // Retrieve list of servers
+        serverList = getResources().getStringArray(R.array.spinner_list_item_array_server);
+
         // Populate server list
-        serverField = (Spinner) findViewById(R.id.spinnerServer);
-
-        serverList = ArrayAdapter.createFromResource(this,
-                R.array.spinner_list_item_array_server, android.R.layout.simple_spinner_item);
+        Log.d(TAG, "Populating server list");
         serverNames = new ArrayAdapter(this, android.R.layout.simple_spinner_item);
-
-        Log.d(TAG, "Populating server list!");
-        for (int i = 0; i < serverList.getCount(); i++) {
-            String serverName = serverList.getItem(i).toString().split(":", 2)[0];
-            serverNames.add(serverName);
+        for (String server: serverList) {
+            try {
+                String[] splits = server.split(":", 2);
+                serverNames.add(splits[0]);
+                if (!splits[1].isEmpty()) {
+                    serverURIs.add("ssl://" + splits[1] + ":" + splits[2]);
+                } else {
+                    serverURIs.add("");
+                }
+            } catch (Exception e) {
+                Log.d(TAG, "Malformed server string. Skipping.");
+            }
         }
 
+        // Create server spinner
+        serverField = (Spinner) findViewById(R.id.spinnerServer);
         serverNames.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         serverField.setAdapter(serverNames);
 
@@ -107,17 +117,13 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         // Retrieve past credentials
         usernameField.setText(sharedPreferences.getString(AmbulanceForegroundService.PREFERENCES_USERNAME, null));
         passwordField.setText(sharedPreferences.getString(AmbulanceForegroundService.PREFERENCES_PASSWORD, null));
+        String serverUri = sharedPreferences.getString(AmbulanceForegroundService.PREFERENCES_SERVER, null);
 
-        String serverUrl = sharedPreferences.getString(AmbulanceForegroundService.PREFERENCES_SERVER, null).substring(6);
-        int lastServerPos = 0;
-
-        for (int i = 0; i < serverList.getCount(); i++) {
-            String serverEntry = serverList.getItem(i).toString();
-            if (serverEntry.contains(serverUrl)) {
-                lastServerPos = i;
-            }
-        }
-        serverField.setSelection(lastServerPos);
+        // set server item
+        int serverPos = serverURIs.indexOf(serverUri);
+        if (serverPos < 0)
+            serverPos = 0;
+        serverField.setSelection(serverPos);
 
         // Submit button
         loginSubmitButton = (Button) findViewById(R.id.buttonLogin);
@@ -208,21 +214,6 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                     Intent intent = new Intent(LoginActivity.this,
                             MainActivity.class);
 
-                    /*
-                    Ambulance ambulance = AmbulanceForegroundService.getAmbulance();
-                    if (ambulance != null) {
-
-                        Log.i(TAG, "Already logged in with ambulance");
-
-                        intent.putExtra("SKIP_AMBULANCE_SELECTION", true);
-
-                    } else {
-
-                        Log.i(TAG, "Already logged in without ambulance");
-
-                    }
-                    */
-
                     Log.i(TAG, "Starting MainActivity");
 
                     // Toast
@@ -302,19 +293,8 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         final String username = usernameField.getText().toString().trim();
         final String password = passwordField.getText().toString().trim();
 
-        String serverName = serverField.getSelectedItem().toString();
-        String serverURL = "";
-
-        Log.d(TAG, "Retrieving server URL!");
-        for (int i = 0; i < serverList.getCount(); i++) {
-            String serverEntry = serverList.getItem(i).toString();
-            if (serverEntry.contains(serverName)) {
-                serverURL = serverEntry.split(":", 2)[1];
-            }
-        }
-
-        final String server = "ssl://" + serverURL;
-        Log.d(TAG, "Logging into server: " + server);
+        final String serverUri = serverURIs.get(serverField.getSelectedItemPosition());
+        Log.d(TAG, "Logging into server: " + serverUri);
 
         /*String serverName = serverField.getSelectedItem().toString();
         int serverPos = serverList.getPosition(serverName);
@@ -326,7 +306,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         else if (password.isEmpty())
             new AlertSnackbar(LoginActivity.this).alert(getResources().getString(R.string.error_empty_password));
 
-        else if (server.isEmpty())
+        else if (serverUri.isEmpty())
             new AlertSnackbar(LoginActivity.this).alert(getResources().getString(R.string.error_invalid_server));
 
 
@@ -337,7 +317,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
             // Login at service
             Intent intent = new Intent(LoginActivity.this, AmbulanceForegroundService.class);
             intent.setAction(AmbulanceForegroundService.Actions.LOGIN);
-            intent.putExtra("CREDENTIALS", new String[]{username, password, server});
+            intent.putExtra("CREDENTIALS", new String[]{username, password, serverUri});
 
             // What to do when service completes?
             new OnServiceComplete(LoginActivity.this,
