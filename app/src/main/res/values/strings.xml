@@ -149,10 +149,6 @@
     <string name="ambulanceButtonDefaultText">Select ambulance</string>
     <string name="noIncomingCallsText">No incoming calls.</string>
 
-    <string name="server_select">Select server:</string>
-    <string name="server_tijuana">Tijuana:cruzroja.ucsd.edu:8883</string>
-    <string name="server_admin">Admin:cruzroja.ucsd.edu:8883</string>
-
     <!--<string name="server_url_select"></string>
     <string name="server_url_tijuana">ssl://cruzroja.ucsd.edu:8883</string>
     <string name="server_url_admin">ssl://cruzroja.ucsd.edu:8883</string>-->
@@ -168,10 +164,12 @@
         <item>@string/gps</item>
     </string-array>
 
+    <string name="server_select">Select server:</string>
+
     <string-array name="spinner_list_item_array_server">
         <item>@string/server_select</item>
-        <item>@string/server_tijuana</item>
-        <item>@string/server_admin</item>
+        <item>Tijuana Red Cross:tijuana.emstrack.org:8883</item>
+        <item>UCSD:cruzroja.ucsd.edu:8883</item>
     </string-array>
 
     <!--<string-array name="list_item_array_server_url">
