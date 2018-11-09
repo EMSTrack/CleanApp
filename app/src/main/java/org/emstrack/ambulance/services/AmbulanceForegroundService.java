@@ -2653,7 +2653,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                                     // process next call
                                     processNextCall(uuid);
 
-                                } else if (status.equalsIgnoreCase("\"interrupted\"")) {
+                                } else if (status.equalsIgnoreCase("\"suspended\"")) {
 
 
                                 } else {
