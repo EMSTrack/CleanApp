@@ -159,6 +159,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         public final static String CALL_ACCEPT = "org.emstrack.ambulance.ambulanceforegroundservice.action.CALL_ACCEPT";
         public final static String CALL_DECLINE = "org.emstrack.ambulance.ambulanceforegroundservice.action.CALL_DECLINE";
         public final static String CALL_ONGOING = "org.emstrack.ambulance.ambulanceforegroundservice.action.CALL_ONGOING";
+        public static final String CALL_SUSPEND = "org.emstrack.ambulance.ambulanceforegroundservice.action.CALL_SUSPEND";
         public final static String CALL_FINISH = "org.emstrack.ambulance.ambulanceforegroundservice.action.CALL_FINISH";
     }
 
@@ -607,11 +608,21 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
             Log.i(TAG, "CALL_DECLINE Foreground Intent");
 
-            // get the ambulance that accepted the call and the call id
+            // get the ambulance that declined the call and the call id
             int callId = intent.getIntExtra("CALL_ID", -1);
 
             // next steps to publish information to server (steps 3, 4)
             declineCall(callId, uuid);
+
+        } else if (intent.getAction().equals(Actions.CALL_SUSPEND)) {
+
+            Log.i(TAG, "CALL_SUSPEND Foreground Intent");
+
+            // get the ambulance that suspended the call and the call id
+            int callId = intent.getIntExtra("CALL_ID", -1);
+
+            // next steps to publish information to server (steps 3, 4)
+            suspendCall(callId, uuid);
 
         } else if (intent.getAction().equals(Actions.CALL_FINISH)) {
 
@@ -2633,6 +2644,18 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
                                     }
 
+                                } else if (status.equalsIgnoreCase("\"declined\"")) {
+
+                                    // remove call from the que
+                                    pendingCalls.remove(callId);
+                                    currentCallId = -1;
+
+                                    // process next call
+                                    processNextCall(uuid);
+
+                                } else if (status.equalsIgnoreCase("\"interrupted\"")) {
+
+
                                 } else {
                                     Log.i(TAG, "Unknown status '" + status + "'");
                                 }
@@ -2842,12 +2865,28 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
         }
 
-        // remove call from the queu
-        pendingCalls.remove(callId);
-        currentCallId = -1;
+        // publish declined as status
+        setCallStatus(callId, "Declined", uuid);
 
-        // process next call
-        processNextCall(uuid);
+    }
+
+    public void suspendCall(int callId, String uuid) {
+
+        // if not currently serving call, can't suspend
+        if (currentCallId <= 0) {
+
+            Log.d(TAG, "Can't suspend call: not currently serving any call");
+
+            Intent localIntent = new Intent(BroadcastActions.FAILURE);
+            localIntent.putExtra(BroadcastExtras.MESSAGE, getString(R.string.couldNotSuspendCall));
+            sendBroadcastWithUUID(localIntent, uuid);
+
+            return;
+
+        }
+
+        // publish suspended as status
+        setCallStatus(callId, "Suspended", uuid);
 
     }
 
