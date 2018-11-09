@@ -167,5 +167,6 @@
         <item>UCSD:cruzroja.ucsd.edu:8883</item>
     </string-array>
     <string name="equipment_sting_button_negative_text">Cancel</string>
+    <string name="couldNotSuspendCall">Could not suspend call.</string>
 
 </resources>

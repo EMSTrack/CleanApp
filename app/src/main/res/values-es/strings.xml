@@ -144,5 +144,6 @@
     <string name="server_select">Seleccionar servidor:</string>
     <string name="alert_ambulance_switch">Evita que \'%1$s\' envíe actualizaciones primero.</string>
     <string name="error_invalid_server">Por favor seleccione el servidor.</string>
+    <string name="couldNotSuspendCall">No se pudo suspender la llamada.</string>
 
 </resources>
