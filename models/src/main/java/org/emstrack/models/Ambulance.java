@@ -23,8 +23,8 @@ public class Ambulance {
     private Date updatedOn;
 
     public Ambulance(int id, String identifier, String capability, String status,
-                     double orientation, Location location, Date timestamp, String comment,
-                     int updatedBy, Date updatedOn) {
+                     double orientation, Location location, Date timestamp,
+                     String comment, int updatedBy, Date updatedOn) {
         this.id = id;
         this.identifier = identifier;
         this.capability = capability;

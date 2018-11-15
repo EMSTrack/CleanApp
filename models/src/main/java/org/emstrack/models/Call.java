@@ -4,6 +4,7 @@ package org.emstrack.models;
  * Created by Leon on 5/8/2018.
  */
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -11,7 +12,7 @@ import java.util.Map;
 
 public class Call {
 
-    private Integer id;
+    private int id;
     private String status;
     private String details;
     private String priority;
@@ -24,21 +25,63 @@ public class Call {
     private String zipcode;
     private String country;
     private Location location;
-    private String createdAt;
+    private Date createdAt;
     private Date pendingAt;
     private Date startedAt;
     private Date endedAt;
-    private Date comment;
-    private Integer updatedBy;
-    private String updatedOn;
-    private List<Object> ambulancecallSet = null;
-    private List<Object> patientSet = null;
+    private String comment;
+    private int updatedBy;
+    private Date updatedOn;
+    private List<Object> ambulancecallSet = new ArrayList<>();
+    private List<Object> ambulanceupdateSet = new ArrayList<>();
+    private List<Patient> patientSet = new ArrayList <>();
 
-    public Integer getId() {
+    public Call() {
+        id = -1;
+        updatedBy = -1;
+    }
+
+    public Call(int id, String status, String details, String priority, 
+                String number, String street, String unit, String neighborhood, String city, 
+                String state, String zipcode, String country, 
+                Location location, 
+                Date createdAt, Date pendingAt, Date startedAt, Date endedAt, 
+                String comment, int updatedBy, Date updatedOn,
+                List<Object> ambulancecallSet, List<Object> ambulanceupdateSet, List<Patient> patientSet) {
+    
+        this.id = id;
+        this.status = status;
+        this.details = details;
+        this.priority = priority;
+        this.number = number;
+        this.street = street;
+        this.unit = unit;
+        this.neighborhood = neighborhood;
+        this.city = city;
+        this.state = state;
+        this.zipcode = zipcode;
+        this.country = country;
+        this.location = location;
+        this.pendingAt = pendingAt;
+        this.createdAt = createdAt;
+        this.endedAt = endedAt;
+        this.startedAt = startedAt;
+        this.endedAt = endedAt;
+        this.comment = comment;
+        this.updatedBy = updatedBy;
+        this.updatedOn = updatedOn;
+
+        this.ambulancecallSet = ambulancecallSet;
+        this.ambulanceupdateSet = ambulanceupdateSet;
+        this.patientSet = patientSet;
+    
+    }
+    
+    public int getId() {
         return id;
     }
 
-    public void setId(Integer id) {
+    public void setId(int id) {
         this.id = id;
     }
 
@@ -138,15 +181,15 @@ public class Call {
         this.location = location;
     }
 
-    public String getCreatedAt() {
+    public Date getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(String createdAt) {
+    public void setCreatedAt(Date createdAt) {
         this.createdAt = createdAt;
     }
 
-    public Object getPendingAt() {
+    public Date getPendingAt() {
         return pendingAt;
     }
 
@@ -154,7 +197,7 @@ public class Call {
         this.pendingAt = pendingAt;
     }
 
-    public Object getStartedAt() {
+    public Date getStartedAt() {
         return startedAt;
     }
 
@@ -162,7 +205,7 @@ public class Call {
         this.startedAt = startedAt;
     }
 
-    public Object getEndedAt() {
+    public Date getEndedAt() {
         return endedAt;
     }
 
@@ -170,15 +213,15 @@ public class Call {
         this.endedAt = endedAt;
     }
 
-    public Object getComment() {
+    public String getComment() {
         return comment;
     }
 
-    public void setComment(Date comment) {
+    public void setComment(String comment) {
         this.comment = comment;
     }
 
-    public Integer getUpdatedBy() {
+    public int getUpdatedBy() {
         return updatedBy;
     }
 
@@ -186,11 +229,11 @@ public class Call {
         this.updatedBy = updatedBy;
     }
 
-    public String getUpdatedOn() {
+    public Date getUpdatedOn() {
         return updatedOn;
     }
 
-    public void setUpdatedOn(String updatedOn) {
+    public void setUpdatedOn(Date updatedOn) {
         this.updatedOn = updatedOn;
     }
 
@@ -201,12 +244,19 @@ public class Call {
     public void setAmbulancecallSet(List<Object> ambulancecallSet) {
         this.ambulancecallSet = ambulancecallSet;
     }
+    public void setAmbulanceupdateSet(List<Object> ambulanceupdateSet) {
+        this.ambulanceupdateSet = ambulanceupdateSet;
+    }
 
-    public List<Object> getPatientSet() {
+    public List<Object> getAmbulanceupdateSet() {
+        return ambulanceupdateSet;
+    }
+
+    public List<Patient> getPatientSet() {
         return patientSet;
     }
 
-    public void setPatientSet(List<Object> patientSet) {
+    public void setPatientSet(List<Patient> patientSet) {
         this.patientSet = patientSet;
     }
 

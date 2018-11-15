@@ -12,7 +12,7 @@
     <color name="colorAvailable">#4CAF50</color>
 
     <color name="statusBlue">#FF33B5E5</color>
-    <color name="statusPurple">#FFAA66CC</color>
+    <color name="statusPurple">#aa66cc</color>
     <color name="statusGreen">#FF99CC00</color>
     <color name="statusOrange">#FFFFBB33</color>
     <color name="statusRed">#FFFF4444</color>

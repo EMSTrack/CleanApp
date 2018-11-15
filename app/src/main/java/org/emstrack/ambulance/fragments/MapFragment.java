@@ -116,7 +116,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
 
                     Log.i(TAG, "OTHER_AMBULANCES_UPDATE");
 
-                    // update markers without centering
+                    // updateAmbulance markers without centering
                     updateMarkers();
 
                 }
@@ -192,7 +192,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
                         // forget ambulances
                         forgetAmbulances();
 
-                        // update markers without centering
+                        // updateAmbulance markers without centering
                         updateMarkers();
 
                     }
@@ -241,7 +241,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
 
                     }
 
-                    // update markers without centering
+                    // updateAmbulance markers without centering
                     updateMarkers();
 
                 }
@@ -339,7 +339,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
 
                         Log.i(TAG,"Got them all. Updating markers.");
 
-                        // update markers and center bounds
+                        // updateAmbulance markers and center bounds
                         centerMap(updateMarkers());
 
                         // Enable button
@@ -358,7 +358,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
 
             // Already have ambulances
 
-            // update markers and center bounds
+            // updateAmbulance markers and center bounds
             centerMap(updateMarkers());
 
         }
@@ -517,7 +517,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
             // Move camera
             if (ambulanceMarkers.size() == 1) {
 
-                Ambulance ambulance = AmbulanceForegroundService.getAmbulance();
+                Ambulance ambulance = AmbulanceForegroundService.getCurrentAmbulance();
                 if (ambulance != null) {
 
                     Location location = ambulance.getLocation();
@@ -608,7 +608,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
         // Handle my location?
         if (!useMyLocation) {
 
-            Ambulance ambulance = AmbulanceForegroundService.getAmbulance();
+            Ambulance ambulance = AmbulanceForegroundService.getCurrentAmbulance();
             if (ambulance != null) {
 
                 // Add marker for ambulance
@@ -704,7 +704,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
     
     public void centerAmbulances() {
 
-        Ambulance ambulance = AmbulanceForegroundService.getAmbulance();
+        Ambulance ambulance = AmbulanceForegroundService.getCurrentAmbulance();
         if (ambulance != null) {
 
             Location location = ambulance.getLocation();

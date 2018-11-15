@@ -76,7 +76,7 @@ public class HospitalFragment extends Fragment {
 
                     Log.i(TAG,"Got all hospitals.");
 
-                    // update hospitals
+                    // updateAmbulance hospitals
                     update(AmbulanceForegroundService.getHospitals());
 
                 }
@@ -105,7 +105,7 @@ public class HospitalFragment extends Fragment {
         receiver = new HospitalsUpdateBroadcastReceiver();
         getLocalBroadcastManager().registerReceiver(receiver, filter);
 
-        // update UI
+        // updateAmbulance UI
         update(AmbulanceForegroundService.getHospitals());
 
     }
