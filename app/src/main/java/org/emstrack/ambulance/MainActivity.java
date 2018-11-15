@@ -6,6 +6,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.res.Configuration;
+import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.os.Bundle;
 import android.support.design.widget.NavigationView;
@@ -48,7 +49,9 @@ import org.emstrack.mqtt.MqttProfileClient;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * This is the main activity -- the default screen
@@ -77,6 +80,9 @@ public class MainActivity extends AppCompatActivity {
     private ImageView onlineIcon;
     private ImageView trackingIcon;
     private MainActivityBroadcastReceiver receiver;
+    private Map<String, Integer> callPriorityBackgroundColors;
+    private Map<String, Integer> callPriorityForegroundColors;
+    private String[] callPriorityColorsArray;
 
     public class TrackingClickListener implements View.OnClickListener {
 
@@ -227,8 +233,29 @@ public class MainActivity extends AppCompatActivity {
 
         super.onCreate(savedInstanceState);
 
+        // Call priority colors
+        callPriorityColorsArray = getResources().getStringArray(R.array.call_priority_colors);
+        callPriorityBackgroundColors = new HashMap<>();
+        callPriorityForegroundColors = new HashMap<>();
+        for (String colors: callPriorityColorsArray) {
+            try {
+                String[] splits = colors.split(":", 3);
+                String priority = splits[0];
+                callPriorityBackgroundColors.put(priority,
+                        ContextCompat.getColor(getApplicationContext(),
+                                getResources().getIdentifier(splits[1],"colors", getPackageName())));
+                callPriorityForegroundColors.put(priority,
+                        ContextCompat.getColor(getApplicationContext(),
+                                getResources().getIdentifier(splits[2],"colors", getPackageName())));
+            } catch (Exception e) {
+                Log.d(TAG, "Malformed color string '" + colors + "'. Skipping. Exception: " + e);
+            }
+        }
+        Log.d(TAG, callPriorityBackgroundColors.toString());
+        Log.d(TAG, callPriorityForegroundColors.toString());
+
         // set formatter
-        df.setMaximumFractionDigits(1);
+        df.setMaximumFractionDigits(2);
 
         // set content view
         setContentView(R.layout.activity_main);
@@ -593,7 +620,12 @@ public class MainActivity extends AppCompatActivity {
 
         // Create call view
         View view = getLayoutInflater().inflate(R.layout.call_dialog, null);
-        ((Button) view.findViewById(R.id.callPriorityButton)).setText(call.getPriority());
+
+        Button callPriorityButton = ((Button) view.findViewById(R.id.callPriorityButton));
+        callPriorityButton.setText(call.getPriority());
+        callPriorityButton.setBackgroundColor(callPriorityBackgroundColors.get(call.getPriority()));
+        callPriorityButton.setTextColor(callPriorityForegroundColors.get(call.getPriority()));
+
         ((TextView) view.findViewById(R.id.callAddressText)).setText(call.getAddress().toString());
         ((TextView) view.findViewById(R.id.callDetailsText)).setText(call.getDetails());
         ((TextView) view.findViewById(R.id.callPatientsText)).setText(patientsText);
@@ -951,6 +983,14 @@ public class MainActivity extends AppCompatActivity {
 
         LogoutDialog.newInstance(this).show();
 
+    }
+
+    public Map<String, Integer> getCallPriorityBackgroundColors() {
+        return callPriorityBackgroundColors;
+    }
+
+    public Map<String, Integer> getCallPriorityForegroundColors() {
+        return callPriorityForegroundColors;
     }
 
 }

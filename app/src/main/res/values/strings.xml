@@ -148,6 +148,13 @@
     <string name="selectAmbulance">Select ambulance:</string>
     <string name="ambulanceButtonDefaultText">Select ambulance</string>
     <string name="noIncomingCallsText">No incoming calls.</string>
+    <string name="equipment_sting_button_negative_text">Cancel</string>
+    <string name="couldNotSuspendCall">Could not suspend call.</string>
+    <string name="CallStarted">Call started.</string>
+    <string name="CallFinished">Call finished.</string>
+    <string name="CallDeclined">Call declined.</string>
+    <string name="noPatientAvailable">No patient information available.</string>
+    <string name="noDistanceAvailable">No distance to patient information available.</string>
 
     <string-array name="spinner_list_item_array">
         <item>@string/dispatch</item>
@@ -166,12 +173,14 @@
         <item>Tijuana Red Cross:tijuana.emstrack.org:8883</item>
         <item>UCSD:cruzroja.ucsd.edu:8883</item>
     </string-array>
-    <string name="equipment_sting_button_negative_text">Cancel</string>
-    <string name="couldNotSuspendCall">Could not suspend call.</string>
-    <string name="CallStarted">Call started.</string>
-    <string name="CallFinished">Call finished.</string>
-    <string name="CallDeclined">Call declined.</string>
-    <string name="noPatientAvailable">No patient information available.</string>
-    <string name="noDistanceAvailable">No distance to patient information available.</string>
+
+    <string-array name="call_priority_colors">
+        <item>A:@color/bootstrapSuccess:@color/bootstrapLight</item>
+        <item>B:@color/bootstrapYellow:@color/bootstrapDark</item>
+        <item>C:@color/bootstrapWarning:@color/bootstrapDark</item>
+        <item>D:@color/bootstrapDanger:@color/bootstrapLight</item>
+        <item>E:@color/bootstrapInfo:@color/bootstrapLight</item>
+        <item>O:@color/bootstrapSecondary:@color/bootstrapLight</item>
+    </string-array>
 
 </resources>
