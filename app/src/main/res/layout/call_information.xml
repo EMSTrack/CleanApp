@@ -62,4 +62,25 @@
         android:text="Patients:"
         android:textStyle="bold" />
 
+    <TextView
+        android:id="@+id/callPatientsText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="No patient information available." />
+
+    <TextView
+        android:id="@+id/callDistanceLabel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Distance:"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/callDistanceText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="No distance information available." />
+
+
+
 </LinearLayout>

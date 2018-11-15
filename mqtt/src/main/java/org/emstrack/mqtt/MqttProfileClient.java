@@ -459,7 +459,7 @@ public class MqttProfileClient implements MqttCallbackExtended {
         }
 
         // Report failure to handle topic
-        callOnFailure(new Exception("Mishandled topic '" + topic + "'"));
+        callOnFailure(new MishandledTopicException(topic));
 
     }
 

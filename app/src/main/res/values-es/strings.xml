@@ -145,5 +145,10 @@
     <string name="alert_ambulance_switch">Evita que \'%1$s\' envíe actualizaciones primero.</string>
     <string name="error_invalid_server">Por favor seleccione el servidor.</string>
     <string name="couldNotSuspendCall">No se pudo suspender la llamada.</string>
+    <string name="CallStarted">Llamada iniciada.</string>
+    <string name="CallFinished">llamada terminada.</string>
+    <string name="CallDeclined">Llamada rechazada.</string>
+    <string name="noPatientAvailable">No hay información del paciente disponible.</string>
+    <string name="noDistanceAvailable">No se puede calcular la distancia al paciente.</string>
 
 </resources>

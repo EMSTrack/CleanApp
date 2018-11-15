@@ -14,6 +14,6 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="10dp"
         android:background="@color/colorAccent"
-        android:text="End Call" />
+        android:text="End or Suspend Call" />
 
 </LinearLayout>

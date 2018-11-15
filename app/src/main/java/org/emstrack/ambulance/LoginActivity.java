@@ -270,7 +270,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         // Disable login
         disableLogin();
 
-        // Can update?
+        // Can updateAmbulance?
         if (AmbulanceForegroundService.canUpdateLocation()) {
 
             // Enable login

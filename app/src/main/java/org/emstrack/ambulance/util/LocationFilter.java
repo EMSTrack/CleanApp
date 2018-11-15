@@ -38,7 +38,7 @@ public class LocationFilter {
     /**
      * Update current position based on a new measurement
      *
-     * @param update the update
+     * @param update the updateAmbulance
      */
     public void update(Location update, List<LocationUpdate> filteredLocations) {
 
@@ -71,7 +71,7 @@ public class LocationFilter {
         if ((velocity > stationaryVelocity && distance > stationaryRadius) ||
                 (velocity <= stationaryVelocity && distance > 3 * stationaryRadius)) {
 
-            // update location
+            // updateAmbulance location
             location.setLocation(update);
             location.setTimestamp(new Date(update.getTime()));
 
@@ -174,7 +174,7 @@ public class LocationFilter {
      *
      * XHat(tk+) = XHat(tk+|tk) + K (z(tk) - zHat(tk))
      *
-     * Covariance update:
+     * Covariance updateAmbulance:
      *
      * P(tk+ = P(tk+|tk+) = (I - Kk Hk) P(tk+|tk)
      *

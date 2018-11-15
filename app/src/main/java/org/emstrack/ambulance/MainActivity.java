@@ -42,9 +42,11 @@ import org.emstrack.ambulance.services.OnServicesComplete;
 import org.emstrack.models.Ambulance;
 import org.emstrack.models.AmbulancePermission;
 import org.emstrack.models.Call;
+import org.emstrack.models.Patient;
 import org.emstrack.models.Profile;
 import org.emstrack.mqtt.MqttProfileClient;
 
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -54,6 +56,8 @@ import java.util.List;
 public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = MainActivity.class.getSimpleName();
+
+    private static DecimalFormat df = new DecimalFormat();
 
     private static final float enabledAlpha = 1.0f;
     private static final float disabledAlpha = 0.25f;
@@ -111,7 +115,7 @@ public class MainActivity extends AppCompatActivity {
                                     Log.d(TAG, "Selected ambulance " + selectedAmbulance.getAmbulanceIdentifier());
 
                                     // Any ambulance currently selected?
-                                    final Ambulance ambulance = AmbulanceForegroundService.getAmbulance();
+                                    final Ambulance ambulance = AmbulanceForegroundService.getCurrentAmbulance();
 
                                     // Warn if current ambulance
                                     if (ambulance != null) {
@@ -180,6 +184,9 @@ public class MainActivity extends AppCompatActivity {
                 } else if (action.equals(AmbulanceForegroundService.BroadcastActions.PROMPT_CALL_END)) {
 
                     Log.i(TAG, "PROMPT_CALL_END");
+
+                    int callId = intent.getIntExtra("CALL_ID", -1);
+                    // TODO: Check if current call has that ID
                     endCallDialog();
 
                 }
@@ -189,6 +196,14 @@ public class MainActivity extends AppCompatActivity {
 
                     // change button color to red
                     int myVectorColor = ContextCompat.getColor(MainActivity.this, R.color.colorRed);
+                    trackingIcon.setColorFilter(myVectorColor, PorterDuff.Mode.SRC_IN);
+
+                } else if (action.equals(AmbulanceForegroundService.BroadcastActions.CALL_DECLINED)) {
+
+                    Log.i(TAG, "CALL_DECLINED");
+
+                    // change button color to black
+                    int myVectorColor = ContextCompat.getColor(MainActivity.this, R.color.colorBlack);
                     trackingIcon.setColorFilter(myVectorColor, PorterDuff.Mode.SRC_IN);
 
                 } else if (action.equals(AmbulanceForegroundService.BroadcastActions.CALL_FINISHED)) {
@@ -211,6 +226,11 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
 
         super.onCreate(savedInstanceState);
+
+        // set formatter
+        df.setMaximumFractionDigits(1);
+
+        // set content view
         setContentView(R.layout.activity_main);
 
         // Ambulance spinner
@@ -301,7 +321,7 @@ public class MainActivity extends AppCompatActivity {
             ambulanceButton.setOnClickListener(new AmbulanceButtonClickListener());
 
             // Any ambulance currently selected?
-            Ambulance ambulance = AmbulanceForegroundService.getAmbulance();
+            Ambulance ambulance = AmbulanceForegroundService.getCurrentAmbulance();
             if (ambulance != null) {
 
                 // Set button
@@ -364,6 +384,7 @@ public class MainActivity extends AppCompatActivity {
         filter.addAction(AmbulanceForegroundService.BroadcastActions.PROMPT_CALL_ACCEPT);
         filter.addAction(AmbulanceForegroundService.BroadcastActions.PROMPT_CALL_END);
         filter.addAction(AmbulanceForegroundService.BroadcastActions.CALL_ONGOING);
+        filter.addAction(AmbulanceForegroundService.BroadcastActions.CALL_DECLINED);
         filter.addAction(AmbulanceForegroundService.BroadcastActions.CALL_FINISHED);
         receiver = new MainActivityBroadcastReceiver();
         getLocalBroadcastManager().registerReceiver(receiver, filter);
@@ -415,7 +436,7 @@ public class MainActivity extends AppCompatActivity {
 
     public boolean canWrite() {
 
-        Ambulance ambulance = AmbulanceForegroundService.getAmbulance();
+        Ambulance ambulance = AmbulanceForegroundService.getCurrentAmbulance();
 
         // has ambulance?
         if (ambulance == null)
@@ -538,7 +559,7 @@ public class MainActivity extends AppCompatActivity {
 
         if (call == null) {
 
-            Log.d(TAG, "Invalid call/" + callId);
+            Log.d(TAG, "Invalid call id '" + callId + "'");
             return;
 
         }
@@ -546,11 +567,37 @@ public class MainActivity extends AppCompatActivity {
         // Use the Builder class for convenient dialog construction
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
 
+        // Build patient list
+        String patientsText = "";
+        List<Patient> patients = call.getPatientSet();
+        if (patients == null)
+            patientsText = String.valueOf(R.string.noPatientAvailable);
+        else {
+            for (Patient patient : patients) {
+                if (!patientsText.isEmpty())
+                    patientsText += ", ";
+                patientsText += patient.getName();
+                if (patient.getAge() != null)
+                    patientsText += " (" + patient.getAge() + ")";
+            }
+        }
+
+        // Calculate distance to patient
+        android.location.Location location = AmbulanceForegroundService.getLastLocation();
+        float distance = -1;
+        if (location != null)
+            distance = location.distanceTo(call.getLocation().toLocation()) / 1000;
+        String distanceText = "No distance available";
+        if (distance > 0)
+            distanceText = df.format(distance) + " km";
+
         // Create call view
         View view = getLayoutInflater().inflate(R.layout.call_dialog, null);
         ((Button) view.findViewById(R.id.callPriorityButton)).setText(call.getPriority());
         ((TextView) view.findViewById(R.id.callAddressText)).setText(call.getAddress().toString());
         ((TextView) view.findViewById(R.id.callDetailsText)).setText(call.getDetails());
+        ((TextView) view.findViewById(R.id.callPatientsText)).setText(patientsText);
+        ((TextView) view.findViewById(R.id.callDistanceText)).setText(distanceText);
 
         // build dialog
         builder.setTitle("Accept Incoming Call?")
@@ -589,9 +636,32 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    private void endCallDialog() {
+    public void endCallDialog() {
 
-        Log.i(TAG, "Creating end call dialog");
+        // Gather call details
+        Call call = AmbulanceForegroundService.getCurrentCall();
+        endCallDialog(call);
+    }
+
+    public void endCallDialog(final Call call) {
+
+        Log.d(TAG, "Creating end call dialog");
+
+        // Gather call details
+        Call currentCall = AmbulanceForegroundService.getCurrentCall();
+        if (currentCall == null) {
+
+            // Not currrently handling call
+            Log.d(TAG, "Not currently handling call");
+            return;
+
+        } else if (call != null && call.getId() != currentCall.getId()) {
+
+            // Not currrently handling call
+            Log.d(TAG, "Not currently handling call " + call.getId());
+            return;
+
+        }
 
         // Use the Builder class for convenient dialog construction
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -612,6 +682,11 @@ public class MainActivity extends AppCompatActivity {
                         Toast.makeText(MainActivity.this, "Suspending call", Toast.LENGTH_SHORT).show();
 
                         Log.i(TAG, "Suspending call");
+
+                        Intent serviceIntent = new Intent(MainActivity.this, AmbulanceForegroundService.class);
+                        serviceIntent.setAction(AmbulanceForegroundService.Actions.CALL_SUSPEND);
+                        serviceIntent.putExtra("CALL_ID", call.getId());
+                        startService(serviceIntent);
 
                     }
                 })
@@ -777,7 +852,7 @@ public class MainActivity extends AppCompatActivity {
             Log.d(TAG, "In call: prompt user");
 
             // currently handling call, prompt if want to end call
-            endCallDialog();
+            endCallDialog(currentCall);
 
         } else {
 
@@ -808,7 +883,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void endUpdateDialog() {
 
-        Log.i(TAG, "Creating end update dialog");
+        Log.i(TAG, "Creating end updateAmbulance dialog");
 
         // Use the Builder class for convenient dialog construction
         AlertDialog.Builder builder = new AlertDialog.Builder(this);

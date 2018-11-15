@@ -25,6 +25,13 @@ public class Location {
         this.longitude = longitude;
     }
 
+    public android.location.Location toLocation() {
+        android.location.Location location = new android.location.Location("GPS");
+        location.setLatitude(this.getLatitude());
+        location.setLongitude(this.getLongitude());
+        return location;
+    }
+
     public Location(double latitude, double longitude) {
         this.latitude = latitude;
         this.longitude = longitude;

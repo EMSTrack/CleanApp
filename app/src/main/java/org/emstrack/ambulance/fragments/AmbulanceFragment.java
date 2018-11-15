@@ -24,9 +24,11 @@ import org.emstrack.ambulance.MainActivity;
 import org.emstrack.ambulance.R;
 import org.emstrack.models.Ambulance;
 import org.emstrack.models.Call;
+import org.emstrack.models.Patient;
 import org.emstrack.mqtt.MqttProfileClient;
 
 import java.text.DateFormat;
+import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -38,6 +40,8 @@ import java.util.TimeZone;
 public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSelectedListener {
 
     private static final String TAG = AmbulanceFragment.class.getSimpleName();;
+
+    private static DecimalFormat df = new DecimalFormat();
 
     private View view;
 
@@ -64,11 +68,13 @@ public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSel
 
     AmbulancesUpdateBroadcastReceiver receiver;
     private LinearLayout callLayout;
-    private boolean hasCurrentCall;
+    private int currentCallId;
     private TextView callDescriptionTextView;
     private Button callPriorityButton;
     private TextView callAddressTextView;
     private Button callEndButton;
+    private TextView callPatientsTextView;
+    private TextView callDistanceTextView;
 
     public class AmbulancesUpdateBroadcastReceiver extends BroadcastReceiver {
 
@@ -79,7 +85,54 @@ public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSel
                 if (action.equals(AmbulanceForegroundService.BroadcastActions.AMBULANCE_UPDATE)) {
 
                     Log.i(TAG, "AMBULANCE_UPDATE");
-                    update(AmbulanceForegroundService.getAmbulance());
+                    updateAmbulance(AmbulanceForegroundService.getCurrentAmbulance());
+
+                }
+
+                else if (action.equals(AmbulanceForegroundService.BroadcastActions.CALL_UPDATE)) {
+
+                    Log.i(TAG, "CALL_UPDATE");
+                    if (currentCallId > 0)
+                        updateCall(AmbulanceForegroundService.getCurrentCall());
+
+                }
+
+                else if (action.equals(AmbulanceForegroundService.BroadcastActions.CALL_ONGOING)) {
+
+                    Log.i(TAG, "CALL_ONGOING");
+
+                    // Toast to warn user
+                    Toast.makeText(getContext(), R.string.CallStarted, Toast.LENGTH_LONG).show();
+
+                    int callId = intent.getIntExtra("CALL_ID", -1);
+                    currentCallId = -1;
+                    updateCall(AmbulanceForegroundService.getCurrentCall());
+
+                }
+
+                else if (action.equals(AmbulanceForegroundService.BroadcastActions.CALL_FINISHED)) {
+
+                    Log.i(TAG, "CALL_FINISHED");
+
+                    // Toast to warn user
+                    Toast.makeText(getContext(), R.string.CallFinished, Toast.LENGTH_LONG).show();
+
+                    int callId = intent.getIntExtra("CALL_ID", -1);
+                    if (currentCallId == callId)
+                        updateCall(null);
+
+                }
+
+                else if (action.equals(AmbulanceForegroundService.BroadcastActions.CALL_DECLINED)) {
+
+                    Log.i(TAG, "CALL_DECLINED");
+
+                    // Toast to warn user
+                    Toast.makeText(getContext(), R.string.CallDeclined, Toast.LENGTH_LONG).show();
+
+                    int callId = intent.getIntExtra("CALL_ID", -1);
+                    if (currentCallId == callId)
+                        updateCall(null);
 
                 }
 
@@ -88,6 +141,9 @@ public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSel
     };
 
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+
+        // set formatter
+        df.setMaximumFractionDigits(1);
 
         // inflate view
         view = inflater.inflate(R.layout.fragment_ambulance, container, false);
@@ -98,7 +154,7 @@ public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSel
         // setup as no current call
         View child = getLayoutInflater().inflate(R.layout.no_calls, null);
         callLayout.addView(child);
-        hasCurrentCall = false;
+        currentCallId = -1;
 
         try {
 
@@ -169,12 +225,14 @@ public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSel
         statusSpinner.setAdapter(statusSpinnerAdapter);
 
         // Update ambulance
-        Ambulance ambulance = AmbulanceForegroundService.getAmbulance();
-        if (ambulance != null) {
+        Ambulance ambulance = AmbulanceForegroundService.getCurrentAmbulance();
+        if (ambulance != null)
+            updateAmbulance(ambulance);
 
-            update(ambulance);
-
-        }
+        // Are there calls?
+        Call call = AmbulanceForegroundService.getCurrentCall();
+        if (call != null)
+            updateCall(call);
 
         // Process change of status
         statusSpinner.setOnItemSelectedListener(this);
@@ -187,13 +245,17 @@ public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSel
         super.onResume();
 
         // Update ambulance
-        Ambulance ambulance = AmbulanceForegroundService.getAmbulance();
+        Ambulance ambulance = AmbulanceForegroundService.getCurrentAmbulance();
         if (ambulance != null)
-            update(ambulance);
+            updateAmbulance(ambulance);
 
         // Register receiver
         IntentFilter filter = new IntentFilter();
         filter.addAction(AmbulanceForegroundService.BroadcastActions.AMBULANCE_UPDATE);
+        filter.addAction(AmbulanceForegroundService.BroadcastActions.CALL_UPDATE);
+        filter.addAction(AmbulanceForegroundService.BroadcastActions.CALL_ONGOING);
+        filter.addAction(AmbulanceForegroundService.BroadcastActions.CALL_FINISHED);
+        filter.addAction(AmbulanceForegroundService.BroadcastActions.CALL_DECLINED);
         receiver = new AmbulanceFragment.AmbulancesUpdateBroadcastReceiver();
         getLocalBroadcastManager().registerReceiver(receiver, filter);
 
@@ -211,7 +273,77 @@ public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSel
 
     }
 
-    public void update(Ambulance ambulance) {
+    public void updateCall(final Call call) {
+
+        if ((call == null ^ currentCallId <= 0)) {
+
+            // destroy current view
+            callLayout.removeAllViews();
+
+            // create new layout
+            View child;
+            if (call == null) {
+
+                child = getLayoutInflater().inflate(R.layout.no_calls, null);
+                currentCallId = -1;
+
+            } else {
+
+                child = getLayoutInflater().inflate(R.layout.calls, null);
+                callPriorityButton = (Button) child.findViewById(R.id.callPriorityButton);
+                callDescriptionTextView = (TextView) child.findViewById(R.id.callDetailsText);
+                callAddressTextView = (TextView) child.findViewById(R.id.callAddressText);
+                callPatientsTextView = (TextView) child.findViewById(R.id.callPatientsText);
+                callDistanceTextView = (TextView) child.findViewById(R.id.callDistanceText);
+
+                callEndButton = (Button) child.findViewById(R.id.callEndButton);
+                callEndButton.setOnClickListener(
+                        new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+
+                                // Prompt end of call
+                                ((MainActivity) getActivity()).endCallDialog(call);
+
+                            }
+                        }
+                );
+                currentCallId = call.getId();
+
+            }
+            callLayout.addView(child);
+
+        }
+
+        // Update call content
+        if (call != null) {
+
+            callPriorityButton.setText(call.getPriority());
+            callDescriptionTextView.setText(call.getDetails());
+            callAddressTextView.setText(call.getAddress().toString());
+
+            // patients
+            List<Patient> patients = call.getPatientSet();
+            if (patients != null) {
+                String text = "";
+                for (Patient patient: patients)  {
+                    if (!text.isEmpty())
+                        text += "\n";
+                    text += patient.getName();
+                    if (patient.getAge() != null)
+                        text += " (" + patient.getAge() + ")";
+                }
+
+                callPatientsTextView.setText(text);
+            } else {
+                callPatientsTextView.setText(R.string.noPatientAvailable);
+            }
+
+        }
+
+    }
+
+    public void updateAmbulance(Ambulance ambulance) {
 
         // set spinner only if position changed
         // this helps to prevent a possible server loop
@@ -226,58 +358,12 @@ public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSel
 
         } else {
 
-            Log.i(TAG, "Spinner continues to be at position " + position + ". Skipping update");
+            Log.i(TAG, "Spinner continues to be at position " + position + ". Skipping updateAmbulance");
 
         }
 
         // set identifier
         ((MainActivity) getActivity()).setAmbulanceButtonText(ambulance.getIdentifier());
-
-        // Are there calls?
-        Call currentCall = AmbulanceForegroundService.getCurrentCall();
-        if ((currentCall == null ^ !hasCurrentCall)) {
-
-            // destroy current view
-            callLayout.removeAllViews();
-
-            // create new layout
-            View child;
-            if (currentCall == null) {
-                child = getLayoutInflater().inflate(R.layout.no_calls, null);
-                hasCurrentCall = false;
-            } else {
-                child = getLayoutInflater().inflate(R.layout.calls, null);
-                callPriorityButton = (Button) child.findViewById(R.id.callPriorityButton);
-                callDescriptionTextView = (TextView) child.findViewById(R.id.callDetailsText);
-                callAddressTextView = (TextView) child.findViewById(R.id.callAddressText);
-                callEndButton = (Button) child.findViewById(R.id.callEndButton);
-                callEndButton.setOnClickListener(
-                        new View.OnClickListener() {
-                            @Override
-                            public void onClick(View v) {
-                                if (AmbulanceForegroundService.isUpdatingLocation()) {
-
-                                    // stop updating location
-                                    ((MainActivity) getActivity()).stopUpdatingLocation();
-
-                                }
-                            }
-                        }
-                );
-                hasCurrentCall = true;
-            }
-            callLayout.addView(child);
-
-        }
-
-        // Call content
-        if (currentCall != null) {
-
-            callPriorityButton.setText(currentCall.getPriority());
-            callDescriptionTextView.setText(currentCall.getDetails());
-            callAddressTextView.setText(currentCall.getAddress().toString());
-
-        }
 
         /*
         // set location
@@ -286,6 +372,22 @@ public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSel
         orientationText.setText(String.format("%.1f", ambulance.getOrientation()));
         timestampText.setText(ambulance.getTimestamp().toString());
         */
+
+        // update call distance?
+        if (currentCallId > 0) {
+
+            // Calculate distance to patient
+            android.location.Location location = ambulance.getLocation().toLocation();
+            float distance = -1;
+            if (location != null)
+                distance = location.distanceTo(AmbulanceForegroundService.getCurrentCall().getLocation().toLocation()) / 1000;
+            String distanceText = "No distance available";
+            if (distance > 0) {
+                distanceText = df.format(distance) + " km";
+            }
+            callDistanceTextView.setText(distanceText);
+
+        }
 
         // set status and comment
         commentText.setText(ambulance.getComment());
@@ -313,7 +415,7 @@ public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSel
             }
         });
 
-        // update spinner
+        // updateAmbulance spinner
         statusSpinner.setSelection(position, false);
 
         // connect listener
@@ -333,14 +435,14 @@ public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSel
 
         Log.i(TAG, "Item '" + position + "' selected.");
 
-        // Should only update on server as a result of user interaction
+        // Should only updateAmbulance on server as a result of user interaction
         // Otherwise this will create a loop with mqtt updating ambulance
         // TODO: Debug spinner multiple updates
         // This may not be easy with the updates being called from a service
 
-        Log.i(TAG, "Processing status spinner update.");
+        Log.i(TAG, "Processing status spinner updateAmbulance.");
 
-        Ambulance ambulance = AmbulanceForegroundService.getAmbulance();
+        Ambulance ambulance = AmbulanceForegroundService.getCurrentAmbulance();
         if ((ambulance != null) && !((MainActivity) getActivity()).canWrite()) {
 
             // Toast to warn user
@@ -372,7 +474,7 @@ public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSel
         df.setTimeZone(TimeZone.getTimeZone("UTC"));
         String timestamp = df.format(new Date());
 
-        // Set update string
+        // Set updateAmbulance string
         String updateString = "{\"status\":\"" + statusCode + "\",\"timestamp\":\"" + timestamp + "\"}";
 
         // Update on server

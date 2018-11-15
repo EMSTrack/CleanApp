@@ -585,11 +585,64 @@ public class ModelsUnitTest {
     }
 
     @Test
+    public void test_patient() throws Exception {
+
+        Patient patient = new Patient(1,"Jose",35);
+
+        Gson gson = new Gson();
+
+        String to_json = gson.toJson(patient);
+
+        Patient from_json = gson.fromJson(to_json, Patient.class);
+
+        int expectedId = patient.getId();
+        int answerId = from_json.getId();
+        assertEquals(expectedId, answerId);
+
+        String expectedName = patient.getName();
+        String answerName = from_json.getName();
+        assertEquals(expectedName, answerName);
+
+        Integer expectedAge = patient.getAge();
+        Integer answerAge = from_json.getAge();
+        assertEquals(expectedAge, answerAge);
+
+        patient.setAge(null);
+
+        to_json = "{\"id\":1,\"name\":\"Jose\",\"age\":null}";
+        from_json = gson.fromJson(to_json, Patient.class);
+
+        expectedId = patient.getId();
+        answerId = from_json.getId();
+        assertEquals(expectedId, answerId);
+
+        expectedName = patient.getName();
+        answerName = from_json.getName();
+        assertEquals(expectedName, answerName);
+
+        expectedAge = patient.getAge();
+        answerAge = from_json.getAge();
+        assertEquals(expectedAge, answerAge);
+
+    }
+
+    @Test
     public void test_call() throws Exception {
 
-        double epsilon = 1e-4;
+        List<Patient> patientSet = new ArrayList<>();
+        patientSet.add(new Patient(31, "Maria",0));
+        patientSet.add(new Patient(30, "Jose",13));
 
-        Call call = new Call();
+        Call call = new Call(
+                64,
+                "S", "ads asd","O",
+                "", "Bonifácio Avilés", null, null,
+                "Tijuana","BCN","" ,"MX",
+                new Location(32.51543632662701,-117.03812250149775),
+                null,null,null,null,
+                null,1,null, null, null, patientSet);
+
+        double epsilon = 1e-4;
 
         Gson gson = new Gson();
 
@@ -610,16 +663,33 @@ public class ModelsUnitTest {
         answerString = from_json.getDetails();
         assertEquals(expectedString, answerString);
 
-        //expectedString = call.get();
+        expectedString = call.getCity();
+        answerString = from_json.getCity();
+        assertEquals(expectedString, answerString);
+
+        to_json = "{\"id\":64,\"status\":\"S\",\"details\":\"ads asd\",\"priority\":\"O\",\"number\":\"\",\"street\":\"Bonifácio Avilés\",\"unit\":null,\"neighborhood\":null,\"city\":\"Tijuana\",\"state\":\"BCN\",\"zipcode\":\"\",\"country\":\"MX\",\"location\":{\"latitude\":\"32.51543632662701\",\"longitude\":\"-117.03812250149775\"},\"created_at\":\"2018-11-14T22:33:46.055339Z\",\"pending_at\":\"2018-11-14T22:33:46.054955Z\",\"started_at\":\"2018-11-14T22:34:50.329321Z\",\"ended_at\":null,\"comment\":null,\"updated_by\":1,\"updated_on\":\"2018-11-14T22:34:50.329428Z\",\"ambulancecallSet\":[{\"id\":59,\"ambulance_id\":8,\"created_at\":\"2018-11-14T22:33:46.058026Z\",\"ambulanceupdateSet\":[]}],\"patient_set\":[{\"id\":31,\"name\":\"Maria\",\"age\":null},{\"id\":30,\"name\":\"Jose\",\"age\":13}]}";
+
+        from_json = gson.fromJson(to_json, Call.class);
+        System.out.println("to_json = " + to_json + "'");
+
+        expectedId = call.getId();
+        answerId = from_json.getId();
+        assertEquals(expectedId, answerId);
+
+        expectedString = call.getCity();
+        answerString = from_json.getCity();
+        assertEquals(expectedString, answerString);
+
+        expectedString = call.getDetails();
+        answerString = from_json.getDetails();
+        assertEquals(expectedString, answerString);
+
+        expectedString = call.getCity();
         answerString = from_json.getCity();
         assertEquals(expectedString, answerString);
 
         expectedString = call.getCountry();
-        answerString = from_json.getCity();
-        assertEquals(expectedString, answerString);
-
-        expectedString = call.getCountry();
-        answerString = from_json.getCity();
+        answerString = from_json.getCountry();
         assertEquals(expectedString, answerString);
 
     }
