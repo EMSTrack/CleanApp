@@ -3242,6 +3242,12 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
             // step 7: publish status to server
 
+            // Notify user
+            if (enter)
+                Toast.makeText(this, "Arrived at patient", Toast.LENGTH_LONG).show();
+            else
+                Toast.makeText(this, "Left patient", Toast.LENGTH_LONG).show();
+
             String status = enter ? "AP" : "HB";
 
             String payload = String.format("{\"status\":\"%1$s\"}", status);
@@ -3258,6 +3264,9 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
                 Log.i(TAG, "User has entered hospital");
 
+                // Notify user
+                Toast.makeText(this, "Arrived at hospital", Toast.LENGTH_LONG).show();
+
                 String status = "AH";
 
                 String payload = String.format("{\"status\":\"%1$s\"}", status);
@@ -3273,6 +3282,9 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                 // user is leaving the hospital
 
                 Log.i(TAG, "User is leaving hospital");
+
+                // Notify user
+                Toast.makeText(this, "Left hospital", Toast.LENGTH_SHORT).show();
 
                 // create intent to prompt user to end call
                 Intent callPromptIntent = new Intent(BroadcastActions.PROMPT_CALL_END);
