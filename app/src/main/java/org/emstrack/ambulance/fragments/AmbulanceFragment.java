@@ -143,7 +143,7 @@ public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSel
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
         // set formatter
-        df.setMaximumFractionDigits(1);
+        df.setMaximumFractionDigits(2);
 
         // inflate view
         view = inflater.inflate(R.layout.fragment_ambulance, container, false);
@@ -319,6 +319,9 @@ public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSel
         if (call != null) {
 
             callPriorityButton.setText(call.getPriority());
+            callPriorityButton.setBackgroundColor(((MainActivity) getActivity()).getCallPriorityBackgroundColors().get(call.getPriority()));
+            callPriorityButton.setTextColor(((MainActivity) getActivity()).getCallPriorityForegroundColors().get(call.getPriority()));
+
             callDescriptionTextView.setText(call.getDetails());
             callAddressTextView.setText(call.getAddress().toString());
 
