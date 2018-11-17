@@ -1110,6 +1110,32 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
     }
 
+
+    /**
+     * @param status
+     */
+    public void updateStatus(String status) {
+
+        // publish status to server
+        String payload = String.format("{\"status\":\"%1$s\"}", status);
+        Intent intent = new Intent(this, AmbulanceForegroundService.class);
+        intent.setAction(Actions.UPDATE_AMBULANCE);
+        Bundle bundle = new Bundle();
+        bundle.putString("UPDATE", payload);
+        intent.putExtras(bundle);
+        startService(intent);
+
+        // Has ambulance?
+        Ambulance ambulance = getCurrentAmbulance();
+        if (ambulance != null ) {
+
+            // modify locally as well?
+            //ambulance.getId();
+
+        }
+
+    }
+
     /**
      * Logout
      */
@@ -2958,6 +2984,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
                 Log.d(TAG, "Making ambulance '" + getCurrentAmbulance().getId() + "' available");
 
+                /*
                 // publish available to server
                 String payload = String.format("{\"status\":\"%1$s\"}", "AV");
                 Intent intent = new Intent(this, AmbulanceForegroundService.class);
@@ -2966,6 +2993,8 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                 bundle.putString("UPDATE", payload);
                 intent.putExtras(bundle);
                 startService(intent);
+                */
+                updateStatus("AV");
 
             } else
                 Log.d(TAG, "THIS SHOULD NOT HAPPEN: ambulance is null!");
@@ -3173,6 +3202,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         startService(serviceIntent);
 
         // step 7: publish patient bound to server
+        /*
         String payload = String.format("{\"status\":\"%1$s\"}", "PB");
         Intent intent = new Intent(this, AmbulanceForegroundService.class);
         intent.setAction(Actions.UPDATE_AMBULANCE);
@@ -3180,6 +3210,8 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         bundle.putString("UPDATE", payload);
         intent.putExtras(bundle);
         startService(intent);
+        */
+        updateStatus("PB");
 
         // broadcast CALL_ONGOING
         Intent callOngoingIntent = new Intent(BroadcastActions.CALL_ONGOING);
@@ -3244,6 +3276,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
             String status = enter ? "AP" : "HB";
 
+            /*
             String payload = String.format("{\"status\":\"%1$s\"}", status);
             Intent intent = new Intent(this, AmbulanceForegroundService.class);
             intent.setAction(Actions.UPDATE_AMBULANCE);
@@ -3251,6 +3284,8 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
             bundle.putString("UPDATE", payload);
             intent.putExtras(bundle);
             startService(intent);
+            */
+            updateStatus(status);
 
         } else {
 
@@ -3258,8 +3293,8 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
                 Log.i(TAG, "User has entered hospital");
 
+                /*
                 String status = "AH";
-
                 String payload = String.format("{\"status\":\"%1$s\"}", status);
                 Intent intent = new Intent(this, AmbulanceForegroundService.class);
                 intent.setAction(Actions.UPDATE_AMBULANCE);
@@ -3267,6 +3302,8 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                 bundle.putString("UPDATE", payload);
                 intent.putExtras(bundle);
                 startService(intent);
+                */
+                updateStatus("AH");
 
             } else {
 
