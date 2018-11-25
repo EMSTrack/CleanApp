@@ -15,11 +15,13 @@ public class Geofence {
     Location location;
     float radius;
     boolean isHospital;
+    boolean isTriggered;
 
     public Geofence(Location location, float radius, boolean isHospital) {
         this.location = location;
         this.radius = radius;
         this.isHospital = isHospital;
+        this.isTriggered = false;
     }
 
     public Location getLocation() { return location; }
@@ -27,6 +29,14 @@ public class Geofence {
     public float getRadius() { return radius; }
 
     public boolean isHospital() { return isHospital; }
+
+    public boolean isTriggered() {
+        if (!isHospital)
+            return false;
+        return isTriggered;
+    }
+
+    public void setTriggered() { this.isTriggered = true; }
 
     public com.google.android.gms.location.Geofence build(String id) {
         return build(id, GEOFENCE_TRANSITION_ENTER | GEOFENCE_TRANSITION_EXIT);

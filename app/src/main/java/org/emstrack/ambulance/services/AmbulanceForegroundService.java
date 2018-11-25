@@ -661,14 +661,17 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
             // get list of geofence ids that were exited
             String[] triggeredGeofences = intent.getStringArrayExtra("TRIGGERED_GEOFENCES");
 
-            // check if the triggered geofences were hospitals or not
+            // check if the triggered geofences were hospitals and make sure they only trigger once
             for (String geoId : triggeredGeofences) {
                 Geofence triggeredGeofence = _geofences.get(geoId);
 
-                if (triggeredGeofence.isHospital()) {
-                    replyToGeofenceTransitions(uuid, false, true);
-                } else {
-                    replyToGeofenceTransitions(uuid, false, false);
+                if (!triggeredGeofence.isTriggered()) {
+                    if (triggeredGeofence.isHospital()) {
+                        replyToGeofenceTransitions(uuid, false, true);
+                    } else {
+                        triggeredGeofence.setTriggered();
+                        replyToGeofenceTransitions(uuid, false, false);
+                    }
                 }
             }
 
