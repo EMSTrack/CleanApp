@@ -39,8 +39,8 @@ import org.emstrack.ambulance.services.AmbulanceForegroundService;
 import org.emstrack.ambulance.R;
 import org.emstrack.ambulance.services.OnServiceComplete;
 import org.emstrack.models.Ambulance;
+import org.emstrack.models.GPSLocation;
 import org.emstrack.models.Hospital;
-import org.emstrack.models.Location;
 import org.emstrack.mqtt.MqttProfileClient;
 
 import java.util.HashMap;
@@ -81,7 +81,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
     private OrientationEventListener orientationListener;
 
     static float ROTATIONS[] = { 0.f, 90.f, 180.f, 270.f };
-    private Location defaultLocation;
+    private GPSLocation defaultLocation;
 
     static int degreesToRotation(int degrees) {
         if (degrees > 315 || degrees < 45)
@@ -263,7 +263,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
         } catch (AmbulanceForegroundService.ProfileClientException e) {
 
             ambulanceStatus = new HashMap<String,String>();
-            defaultLocation = new Location(0,0);
+            defaultLocation = new GPSLocation(0,0);
 
         }
 
@@ -520,7 +520,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
                 Ambulance ambulance = AmbulanceForegroundService.getCurrentAmbulance();
                 if (ambulance != null) {
 
-                    Location location = ambulance.getLocation();
+                    GPSLocation location = ambulance.getLocation();
                     LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
 
                     googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, zoomLevel));
@@ -635,7 +635,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
         Log.d(TAG,"Adding marker for ambulance " + ambulance.getIdentifier());
 
         // Find new location
-        Location location = ambulance.getLocation();
+        GPSLocation location = ambulance.getLocation();
         LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
 
         // Marker exist?
@@ -673,7 +673,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
         Log.d(TAG,"Adding marker for hospital " + hospital.getName());
 
         // Find new location
-        Location location = hospital.getLocation();
+        GPSLocation location = hospital.getLocation();
         LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
 
         // Marker exist?
@@ -707,7 +707,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
         Ambulance ambulance = AmbulanceForegroundService.getCurrentAmbulance();
         if (ambulance != null) {
 
-            Location location = ambulance.getLocation();
+            GPSLocation location = ambulance.getLocation();
             LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
 
             // Add marker for ambulance

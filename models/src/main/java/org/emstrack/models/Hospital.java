@@ -20,7 +20,7 @@ public class Hospital{
     private String state;
     private String zipcode;
     private String country;
-    private Location location;
+    private GPSLocation location;
     private String name;
     private String comment;
     private int updatedBy;
@@ -37,7 +37,7 @@ public class Hospital{
                     String zipcode,
                     String country,
                     String name,
-                    Location location,
+                    GPSLocation location,
                     String comment,
                     int updatedBy, Date updatedOn,
                     List<HospitalEquipment> hospitalequipmentSet) {
@@ -134,11 +134,11 @@ public class Hospital{
         this.country = country;
     }
 
-    public Location getLocation() {
+    public GPSLocation getLocation() {
         return location;
     }
 
-    public void setLocation(Location location) {
+    public void setLocation(GPSLocation location) {
         this.location = location;
     }
 

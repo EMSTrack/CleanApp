@@ -53,9 +53,9 @@ import org.emstrack.ambulance.util.LocationUpdate;
 import org.emstrack.models.Ambulance;
 import org.emstrack.models.AmbulancePermission;
 import org.emstrack.models.Call;
+import org.emstrack.models.GPSLocation;
 import org.emstrack.models.Hospital;
 import org.emstrack.models.HospitalPermission;
-import org.emstrack.models.Location;
 import org.emstrack.mqtt.MishandledTopicException;
 import org.emstrack.mqtt.MqttProfileCallback;
 import org.emstrack.mqtt.MqttProfileClient;
@@ -583,7 +583,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
             Float longitude = intent.getFloatExtra("LONGITUDE", 0.f);
             Float radius = intent.getFloatExtra("RADIUS", 50.f);
 
-            startGeofence(uuid, new Geofence(new Location(latitude, longitude), radius, isHospital));
+            startGeofence(uuid, new Geofence(new GPSLocation(latitude, longitude), radius, isHospital));
 
         } else if (intent.getAction().equals(Actions.GEOFENCE_STOP)) {
 
@@ -976,7 +976,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
                 // Update ambulance
                 android.location.Location location = _lastLocation.getLocation();
-                ambulance.setLocation(new Location(location.getLatitude(), location.getLongitude()));
+                ambulance.setLocation(new GPSLocation(location.getLatitude(), location.getLongitude()));
                 ambulance.setOrientation(_lastLocation.getBearing());
 
                 // Broadcast ambulance updateAmbulance

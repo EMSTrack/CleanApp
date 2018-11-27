@@ -46,7 +46,7 @@ public class LocationFilter {
         double dt = update.getTime() - location.getTimestamp().getTime();
 
         // Predict next location
-        // Location prediction = updateLocation(location, bearing, velocity * dt);
+        // GPSLocation prediction = updateLocation(location, bearing, velocity * dt);
 
         // measure velocity and bearing
         double[] dandb = calculateDistanceAndBearing(location.getLocation(), update);

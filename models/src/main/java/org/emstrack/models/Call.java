@@ -6,9 +6,7 @@ package org.emstrack.models;
 
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class Call {
 
@@ -24,7 +22,7 @@ public class Call {
     private String state;
     private String zipcode;
     private String country;
-    private Location location;
+    private GPSLocation location;
     private Date createdAt;
     private Date pendingAt;
     private Date startedAt;
@@ -44,7 +42,7 @@ public class Call {
     public Call(int id, String status, String details, String priority, 
                 String number, String street, String unit, String neighborhood, String city, 
                 String state, String zipcode, String country, 
-                Location location, 
+                GPSLocation location,
                 Date createdAt, Date pendingAt, Date startedAt, Date endedAt, 
                 String comment, int updatedBy, Date updatedOn,
                 List<Object> ambulancecallSet, List<Object> ambulanceupdateSet, List<Patient> patientSet) {
@@ -173,11 +171,11 @@ public class Call {
         this.country = country;
     }
 
-    public Location getLocation() {
+    public GPSLocation getLocation() {
         return location;
     }
 
-    public void setLocation(Location location) {
+    public void setLocation(GPSLocation location) {
         this.location = location;
     }
 
