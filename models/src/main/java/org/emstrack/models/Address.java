@@ -1,7 +1,5 @@
 package org.emstrack.models;
 
-import java.util.Date;
-
 /**
  * Created by mauricio on 3/11/2018.
  * This model is not used yet since all database models are flat
@@ -18,7 +16,7 @@ public class Address {
     private String state;
     private String zipcode;
     private String country;
-    private Location location;
+    private GPSLocation location;
 
     public Address(String number,
                    String street,
@@ -103,11 +101,11 @@ public class Address {
         this.country = country;
     }
 
-    public Location getLocation() {
+    public GPSLocation getLocation() {
         return location;
     }
 
-    public void setLocation(Location location) {
+    public void setLocation(GPSLocation location) {
         this.location = location;
     }
 

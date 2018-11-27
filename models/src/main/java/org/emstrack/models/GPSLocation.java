@@ -2,7 +2,7 @@ package org.emstrack.models;
 
 import com.google.gson.annotations.Expose;
 
-public class Location {
+public class GPSLocation {
 
     @Expose
     private double latitude;
@@ -32,7 +32,7 @@ public class Location {
         return location;
     }
 
-    public Location(double latitude, double longitude) {
+    public GPSLocation(double latitude, double longitude) {
         this.latitude = latitude;
         this.longitude = longitude;
     }

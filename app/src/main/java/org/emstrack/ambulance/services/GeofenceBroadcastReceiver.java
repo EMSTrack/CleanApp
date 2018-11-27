@@ -26,7 +26,7 @@ public class GeofenceBroadcastReceiver extends BroadcastReceiver {
      * Receives incoming intents.
      *
      * @param context the application context.
-     * @param intent  sent by Location Services. This Intent is provided to Location
+     * @param intent  sent by GPSLocation Services. This Intent is provided to GPSLocation
      *                Services (inside a PendingIntent) when addGeofences() is called.
      */
     @Override

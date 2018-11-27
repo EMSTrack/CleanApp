@@ -1,7 +1,5 @@
 package org.emstrack.models;
 
-import android.util.Log;
-
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.FieldNamingPolicy;
@@ -13,19 +11,12 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 
-import java.text.DateFormat;
 import java.util.Date;
 import java.text.SimpleDateFormat;
 import java.util.HashMap;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Map;
-
-import org.emstrack.models.AmbulancePermission;
-import org.emstrack.models.HospitalPermission;
-import org.emstrack.models.Profile;
-import org.emstrack.models.HospitalEquipmentMetadata;
-import org.emstrack.models.HospitalEquipment;
 
 /**
  * Example local unit test, which will execute on the development machine (host).
@@ -268,7 +259,7 @@ public class ModelsUnitTest {
         locationType.put("A", "AED");
         locationType.put("O", "Other");
         
-        Defaults defaults = new Defaults(new Location(32.5149,-117.0382),"BC","Tijuana","MX");
+        Defaults defaults = new Defaults(new GPSLocation(32.5149,-117.0382),"BC","Tijuana","MX");
 
         Settings settings = new Settings(ambulanceCapability, ambulanceStatus, equipmentType, locationType, defaults);
 
@@ -387,7 +378,7 @@ public class ModelsUnitTest {
         
         ambulance.setStatus("UK");
         ambulance.setOrientation(12.0);
-        ambulance.setLocation(new Location(32.5149,-117.0382));
+        ambulance.setLocation(new GPSLocation(32.5149,-117.0382));
         ambulance.setTimestamp(new Date());
         ambulance.setUpdatedOn(new Date());
 
@@ -417,8 +408,8 @@ public class ModelsUnitTest {
         double answerDouble = from_json.getOrientation();
         assertEquals(expectedDouble, answerDouble, epsilon);
 
-        Location expectedLocation = ambulance.getLocation();
-        Location answerLocation = from_json.getLocation();
+        GPSLocation expectedLocation = ambulance.getLocation();
+        GPSLocation answerLocation = from_json.getLocation();
         assertEquals(expectedLocation.getLatitude(),answerLocation.getLatitude(),epsilon);
         assertEquals(expectedLocation.getLongitude(),answerLocation.getLongitude(),epsilon);
 
@@ -469,7 +460,7 @@ public class ModelsUnitTest {
         Hospital hospital = new Hospital(1,
                 "123","Some Street", null, null,
                 "Tijuana","BCN","28334","MX",
-                "Hospital Viejo", new Location(32.5149,-117.0382),
+                "Hospital Viejo", new GPSLocation(32.5149,-117.0382),
                 "No comments",1, new Date(), equipment);
 
         Gson gson = new Gson();
@@ -520,8 +511,8 @@ public class ModelsUnitTest {
         answerString = from_json.getName();
         assertEquals(expectedString, answerString);
 
-        Location expectedLocation = hospital.getLocation();
-        Location answerLocation = from_json.getLocation();
+        GPSLocation expectedLocation = hospital.getLocation();
+        GPSLocation answerLocation = from_json.getLocation();
         assertEquals(expectedLocation.getLatitude(),answerLocation.getLatitude(),epsilon);
         assertEquals(expectedLocation.getLongitude(),answerLocation.getLongitude(),epsilon);
 
@@ -638,7 +629,7 @@ public class ModelsUnitTest {
                 "S", "ads asd","O",
                 "", "Bonifácio Avilés", null, null,
                 "Tijuana","BCN","" ,"MX",
-                new Location(32.51543632662701,-117.03812250149775),
+                new GPSLocation(32.51543632662701,-117.03812250149775),
                 null,null,null,null,
                 null,1,null, null, null, patientSet);
 

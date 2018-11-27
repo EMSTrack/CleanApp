@@ -14,7 +14,7 @@ public class Ambulance {
     @Expose
     private double orientation;
     @Expose
-    private Location location;
+    private GPSLocation location;
     @Expose
     private Date timestamp;
     private String locationClientId;
@@ -23,7 +23,7 @@ public class Ambulance {
     private Date updatedOn;
 
     public Ambulance(int id, String identifier, String capability, String status,
-                     double orientation, Location location, Date timestamp,
+                     double orientation, GPSLocation location, Date timestamp,
                      String comment, int updatedBy, Date updatedOn) {
         this.id = id;
         this.identifier = identifier;
@@ -55,7 +55,7 @@ public class Ambulance {
     public void updateLocation(android.location.Location lastLocation) {
 
         // Update ambulance
-        location = new Location(lastLocation.getLatitude(),lastLocation.getLongitude());
+        location = new GPSLocation(lastLocation.getLatitude(),lastLocation.getLongitude());
         orientation = lastLocation.getBearing();
         timestamp = new Date(lastLocation.getTime());
 
@@ -101,11 +101,11 @@ public class Ambulance {
         this.orientation = orientation;
     }
 
-    public Location getLocation() {
+    public GPSLocation getLocation() {
         return location;
     }
 
-    public void setLocation(Location location) {
+    public void setLocation(GPSLocation location) {
         this.location = location;
     }
 

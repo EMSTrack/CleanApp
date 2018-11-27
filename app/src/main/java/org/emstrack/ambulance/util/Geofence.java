@@ -1,6 +1,6 @@
 package org.emstrack.ambulance.util;
 
-import org.emstrack.models.Location;
+import org.emstrack.models.GPSLocation;
 
 import static com.google.android.gms.location.Geofence.GEOFENCE_TRANSITION_ENTER;
 import static com.google.android.gms.location.Geofence.GEOFENCE_TRANSITION_EXIT;
@@ -12,17 +12,17 @@ import static com.google.android.gms.location.Geofence.NEVER_EXPIRE;
 
 public class Geofence {
 
-    Location location;
+    GPSLocation location;
     float radius;
     boolean isHospital;
 
-    public Geofence(Location location, float radius, boolean isHospital) {
+    public Geofence(GPSLocation location, float radius, boolean isHospital) {
         this.location = location;
         this.radius = radius;
         this.isHospital = isHospital;
     }
 
-    public Location getLocation() { return location; }
+    public GPSLocation getLocation() { return location; }
 
     public float getRadius() { return radius; }
 
