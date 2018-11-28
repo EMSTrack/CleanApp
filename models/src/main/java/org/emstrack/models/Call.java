@@ -10,6 +10,10 @@ import java.util.List;
 
 public class Call {
 
+    public static final String STATUS_PENDING = "P";
+    public static final String STATUS_STARTED = "S";
+    public static final String STATUS_ENDED = "E";
+
     private int id;
     private String status;
     private String details;
