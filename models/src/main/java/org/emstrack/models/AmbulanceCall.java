@@ -73,15 +73,22 @@ public class AmbulanceCall {
         this.sorted = true;
     }
 
-    public Waypoint getNextWaypoint() {
+    public Waypoint getNextIncidentWaypoint() {
+        return getNextWaypoint("i");
+    }
 
+    public Waypoint getNextWaypoint() {
+        return getNextWaypoint(null);
+    }
+
+    public Waypoint getNextWaypoint(String type) {
         // Sort first?
         if (!isSorted())
             sortWaypoints();
 
         // Find first non-visited waypoint
         for (Waypoint waypoint : waypointSet) {
-            if (!waypoint.isVisited())
+            if ((type == null || waypoint.getLocation().getType().equals(type)) && !waypoint.isVisited())
                 return waypoint;
         }
 

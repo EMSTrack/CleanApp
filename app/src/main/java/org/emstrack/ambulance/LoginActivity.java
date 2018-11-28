@@ -249,13 +249,13 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         if (AmbulanceForegroundService.canUpdateLocation()) {
 
             // Toast to warn about check permissions
-            Toast.makeText(LoginActivity.this, "GPSLocation permissions satisfied.", Toast.LENGTH_LONG).show();
+            Toast.makeText(LoginActivity.this, "Location permissions satisfied.", Toast.LENGTH_LONG).show();
 
         } else {
 
             // Alert to warn about check permissions
             new AlertSnackbar(LoginActivity.this)
-                    .alert("GPSLocation permissions not satisfied. Expect limited functionality.");
+                    .alert("Location permissions not satisfied. Expect limited functionality.");
 
         }
 
@@ -483,7 +483,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                         int statusCode = ((ApiException) e).getStatusCode();
                         switch (statusCode) {
                             case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
-                                Log.i(TAG, "GPSLocation settings are not satisfied. Attempting to upgrade " +
+                                Log.i(TAG, "Location settings are not satisfied. Attempting to upgrade " +
                                         "location settings ");
                                 try {
                                     // Show the dialog by calling startResolutionForResult(), and check the

@@ -159,17 +159,20 @@ public class Call {
         this.patientSet = patientSet;
     }
 
-    public void setCurrentAmbulanceCall(int ambulance_id) {
-        currentAmbulanceCall = null;
+    public AmbulanceCall getAmbulanceCall(int ambulance_id) {
         for (AmbulanceCall ambulanceCall : ambulancecallSet) {
             if (ambulanceCall.getAmbulanceId() == ambulance_id) {
-                currentAmbulanceCall = ambulanceCall;
-                break;
+                return ambulanceCall;
             }
         }
+        return null;
+    }
+
+    public AmbulanceCall setCurrentAmbulanceCall(int ambulance_id) {
+        return this.currentAmbulanceCall = getAmbulanceCall(ambulance_id);
     }
 
     public AmbulanceCall getCurrentAmbulanceCall() {
-        return currentAmbulanceCall;
+        return this.currentAmbulanceCall;
     }
 }
