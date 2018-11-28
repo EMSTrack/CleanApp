@@ -12,12 +12,12 @@ public class Waypoint {
     }
 
     private int order;
-    private boolean visited;
+    private String status;
     private Location location;
 
-    public Waypoint(int order, boolean visited, Location location) {
+    public Waypoint(int order, String status, Location location) {
         this.order = order;
-        this.visited = visited;
+        this.status = status;
         this.location = location;
     }
 
@@ -29,12 +29,32 @@ public class Waypoint {
         this.order = order;
     }
 
-    public boolean isVisited() {
-        return visited;
+    public boolean isActive() {
+        return !status.equals("I");
     }
 
-    public void setVisited(boolean visited) {
-        this.visited = visited;
+    public boolean isVisited() {
+        return status.equals("D");
+    }
+
+    public boolean isVisiting() {
+        return status.equals("V");
+    }
+
+    public void setActive() {
+        this.status = "A";
+    }
+
+    public void setVisited() {
+        this.status = "D";
+    }
+
+    public void setVisiting() {
+        this.status = "V";
+    }
+
+    public void setInactive() {
+        this.status = "I";
     }
 
     public Location getLocation() {

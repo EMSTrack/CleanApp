@@ -26,7 +26,6 @@ public class Address {
                    String state,
                    String zipcode,
                    String country) {
-
         this.number = number;
         this.street= street;
         this.unit = unit;
@@ -46,7 +45,6 @@ public class Address {
                    String zipcode,
                    String country,
                    GPSLocation location) {
-
         this.number = number;
         this.street= street;
         this.unit = unit;
@@ -55,6 +53,18 @@ public class Address {
         this.state = state;
         this.zipcode = zipcode;
         this.country = country;
+        this.location = location;
+    }
+
+    public Address(GPSLocation location) {
+        this.number = "";
+        this.street= "";
+        this.unit = "";
+        this.neighborhood= "";
+        this.city = "";
+        this.state = "";
+        this.zipcode = "";
+        this.country = "";
         this.location = location;
     }
 

@@ -257,7 +257,7 @@ public class MainActivity extends AppCompatActivity {
         Log.d(TAG, callPriorityForegroundColors.toString());
 
         // set formatter
-        df.setMaximumFractionDigits(2);
+        df.setMaximumFractionDigits(3);
 
         // set content view
         setContentView(R.layout.activity_main);

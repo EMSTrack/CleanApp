@@ -9,6 +9,11 @@ public class GPSLocation {
     @Expose
     private double longitude;
 
+    public GPSLocation(double latitude, double longitude) {
+        this.latitude = latitude;
+        this.longitude = longitude;
+    }
+
     public double getLatitude() {
         return latitude;
     }
@@ -32,8 +37,8 @@ public class GPSLocation {
         return location;
     }
 
-    public GPSLocation(double latitude, double longitude) {
-        this.latitude = latitude;
-        this.longitude = longitude;
+    @Override
+    public String toString() {
+        return "{latitude:" + latitude + ",longitude:" + longitude + "}";
     }
 }

@@ -5,6 +5,11 @@ public class Location extends Address {
     private String name;
     private String type;
 
+    public Location(String name, String type, GPSLocation location) {
+        super(location);
+        this.name = name;
+        this.type = type;
+    }
     public Location(String name, String type,
                     String number, String street, String unit, String neighborhood, String city,
                     String state, String zipcode, String country,

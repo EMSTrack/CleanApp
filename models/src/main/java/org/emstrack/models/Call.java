@@ -169,10 +169,10 @@ public class Call {
     }
 
     public AmbulanceCall setCurrentAmbulanceCall(int ambulance_id) {
-        return this.currentAmbulanceCall = getAmbulanceCall(ambulance_id);
+        return currentAmbulanceCall = getAmbulanceCall(ambulance_id);
     }
 
     public AmbulanceCall getCurrentAmbulanceCall() {
-        return this.currentAmbulanceCall;
+        return currentAmbulanceCall;
     }
 }

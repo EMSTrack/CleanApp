@@ -145,7 +145,7 @@ public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSel
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
         // set formatter
-        df.setMaximumFractionDigits(2);
+        df.setMaximumFractionDigits(3);
 
         // inflate view
         view = inflater.inflate(R.layout.fragment_ambulance, container, false);
