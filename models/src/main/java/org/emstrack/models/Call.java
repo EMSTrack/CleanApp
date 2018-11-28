@@ -24,9 +24,12 @@ public class Call {
     private List<AmbulanceCall> ambulancecallSet = new ArrayList<>();
     private List<Patient> patientSet = new ArrayList <>();
 
+    private AmbulanceCall currentAmbulanceCall;
+
     public Call() {
         id = -1;
         updatedBy = -1;
+        this.currentAmbulanceCall = null;
     }
 
     public Call(int id, String status, String details, String priority, 
@@ -48,7 +51,8 @@ public class Call {
 
         this.ambulancecallSet = ambulancecallSet;
         this.patientSet = patientSet;
-    
+
+        this.currentAmbulanceCall = null;
     }
     
     public int getId() {
@@ -155,4 +159,17 @@ public class Call {
         this.patientSet = patientSet;
     }
 
+    public void setCurrentAmbulanceCall(int ambulance_id) {
+        currentAmbulanceCall = null;
+        for (AmbulanceCall ambulanceCall : ambulancecallSet) {
+            if (ambulanceCall.getAmbulanceId() == ambulance_id) {
+                currentAmbulanceCall = ambulanceCall;
+                break;
+            }
+        }
+    }
+
+    public AmbulanceCall getCurrentAmbulanceCall() {
+        return currentAmbulanceCall;
+    }
 }

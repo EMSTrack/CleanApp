@@ -1,6 +1,15 @@
 package org.emstrack.models;
 
+import java.util.Comparator;
+
 public class Waypoint {
+
+    static class SortByOrder implements Comparator<Waypoint>
+    {
+        public int compare(Waypoint a, Waypoint b) {
+            return a.order - b.order;
+        }
+    }
 
     private int order;
     private boolean visited;

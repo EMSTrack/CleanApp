@@ -41,10 +41,12 @@ import org.emstrack.ambulance.services.AmbulanceForegroundService;
 import org.emstrack.ambulance.services.OnServiceComplete;
 import org.emstrack.ambulance.services.OnServicesComplete;
 import org.emstrack.models.Ambulance;
+import org.emstrack.models.AmbulanceCall;
 import org.emstrack.models.AmbulancePermission;
 import org.emstrack.models.Call;
 import org.emstrack.models.Patient;
 import org.emstrack.models.Profile;
+import org.emstrack.models.Waypoint;
 import org.emstrack.mqtt.MqttProfileClient;
 
 import java.text.DecimalFormat;
@@ -583,12 +585,16 @@ public class MainActivity extends AppCompatActivity {
 
         // Gather call details
         Call call = AmbulanceForegroundService.getCall(callId);
-
         if (call == null) {
-
             Log.d(TAG, "Invalid call id '" + callId + "'");
             return;
+        }
 
+        // Get current ambulanceCall
+        AmbulanceCall ambulanceCall = call.getCurrentAmbulanceCall();
+        if (ambulanceCall == null) {
+            Log.d(TAG, "Can't find ambulanceCall");
+            return;
         }
 
         // Use the Builder class for convenient dialog construction
@@ -609,14 +615,32 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
-        // Calculate distance to patient
-        android.location.Location location = AmbulanceForegroundService.getLastLocation();
-        float distance = -1;
-        if (location != null)
-            distance = location.distanceTo(call.getLocation().toLocation()) / 1000;
-        String distanceText = "No distance available";
-        if (distance > 0)
-            distanceText = df.format(distance) + " km";
+        // Get next waypoint
+        Waypoint waypoint = ambulanceCall.getNextWaypoint();
+        String distanceText;
+        String address;
+        if (waypoint == null) {
+
+            // No upcoming waypoint
+            distanceText = getString(R.string.nextWaypointNotAvailable);
+            address = "";
+
+        } else {
+
+            // Get current location
+            android.location.Location location = AmbulanceForegroundService.getLastLocation();
+
+            // Calculate distance to next waypoint
+            float distance = -1;
+            if (location != null)
+                distance = location.distanceTo(waypoint.getLocation().getLocation().toLocation()) / 1000;
+            distanceText = getString(R.string.noDistanceAvailable);
+            if (distance > 0)
+                distanceText = df.format(distance) + " km";
+
+            address = waypoint.getLocation().toString();
+
+        }
 
         // Create call view
         View view = getLayoutInflater().inflate(R.layout.call_dialog, null);
@@ -626,7 +650,7 @@ public class MainActivity extends AppCompatActivity {
         callPriorityButton.setBackgroundColor(callPriorityBackgroundColors.get(call.getPriority()));
         callPriorityButton.setTextColor(callPriorityForegroundColors.get(call.getPriority()));
 
-        ((TextView) view.findViewById(R.id.callAddressText)).setText(call.getAddress().toString());
+        ((TextView) view.findViewById(R.id.callAddressText)).setText(address);
         ((TextView) view.findViewById(R.id.callDetailsText)).setText(call.getDetails());
         ((TextView) view.findViewById(R.id.callPatientsText)).setText(patientsText);
         ((TextView) view.findViewById(R.id.callDistanceText)).setText(distanceText);

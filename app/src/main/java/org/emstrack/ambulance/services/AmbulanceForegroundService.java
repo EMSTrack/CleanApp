@@ -3192,22 +3192,17 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         // retrieve call
         Call call = pendingCalls.get(callId);
 
+        // Set current call
+        call.setCurrentAmbulanceCall(ambulance.getId());
+
         // step 6
         // Add geofence
         Log.i(TAG, "Retrieving ambulanceCall");
-        AmbulanceCall ambulanceCall = null;
-        for (AmbulanceCall tmpAmbulanceCall : call.getAmbulancecallSet()) {
-
-            // Retrieve current ambulanceCall
-            if (tmpAmbulanceCall.getAmbulanceId() == ambulance.getId()) {
-                ambulanceCall = tmpAmbulanceCall;
-                Log.i(TAG, "Got ambulanceCall");
-                break;
-            }
-
-        }
-
+        AmbulanceCall ambulanceCall = call.getCurrentAmbulanceCall();
         if (ambulanceCall != null) {
+
+            // Sort waypoints
+            ambulanceCall.sortWaypoints();
 
             // Found waypoints
             for (Waypoint waypoint : ambulanceCall.getWaypointSet()) {
