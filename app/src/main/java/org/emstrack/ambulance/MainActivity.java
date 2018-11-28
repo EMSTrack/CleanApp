@@ -590,8 +590,15 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
-        // Get current ambulanceCall
-        AmbulanceCall ambulanceCall = call.getCurrentAmbulanceCall();
+        // Get current ambulance
+        Ambulance ambulance = AmbulanceForegroundService.getCurrentAmbulance();
+        if (ambulance == null) {
+            Log.d(TAG, "Can't find ambulance; should never happen");
+            return;
+        }
+
+        // Get ambulanceCall
+        AmbulanceCall ambulanceCall = call.getAmbulanceCall(ambulance.getId());
         if (ambulanceCall == null) {
             Log.d(TAG, "Can't find ambulanceCall");
             return;
@@ -615,11 +622,13 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
-        // Get next waypoint
-        Waypoint waypoint = ambulanceCall.getNextWaypoint();
+        // Get next incident waypoint
+        Waypoint waypoint = ambulanceCall.getNextIncidentWaypoint();
         String distanceText;
         String address;
         if (waypoint == null) {
+
+            Log.d(TAG,"No next waypoint available");
 
             // No upcoming waypoint
             distanceText = getString(R.string.nextWaypointNotAvailable);
@@ -627,14 +636,18 @@ public class MainActivity extends AppCompatActivity {
 
         } else {
 
+            Log.d(TAG,"Will calculate distance");
+
             // Get current location
             android.location.Location location = AmbulanceForegroundService.getLastLocation();
+            Log.d(TAG,"location = " + location);
 
             // Calculate distance to next waypoint
             float distance = -1;
             if (location != null)
                 distance = location.distanceTo(waypoint.getLocation().getLocation().toLocation()) / 1000;
             distanceText = getString(R.string.noDistanceAvailable);
+            Log.d(TAG,"Distance = " + distance);
             if (distance > 0)
                 distanceText = df.format(distance) + " km";
 

@@ -357,6 +357,10 @@ public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSel
                 callPatientsTextView.setText(R.string.noPatientAvailable);
             }
 
+            // Update call distance to next waypoint
+            String distanceText = updateCallDistance(waypoint);
+            callDistanceTextView.setText(distanceText);
+
         }
 
     }
@@ -399,27 +403,7 @@ public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSel
             if (ambulanceCall != null)
                 waypoint = ambulanceCall.getNextWaypoint();
 
-            String distanceText;
-            if (waypoint == null) {
-
-                // No upcoming waypoint
-                distanceText = getString(R.string.nextWaypointNotAvailable);
-
-            } else {
-
-                // Get current location
-                android.location.Location location = AmbulanceForegroundService.getLastLocation();
-
-                // Calculate distance to patient
-                float distance = -1;
-                if (location != null)
-                    distance = location.distanceTo(waypoint.getLocation().getLocation().toLocation()) / 1000;
-                distanceText = getString(R.string.noDistanceAvailable);
-                if (distance > 0) {
-                    distanceText = df.format(distance) + " km";
-                }
-            }
-
+            String distanceText = updateCallDistance(waypoint);
             callDistanceTextView.setText(distanceText);
 
         }
@@ -430,6 +414,39 @@ public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSel
 
         // set capability
         capabilityText.setText(ambulanceCapabilities.get(ambulance.getCapability()));
+
+    }
+
+    public String updateCallDistance(Waypoint waypoint) {
+
+        String distanceText;
+        if (waypoint == null) {
+
+            Log.d(TAG,"No next waypoint available");
+
+            // No upcoming waypoint
+            distanceText = getString(R.string.nextWaypointNotAvailable);
+
+        } else {
+
+            Log.d(TAG,"Will calculate distance");
+
+            // Get current location
+            android.location.Location location = AmbulanceForegroundService.getLastLocation();
+            Log.d(TAG,"location = " + location);
+
+            // Calculate distance to patient
+            float distance = -1;
+            if (location != null)
+                distance = location.distanceTo(waypoint.getLocation().getLocation().toLocation()) / 1000;
+            distanceText = getString(R.string.noDistanceAvailable);
+            Log.d(TAG,"Distance = " + distance);
+            if (distance > 0) {
+                distanceText = df.format(distance) + " km";
+            }
+        }
+
+        return distanceText;
 
     }
 
