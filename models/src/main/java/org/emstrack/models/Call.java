@@ -14,15 +14,6 @@ public class Call {
     private String status;
     private String details;
     private String priority;
-    private String number;
-    private String street;
-    private String unit;
-    private String neighborhood;
-    private String city;
-    private String state;
-    private String zipcode;
-    private String country;
-    private GPSLocation location;
     private Date createdAt;
     private Date pendingAt;
     private Date startedAt;
@@ -30,8 +21,7 @@ public class Call {
     private String comment;
     private int updatedBy;
     private Date updatedOn;
-    private List<Object> ambulancecallSet = new ArrayList<>();
-    private List<Object> ambulanceupdateSet = new ArrayList<>();
+    private List<AmbulanceCall> ambulancecallSet = new ArrayList<>();
     private List<Patient> patientSet = new ArrayList <>();
 
     public Call() {
@@ -40,29 +30,16 @@ public class Call {
     }
 
     public Call(int id, String status, String details, String priority, 
-                String number, String street, String unit, String neighborhood, String city, 
-                String state, String zipcode, String country, 
-                GPSLocation location,
-                Date createdAt, Date pendingAt, Date startedAt, Date endedAt, 
+                Date createdAt, Date pendingAt, Date startedAt, Date endedAt,
                 String comment, int updatedBy, Date updatedOn,
-                List<Object> ambulancecallSet, List<Object> ambulanceupdateSet, List<Patient> patientSet) {
+                List<AmbulanceCall> ambulancecallSet, List<Patient> patientSet) {
     
         this.id = id;
         this.status = status;
         this.details = details;
         this.priority = priority;
-        this.number = number;
-        this.street = street;
-        this.unit = unit;
-        this.neighborhood = neighborhood;
-        this.city = city;
-        this.state = state;
-        this.zipcode = zipcode;
-        this.country = country;
-        this.location = location;
-        this.pendingAt = pendingAt;
         this.createdAt = createdAt;
-        this.endedAt = endedAt;
+        this.pendingAt = pendingAt;
         this.startedAt = startedAt;
         this.endedAt = endedAt;
         this.comment = comment;
@@ -70,7 +47,6 @@ public class Call {
         this.updatedOn = updatedOn;
 
         this.ambulancecallSet = ambulancecallSet;
-        this.ambulanceupdateSet = ambulanceupdateSet;
         this.patientSet = patientSet;
     
     }
@@ -105,78 +81,6 @@ public class Call {
 
     public void setPriority(String priority) {
         this.priority = priority;
-    }
-
-    public String getNumber() {
-        return number;
-    }
-
-    public void setNumber(String number) {
-        this.number = number;
-    }
-
-    public String getStreet() {
-        return street;
-    }
-
-    public void setStreet(String street) {
-        this.street = street;
-    }
-
-    public Object getUnit() {
-        return unit;
-    }
-
-    public void setUnit(String unit) {
-        this.unit = unit;
-    }
-
-    public Object getNeighborhood() {
-        return neighborhood;
-    }
-
-    public void setNeighborhood(String neighborhood) {
-        this.neighborhood = neighborhood;
-    }
-
-    public String getCity() {
-        return city;
-    }
-
-    public void setCity(String city) {
-        this.city = city;
-    }
-
-    public String getState() {
-        return state;
-    }
-
-    public void setState(String state) {
-        this.state = state;
-    }
-
-    public String getZipcode() {
-        return zipcode;
-    }
-
-    public void setZipcode(String zipcode) {
-        this.zipcode = zipcode;
-    }
-
-    public String getCountry() {
-        return country;
-    }
-
-    public void setCountry(String country) {
-        this.country = country;
-    }
-
-    public GPSLocation getLocation() {
-        return location;
-    }
-
-    public void setLocation(GPSLocation location) {
-        this.location = location;
     }
 
     public Date getCreatedAt() {
@@ -235,19 +139,12 @@ public class Call {
         this.updatedOn = updatedOn;
     }
 
-    public List<Object> getAmbulancecallSet() {
+    public List<AmbulanceCall> getAmbulancecallSet() {
         return ambulancecallSet;
     }
 
-    public void setAmbulancecallSet(List<Object> ambulancecallSet) {
+    public void setAmbulancecallSet(List<AmbulanceCall> ambulancecallSet) {
         this.ambulancecallSet = ambulancecallSet;
-    }
-    public void setAmbulanceupdateSet(List<Object> ambulanceupdateSet) {
-        this.ambulanceupdateSet = ambulanceupdateSet;
-    }
-
-    public List<Object> getAmbulanceupdateSet() {
-        return ambulanceupdateSet;
     }
 
     public List<Patient> getPatientSet() {
@@ -256,10 +153,6 @@ public class Call {
 
     public void setPatientSet(List<Patient> patientSet) {
         this.patientSet = patientSet;
-    }
-
-    public Address getAddress() {
-        return new Address(this.number, this.street, this.unit, this.neighborhood,this.city,this.state,this.zipcode,this.country);
     }
 
 }

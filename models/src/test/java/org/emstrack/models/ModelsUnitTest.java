@@ -11,6 +11,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 
+import java.text.DateFormat;
 import java.util.Date;
 import java.text.SimpleDateFormat;
 import java.util.HashMap;
@@ -618,24 +619,219 @@ public class ModelsUnitTest {
     }
 
     @Test
+    public void test_location() throws Exception {
+
+        Location location = new Location(null,"i",
+                "O","Bonifácio Avilés", null, null,
+                "Tijuana","BCN","" ,"MX",
+                new GPSLocation(32.51543632662701,-117.03812250149775));
+        
+        Gson gson = new Gson();
+        
+        String to_json = gson.toJson(location);
+        
+        Location from_json = gson.fromJson(to_json, Location.class);
+
+        String expectedName = location.getName();
+        String answerName = from_json.getName();
+        assertEquals(expectedName, answerName);
+
+        String expectedStreet = location.getStreet();
+        String answerStreet = from_json.getStreet();
+        assertEquals(expectedStreet, answerStreet);
+
+        to_json = "{\"type\":\"i\",\"number\":\"\",\"street\":\"Bonifácio Avilés\",\"unit\":null,\"neighborhood\":null,\"city\":\"Tijuana\",\"state\":\"BCN\",\"zipcode\":\"\",\"country\":\"MX\",\"location\":{\"latitude\":\"32.51543632662701\",\"longitude\":\"-117.03812250149775\"},\"created_at\":\"2018-11-14T22:33:46.055339Z\",\"pending_at\":\"2018-11-14T22:33:46.054955Z\",\"started_at\":\"2018-11-14T22:34:50.329321Z\",\"ended_at\":null,\"comment\":null,\"updated_by\":1,\"updated_on\":\"2018-11-14T22:34:50.329428Z\"}";
+        from_json = gson.fromJson(to_json, Location.class);
+
+        expectedName = location.getName();
+        answerName = from_json.getName();
+        assertEquals(expectedName, answerName);
+
+        expectedStreet = location.getStreet();
+        answerStreet = from_json.getStreet();
+        assertEquals(expectedStreet, answerStreet);
+
+    }
+
+    @Test
+    public void test_waypoint() throws Exception {
+
+        Waypoint waypoint = new Waypoint(0,false,
+                new Location(null, "i","O","Bonifácio Avilés", null, null,
+                "Tijuana","BCN","" ,"MX", new GPSLocation(32.51543632662701,-117.03812250149775)));
+        
+        Gson gson = new Gson();
+        
+        String to_json = gson.toJson(waypoint);
+        
+        Waypoint from_json = gson.fromJson(to_json, Waypoint.class);
+
+        int expectedOrder = waypoint.getOrder();
+        int answerOrder = from_json.getOrder();
+        assertEquals(expectedOrder, answerOrder);
+        
+        boolean expectedVisited = waypoint.isVisited();
+        boolean answerVisited = from_json.isVisited();
+        assertEquals(expectedVisited, answerVisited);
+
+        Location expectedLocation = waypoint.getLocation();
+        Location answerLocation = from_json.getLocation();
+
+        String expectedName = expectedLocation.getName();
+        String answerName = answerLocation.getName();
+        assertEquals(expectedName, answerName);
+
+        String expectedStreet = expectedLocation.getStreet();
+        String answerStreet = answerLocation.getStreet();
+        assertEquals(expectedStreet, answerStreet);
+
+        to_json = "{\"order\":0,\"visited\":false,\"location\":{\"type\":\"i\",\"number\":\"\",\"street\":\"Bonifácio Avilés\",\"unit\":null,\"neighborhood\":null,\"city\":\"Tijuana\",\"state\":\"BCN\",\"zipcode\":\"\",\"country\":\"MX\",\"waypoint\":{\"latitude\":\"32.51543632662701\",\"longitude\":\"-117.03812250149775\"},\"created_at\":\"2018-11-14T22:33:46.055339Z\",\"pending_at\":\"2018-11-14T22:33:46.054955Z\",\"started_at\":\"2018-11-14T22:34:50.329321Z\",\"ended_at\":null,\"comment\":null,\"updated_by\":1,\"updated_on\":\"2018-11-14T22:34:50.329428Z\"}}";
+        from_json = gson.fromJson(to_json, Waypoint.class);
+
+        expectedOrder = waypoint.getOrder();
+        answerOrder = from_json.getOrder();
+        assertEquals(expectedOrder, answerOrder);
+
+        expectedVisited = waypoint.isVisited();
+        answerVisited = from_json.isVisited();
+        assertEquals(expectedVisited, answerVisited);
+
+        expectedLocation = waypoint.getLocation();
+        answerLocation = from_json.getLocation();
+
+        expectedName = expectedLocation.getName();
+        answerName = answerLocation.getName();
+        assertEquals(expectedName, answerName);
+
+        expectedStreet = expectedLocation.getStreet();
+        answerStreet = answerLocation.getStreet();
+        assertEquals(expectedStreet, answerStreet);
+    }
+
+    @Test
+    public void test_ambulance_call() throws Exception {
+
+        Waypoint waypoint = new Waypoint(0,false,
+                new Location(null, "i","O","Bonifácio Avilés", null, null,
+                        "Tijuana","BCN","" ,"MX", new GPSLocation(32.51543632662701,-117.03812250149775)));
+        List<Waypoint> waypointSet = new ArrayList<>();
+        waypointSet.add(waypoint);
+        
+        AmbulanceCall ambulanceCall = new AmbulanceCall(1,2,"S", new Date(), waypointSet);
+
+        GsonBuilder gsonBuilder = new GsonBuilder();
+        gsonBuilder.setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES);
+        Gson gson = gsonBuilder.create();
+
+        String to_json = gson.toJson(ambulanceCall);
+
+        AmbulanceCall from_json = gson.fromJson(to_json, AmbulanceCall.class);
+        
+        int expectedId = ambulanceCall.getId();
+        int answerId = from_json.getId();
+        assertEquals(expectedId, answerId);
+
+        int expectedAmbulanceId = ambulanceCall.getAmbulanceId();
+        int answerAmbulanceId = from_json.getAmbulanceId();
+        assertEquals(expectedAmbulanceId, answerAmbulanceId);
+        
+        String expectedStatus = ambulanceCall.getStatus();
+        String answerStatus = from_json.getStatus();
+        assertEquals(expectedStatus, answerStatus);
+
+        Waypoint expectedWaypoint = ambulanceCall.getWaypointSet().get(0);
+        Waypoint answerWaypoint = from_json.getWaypointSet().get(0);
+        
+        int expectedOrder = expectedWaypoint.getOrder();
+        int answerOrder = answerWaypoint.getOrder();
+        assertEquals(expectedOrder, answerOrder);
+
+        boolean expectedVisited = expectedWaypoint.isVisited();
+        boolean answerVisited = answerWaypoint.isVisited();
+        assertEquals(expectedVisited, answerVisited);
+
+        Location expectedLocation = expectedWaypoint.getLocation();
+        Location answerLocation = answerWaypoint.getLocation();
+
+        String expectedName = expectedLocation.getName();
+        String answerName = answerLocation.getName();
+        assertEquals(expectedName, answerName);
+
+        String expectedStreet = expectedLocation.getStreet();
+        String answerStreet = answerLocation.getStreet();
+        assertEquals(expectedStreet, answerStreet);
+
+        DateFormat df = new SimpleDateFormat("MMM d, y K:mm:ss a");
+
+        to_json = "{\"id\":1,\"ambulance_id\":2,\"status\":\"S\",\"created_at\":\"" + df.format(ambulanceCall.getCreatedAt()) + "\",\"waypoint_set\":[{\"order\":0,\"visited\":false,\"location\":{\"type\":\"i\",\"number\":\"\",\"street\":\"Bonifácio Avilés\",\"unit\":null,\"neighborhood\":null,\"city\":\"Tijuana\",\"state\":\"BCN\",\"zipcode\":\"\",\"country\":\"MX\",\"waypoint\":{\"latitude\":\"32.51543632662701\",\"longitude\":\"-117.03812250149775\"},\"created_at\":\"2018-11-14T22:33:46.055339Z\",\"pending_at\":\"2018-11-14T22:33:46.054955Z\",\"started_at\":\"2018-11-14T22:34:50.329321Z\",\"ended_at\":null,\"comment\":null,\"updated_by\":1,\"updated_on\":\"2018-11-14T22:34:50.329428Z\"}}]}";
+        from_json = gson.fromJson(to_json, AmbulanceCall.class);
+        System.out.println("to_json = '" + to_json + "'");
+
+        expectedId = ambulanceCall.getId();
+        answerId = from_json.getId();
+        assertEquals(expectedId, answerId);
+
+        expectedAmbulanceId = ambulanceCall.getAmbulanceId();
+        answerAmbulanceId = from_json.getAmbulanceId();
+        assertEquals(expectedAmbulanceId, answerAmbulanceId);
+
+        expectedStatus = ambulanceCall.getStatus();
+        answerStatus = from_json.getStatus();
+        assertEquals(expectedStatus, answerStatus);
+
+        expectedWaypoint = ambulanceCall.getWaypointSet().get(0);
+        answerWaypoint = from_json.getWaypointSet().get(0);
+
+        expectedOrder = expectedWaypoint.getOrder();
+        answerOrder = answerWaypoint.getOrder();
+        assertEquals(expectedOrder, answerOrder);
+
+        expectedVisited = expectedWaypoint.isVisited();
+        answerVisited = answerWaypoint.isVisited();
+        assertEquals(expectedVisited, answerVisited);
+
+        expectedLocation = expectedWaypoint.getLocation();
+        answerLocation = answerWaypoint.getLocation();
+
+        expectedName = expectedLocation.getName();
+        answerName = answerLocation.getName();
+        assertEquals(expectedName, answerName);
+
+        expectedStreet = expectedLocation.getStreet();
+        answerStreet = answerLocation.getStreet();
+        assertEquals(expectedStreet, answerStreet);
+
+    }
+
+    @Test
     public void test_call() throws Exception {
 
         List<Patient> patientSet = new ArrayList<>();
         patientSet.add(new Patient(31, "Maria",0));
         patientSet.add(new Patient(30, "Jose",13));
 
+        Waypoint waypoint = new Waypoint(0,false,
+                new Location(null, "i","O","Bonifácio Avilés", null, null,
+                        "Tijuana","BCN","" ,"MX", new GPSLocation(32.51543632662701,-117.03812250149775)));
+        List<Waypoint> waypointSet = new ArrayList<>();
+        waypointSet.add(waypoint);
+
+        AmbulanceCall ambulanceCall = new AmbulanceCall(1,2,"S", new Date(), waypointSet);
+        List<AmbulanceCall> ambulanceCallSet = new ArrayList<>();
+        ambulanceCallSet.add(ambulanceCall);
+
         Call call = new Call(
                 64,
-                "S", "ads asd","O",
-                "", "Bonifácio Avilés", null, null,
-                "Tijuana","BCN","" ,"MX",
-                new GPSLocation(32.51543632662701,-117.03812250149775),
+                "S", "ads asd",
                 null,null,null,null,
-                null,1,null, null, null, patientSet);
+                null,"",1, null,
+                ambulanceCallSet, patientSet);
 
         double epsilon = 1e-4;
 
-        Gson gson = new Gson();
+        GsonBuilder gsonBuilder = new GsonBuilder();
+        gsonBuilder.setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES);
+        Gson gson = gsonBuilder.create();
 
         String to_json = gson.toJson(call);
 
@@ -646,19 +842,50 @@ public class ModelsUnitTest {
         Integer answerId = from_json.getId();
         assertEquals(expectedId, answerId);
 
-        String expectedString = call.getCity();
-        String answerString = from_json.getCity();
+        String expectedString = call.getDetails();
+        String answerString = from_json.getDetails();
         assertEquals(expectedString, answerString);
 
-        expectedString = call.getDetails();
-        answerString = from_json.getDetails();
-        assertEquals(expectedString, answerString);
+        AmbulanceCall expectedAmbulanceCall = call.getAmbulancecallSet().get(0);
+        AmbulanceCall answerAmbulanceCall = from_json.getAmbulancecallSet().get(0);
 
-        expectedString = call.getCity();
-        answerString = from_json.getCity();
-        assertEquals(expectedString, answerString);
+        expectedId = expectedAmbulanceCall.getId();
+        answerId = answerAmbulanceCall.getId();
+        assertEquals(expectedId, answerId);
 
-        to_json = "{\"id\":64,\"status\":\"S\",\"details\":\"ads asd\",\"priority\":\"O\",\"number\":\"\",\"street\":\"Bonifácio Avilés\",\"unit\":null,\"neighborhood\":null,\"city\":\"Tijuana\",\"state\":\"BCN\",\"zipcode\":\"\",\"country\":\"MX\",\"location\":{\"latitude\":\"32.51543632662701\",\"longitude\":\"-117.03812250149775\"},\"created_at\":\"2018-11-14T22:33:46.055339Z\",\"pending_at\":\"2018-11-14T22:33:46.054955Z\",\"started_at\":\"2018-11-14T22:34:50.329321Z\",\"ended_at\":null,\"comment\":null,\"updated_by\":1,\"updated_on\":\"2018-11-14T22:34:50.329428Z\",\"ambulancecallSet\":[{\"id\":59,\"ambulance_id\":8,\"created_at\":\"2018-11-14T22:33:46.058026Z\",\"ambulanceupdateSet\":[]}],\"patient_set\":[{\"id\":31,\"name\":\"Maria\",\"age\":null},{\"id\":30,\"name\":\"Jose\",\"age\":13}]}";
+        int expectedAmbulanceId = expectedAmbulanceCall.getAmbulanceId();
+        int answerAmbulanceId = answerAmbulanceCall.getAmbulanceId();
+        assertEquals(expectedAmbulanceId, answerAmbulanceId);
+
+        String expectedStatus = expectedAmbulanceCall.getStatus();
+        String answerStatus = answerAmbulanceCall.getStatus();
+        assertEquals(expectedStatus, answerStatus);
+
+        Waypoint expectedWaypoint = expectedAmbulanceCall.getWaypointSet().get(0);
+        Waypoint answerWaypoint = answerAmbulanceCall.getWaypointSet().get(0);
+
+        int expectedOrder = expectedWaypoint.getOrder();
+        int answerOrder = answerWaypoint.getOrder();
+        assertEquals(expectedOrder, answerOrder);
+
+        boolean expectedVisited = expectedWaypoint.isVisited();
+        boolean answerVisited = answerWaypoint.isVisited();
+        assertEquals(expectedVisited, answerVisited);
+
+        Location expectedLocation = expectedWaypoint.getLocation();
+        Location answerLocation = answerWaypoint.getLocation();
+
+        String expectedName = expectedLocation.getName();
+        String answerName = answerLocation.getName();
+        assertEquals(expectedName, answerName);
+
+        String expectedStreet = expectedLocation.getStreet();
+        String answerStreet = answerLocation.getStreet();
+        assertEquals(expectedStreet, answerStreet);
+
+        DateFormat df = new SimpleDateFormat("MMM d, y K:mm:ss a");
+        String ambulance_call_json = "{\"id\":1,\"ambulance_id\":2,\"status\":\"S\",\"created_at\":\"" + df.format(ambulanceCall.getCreatedAt()) + "\",\"waypoint_set\":[{\"order\":0,\"visited\":false,\"location\":{\"type\":\"i\",\"number\":\"\",\"street\":\"Bonifácio Avilés\",\"unit\":null,\"neighborhood\":null,\"city\":\"Tijuana\",\"state\":\"BCN\",\"zipcode\":\"\",\"country\":\"MX\",\"waypoint\":{\"latitude\":\"32.51543632662701\",\"longitude\":\"-117.03812250149775\"},\"created_at\":\"2018-11-14T22:33:46.055339Z\",\"pending_at\":\"2018-11-14T22:33:46.054955Z\",\"started_at\":\"2018-11-14T22:34:50.329321Z\",\"ended_at\":null,\"comment\":null,\"updated_by\":1,\"updated_on\":\"2018-11-14T22:34:50.329428Z\"}}]}";
+        to_json = "{\"id\":64,\"status\":\"S\",\"details\":\"ads asd\",\"priority\":\"O\",\"created_at\":\"2018-11-14T22:33:46.055339Z\",\"pending_at\":\"2018-11-14T22:33:46.054955Z\",\"started_at\":\"2018-11-14T22:34:50.329321Z\",\"ended_at\":null,\"comment\":null,\"updated_by\":1,\"updated_on\":\"2018-11-14T22:34:50.329428Z\",\"ambulancecall_set\":[" + ambulance_call_json + "],\"patient_set\":[{\"id\":31,\"name\":\"Maria\",\"age\":null},{\"id\":30,\"name\":\"Jose\",\"age\":13}]}";
 
         from_json = gson.fromJson(to_json, Call.class);
         System.out.println("to_json = " + to_json + "'");
@@ -667,21 +894,46 @@ public class ModelsUnitTest {
         answerId = from_json.getId();
         assertEquals(expectedId, answerId);
 
-        expectedString = call.getCity();
-        answerString = from_json.getCity();
-        assertEquals(expectedString, answerString);
-
         expectedString = call.getDetails();
         answerString = from_json.getDetails();
         assertEquals(expectedString, answerString);
 
-        expectedString = call.getCity();
-        answerString = from_json.getCity();
-        assertEquals(expectedString, answerString);
+        expectedAmbulanceCall = call.getAmbulancecallSet().get(0);
+        answerAmbulanceCall = from_json.getAmbulancecallSet().get(0);
 
-        expectedString = call.getCountry();
-        answerString = from_json.getCountry();
-        assertEquals(expectedString, answerString);
+        expectedId = expectedAmbulanceCall.getId();
+        answerId = answerAmbulanceCall.getId();
+        assertEquals(expectedId, answerId);
+
+        expectedAmbulanceId = expectedAmbulanceCall.getAmbulanceId();
+        answerAmbulanceId = answerAmbulanceCall.getAmbulanceId();
+        assertEquals(expectedAmbulanceId, answerAmbulanceId);
+
+        expectedStatus = expectedAmbulanceCall.getStatus();
+        answerStatus = answerAmbulanceCall.getStatus();
+        assertEquals(expectedStatus, answerStatus);
+
+        expectedWaypoint = expectedAmbulanceCall.getWaypointSet().get(0);
+        answerWaypoint = answerAmbulanceCall.getWaypointSet().get(0);
+
+        expectedOrder = expectedWaypoint.getOrder();
+        answerOrder = answerWaypoint.getOrder();
+        assertEquals(expectedOrder, answerOrder);
+
+        expectedVisited = expectedWaypoint.isVisited();
+        answerVisited = answerWaypoint.isVisited();
+        assertEquals(expectedVisited, answerVisited);
+
+        expectedLocation = expectedWaypoint.getLocation();
+        answerLocation = answerWaypoint.getLocation();
+
+        expectedName = expectedLocation.getName();
+        answerName = answerLocation.getName();
+        assertEquals(expectedName, answerName);
+
+        expectedStreet = expectedLocation.getStreet();
+        answerStreet = answerLocation.getStreet();
+        assertEquals(expectedStreet, answerStreet);
 
     }
 }
