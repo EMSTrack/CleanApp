@@ -150,5 +150,6 @@
     <string name="CallDeclined">Llamada rechazada.</string>
     <string name="noPatientAvailable">No hay información del paciente disponible.</string>
     <string name="noDistanceAvailable">No se puede calcular la distancia al paciente.</string>
+    <string name="nextWaypointNotAvailable">El siguiente punto de ruta no está disponible</string>
 
 </resources>

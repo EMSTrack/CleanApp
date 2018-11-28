@@ -37,6 +37,27 @@ public class Address {
         this.country = country;
     }
 
+    public Address(String number,
+                   String street,
+                   String unit,
+                   String neighborhood,
+                   String city,
+                   String state,
+                   String zipcode,
+                   String country,
+                   GPSLocation location) {
+
+        this.number = number;
+        this.street= street;
+        this.unit = unit;
+        this.neighborhood= neighborhood;
+        this.city = city;
+        this.state = state;
+        this.zipcode = zipcode;
+        this.country = country;
+        this.location = location;
+    }
+
     public String getNumber() {
         return number;
     }

@@ -1,6 +1,8 @@
 package org.emstrack.models;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 
@@ -11,6 +13,7 @@ public class AmbulanceCall {
     private String status;
     private Date createdAt;
     private List<Waypoint> waypointSet = new ArrayList<>();
+    private boolean sorted;
 
     public AmbulanceCall(int id, int ambulanceId, String status, Date createdAt, List<Waypoint> waypointSet) {
         this.id = id;
@@ -18,6 +21,7 @@ public class AmbulanceCall {
         this.status = status;
         this.createdAt = createdAt;
         this.waypointSet = waypointSet;
+        this.sorted = false;
     }
 
     public int getId() {
@@ -52,12 +56,37 @@ public class AmbulanceCall {
         this.createdAt = createdAt;
     }
 
+    public boolean isSorted() {
+        return sorted;
+    }
+
     public List<Waypoint> getWaypointSet() {
         return waypointSet;
     }
 
     public void setWaypointSet(List<Waypoint> waypointSet) {
         this.waypointSet = waypointSet;
+    }
+
+    public void sortWaypoints() {
+        Collections.sort(waypointSet, new Waypoint.SortByOrder());
+        this.sorted = true;
+    }
+
+    public Waypoint getNextWaypoint() {
+
+        // Sort first?
+        if (!isSorted())
+            sortWaypoints();
+
+        // Find first non-visited waypoint
+        for (Waypoint waypoint : waypointSet) {
+            if (!waypoint.isVisited())
+                return waypoint;
+        }
+
+        // Otherwise return null
+        return null;
     }
 
 }

@@ -23,8 +23,10 @@ import org.emstrack.ambulance.services.AmbulanceForegroundService;
 import org.emstrack.ambulance.MainActivity;
 import org.emstrack.ambulance.R;
 import org.emstrack.models.Ambulance;
+import org.emstrack.models.AmbulanceCall;
 import org.emstrack.models.Call;
 import org.emstrack.models.Patient;
+import org.emstrack.models.Waypoint;
 import org.emstrack.mqtt.MqttProfileClient;
 
 import java.text.DateFormat;
@@ -318,12 +320,25 @@ public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSel
         // Update call content
         if (call != null) {
 
+            // get ambulanceCall
+            AmbulanceCall ambulanceCall = call.getCurrentAmbulanceCall();
+            Waypoint waypoint = null;
+            if (ambulanceCall != null)
+                waypoint = ambulanceCall.getNextWaypoint();
+
             callPriorityButton.setText(call.getPriority());
             callPriorityButton.setBackgroundColor(((MainActivity) getActivity()).getCallPriorityBackgroundColors().get(call.getPriority()));
             callPriorityButton.setTextColor(((MainActivity) getActivity()).getCallPriorityForegroundColors().get(call.getPriority()));
 
             callDescriptionTextView.setText(call.getDetails());
-            callAddressTextView.setText(call.getAddress().toString());
+
+            String address;
+            if (waypoint != null) {
+                address = waypoint.getLocation().toString();
+            } else {
+                address = "Next waypoint not available.";
+            }
+            callAddressTextView.setText(address);
 
             // patients
             List<Patient> patients = call.getPatientSet();
@@ -379,15 +394,32 @@ public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSel
         // update call distance?
         if (currentCallId > 0) {
 
-            // Calculate distance to patient
-            android.location.Location location = ambulance.getLocation().toLocation();
-            float distance = -1;
-            if (location != null)
-                distance = location.distanceTo(AmbulanceForegroundService.getCurrentCall().getLocation().toLocation()) / 1000;
-            String distanceText = "No distance available";
-            if (distance > 0) {
-                distanceText = df.format(distance) + " km";
+            AmbulanceCall ambulanceCall = AmbulanceForegroundService.getCurrentCall().getCurrentAmbulanceCall();
+            Waypoint waypoint = null;
+            if (ambulanceCall != null)
+                waypoint = ambulanceCall.getNextWaypoint();
+
+            String distanceText;
+            if (waypoint == null) {
+
+                // No upcoming waypoint
+                distanceText = getString(R.string.nextWaypointNotAvailable);
+
+            } else {
+
+                // Get current location
+                android.location.Location location = AmbulanceForegroundService.getLastLocation();
+
+                // Calculate distance to patient
+                float distance = -1;
+                if (location != null)
+                    distance = location.distanceTo(waypoint.getLocation().getLocation().toLocation()) / 1000;
+                distanceText = getString(R.string.noDistanceAvailable);
+                if (distance > 0) {
+                    distanceText = df.format(distance) + " km";
+                }
             }
+
             callDistanceTextView.setText(distanceText);
 
         }

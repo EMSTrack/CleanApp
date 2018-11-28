@@ -168,6 +168,7 @@
     </string-array>
 
     <string name="server_select">Select server:</string>
+    <string name="nextWaypointNotAvailable">Next waypoint is not available</string>
     <string-array name="spinner_list_item_array_server">
         <item>@string/server_select</item>
         <item>Tijuana Red Cross:tijuana.emstrack.org:8883</item>
