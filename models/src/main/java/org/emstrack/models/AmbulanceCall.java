@@ -8,11 +8,17 @@ import java.util.List;
 
 public class AmbulanceCall {
 
+    public static final String STATUS_REQUESTED = "R";
+    public static final String STATUS_ONGOING = "O";
+    public static final String STATUS_DECLINED = "D";
+    public static final String STATUS_SUSPENDED = "S";
+    public static final String STATUS_COMPLETED = "C";
+
     private int id;
     private int ambulanceId;
     private String status;
     private Date createdAt;
-    private List<Waypoint> waypointSet = new ArrayList<>();
+    private List<Waypoint> waypointSet;
     private boolean sorted;
 
     public AmbulanceCall(int id, int ambulanceId, String status, Date createdAt, List<Waypoint> waypointSet) {
@@ -94,6 +100,10 @@ public class AmbulanceCall {
 
         // Otherwise return null
         return null;
+    }
+
+    public boolean containsWaypoint(Waypoint waypoint) {
+        return waypointSet.contains(waypoint);
     }
 
 }

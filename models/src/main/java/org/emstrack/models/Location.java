@@ -2,6 +2,13 @@ package org.emstrack.models;
 
 public class Location extends Address {
 
+    public static final String TYPE_BASE = "b";
+    public static final String TYPE_AED = "a";
+    public static final String TYPE_INCIDENT = "i";
+    public static final String TYPE_HOSPITAL = "h";
+    public static final String TYPE_WAYPOINT = "w";
+    public static final String TYPE_OTHER = "o";
+
     private String name;
     private String type;
 

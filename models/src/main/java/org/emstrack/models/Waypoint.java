@@ -11,14 +11,24 @@ public class Waypoint {
         }
     }
 
+    public static final String STATUS_NOT_VISITED = "N";
+    public static final String STATUS_VISITING = "V";
+    public static final String STATUS_VISITED = "D";
+
     private int order;
     private String status;
     private Location location;
+    private boolean active;
 
-    public Waypoint(int order, String status, Location location) {
+    public Waypoint(int order, String status, Location location, boolean active) {
         this.order = order;
         this.status = status;
         this.location = location;
+        this.active = active;
+    }
+
+    public Waypoint(int order, String status, Location location) {
+        this(order, status, location, true);
     }
 
     public int getOrder() {
@@ -30,31 +40,31 @@ public class Waypoint {
     }
 
     public boolean isActive() {
-        return !status.equals("I");
+        return active;
+    }
+
+    public void setActive(boolean active) {
+        this.active = active;
+    }
+
+    public boolean isNotVisited() {
+        return status.equals(STATUS_NOT_VISITED);
     }
 
     public boolean isVisited() {
-        return status.equals("D");
+        return status.equals(STATUS_VISITED);
     }
 
     public boolean isVisiting() {
-        return status.equals("V");
+        return status.equals(STATUS_VISITING);
     }
 
-    public void setActive() {
-        this.status = "A";
+    public void setStatus(String status) {
+        this.status = status;
     }
 
-    public void setVisited() {
-        this.status = "D";
-    }
-
-    public void setVisiting() {
-        this.status = "V";
-    }
-
-    public void setInactive() {
-        this.status = "I";
+    public String getStatus() {
+        return status;
     }
 
     public Location getLocation() {
