@@ -51,11 +51,14 @@ import org.emstrack.ambulance.util.Geofence;
 import org.emstrack.ambulance.util.LocationFilter;
 import org.emstrack.ambulance.util.LocationUpdate;
 import org.emstrack.models.Ambulance;
+import org.emstrack.models.AmbulanceCall;
 import org.emstrack.models.AmbulancePermission;
 import org.emstrack.models.Call;
 import org.emstrack.models.GPSLocation;
 import org.emstrack.models.Hospital;
 import org.emstrack.models.HospitalPermission;
+import org.emstrack.models.Location;
+import org.emstrack.models.Waypoint;
 import org.emstrack.mqtt.MishandledTopicException;
 import org.emstrack.mqtt.MqttProfileCallback;
 import org.emstrack.mqtt.MqttProfileClient;
@@ -1114,7 +1117,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
     /**
      * @param status
      */
-    public void updateStatus(String status) {
+    public void updateAmbulanceStatus(String status) {
 
         // publish status to server
         String payload = String.format("{\"status\":\"%1$s\"}", status);
@@ -2994,7 +2997,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                 intent.putExtras(bundle);
                 startService(intent);
                 */
-                updateStatus("AV");
+                updateAmbulanceStatus("AV");
 
             } else
                 Log.d(TAG, "THIS SHOULD NOT HAPPEN: ambulance is null!");
@@ -3191,15 +3194,48 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
         // step 6
         // Add geofence
-        Log.i(TAG, "Adding geofence");
-        Intent serviceIntent = new Intent(AmbulanceForegroundService.this,
-                AmbulanceForegroundService.class);
-        serviceIntent.setAction(AmbulanceForegroundService.Actions.GEOFENCE_START);
-        serviceIntent.putExtra("GEOFENCE_TYPE", false);
-        serviceIntent.putExtra("LATITUDE", (float) call.getLocation().getLatitude());
-        serviceIntent.putExtra("LONGITUDE", (float) call.getLocation().getLongitude());
-        serviceIntent.putExtra("RADIUS", 50.f);
-        startService(serviceIntent);
+        Log.i(TAG, "Retrieving ambulanceCall");
+        AmbulanceCall ambulanceCall = null;
+        for (AmbulanceCall tmpAmbulanceCall : call.getAmbulancecallSet()) {
+
+            // Retrieve current ambulanceCall
+            if (tmpAmbulanceCall.getAmbulanceId() == ambulance.getId()) {
+                ambulanceCall = tmpAmbulanceCall;
+                Log.i(TAG, "Got ambulanceCall");
+                break;
+            }
+
+        }
+
+        if (ambulanceCall != null) {
+
+            // Found waypoints
+            for (Waypoint waypoint : ambulanceCall.getWaypointSet()) {
+
+                // Retrieve location
+                Location location = waypoint.getLocation();
+
+                if (location.getType() == "i") {
+
+                    GPSLocation gpsLocation = location.getLocation();
+                    Log.i(TAG, "Adding geofence for incident");
+
+                    Intent serviceIntent = new Intent(AmbulanceForegroundService.this,
+                            AmbulanceForegroundService.class);
+                    serviceIntent.setAction(AmbulanceForegroundService.Actions.GEOFENCE_START);
+                    serviceIntent.putExtra("GEOFENCE_TYPE", false);
+                    serviceIntent.putExtra("LATITUDE", (float) gpsLocation.getLatitude());
+                    serviceIntent.putExtra("LONGITUDE", (float) gpsLocation.getLongitude());
+                    serviceIntent.putExtra("RADIUS", 50.f);
+                    startService(serviceIntent);
+
+                    updateAmbulanceStatus("PB");
+
+                }
+
+            }
+
+        }
 
         // step 7: publish patient bound to server
         /*
@@ -3211,7 +3247,6 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         intent.putExtras(bundle);
         startService(intent);
         */
-        updateStatus("PB");
 
         // broadcast CALL_ONGOING
         Intent callOngoingIntent = new Intent(BroadcastActions.CALL_ONGOING);
@@ -3291,7 +3326,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
             intent.putExtras(bundle);
             startService(intent);
             */
-            updateStatus(status);
+            updateAmbulanceStatus(status);
 
         } else {
 
@@ -3313,7 +3348,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                 intent.putExtras(bundle);
                 startService(intent);
                 */
-                updateStatus("AH");
+                updateAmbulanceStatus("AH");
 
             } else {
 
