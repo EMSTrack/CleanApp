@@ -128,6 +128,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
     // Geofences
     private final static AtomicInteger geofencesId = new AtomicInteger(1);
     private static Map<String, Geofence> _geofences;
+    private static float _defaultGeofenceRadius = 50.f;
 
     private static LocationSettingsRequest locationSettingsRequest;
     private static LocationRequest locationRequest;
@@ -291,7 +292,8 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         // retrieve uuid
         final String uuid = intent.getStringExtra(OnServiceComplete.UUID);
 
-        if (intent.getAction().equals(Actions.START_SERVICE)) {
+        final String action = intent.getAction();
+        if (action.equals(Actions.START_SERVICE)) {
 
             Log.i(TAG, "START_SERVICE Foreground Intent ");
 
@@ -354,7 +356,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
             Intent localIntent = new Intent(BroadcastActions.SUCCESS);
             sendBroadcastWithUUID(localIntent, uuid);
 
-        } else if (intent.getAction().equals(Actions.STOP_SERVICE)) {
+        } else if (action.equals(Actions.STOP_SERVICE)) {
 
             Log.i(TAG, "STOP_SERVICE Foreground Intent");
 
@@ -411,7 +413,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
             };
 
 
-        } else if (intent.getAction().equals(Actions.LOGIN)) {
+        } else if (action.equals(Actions.LOGIN)) {
 
             Log.i(TAG, "LOGIN Foreground Intent ");
 
@@ -484,7 +486,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
             };
 
-        } else if (intent.getAction().equals(Actions.LOGOUT)) {
+        } else if (action.equals(Actions.LOGOUT)) {
 
             Log.i(TAG, "LOGOUT Foreground Intent");
 
@@ -494,7 +496,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
             // logout
             logout(uuid);
 
-        } else if (intent.getAction().equals(Actions.GET_AMBULANCE)) {
+        } else if (action.equals(Actions.GET_AMBULANCE)) {
 
             Log.i(TAG, "GET_AMBULANCE Foreground Intent");
 
@@ -503,7 +505,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
             boolean reconnect = intent.getBooleanExtra("RECONNECT", false);
             retrieveAmbulance(ambulanceId, uuid, reconnect);
 
-        } else if (intent.getAction().equals(Actions.GET_AMBULANCES)) {
+        } else if (action.equals(Actions.GET_AMBULANCES)) {
 
             Log.i(TAG, "GET_AMBULANCES Foreground Intent");
 
@@ -511,14 +513,14 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
             boolean reconnect = intent.getBooleanExtra("RECONNECT", false);
             retrieveOtherAmbulances(uuid, reconnect);
 
-        } else if (intent.getAction().equals(Actions.STOP_AMBULANCES)) {
+        } else if (action.equals(Actions.STOP_AMBULANCES)) {
 
             Log.i(TAG, "STOP_AMBULANCES Foreground Intent");
 
             // Stop ambulances
             stopAmbulances(uuid);
 
-        } else if (intent.getAction().equals(Actions.GET_HOSPITALS)) {
+        } else if (action.equals(Actions.GET_HOSPITALS)) {
 
             Log.i(TAG, "GET_HOSPITALS Foreground Intent");
 
@@ -526,14 +528,14 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
             boolean reconnect = intent.getBooleanExtra("RECONNECT", false);
             retrieveHospitals(uuid, reconnect);
 
-        } else if (intent.getAction().equals(Actions.START_LOCATION_UPDATES)) {
+        } else if (action.equals(Actions.START_LOCATION_UPDATES)) {
 
             Log.i(TAG, "START_LOCATION_UPDATES Foreground Intent");
 
             boolean reconnect = intent.getBooleanExtra("RECONNECT", false);
             startLocationUpdates(uuid, reconnect);
 
-        } else if (intent.getAction().equals(Actions.STOP_LOCATION_UPDATES)) {
+        } else if (action.equals(Actions.STOP_LOCATION_UPDATES)) {
 
             Log.i(TAG, "STOP_LOCATION_UPDATES Foreground Intent");
 
@@ -543,7 +545,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
             // stop requesting location updates
             stopLocationUpdates(uuid);
 
-        } else if (intent.getAction().equals(Actions.UPDATE_AMBULANCE)) {
+        } else if (action.equals(Actions.UPDATE_AMBULANCE)) {
 
             Log.i(TAG, "UPDATE_AMBULANCE Foreground Intent");
 
@@ -567,7 +569,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
             }
 
-        } else if (intent.getAction().equals(Actions.UPDATE_NOTIFICATION)) {
+        } else if (action.equals(Actions.UPDATE_NOTIFICATION)) {
 
             Log.i(TAG, "UPDATE_NOTIFICATION Foreground Intent");
 
@@ -576,19 +578,19 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
             if (message != null)
                 updateNotification(message);
 
-        } else if (intent.getAction().equals(Actions.GEOFENCE_START)) {
+        } else if (action.equals(Actions.GEOFENCE_START)) {
 
             Log.i(TAG, "GEOFENCE_START Foreground Intent");
 
             // Retrieve latitude and longitude
-            boolean isHospital = intent.getBooleanExtra("GEOFENCE_TYPE", false);
+            String type = intent.getStringExtra("GEOFENCE_TYPE");
             Float latitude = intent.getFloatExtra("LATITUDE", 0.f);
             Float longitude = intent.getFloatExtra("LONGITUDE", 0.f);
             Float radius = intent.getFloatExtra("RADIUS", 50.f);
 
-            startGeofence(uuid, new Geofence(new GPSLocation(latitude, longitude), radius, isHospital));
+            startGeofence(uuid, new Geofence(new GPSLocation(latitude, longitude), radius, type));
 
-        } else if (intent.getAction().equals(Actions.GEOFENCE_STOP)) {
+        } else if (action.equals(Actions.GEOFENCE_STOP)) {
 
             Log.i(TAG, "GEOFENCE_STOP Foreground Intent");
 
@@ -599,7 +601,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
             stopGeofence(uuid, requestIds);
 
-        } else if (intent.getAction().equals(Actions.CALL_ACCEPT)) {
+        } else if (action.equals(Actions.CALL_ACCEPT)) {
 
             Log.i(TAG, "CALL_ACCEPT Foreground Intent");
 
@@ -609,7 +611,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
             // next steps to publish information to server (steps 3, 4)
             setCallStatus(callId, "Accepted", uuid);
 
-        } else if (intent.getAction().equals(Actions.CALL_DECLINE)) {
+        } else if (action.equals(Actions.CALL_DECLINE)) {
 
             Log.i(TAG, "CALL_DECLINE Foreground Intent");
 
@@ -619,7 +621,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
             // next steps to publish information to server (steps 3, 4)
             declineCall(callId, uuid);
 
-        } else if (intent.getAction().equals(Actions.CALL_SUSPEND)) {
+        } else if (action.equals(Actions.CALL_SUSPEND)) {
 
             Log.i(TAG, "CALL_SUSPEND Foreground Intent");
 
@@ -629,54 +631,26 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
             // next steps to publish information to server (steps 3, 4)
             suspendCall(callId, uuid);
 
-        } else if (intent.getAction().equals(Actions.CALL_FINISH)) {
+        } else if (action.equals(Actions.CALL_FINISH)) {
 
             Log.i(TAG, "CALL_FINISH Foreground Intent");
 
             // finish call
             finishCurrentCall(uuid);
 
-        } else if (intent.getAction().equals(Actions.GEOFENCE_ENTER)) {
+        } else if (action.equals(Actions.GEOFENCE_ENTER) ||
+                action.equals(Actions.GEOFENCE_EXIT)) {
 
-            Log.i(TAG, "GEOFENCE_ENTER Foreground Intent");
+            Log.i(TAG, "GEOFENCE_ENTER/EXIT Foreground Intent");
 
             // get list of geofence ids that were entered
-            String[] triggeredGeofences = intent.getStringArrayExtra("TRIGGERED_GEOFENCES");
+            String[] geofences = intent.getStringArrayExtra("TRIGGERED_GEOFENCES");
 
-            // check if the triggered geofences were hospitals or not
-            for (String geoId : triggeredGeofences) {
-                Geofence triggeredGeofence = _geofences.get(geoId);
-
-                if (triggeredGeofence.isHospital()) {
-                    replyToGeofenceTransitions(uuid, true, true);
-                } else {
-                    replyToGeofenceTransitions(uuid, true, false);
-                }
+            // process geofences
+            for (String geoId : geofences) {
+                Geofence geofence = _geofences.get(geoId);
+                replyToGeofenceTransitions(uuid, geofence, action);
             }
-
-            // true == entering geofence
-            //replyToGeofenceTransitions(currentCallId, uuid, true);
-
-        } else if (intent.getAction().equals(Actions.GEOFENCE_EXIT)) {
-
-            Log.i(TAG, "GEOFENCE_EXIT Foreground Intent");
-
-            // get list of geofence ids that were exited
-            String[] triggeredGeofences = intent.getStringArrayExtra("TRIGGERED_GEOFENCES");
-
-            // check if the triggered geofences were hospitals or not
-            for (String geoId : triggeredGeofences) {
-                Geofence triggeredGeofence = _geofences.get(geoId);
-
-                if (triggeredGeofence.isHospital()) {
-                    replyToGeofenceTransitions(uuid, false, true);
-                } else {
-                    replyToGeofenceTransitions(uuid, false, false);
-                }
-            }
-
-            // false = not entering geofence
-            // replyToGeofenceTransitions(currentCallId, uuid, false);
 
         } else
 
@@ -1164,7 +1138,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
         // stop geofences
         // TODO: Should we wait for completion?
-        removeGeofences(null);
+        removeAllGeofences(null);
 
         // disconnect mqttclient
         MqttProfileClient profileClient = getProfileClient(this);
@@ -2987,16 +2961,6 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
                 Log.d(TAG, "Making ambulance '" + getCurrentAmbulance().getId() + "' available");
 
-                /*
-                // publish available to server
-                String payload = String.format("{\"status\":\"%1$s\"}", "AV");
-                Intent intent = new Intent(this, AmbulanceForegroundService.class);
-                intent.setAction(Actions.UPDATE_AMBULANCE);
-                Bundle bundle = new Bundle();
-                bundle.putString("UPDATE", payload);
-                intent.putExtras(bundle);
-                startService(intent);
-                */
                 updateAmbulanceStatus("AV");
 
             } else
@@ -3169,7 +3133,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
             return;
         }
 
-        MqttProfileClient profileClient = getProfileClient(AmbulanceForegroundService.this);
+        getProfileClient(AmbulanceForegroundService.this);
         Ambulance ambulance = getCurrentAmbulance();
 
         if (ambulance == null) {
@@ -3193,13 +3157,18 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         Call call = pendingCalls.get(callId);
 
         // Set current call
-        call.setCurrentAmbulanceCall(ambulance.getId());
+        Log.i(TAG, "Setting current ambulanceCall");
+        AmbulanceCall ambulanceCall = call.setCurrentAmbulanceCall(ambulance.getId());
 
         // step 6
         // Add geofence
-        Log.i(TAG, "Retrieving ambulanceCall");
-        AmbulanceCall ambulanceCall = call.getCurrentAmbulanceCall();
-        if (ambulanceCall != null) {
+        if (ambulanceCall == null) {
+
+            Log.i(TAG, "Could not retrieve ambulanceCall");
+
+        } else {
+
+            Log.i(TAG, "Will set waypoints");
 
             // Sort waypoints
             ambulanceCall.sortWaypoints();
@@ -3209,44 +3178,130 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
                 // Retrieve location
                 Location location = waypoint.getLocation();
+                Log.i(TAG, "Waypoint type '" + location.getType() + "'");
 
-                if (location.getType() == "i") {
-
-                    GPSLocation gpsLocation = location.getLocation();
-                    Log.i(TAG, "Adding geofence for incident");
-
-                    Intent serviceIntent = new Intent(AmbulanceForegroundService.this,
-                            AmbulanceForegroundService.class);
-                    serviceIntent.setAction(AmbulanceForegroundService.Actions.GEOFENCE_START);
-                    serviceIntent.putExtra("GEOFENCE_TYPE", false);
-                    serviceIntent.putExtra("LATITUDE", (float) gpsLocation.getLatitude());
-                    serviceIntent.putExtra("LONGITUDE", (float) gpsLocation.getLongitude());
-                    serviceIntent.putExtra("RADIUS", 50.f);
-                    startService(serviceIntent);
-
-                    updateAmbulanceStatus("PB");
-
-                }
+                Log.i(TAG, "Adding geofence for incident");
+                startGeofence(uuid, new Geofence(waypoint, _defaultGeofenceRadius));
 
             }
 
-        }
+            // Set status
+            updateAmbulanceNextWaypointStatus(ambulanceCall);
 
-        // step 7: publish patient bound to server
-        /*
-        String payload = String.format("{\"status\":\"%1$s\"}", "PB");
-        Intent intent = new Intent(this, AmbulanceForegroundService.class);
-        intent.setAction(Actions.UPDATE_AMBULANCE);
-        Bundle bundle = new Bundle();
-        bundle.putString("UPDATE", payload);
-        intent.putExtras(bundle);
-        startService(intent);
-        */
+        }
 
         // broadcast CALL_ONGOING
         Intent callOngoingIntent = new Intent(BroadcastActions.CALL_ONGOING);
         callOngoingIntent.putExtra("CALL_ID", callId);
         sendBroadcastWithUUID(callOngoingIntent, uuid);
+
+    }
+
+    public void updateAmbulanceNextWaypointStatus(AmbulanceCall ambulanceCall) {
+
+        // Get next waypoint
+        Waypoint nextWaypoint = ambulanceCall.getNextWaypoint();
+        if (nextWaypoint != null) {
+
+            // Update according to waypoint
+            String waypointType = nextWaypoint.getLocation().getType();
+            Log.d(TAG, "Next waypoint is of type '" + waypointType + "'");
+            if (waypointType.equals("i")) {
+
+                // step 7: publish patient bound to server
+                updateAmbulanceStatus("PB");
+
+            } else if (waypointType.equals("b")) {
+
+                // step 7: publish base bound to server
+                updateAmbulanceStatus("BB");
+
+            } else if (waypointType.equals("h")) {
+
+                // step 7: publish hospital bound to server
+                updateAmbulanceStatus("HB");
+
+            } else if (waypointType.equals("w")) {
+
+                // step 7: publish waypoint bound to server
+                updateAmbulanceStatus("WB");
+
+            }
+
+        } else {
+
+            Log.d(TAG, "Next waypoint is not available");
+            // TODO: prompt user for next waypoint?
+
+        }
+    }
+
+    public void updateAmbulanceEnterGeofenceStatus(AmbulanceCall ambulanceCall, Geofence geofence) {
+
+        // Get current waypoint
+        Waypoint currentWaypoint = geofence.getWaypoint();
+        if (currentWaypoint == null) {
+            // This should never happen
+            Log.d(TAG, "Could not retrieve waypoint");
+            return;
+        }
+
+        // Get next waypoint
+        Waypoint nextWaypoint = ambulanceCall.getNextWaypoint();
+        if (nextWaypoint == null) {
+            // Ignore if not current destination
+            Log.d(TAG, "Next waypoint is not available. Ignoring transition...");
+            return;
+        }
+
+        // Arrived at current destination?
+        if (currentWaypoint != nextWaypoint) {
+            // Ignore if not current destination
+            Log.d(TAG, "Arrived at another waypoint, not current destination. Ignoring transition...");
+            return;
+        }
+
+        if (currentWaypoint.isVisited()) {
+
+            // Ignore if already visited
+            Log.d(TAG, "Arrived at visited waypoint. Ignoring transition...");
+            return;
+        }
+
+        if (!currentWaypoint.isActive()) {
+
+            // Ignore if not active
+            Log.d(TAG, "Arrived at inactive waypoint. Ignoring transition...");
+            return;
+        }
+
+        String waypointType = currentWaypoint.getLocation().getType();
+        Log.d(TAG, "Arrived at waypoint of type '" + waypointType + "'");
+        if (waypointType.equals("i")) {
+
+            // publish at patient to server
+            updateAmbulanceStatus("AP");
+
+        } else if (waypointType.equals("b")) {
+
+            // publish base bound to server
+            updateAmbulanceStatus("AB");
+
+        } else if (waypointType.equals("h")) {
+
+            // publish hospital bound to server
+            updateAmbulanceStatus("AH");
+
+        } else if (waypointType.equals("w")) {
+
+            // publish waypoint bound to server
+            updateAmbulanceStatus("AW");
+
+        }
+
+        // Mark as visiting
+        // TODO: Update waypoint status on the server
+        currentWaypoint.setVisiting();
 
     }
 
@@ -3273,7 +3328,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
     /*
      **
      */
-    public void replyToGeofenceTransitions(String uuid, boolean enter, boolean isHospital) {
+    public void replyToGeofenceTransitions(String uuid, Geofence geofence, String action) {
 
         // if currently not serving call
         if (currentCallId < 0) {
@@ -3286,8 +3341,6 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
         MqttProfileClient profileClient = getProfileClient(AmbulanceForegroundService.this);
         Ambulance ambulance = getCurrentAmbulance();
-
-        // step 7
         if (ambulance == null) {
 
             Log.d(TAG, "Ambulance not found while in replyToTransition()");
@@ -3295,54 +3348,66 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
             Intent localIntent = new Intent(BroadcastActions.FAILURE);
             localIntent.putExtra(BroadcastExtras.MESSAGE, getString(R.string.couldNotFindAmbulance));
             sendBroadcastWithUUID(localIntent, uuid);
-
             return;
+        }
+
+        Call call = getCurrentCall();
+        if (call != null) {
+
+            // Transition happened while tracking call
+            Log.i(TAG, "GEOFENCE transition during call");
+
+            // Get current ambulance call
+            AmbulanceCall ambulanceCall = call.getCurrentAmbulanceCall();
+            if (ambulanceCall == null) {
+
+                Log.d(TAG, "AmbulanceCall not found while in replyToTransition()");
+
+                Intent localIntent = new Intent(BroadcastActions.FAILURE);
+                localIntent.putExtra(BroadcastExtras.MESSAGE, getString(R.string.couldNotFindAmbulanceCall));
+                sendBroadcastWithUUID(localIntent, uuid);
+                return;
+
+            }
+
+            // Process transitions
+            if (Actions.GEOFENCE_ENTER.equals(action)) {
+
+                // Entered a geofence
+                Log.i(TAG, "GEOFENCE ENTER");
+                updateAmbulanceEnterGeofenceStatus(ambulanceCall, geofence);
+
+            } else {
+
+                // Exited a geofence
+                Log.i(TAG, "GEOFENCE EXIT");
+                updateAmbulanceExitGeofenceStatus(ambulanceCall, geofence);
+
+            }
 
         }
 
-        if (!isHospital) {
+        if (!geofence.isHospital()) {
 
             // step 7: publish status to server
 
             // Notify user
-            if (enter)
+            if (action.equals(Actions.GEOFENCE_ENTER)) {
                 Toast.makeText(this, "Arrived at patient", Toast.LENGTH_LONG).show();
-            else
+                updateAmbulanceStatus("AP");
+            } else {
                 Toast.makeText(this, "Left patient", Toast.LENGTH_LONG).show();
-
-            String status = enter ? "AP" : "HB";
-
-            /*
-            String payload = String.format("{\"status\":\"%1$s\"}", status);
-            Intent intent = new Intent(this, AmbulanceForegroundService.class);
-            intent.setAction(Actions.UPDATE_AMBULANCE);
-            Bundle bundle = new Bundle();
-            bundle.putString("UPDATE", payload);
-            intent.putExtras(bundle);
-            startService(intent);
-            */
-            updateAmbulanceStatus(status);
+                updateAmbulanceStatus("HB");
+            }
 
         } else {
 
-            if (enter) {
+            if (action.equals(Actions.GEOFENCE_ENTER)) {
 
                 Log.i(TAG, "User has entered hospital");
 
                 // Notify user
                 Toast.makeText(this, "Arrived at hospital", Toast.LENGTH_LONG).show();
-
-                /*
-                String status = "AH";
-
-                String payload = String.format("{\"status\":\"%1$s\"}", status);
-                Intent intent = new Intent(this, AmbulanceForegroundService.class);
-                intent.setAction(Actions.UPDATE_AMBULANCE);
-                Bundle bundle = new Bundle();
-                bundle.putString("UPDATE", payload);
-                intent.putExtras(bundle);
-                startService(intent);
-                */
                 updateAmbulanceStatus("AH");
 
             } else {
@@ -3386,7 +3451,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         Intent intent = new Intent(this, GeofenceBroadcastReceiver.class);
 
         // We use FLAG_UPDATE_CURRENT so that we get the same pending intent back when
-        // calling addGeofences() and removeGeofences().
+        // calling addGeofences() and removeAllGeofences().
         geofenceIntent = PendingIntent.getBroadcast(this, 0,
                 intent, PendingIntent.FLAG_UPDATE_CURRENT);
 
@@ -3440,6 +3505,9 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                                         // Failed to add geofences
                                         Log.e(TAG, "FAILED TO ADD GEOFENCES: " + e.toString());
 
+                                        // Remove id
+                                        geofence.removeId(id);
+
                                         // Broadcast failure and return
                                         Intent localIntent = new Intent(BroadcastActions.FAILURE);
                                         localIntent.putExtra(BroadcastExtras.MESSAGE, getString(R.string.failedToAddGeofence));
@@ -3476,7 +3544,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
     }
 
 
-    private void removeGeofences(final String uuid) {
+    private void removeAllGeofences(final String uuid) {
 
         fenceClient.removeGeofences(getGeofencePendingIntent())
                 .addOnSuccessListener(new OnSuccessListener<Void>() {
@@ -3486,6 +3554,12 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                         Log.i(TAG, "GEOFENCES REMOVED.");
 
                         // Clear all geofence ids
+                        for (String id : _geofences.keySet()) {
+                            _geofences.remove(id).removeId(id);
+
+                        }
+                        
+                        // This is not necessary, but just in case :)
                         _geofences.clear();
 
                         // Broadcast success
@@ -3524,7 +3598,8 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
                         // Loop through list of ids and remove them
                         for (String id : requestIds) {
-                            _geofences.remove(id);
+                            _geofences.remove(id).removeId(id);
+
                         }
 
                     }
