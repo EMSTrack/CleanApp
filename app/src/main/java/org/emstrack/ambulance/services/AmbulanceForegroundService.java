@@ -87,24 +87,25 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
     // Rate at which locations should be pulled in
     // @ 70 mph gives an accuracy of about 30m
-    private static final long UPDATE_INTERVAL = 1 * 1000;
-    private static final long FASTEST_UPDATE_INTERVAL = UPDATE_INTERVAL / 2;
+    private final static long UPDATE_INTERVAL = 1 * 1000;
+    private final static long FASTEST_UPDATE_INTERVAL = UPDATE_INTERVAL / 2;
+
     // Group all updates to be done every minute
-    private static final long MAX_WAIT_TIME = 60 * 1000;
+    private final static long MAX_WAIT_TIME = 60 * 1000;
 
     // Notification channel
-    public static final int NOTIFICATION_ID = 101;
-    public static final String PRIMARY_CHANNEL = "default";
-    public static final String PRIMARY_CHANNEL_LABEL = "Default channel";
+    public final static int NOTIFICATION_ID = 101;
+    public final static String PRIMARY_CHANNEL = "default";
+    public final static String PRIMARY_CHANNEL_LABEL = "Default channel";
 
     // Notification id
     private final static AtomicInteger notificationId = new AtomicInteger(NOTIFICATION_ID + 1);
 
     // SharedPreferences
-    public static final String PREFERENCES_NAME = "org.emstrack.ambulance";
-    public static final String PREFERENCES_USERNAME = "USERNAME";
-    public static final String PREFERENCES_PASSWORD = "PASSWORD";
-    public static final String PREFERENCES_SERVER = "SERVER";
+    public final static String PREFERENCES_NAME = "org.emstrack.ambulance";
+    public final static String PREFERENCES_USERNAME = "USERNAME";
+    public final static String PREFERENCES_PASSWORD = "PASSWORD";
+    public final static String PREFERENCES_SERVER = "SERVER";
 
     // Server URI
     private static String serverUri = "ssl://cruzroja.ucsd.edu:8883";
@@ -164,7 +165,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         public final static String STOP_SERVICE = "org.emstrack.ambulance.ambulanceforegroundservice.action.STOP_SERVICE";
         public final static String CALL_ACCEPT = "org.emstrack.ambulance.ambulanceforegroundservice.action.CALL_ACCEPT";
         public final static String CALL_DECLINE = "org.emstrack.ambulance.ambulanceforegroundservice.action.CALL_DECLINE";
-        public static final String CALL_SUSPEND = "org.emstrack.ambulance.ambulanceforegroundservice.action.CALL_SUSPEND";
+        public final static String CALL_SUSPEND = "org.emstrack.ambulance.ambulanceforegroundservice.action.CALL_SUSPEND";
         public final static String CALL_FINISH = "org.emstrack.ambulance.ambulanceforegroundservice.action.CALL_FINISH";
     }
 
@@ -175,7 +176,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
     public class BroadcastActions {
         public final static String HOSPITALS_UPDATE = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastaction.HOSPITALS_UPDATE";
-        public static final String OTHER_AMBULANCES_UPDATE = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastaction.OTHER_AMBULANCES_UPDATE";
+        public final static String OTHER_AMBULANCES_UPDATE = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastaction.OTHER_AMBULANCES_UPDATE";
         public final static String AMBULANCE_UPDATE = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastaction.AMBULANCE_UPDATE";
         public final static String LOCATION_UPDATE_CHANGE = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastaction.LOCATION_UPDATE_CHANGE";
         public final static String GEOFENCE_EVENT = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastaction.GEOFENCE_EVENT";
@@ -184,10 +185,11 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         public final static String FAILURE = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastaction.FAILURE";
         public final static String PROMPT_CALL_ACCEPT = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastaction.PROMPT_CALL_ACCEPT";
         public final static String PROMPT_CALL_END = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastaction.PROMPT_CALL_END";
-        public static final String CALL_ONGOING = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastaction.CALL_ONGOING";
-        public static final String CALL_DECLINED = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastaction.CALL_DECLINED";
-        public static final String CALL_FINISHED = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastaction.CALL_FINISHED";
-        public static final String CALL_UPDATE = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastaction.CALL_UPDATE";
+        public final static String PROMPT_NEXT_WAYPOINT = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastaction.PROMPT_NEXT_WAYPOINT";
+        public final static String CALL_ONGOING = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastaction.CALL_ONGOING";
+        public final static String CALL_DECLINED = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastaction.CALL_DECLINED";
+        public final static String CALL_FINISHED = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastaction.CALL_FINISHED";
+        public final static String CALL_UPDATE = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastaction.CALL_UPDATE";
     }
 
     public static class ProfileClientException extends Exception {
@@ -3212,7 +3214,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
             }
 
             // Set status based on next waypoint
-            updateAmbulanceNextWaypointStatus(ambulanceCall);
+            updateAmbulanceNextWaypointStatus(uuid, ambulanceCall, callId);
 
         }
 
@@ -3223,7 +3225,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
     }
 
-    public void updateAmbulanceNextWaypointStatus(AmbulanceCall ambulanceCall) {
+    public void updateAmbulanceNextWaypointStatus(final String uuid, AmbulanceCall ambulanceCall, int callId) {
 
         // Get next waypoint
         Waypoint nextWaypoint = ambulanceCall.getNextWaypoint();
@@ -3257,12 +3259,15 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         } else {
 
             Log.d(TAG, "Next waypoint is not available");
-            // TODO: prompt user for next waypoint?
+            // broadcast PROMPT_NEXT_WAYPOINT
+            Intent nextWaypointIntent = new Intent(BroadcastActions.PROMPT_NEXT_WAYPOINT);
+            nextWaypointIntent.putExtra("CALL_ID", callId);
+            sendBroadcastWithUUID(nextWaypointIntent, uuid);
 
         }
     }
 
-    public void updateAmbulanceEnterGeofenceStatus(AmbulanceCall ambulanceCall, Geofence geofence) {
+    public void updateAmbulanceEnterGeofenceStatus(final String uuid, AmbulanceCall ambulanceCall, int callId, Geofence geofence) {
 
         // Get current waypoint
         Waypoint currentWaypoint = geofence.getWaypoint();
@@ -3331,7 +3336,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
     }
 
-    public void updateAmbulanceExitGeofenceStatus(AmbulanceCall ambulanceCall, Geofence geofence) {
+    public void updateAmbulanceExitGeofenceStatus(final String uuid, AmbulanceCall ambulanceCall, int callId, Geofence geofence) {
 
         // Get current waypoint
         Waypoint currentWaypoint = geofence.getWaypoint();
@@ -3378,7 +3383,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         currentWaypoint.setStatus(Waypoint.STATUS_VISITED);
 
         // Go for next waypoint
-        updateAmbulanceNextWaypointStatus(ambulanceCall);
+        updateAmbulanceNextWaypointStatus(uuid, ambulanceCall, callId);
 
     }
 
@@ -3452,13 +3457,13 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
                 // Entered a geofence
                 Log.i(TAG, "GEOFENCE ENTER");
-                updateAmbulanceEnterGeofenceStatus(ambulanceCall, geofence);
+                updateAmbulanceEnterGeofenceStatus(uuid, ambulanceCall, call.getId(), geofence);
 
             } else {
 
                 // Exited a geofence
                 Log.i(TAG, "GEOFENCE EXIT");
-                updateAmbulanceExitGeofenceStatus(ambulanceCall, geofence);
+                updateAmbulanceExitGeofenceStatus(uuid, ambulanceCall, call.getId(), geofence);
 
             }
 
