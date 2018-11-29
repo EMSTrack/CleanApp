@@ -197,8 +197,15 @@ public class MainActivity extends AppCompatActivity {
                     // TODO: Check if current call has that ID
                     endCallDialog();
 
-                }
-                else if (action.equals(AmbulanceForegroundService.BroadcastActions.CALL_ONGOING)) {
+                } else if (action.equals(AmbulanceForegroundService.BroadcastActions.PROMPT_NEXT_WAYPOINT)) {
+
+                    Log.i(TAG, "PROMPT_NEXT_WAYPOINT");
+
+                    int callId = intent.getIntExtra("CALL_ID", -1);
+                    // TODO: Check if current call has that ID
+                    endCallDialog();
+
+                } else if (action.equals(AmbulanceForegroundService.BroadcastActions.CALL_ONGOING)) {
 
                     Log.i(TAG, "CALL_ONGOING");
 
