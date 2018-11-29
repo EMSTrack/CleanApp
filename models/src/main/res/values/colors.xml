@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <color name="statusBlue">#FF33B5E5</color>
+    <color name="statusPurple">#aa66cc</color>
+    <color name="statusGreen">#FF99CC00</color>
+    <color name="statusOrange">#FFFFBB33</color>
+    <color name="statusRed">#FFFF4444</color>
+    <color name="statusDarkBlue">#FF0099CC</color>
+    <color name="statusDarkPurple">#FF9933CC</color>
+    <color name="statusDarkGreen">#FF669900</color>
+    <color name="statusDarkOrange">#FFFF8800</color>
+    <color name="statusDarkRed">#FFCC0000</color>
+
+    <color name="bootstrapPrimary">#ff007bff</color>
+    <color name="bootstrapDanger">#ffdc3545</color>
+    <color name="bootstrapWarning">#ffffc107</color>
+    <color name="bootstrapSuccess">#ff28a745</color>
+    <color name="bootstrapInfo">#ff17a2b8</color>
+    <color name="bootstrapLight">#fff8f9fa</color>
+    <color name="bootstrapSecondary">#ff868e96</color>
+    <color name="bootstrapDark">#ff343a40</color>
+    <color name="bootstrapYellow">#ffF5E234</color>
+
+</resources>

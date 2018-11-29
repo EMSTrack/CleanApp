@@ -164,22 +164,23 @@ public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSel
             final MqttProfileClient profileClient = AmbulanceForegroundService.getProfileClient();
 
             ambulanceStatus = profileClient.getSettings().getAmbulanceStatus();
-            ambulanceStatusList = new ArrayList<String>(ambulanceStatus.values());
+            ambulanceStatusList = new ArrayList<>(ambulanceStatus.values());
             Collections.sort(ambulanceStatusList);
 
             int colors [] = getResources().getIntArray(R.array.statusColors);
-            ambulanceStatusColorList = new ArrayList<Integer>();
-            for (int i = 0; i < ambulanceStatusList.size(); i++) {
-                ambulanceStatusColorList.add(colors[i]);
-            }
+            ambulanceStatusColorList = new ArrayList<>();
+            for (String value : ambulanceStatusList)
+                for (Map.Entry<String,String> entry : ambulanceStatus.entrySet())
+                    if (value.equals(entry.getValue()))
+                        ambulanceStatusColorList.add(getResources().getColor(Ambulance.statusColorList.get(entry.getKey())));
 
             ambulanceCapabilities = profileClient.getSettings().getAmbulanceCapability();
-            ambulanceCapabilityList = new ArrayList<String>(ambulanceCapabilities.values());
+            ambulanceCapabilityList = new ArrayList<>(ambulanceCapabilities.values());
             Collections.sort(ambulanceCapabilityList);
 
         } catch (AmbulanceForegroundService.ProfileClientException e) {
 
-            ambulanceStatusList = new ArrayList<String>();
+            ambulanceStatusList = new ArrayList<>();
 
         }
 

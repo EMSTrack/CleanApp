@@ -2,9 +2,48 @@ package org.emstrack.models;
 
 import com.google.gson.annotations.Expose;
 
+import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 public class Ambulance {
+
+    public static final String STATUS_UNKNOWN = "UK";
+    public static final String STATUS_AVAILABLE= "AV";
+    public static final String STATUS_OUT_OF_SERVICE= "OS";
+    public static final String STATUS_PATIENT_BOUND = "PB";
+    public static final String STATUS_AT_PATIENT = "AP";
+    public static final String STATUS_HOSPITAL_BOUND = "HB";
+    public static final String STATUS_AT_HOSPITAL = "AH";
+    public static final String STATUS_BASE_BOUND = "BB";
+    public static final String STATUS_AT_BASE = "AB";
+    public static final String STATUS_WAYPOINT_BOUND = "WB";
+    public static final String STATUS_AT_WAYPOINT = "AW";
+
+    public static final Map<String, Integer> statusColorList;
+    static {
+
+        Map<String, Integer> map = new HashMap<>();
+
+        map.put(STATUS_UNKNOWN, R.color.bootstrapPrimary);
+        map.put(STATUS_AVAILABLE, R.color.bootstrapSuccess);
+        map.put(STATUS_OUT_OF_SERVICE, R.color.bootstrapSecondary);
+
+        map.put(STATUS_PATIENT_BOUND, R.color.bootstrapDanger);
+        map.put(STATUS_AT_PATIENT, R.color.bootstrapWarning);
+
+        map.put(STATUS_HOSPITAL_BOUND, R.color.bootstrapDanger);
+        map.put(STATUS_AT_HOSPITAL, R.color.bootstrapWarning);
+
+        map.put(STATUS_BASE_BOUND, R.color.bootstrapInfo);
+        map.put(STATUS_AT_BASE, R.color.bootstrapSuccess);
+
+        map.put(STATUS_WAYPOINT_BOUND, R.color.bootstrapDanger);
+        map.put(STATUS_AT_WAYPOINT, R.color.bootstrapWarning);
+
+        statusColorList = Collections.unmodifiableMap(map);
+    }
 
     private int id;
     private String identifier;
