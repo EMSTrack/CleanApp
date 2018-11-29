@@ -28,7 +28,7 @@ public class Geofence {
     }
 
     public Geofence(GPSLocation location, float radius, String type) {
-        this(new Waypoint(-1, false,
+        this(new Waypoint(-1, Waypoint.STATUS_NOT_VISITED,
                 new Location(null, type, location)), radius);
     }
 
