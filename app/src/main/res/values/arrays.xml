@@ -9,6 +9,10 @@
         <item>@color/statusRed</item>
         <item>@color/statusOrange</item>
         <item>@color/statusPurple</item>
+        <item>@color/statusRed</item>
+        <item>@color/statusOrange</item>
+        <item>@color/statusPurple</item>
+        <item>@color/statusGreen</item>
     </integer-array>
 
 </resources>

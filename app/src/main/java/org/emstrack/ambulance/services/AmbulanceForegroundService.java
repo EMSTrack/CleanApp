@@ -2639,7 +2639,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                         public void messageArrived(String topic, MqttMessage message) {
 
                             // Keep subscription to calls to make sure we receive latest updates
-                            Log.i(TAG, "Retrieving statuses, currentCallId = " + currentCallId);
+                            Log.i(TAG, "Retrieving call statuses, currentCallId = " + currentCallId);
 
                             try {
 
@@ -2937,6 +2937,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
         Log.d(TAG, "Cleaning up call '" + callId + "'");
 
+        Call call = null;
         if (callId > 0) {
 
             Log.d(TAG, "Unsubscribing from call/" + callId + "/data");
@@ -2952,7 +2953,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
             }
 
             // remove call from the queue
-            pendingCalls.remove(callId);
+            call = pendingCalls.remove(callId);
 
         }
 
@@ -2960,7 +2961,6 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
             // call is current call
             Ambulance ambulance = getCurrentAmbulance();
-            Call call = AmbulanceForegroundService.getCurrentCall();
             if (ambulance != null && call != null) {
 
                 AmbulanceCall ambulanceCall = call.getCurrentAmbulanceCall();
