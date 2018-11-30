@@ -77,6 +77,7 @@ public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSel
     private Button callEndButton;
     private TextView callPatientsTextView;
     private TextView callDistanceTextView;
+    private Button callAddWaypointButton;
 
     public class AmbulancesUpdateBroadcastReceiver extends BroadcastReceiver {
 
@@ -304,13 +305,23 @@ public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSel
                         new View.OnClickListener() {
                             @Override
                             public void onClick(View v) {
-
                                 // Prompt end of call
                                 ((MainActivity) getActivity()).promptEndCallDialog(call.getId());
-
                             }
                         }
                 );
+
+                callAddWaypointButton = (Button) child.findViewById(R.id.callAddWaypointButton);
+                callAddWaypointButton.setOnClickListener(
+                        new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                // Prompt add new waypoint
+                                ((MainActivity) getActivity()).promptNextWaypointDialog(call.getId());
+                            }
+                        }
+                );
+
                 currentCallId = call.getId();
 
             }

@@ -347,7 +347,7 @@ public class MainActivity extends AppCompatActivity {
                 hospitalPermissions = profile.getHospitals();
             }
 
-            // Creates string arraylist of ambulance names
+            // Creates list of ambulance names
             ArrayList<String> ambulanceList = new ArrayList<>();
             for (AmbulancePermission ambulancePermission : ambulancePermissions)
                 ambulanceList.add(ambulancePermission.getAmbulanceIdentifier());
@@ -360,8 +360,9 @@ public class MainActivity extends AppCompatActivity {
             // Set the spinner's adapter
             ambulanceButton.setOnClickListener(new AmbulanceButtonClickListener());
 
-            // Creates string arraylist of hospital names
+            // Creates list of hospital names
             ArrayList<String> hospitalList = new ArrayList<>();
+            hospitalList.add("");
             for (HospitalPermission hospitalPermission : hospitalPermissions)
                 hospitalList.add(hospitalPermission.getHospitalName());
 
@@ -791,7 +792,7 @@ public class MainActivity extends AppCompatActivity {
         builder.create().show();
     }
 
-    private void promptNextWaypointDialog(final int callId) {
+    public void promptNextWaypointDialog(final int callId) {
 
         Log.i(TAG, "Creating next waypoint dialog");
 
@@ -829,10 +830,10 @@ public class MainActivity extends AppCompatActivity {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
 
         // Create call view
-        View view = getLayoutInflater().inflate(R.layout.next_waypoint, null);
+        View view = getLayoutInflater().inflate(R.layout.next_waypoint_dialog, null);
 
         // Create hospital spinner
-        Spinner hospitalSpinner = (Spinner) findViewById(R.id.spinnerHospitals);
+        Spinner hospitalSpinner = (Spinner) view.findViewById(R.id.spinnerHospitals);
         hospitalSpinner.setAdapter(hospitalListAdapter);
 
         // build dialog
