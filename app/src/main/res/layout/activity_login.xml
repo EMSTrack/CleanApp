@@ -45,7 +45,6 @@
         android:fontFamily="sans-serif"
         android:textAlignment="center" />
 
-
     <Button
         android:id="@+id/buttonLogin"
         android:layout_width="match_parent"

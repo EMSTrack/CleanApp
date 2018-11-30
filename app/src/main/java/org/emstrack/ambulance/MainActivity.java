@@ -6,7 +6,6 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.res.Configuration;
-import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.os.Bundle;
 import android.support.design.widget.NavigationView;
@@ -27,6 +26,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -44,6 +44,7 @@ import org.emstrack.models.Ambulance;
 import org.emstrack.models.AmbulanceCall;
 import org.emstrack.models.AmbulancePermission;
 import org.emstrack.models.Call;
+import org.emstrack.models.HospitalPermission;
 import org.emstrack.models.Patient;
 import org.emstrack.models.Profile;
 import org.emstrack.models.Waypoint;
@@ -71,8 +72,11 @@ public class MainActivity extends AppCompatActivity {
     private FragmentPager adapter;
 
     private Button ambulanceButton;
-    List<AmbulancePermission> ambulancePermissions;
-    ArrayAdapter<String> ambulanceListAdapter;
+
+    private List<AmbulancePermission> ambulancePermissions;
+    private ArrayAdapter<String> ambulanceListAdapter;
+    private List<HospitalPermission> hospitalPermissions;
+    private ArrayAdapter<String> hospitalListAdapter;
 
     private DrawerLayout mDrawer;
     private NavigationView nvDrawer;
@@ -187,23 +191,21 @@ public class MainActivity extends AppCompatActivity {
                     Log.i(TAG, "PROMPT_CALL_ACCEPT");
 
                     int callId = intent.getIntExtra("CALL_ID", -1);
-                    acceptCallDialog(callId);
+                    promptAcceptCallDialog(callId);
 
                 } else if (action.equals(AmbulanceForegroundService.BroadcastActions.PROMPT_CALL_END)) {
 
                     Log.i(TAG, "PROMPT_CALL_END");
 
                     int callId = intent.getIntExtra("CALL_ID", -1);
-                    // TODO: Check if current call has that ID
-                    endCallDialog();
+                    promptEndCallDialog(callId);
 
                 } else if (action.equals(AmbulanceForegroundService.BroadcastActions.PROMPT_NEXT_WAYPOINT)) {
 
                     Log.i(TAG, "PROMPT_NEXT_WAYPOINT");
 
                     int callId = intent.getIntExtra("CALL_ID", -1);
-                    // TODO: Check if current call has that ID
-                    endCallDialog();
+                    promptNextWaypointDialog(callId);
 
                 } else if (action.equals(AmbulanceForegroundService.BroadcastActions.CALL_ONGOING)) {
 
@@ -269,7 +271,7 @@ public class MainActivity extends AppCompatActivity {
         // set content view
         setContentView(R.layout.activity_main);
 
-        // Ambulance spinner
+        // Ambulance button
         ambulanceButton = (Button) findViewById(R.id.ambulanceButton);
 
         // Panic button
@@ -334,14 +336,16 @@ public class MainActivity extends AppCompatActivity {
             trackingIcon.setAlpha(disabledAlpha);
         }
 
-        // Set up ambulance spinner
+        // Set up ambulance and hospital spinner
         try {
 
             ambulancePermissions = new ArrayList<>();
             MqttProfileClient profileClient = AmbulanceForegroundService.getProfileClient();
             Profile profile = profileClient.getProfile();
-            if (profile != null)
+            if (profile != null) {
                 ambulancePermissions = profile.getAmbulances();
+                hospitalPermissions = profile.getHospitals();
+            }
 
             // Creates string arraylist of ambulance names
             ArrayList<String> ambulanceList = new ArrayList<>();
@@ -355,6 +359,16 @@ public class MainActivity extends AppCompatActivity {
 
             // Set the spinner's adapter
             ambulanceButton.setOnClickListener(new AmbulanceButtonClickListener());
+
+            // Creates string arraylist of hospital names
+            ArrayList<String> hospitalList = new ArrayList<>();
+            for (HospitalPermission hospitalPermission : hospitalPermissions)
+                hospitalList.add(hospitalPermission.getHospitalName());
+
+            // Create the adapter
+            hospitalListAdapter = new ArrayAdapter<>(this,
+                    android.R.layout.simple_spinner_dropdown_item, hospitalList);
+            hospitalListAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 
             // Any ambulance currently selected?
             Ambulance ambulance = AmbulanceForegroundService.getCurrentAmbulance();
@@ -375,7 +389,7 @@ public class MainActivity extends AppCompatActivity {
             }
 
         } catch (AmbulanceForegroundService.ProfileClientException e ){
-            Log.e(TAG, "Could not retrieve list of ambulances.");
+            Log.e(TAG, "Could not retrieve list of ambulances and hospitals from profile.");
         }
 
     }
@@ -419,6 +433,7 @@ public class MainActivity extends AppCompatActivity {
         filter.addAction(AmbulanceForegroundService.BroadcastActions.CONNECTIVITY_CHANGE);
         filter.addAction(AmbulanceForegroundService.BroadcastActions.PROMPT_CALL_ACCEPT);
         filter.addAction(AmbulanceForegroundService.BroadcastActions.PROMPT_CALL_END);
+        filter.addAction(AmbulanceForegroundService.BroadcastActions.PROMPT_NEXT_WAYPOINT);
         filter.addAction(AmbulanceForegroundService.BroadcastActions.CALL_ONGOING);
         filter.addAction(AmbulanceForegroundService.BroadcastActions.CALL_DECLINED);
         filter.addAction(AmbulanceForegroundService.BroadcastActions.CALL_FINISHED);
@@ -586,7 +601,7 @@ public class MainActivity extends AppCompatActivity {
         return LocalBroadcastManager.getInstance(this);
     }
 
-    private void acceptCallDialog(final int callId) {
+    private void promptAcceptCallDialog(final int callId) {
 
         Log.i(TAG, "Creating accept dialog");
 
@@ -712,28 +727,21 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    public void endCallDialog() {
-
-        // Gather call details
-        Call call = AmbulanceForegroundService.getCurrentCall();
-        endCallDialog(call);
-    }
-
-    public void endCallDialog(final Call call) {
+    public void promptEndCallDialog(int callId) {
 
         Log.d(TAG, "Creating end call dialog");
 
         // Gather call details
-        Call currentCall = AmbulanceForegroundService.getCurrentCall();
-        if (currentCall == null) {
+        final Call call = AmbulanceForegroundService.getCurrentCall();
+        if (call == null) {
 
-            // Not currrently handling call
+            // Not currently handling call
             Log.d(TAG, "Not currently handling call");
             return;
 
-        } else if (call != null && call.getId() != currentCall.getId()) {
+        } else if (call.getId() != callId) {
 
-            // Not currrently handling call
+            // Not currently handling this call
             Log.d(TAG, "Not currently handling call " + call.getId());
             return;
 
@@ -781,6 +789,89 @@ public class MainActivity extends AppCompatActivity {
                 });
         // Create the AlertDialog object and return it
         builder.create().show();
+    }
+
+    private void promptNextWaypointDialog(final int callId) {
+
+        Log.i(TAG, "Creating next waypoint dialog");
+
+        // Gather call details
+        final Call call = AmbulanceForegroundService.getCurrentCall();
+        if (call == null) {
+
+            // Not currently handling call
+            Log.d(TAG, "Not currently handling call");
+            return;
+
+        } else if (call.getId() != callId) {
+
+            // Not currently handling this call
+            Log.d(TAG, "Not currently handling call " + call.getId());
+            return;
+
+        }
+
+        // Get current ambulance
+        Ambulance ambulance = AmbulanceForegroundService.getCurrentAmbulance();
+        if (ambulance == null) {
+            Log.d(TAG, "Can't find ambulance; should never happen");
+            return;
+        }
+
+        // Get ambulanceCall
+        AmbulanceCall ambulanceCall = call.getAmbulanceCall(ambulance.getId());
+        if (ambulanceCall == null) {
+            Log.d(TAG, "Can't find ambulanceCall");
+            return;
+        }
+
+        // Use the Builder class for convenient dialog construction
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+
+        // Create call view
+        View view = getLayoutInflater().inflate(R.layout.next_waypoint, null);
+
+        // Create hospital spinner
+        Spinner hospitalSpinner = (Spinner) findViewById(R.id.spinnerHospitals);
+        hospitalSpinner.setAdapter(hospitalListAdapter);
+
+        // build dialog
+        builder.setTitle("Select next waypoint")
+                .setView(view)
+                .setPositiveButton("Select", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+
+                        Toast.makeText(MainActivity.this, "Waypoint selected", Toast.LENGTH_SHORT).show();
+
+                        Log.i(TAG, "Waypoint selected");
+
+                        /*
+                        Intent serviceIntent = new Intent(MainActivity.this, AmbulanceForegroundService.class);
+                        serviceIntent.setAction(AmbulanceForegroundService.Actions.CALL_ACCEPT);
+                        serviceIntent.putExtra("CALL_ID", callId);
+                        startService(serviceIntent);
+                        */
+
+                    }
+                })
+                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+
+                        Log.i(TAG, "No waypoint selected");
+
+                        /*
+                        Intent serviceIntent = new Intent(MainActivity.this, AmbulanceForegroundService.class);
+                        serviceIntent.setAction(AmbulanceForegroundService.Actions.CALL_DECLINE);
+                        serviceIntent.putExtra("CALL_ID", callId);
+                        startService(serviceIntent);
+                        */
+
+                    }
+                });
+
+        // Create the AlertDialog object and display it
+        builder.create().show();
+
     }
 
     void startUpdatingLocation() {
@@ -928,7 +1019,7 @@ public class MainActivity extends AppCompatActivity {
             Log.d(TAG, "In call: prompt user");
 
             // currently handling call, prompt if want to end call
-            endCallDialog(currentCall);
+            promptEndCallDialog(currentCall.getId());
 
         } else {
 
