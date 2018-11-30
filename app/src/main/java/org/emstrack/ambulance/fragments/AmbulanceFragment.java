@@ -306,7 +306,7 @@ public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSel
                             public void onClick(View v) {
 
                                 // Prompt end of call
-                                ((MainActivity) getActivity()).promptEndCallDialog(call);
+                                ((MainActivity) getActivity()).promptEndCallDialog(call.getId());
 
                             }
                         }
