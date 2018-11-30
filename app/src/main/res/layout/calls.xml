@@ -9,6 +9,14 @@
         android:layout_height="wrap_content"/>
 
     <Button
+        android:id="@+id/callAddWaypointButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:background="@color/bootstrapPrimary"
+        android:text="Add Waypoint" />
+
+    <Button
         android:id="@+id/callEndButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
