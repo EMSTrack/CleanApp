@@ -108,11 +108,6 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         serverNames.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         serverField.setAdapter(serverNames);
 
-/*
-        serverURLs = ArrayAdapter.createFromResource(this,
-                R.array.list_item_array_server_url, android.R.layout.simple_spinner_item);
-*/
-
         // Retrieving credentials
         sharedPreferences = getSharedPreferences(AmbulanceForegroundService.PREFERENCES_NAME, MODE_PRIVATE);
 

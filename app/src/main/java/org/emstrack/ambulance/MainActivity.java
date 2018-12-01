@@ -823,7 +823,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         // Get current ambulance
-        Ambulance ambulance = AmbulanceForegroundService.getCurrentAmbulance();
+        final Ambulance ambulance = AmbulanceForegroundService.getCurrentAmbulance();
         if (ambulance == null) {
             Log.d(TAG, "Can't find ambulance; should never happen");
             return;
@@ -837,7 +837,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         // Get waypoints
-        final int maximumOrder = ambulanceCall.getMaximumWaypointOrder();
+        final int maximumOrder = ambulanceCall.getNextNewWaypointOrder();
 
         // Use the Builder class for convenient dialog construction
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -857,14 +857,13 @@ public class MainActivity extends AppCompatActivity {
 
                         Log.i(TAG, "Waypoint selected");
 
-                        String waypoint = null;
                         int waypointId = -1;
 
+                        String waypoint = null;
                         int selectedHospital = hospitalSpinner.getSelectedItemPosition();
                         if (selectedHospital > 0) {
                             HospitalPermission hospital = hospitalPermissions.get(selectedHospital - 1);
-                            waypoint = "{\"order\":" + maximumOrder + ",\"location\":{\"id\":" + hospital.getHospitalId() + ",\"type\":\"" + Location.TYPE_HOSPITAL + "\"}";
-                            waypointId = hospital.getHospitalId();
+                            waypoint = "{\"order\":" + maximumOrder + ",\"location\":{\"id\":" + hospital.getHospitalId() + ",\"type\":\"" + Location.TYPE_HOSPITAL + "\"}}";
                         }
 
                         // Publish waypoint
@@ -874,6 +873,7 @@ public class MainActivity extends AppCompatActivity {
                             serviceIntent.setAction(AmbulanceForegroundService.Actions.UPDATE_WAYPOINT);
                             serviceIntent.putExtra("UPDATE", waypoint);
                             serviceIntent.putExtra("WAYPOINT_ID", waypointId);
+                            serviceIntent.putExtra("AMBULANCE_ID", ambulance.getId());
                             serviceIntent.putExtra("CALL_ID", callId);
                             startService(serviceIntent);
                         }
@@ -957,6 +957,20 @@ public class MainActivity extends AppCompatActivity {
 
                                     Log.i(TAG, "ForceLocationUpdatesDialog: OK Button Clicked");
 
+                                    Ambulance ambulance = AmbulanceForegroundService.getCurrentAmbulance();
+                                    if (ambulance == null) {
+
+                                        Log.d(TAG, "Could not for updates.");
+
+                                        // Toast to warn user
+                                        Toast.makeText(MainActivity.this,
+                                                R.string.couldNotForceUpdates,
+                                                Toast.LENGTH_LONG).show();
+
+                                        return;
+
+                                    }
+
                                     // Toast to warn user
                                     Toast.makeText(MainActivity.this, R.string.forcingLocationUpdates,
                                             Toast.LENGTH_LONG).show();
@@ -966,6 +980,7 @@ public class MainActivity extends AppCompatActivity {
                                     Intent intent = new Intent(MainActivity.this, AmbulanceForegroundService.class);
                                     intent.setAction(AmbulanceForegroundService.Actions.UPDATE_AMBULANCE);
                                     Bundle bundle = new Bundle();
+                                    bundle.putInt("AMBULANCE_ID", ambulance.getId());
                                     bundle.putString("UPDATE", payload);
                                     intent.putExtras(bundle);
 

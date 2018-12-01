@@ -5,14 +5,29 @@ package org.emstrack.models;
  */
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class Call {
 
     public static final String STATUS_PENDING = "P";
     public static final String STATUS_STARTED = "S";
     public static final String STATUS_ENDED = "E";
+
+    public static final Map<String, String> statusLabel;
+    static {
+
+        Map<String, String> map = new HashMap<>();
+
+        map.put(STATUS_PENDING, "Pending");
+        map.put(STATUS_STARTED,"Started");
+        map.put(STATUS_ENDED,"Ended");
+
+        statusLabel = Collections.unmodifiableMap(map);
+    }
 
     private int id;
     private String status;
@@ -29,11 +44,13 @@ public class Call {
     private List<Patient> patientSet = new ArrayList <>();
 
     private AmbulanceCall currentAmbulanceCall;
+    private boolean sorted;
 
     public Call() {
         id = -1;
         updatedBy = -1;
         this.currentAmbulanceCall = null;
+        this.sorted = false;
     }
 
     public Call(int id, String status, String details, String priority, 
@@ -57,6 +74,7 @@ public class Call {
         this.patientSet = patientSet;
 
         this.currentAmbulanceCall = null;
+        this.sorted = false;
     }
     
     public int getId() {
@@ -178,5 +196,26 @@ public class Call {
 
     public AmbulanceCall getCurrentAmbulanceCall() {
         return currentAmbulanceCall;
+    }
+
+    public boolean isSorted() {
+        return sorted;
+    }
+
+    public void setSorted(boolean sorted) {
+        this.sorted = sorted;
+    }
+
+    public void sortWaypoints() {
+        sortWaypoints(false);
+    }
+
+    public void sortWaypoints(boolean force) {
+        if (force || !this.sorted) {
+            for (AmbulanceCall ambulanceCall : this.ambulancecallSet)
+                ambulanceCall.sortWaypoints();
+            this.sorted = true;
+        }
+
     }
 }

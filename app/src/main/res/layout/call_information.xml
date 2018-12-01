@@ -73,7 +73,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Type:"
-            android:textStyle="bold" />
+            android:textStyle="italic" />
 
         <TextView
             android:id="@+id/callWaypointTypeText"
@@ -89,7 +89,7 @@
             android:layout_height="wrap_content"
             android:layout_below="@id/callWaypointTypeLabel"
             android:text="Distance:"
-            android:textStyle="bold" />
+            android:textStyle="italic" />
 
         <TextView
             android:id="@+id/callDistanceText"
@@ -102,17 +102,19 @@
 
         <TextView
             android:id="@+id/callAddressLabel"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_below="@id/callDistanceLabel"
             android:text="Address:"
-            android:textStyle="bold" />
+            android:textStyle="italic"/>
 
         <TextView
             android:id="@+id/callAddressText"
-            android:layout_width="match_parent"
+            android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:layout_below="@id/callAddressLabel"
+            android:layout_below="@id/callDistanceText"
+            android:layout_toRightOf="@id/callAddressLabel"
+            android:gravity="right"
             android:text="Address" />
 
     </RelativeLayout>
