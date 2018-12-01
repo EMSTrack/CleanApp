@@ -43,19 +43,6 @@
         android:text="Details" />
 
     <TextView
-        android:id="@+id/callAddressLabel"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Address:"
-        android:textStyle="bold" />
-
-    <TextView
-        android:id="@+id/callAddressText"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Address" />
-
-    <TextView
         android:id="@+id/callPatientsLabel"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -69,18 +56,65 @@
         android:text="No patient information available." />
 
     <TextView
-        android:id="@+id/callDistanceLabel"
+        android:id="@+id/callNextWaypointLabel"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Distance:"
+        android:text="Next waypoint:"
+        android:layout_marginTop="10dp"
         android:textStyle="bold" />
 
-    <TextView
-        android:id="@+id/callDistanceText"
+    <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="No distance information available." />
+        android:layout_marginHorizontal="10dp">
 
+        <TextView
+            android:id="@+id/callWaypointTypeLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Type:"
+            android:textStyle="bold" />
 
+        <TextView
+            android:id="@+id/callWaypointTypeText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_toRightOf="@id/callWaypointTypeLabel"
+            android:gravity="right"
+            android:text="Waypoint type" />
+
+        <TextView
+            android:id="@+id/callDistanceLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/callWaypointTypeLabel"
+            android:text="Distance:"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/callDistanceText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/callWaypointTypeLabel"
+            android:layout_toRightOf="@id/callDistanceLabel"
+            android:gravity="right"
+            android:text="No distance information available." />
+
+        <TextView
+            android:id="@+id/callAddressLabel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/callDistanceLabel"
+            android:text="Address:"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/callAddressText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/callAddressLabel"
+            android:text="Address" />
+
+    </RelativeLayout>
 
 </LinearLayout>

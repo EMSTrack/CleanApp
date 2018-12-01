@@ -45,6 +45,7 @@ import org.emstrack.models.AmbulanceCall;
 import org.emstrack.models.AmbulancePermission;
 import org.emstrack.models.Call;
 import org.emstrack.models.HospitalPermission;
+import org.emstrack.models.Location;
 import org.emstrack.models.Patient;
 import org.emstrack.models.Profile;
 import org.emstrack.models.Waypoint;
@@ -340,6 +341,7 @@ public class MainActivity extends AppCompatActivity {
         try {
 
             ambulancePermissions = new ArrayList<>();
+            hospitalPermissions = new ArrayList<>();
             MqttProfileClient profileClient = AmbulanceForegroundService.getProfileClient();
             Profile profile = profileClient.getProfile();
             if (profile != null) {
@@ -649,47 +651,55 @@ public class MainActivity extends AppCompatActivity {
         Waypoint waypoint = ambulanceCall.getNextIncidentWaypoint();
         String distanceText;
         String address;
+        String waypointType;
         if (waypoint == null) {
 
             Log.d(TAG,"No next waypoint available");
 
             // No upcoming waypoint
             distanceText = getString(R.string.nextWaypointNotAvailable);
-            address = "";
+            address = "---";
+            waypointType = "---";
 
         } else {
 
             Log.d(TAG,"Will calculate distance");
 
+            // Get location
+            Location location = waypoint.getLocation();
+
             // Get current location
-            android.location.Location location = AmbulanceForegroundService.getLastLocation();
-            Log.d(TAG,"location = " + location);
+            android.location.Location lastLocation = AmbulanceForegroundService.getLastLocation();
+            Log.d(TAG,"location = " + lastLocation);
 
             // Calculate distance to next waypoint
             float distance = -1;
-            if (location != null)
-                distance = location.distanceTo(waypoint.getLocation().getLocation().toLocation()) / 1000;
+            if (lastLocation != null)
+                distance = lastLocation.distanceTo(location.getLocation().toLocation()) / 1000;
             distanceText = getString(R.string.noDistanceAvailable);
             Log.d(TAG,"Distance = " + distance);
             if (distance > 0)
                 distanceText = df.format(distance) + " km";
 
             address = waypoint.getLocation().toString();
+            waypointType = Location.typeLabel.get(location.getType());
 
         }
 
         // Create call view
         View view = getLayoutInflater().inflate(R.layout.call_dialog, null);
 
-        Button callPriorityButton = ((Button) view.findViewById(R.id.callPriorityButton));
+        Button callPriorityButton = view.findViewById(R.id.callPriorityButton);
         callPriorityButton.setText(call.getPriority());
         callPriorityButton.setBackgroundColor(callPriorityBackgroundColors.get(call.getPriority()));
         callPriorityButton.setTextColor(callPriorityForegroundColors.get(call.getPriority()));
 
-        ((TextView) view.findViewById(R.id.callAddressText)).setText(address);
         ((TextView) view.findViewById(R.id.callDetailsText)).setText(call.getDetails());
         ((TextView) view.findViewById(R.id.callPatientsText)).setText(patientsText);
+
+        ((TextView) view.findViewById(R.id.callWaypointTypeText)).setText(waypointType);
         ((TextView) view.findViewById(R.id.callDistanceText)).setText(distanceText);
+        ((TextView) view.findViewById(R.id.callAddressText)).setText(address);
 
         // build dialog
         builder.setTitle("Accept Incoming Call?")
@@ -826,6 +836,9 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
+        // Get waypoints
+        final int maximumOrder = ambulanceCall.getMaximumWaypointOrder();
+
         // Use the Builder class for convenient dialog construction
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
 
@@ -833,7 +846,7 @@ public class MainActivity extends AppCompatActivity {
         View view = getLayoutInflater().inflate(R.layout.next_waypoint_dialog, null);
 
         // Create hospital spinner
-        Spinner hospitalSpinner = (Spinner) view.findViewById(R.id.spinnerHospitals);
+        final Spinner hospitalSpinner = view.findViewById(R.id.spinnerHospitals);
         hospitalSpinner.setAdapter(hospitalListAdapter);
 
         // build dialog
@@ -842,16 +855,28 @@ public class MainActivity extends AppCompatActivity {
                 .setPositiveButton("Select", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
 
-                        Toast.makeText(MainActivity.this, "Waypoint selected", Toast.LENGTH_SHORT).show();
-
                         Log.i(TAG, "Waypoint selected");
 
-                        /*
-                        Intent serviceIntent = new Intent(MainActivity.this, AmbulanceForegroundService.class);
-                        serviceIntent.setAction(AmbulanceForegroundService.Actions.CALL_ACCEPT);
-                        serviceIntent.putExtra("CALL_ID", callId);
-                        startService(serviceIntent);
-                        */
+                        String waypoint = null;
+                        int waypointId = -1;
+
+                        int selectedHospital = hospitalSpinner.getSelectedItemPosition();
+                        if (selectedHospital > 0) {
+                            HospitalPermission hospital = hospitalPermissions.get(selectedHospital - 1);
+                            waypoint = "{\"order\":" + maximumOrder + ",\"location\":{\"id\":" + hospital.getHospitalId() + ",\"type\":\"" + Location.TYPE_HOSPITAL + "\"}";
+                            waypointId = hospital.getHospitalId();
+                        }
+
+                        // Publish waypoint
+                        if (waypoint != null) {
+
+                            Intent serviceIntent = new Intent(MainActivity.this, AmbulanceForegroundService.class);
+                            serviceIntent.setAction(AmbulanceForegroundService.Actions.UPDATE_WAYPOINT);
+                            serviceIntent.putExtra("UPDATE", waypoint);
+                            serviceIntent.putExtra("WAYPOINT_ID", waypointId);
+                            serviceIntent.putExtra("CALL_ID", callId);
+                            startService(serviceIntent);
+                        }
 
                     }
                 })

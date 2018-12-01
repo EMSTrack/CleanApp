@@ -106,5 +106,19 @@ public class AmbulanceCall {
         return waypointSet.contains(waypoint);
     }
 
+    public int getMaximumWaypointOrder() {
+        // Sort first?
+        if (!isSorted())
+            sortWaypoints();
+
+        // Find maximum order
+        int maximumOrder = -1;
+        for (Waypoint waypoint : waypointSet)
+            maximumOrder = Math.max(maximumOrder, waypoint.getOrder());
+
+        // Return maximum
+        return maximumOrder;
+    }
+
 }
 

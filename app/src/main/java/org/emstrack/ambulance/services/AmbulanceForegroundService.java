@@ -157,6 +157,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         public final static String STOP_LOCATION_UPDATES = "org.emstrack.ambulance.ambulanceforegroundservice.action.STOP_LOCATION_UPDATES";
         public final static String UPDATE_AMBULANCE = "org.emstrack.ambulance.ambulanceforegroundservice.action.UPDATE_AMBULANCE";
         public final static String UPDATE_NOTIFICATION = "org.emstrack.ambulance.ambulanceforegroundservice.action.UPDATE_NOTIFICATION";
+        public final static String UPDATE_WAYPOINT = "org.emstrack.ambulance.ambulanceforegroundservice.action.UPDATE_WAYPOINT";
         public final static String LOGOUT = "org.emstrack.ambulance.ambulanceforegroundservice.action.LOGOUT";
         public final static String GEOFENCE_START = "org.emstrack.ambulance.ambulanceforegroundservice.action.GEOFENCE_START";
         public final static String GEOFENCE_STOP = "org.emstrack.ambulance.ambulanceforegroundservice.action.GEOFENCE_STOP";
@@ -580,6 +581,23 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
             String message = intent.getStringExtra("MESSAGE");
             if (message != null)
                 updateNotification(message);
+
+        } else if (action.equals(Actions.UPDATE_WAYPOINT)) {
+
+            Log.i(TAG, "UPDATE_WAYPOINT Foreground Intent");
+
+            Bundle bundle = intent.getExtras();
+
+            // Retrieve updateAmbulance string
+            String update = bundle.getString("UPDATE");
+            int waypointId = bundle.getInt("WAYPOINT_ID", -1);
+            int callId = bundle.getInt("CALL_ID", -1);
+            if (update != null) {
+
+                // updateWaypoint mqtt server
+                updateWaypoint(update, waypointId, callId);
+
+            }
 
         } else if (action.equals(Actions.GEOFENCE_START)) {
 
@@ -1090,6 +1108,18 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
     }
 
+
+    /**
+     * Send updateWaypoont to current ambulance
+     *
+     * @param update string
+     */
+    public boolean updateWaypoint(String update, int waypointId, int callId) {
+
+        // and return false
+        return false;
+
+    }
 
     /**
      * @param status
@@ -2838,6 +2868,9 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
             // Has call ended?
             if (!call.getStatus().equals("E")) {
+
+                // Update call
+                pendingCalls.put(currentCallId, call);
 
                 // Broadcast current call updateAmbulance
                 Intent callFinishedIntent = new Intent(BroadcastActions.CALL_UPDATE);

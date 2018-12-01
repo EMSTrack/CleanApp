@@ -657,8 +657,10 @@ public class ModelsUnitTest {
     public void test_waypoint() throws Exception {
 
         Waypoint waypoint = new Waypoint(0,Waypoint.STATUS_VISITING,
-                new Location(null, Location.TYPE_INCIDENT,"O","Bonifácio Avilés", null, null,
-                "Tijuana","BCN","" ,"MX", new GPSLocation(32.51543632662701,-117.03812250149775)));
+                new Location(null, Location.TYPE_INCIDENT,"O",
+                        "Bonifácio Avilés", null, null,
+                        "Tijuana","BCN","" ,"MX",
+                        new GPSLocation(32.51543632662701,-117.03812250149775)));
         
         Gson gson = new Gson();
         
@@ -712,8 +714,10 @@ public class ModelsUnitTest {
     public void test_ambulance_call() throws Exception {
 
         Waypoint waypoint = new Waypoint(0,Waypoint.STATUS_NOT_VISITED,
-                new Location(null, Location.TYPE_INCIDENT,"O","Bonifácio Avilés", null, null,
-                        "Tijuana","BCN","" ,"MX", new GPSLocation(32.51543632662701,-117.03812250149775)));
+                new Location(null, Location.TYPE_INCIDENT,"O",
+                        "Bonifácio Avilés", null, null,
+                        "Tijuana","BCN","" ,"MX",
+                        new GPSLocation(32.51543632662701,-117.03812250149775)));
         List<Waypoint> waypointSet = new ArrayList<>();
         waypointSet.add(waypoint);
         
@@ -811,8 +815,10 @@ public class ModelsUnitTest {
         patientSet.add(new Patient(30, "Jose",13));
 
         Waypoint waypoint = new Waypoint(0,Waypoint.STATUS_NOT_VISITED,
-                new Location(null, Location.TYPE_INCIDENT,"O","Bonifácio Avilés", null, null,
-                        "Tijuana","BCN","" ,"MX", new GPSLocation(32.51543632662701,-117.03812250149775)));
+                new Location(null, Location.TYPE_INCIDENT,"O",
+                        "Bonifácio Avilés", null, null,
+                        "Tijuana","BCN","" ,"MX",
+                        new GPSLocation(32.51543632662701,-117.03812250149775)));
         List<Waypoint> waypointSet = new ArrayList<>();
         waypointSet.add(waypoint);
 
