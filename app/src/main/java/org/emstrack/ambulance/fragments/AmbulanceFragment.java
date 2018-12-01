@@ -25,6 +25,7 @@ import org.emstrack.ambulance.R;
 import org.emstrack.models.Ambulance;
 import org.emstrack.models.AmbulanceCall;
 import org.emstrack.models.Call;
+import org.emstrack.models.Location;
 import org.emstrack.models.Patient;
 import org.emstrack.models.Waypoint;
 import org.emstrack.mqtt.MqttProfileClient;
@@ -78,6 +79,7 @@ public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSel
     private TextView callPatientsTextView;
     private TextView callDistanceTextView;
     private Button callAddWaypointButton;
+    private TextView callNextWaypointTextView;
 
     public class AmbulancesUpdateBroadcastReceiver extends BroadcastReceiver {
 
@@ -185,21 +187,13 @@ public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSel
 
         }
 
-        /*
-        // Retrieve location
-        latitudeText = (TextView) view.findViewById(R.id.latitudeText);
-        longitudeText = (TextView) view.findViewById(R.id.longitudeText);
-        timestampText = (TextView) view.findViewById(R.id.timestampText);
-        orientationText = (TextView) view.findViewById(R.id.orientationText);
-        */
-
         // Other text
-        capabilityText = (TextView) view.findViewById(R.id.capabilityText);
-        commentText = (TextView) view.findViewById(R.id.commentText);
-        updatedOnText = (TextView) view.findViewById(R.id.updatedOnText);
+        capabilityText = view.findViewById(R.id.capabilityText);
+        commentText = view.findViewById(R.id.commentText);
+        updatedOnText = view.findViewById(R.id.updatedOnText);
 
         // Set status spinner
-        statusSpinner = (Spinner) view.findViewById(R.id.statusSpinner);
+        statusSpinner = view.findViewById(R.id.statusSpinner);
         // Create an ArrayAdapter using the string array and a default spinner layout
         ArrayAdapter<String> statusSpinnerAdapter =
                 new ArrayAdapter<String>(getContext(),
@@ -212,7 +206,7 @@ public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSel
                         Context context = AmbulanceFragment.this.getContext();
                         LayoutInflater inflater = LayoutInflater.from(context);
                         view = inflater.inflate(R.layout.status_spinner_dropdown_item, null);
-                        TextView textView = (TextView) view.findViewById(R.id.statusSpinnerDropdownItemText);
+                        TextView textView = view.findViewById(R.id.statusSpinnerDropdownItemText);
                         textView.setBackgroundColor(ambulanceStatusColorList.get(pos));
                         textView.setTextSize(context.getResources().getDimension(R.dimen.statusTextSize));
                         textView.setText(ambulanceStatusList.get(pos));
@@ -225,7 +219,6 @@ public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSel
                     }
 
                 };
-        //statusSpinnerAdapter.setDropDownViewResource(R.layout.status_spinner_dropdown_item);
         statusSpinner.setAdapter(statusSpinnerAdapter);
 
         // Update ambulance
@@ -294,11 +287,12 @@ public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSel
             } else {
 
                 child = getLayoutInflater().inflate(R.layout.calls, null);
-                callPriorityButton = (Button) child.findViewById(R.id.callPriorityButton);
-                callDescriptionTextView = (TextView) child.findViewById(R.id.callDetailsText);
-                callAddressTextView = (TextView) child.findViewById(R.id.callAddressText);
-                callPatientsTextView = (TextView) child.findViewById(R.id.callPatientsText);
-                callDistanceTextView = (TextView) child.findViewById(R.id.callDistanceText);
+                callPriorityButton = child.findViewById(R.id.callPriorityButton);
+                callDescriptionTextView = child.findViewById(R.id.callDetailsText);
+                callNextWaypointTextView = child.findViewById(R.id.callWaypointTypeText);
+                callAddressTextView = child.findViewById(R.id.callAddressText);
+                callPatientsTextView = child.findViewById(R.id.callPatientsText);
+                callDistanceTextView = child.findViewById(R.id.callDistanceText);
 
                 callEndButton = (Button) child.findViewById(R.id.callEndButton);
                 callEndButton.setOnClickListener(
@@ -344,17 +338,9 @@ public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSel
 
             callDescriptionTextView.setText(call.getDetails());
 
-            String address;
-            if (waypoint != null) {
-                address = waypoint.getLocation().toString();
-            } else {
-                address = "Next waypoint not available.";
-            }
-            callAddressTextView.setText(address);
-
             // patients
             List<Patient> patients = call.getPatientSet();
-            if (patients != null) {
+            if (patients != null && patients.size() > 0) {
                 String text = "";
                 for (Patient patient: patients)  {
                     if (!text.isEmpty())
@@ -365,13 +351,30 @@ public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSel
                 }
 
                 callPatientsTextView.setText(text);
-            } else {
+            } else
                 callPatientsTextView.setText(R.string.noPatientAvailable);
-            }
 
-            // Update call distance to next waypoint
-            String distanceText = updateCallDistance(waypoint);
-            callDistanceTextView.setText(distanceText);
+            if (waypoint != null) {
+
+                // Get Location
+                Location location = waypoint.getLocation();
+
+                // Update waypoint type
+                callNextWaypointTextView.setText(Location.typeLabel.get(location.getType()));
+
+                // Update address
+                callAddressTextView.setText(location.toString());
+
+                // Update call distance to next waypoint
+                callDistanceTextView.setText(updateCallDistance(location));
+
+            } else {
+
+                callNextWaypointTextView.setText("Next waypoint hasn't been set yet.");
+                callAddressTextView.setText("---");
+                callDistanceTextView.setText("---");
+
+            }
 
         }
 
@@ -399,24 +402,22 @@ public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSel
         // set identifier
         ((MainActivity) getActivity()).setAmbulanceButtonText(ambulance.getIdentifier());
 
-        /*
-        // set location
-        latitudeText.setText(String.format("%.6f", ambulance.getLocation().getLatitude()));
-        longitudeText.setText(String.format("%.6f", ambulance.getLocation().getLongitude()));
-        orientationText.setText(String.format("%.1f", ambulance.getOrientation()));
-        timestampText.setText(ambulance.getTimestamp().toString());
-        */
-
         // update call distance?
         if (currentCallId > 0) {
 
             AmbulanceCall ambulanceCall = AmbulanceForegroundService.getCurrentCall().getCurrentAmbulanceCall();
-            Waypoint waypoint = null;
-            if (ambulanceCall != null)
-                waypoint = ambulanceCall.getNextWaypoint();
+            if (ambulanceCall != null) {
 
-            String distanceText = updateCallDistance(waypoint);
-            callDistanceTextView.setText(distanceText);
+                Waypoint waypoint = ambulanceCall.getNextWaypoint();
+                if (waypoint != null) {
+
+                    String distanceText = updateCallDistance(waypoint.getLocation());
+                    callDistanceTextView.setText(distanceText);
+                } else
+                    callDistanceTextView.setText("---");
+
+            } else
+                callDistanceTextView.setText("---");
 
         }
 
@@ -429,33 +430,25 @@ public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSel
 
     }
 
-    public String updateCallDistance(Waypoint waypoint) {
+    public String updateCallDistance(Location location) {
 
-        String distanceText;
-        if (waypoint == null) {
+        if (location == null)
+            return null;
 
-            Log.d(TAG,"No next waypoint available");
+        Log.d(TAG,"Will calculate distance");
 
-            // No upcoming waypoint
-            distanceText = getString(R.string.nextWaypointNotAvailable);
+        // Get current location
+        android.location.Location lastLocation = AmbulanceForegroundService.getLastLocation();
+        Log.d(TAG,"last location = " + lastLocation);
 
-        } else {
-
-            Log.d(TAG,"Will calculate distance");
-
-            // Get current location
-            android.location.Location location = AmbulanceForegroundService.getLastLocation();
-            Log.d(TAG,"location = " + location);
-
-            // Calculate distance to patient
-            float distance = -1;
-            if (location != null)
-                distance = location.distanceTo(waypoint.getLocation().getLocation().toLocation()) / 1000;
-            distanceText = getString(R.string.noDistanceAvailable);
-            Log.d(TAG,"Distance = " + distance);
-            if (distance > 0) {
-                distanceText = df.format(distance) + " km";
-            }
+        // Calculate distance to patient
+        float distance = -1;
+        if (location != null)
+            distance = lastLocation.distanceTo(location.getLocation().toLocation()) / 1000;
+        String distanceText = getString(R.string.noDistanceAvailable);
+        Log.d(TAG,"Distance = " + distance);
+        if (distance > 0) {
+            distanceText = df.format(distance) + " km";
         }
 
         return distanceText;

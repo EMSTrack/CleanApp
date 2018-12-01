@@ -1,5 +1,9 @@
 package org.emstrack.models;
 
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+
 public class Location extends Address {
 
     public static final String TYPE_BASE = "b";
@@ -8,6 +12,21 @@ public class Location extends Address {
     public static final String TYPE_HOSPITAL = "h";
     public static final String TYPE_WAYPOINT = "w";
     public static final String TYPE_OTHER = "o";
+
+    public static final Map<String, String> typeLabel;
+    static {
+
+        Map<String, String> map = new HashMap<>();
+
+        map.put(TYPE_BASE, "Base");
+        map.put(TYPE_AED, "AED");
+        map.put(TYPE_INCIDENT, "Incident");
+        map.put(TYPE_HOSPITAL, "Hospital");
+        map.put(TYPE_WAYPOINT, "Waypoint");
+        map.put(TYPE_OTHER, "Other");
+
+        typeLabel = Collections.unmodifiableMap(map);
+    }
 
     private String name;
     private String type;
