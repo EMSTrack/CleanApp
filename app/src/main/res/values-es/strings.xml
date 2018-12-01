@@ -151,5 +151,7 @@
     <string name="noPatientAvailable">No hay información del paciente disponible.</string>
     <string name="noDistanceAvailable">No se puede calcular la distancia al paciente.</string>
     <string name="nextWaypointNotAvailable">El siguiente punto de ruta no está disponible</string>
+    <string name="couldNotForceUpdates">No se pudo forzar actualizaciones.</string>
+    <string name="couldNotFindAmbulanceCall">No se pudo encontrar información de ambulancia para la llamada actual.</string>
 
 </resources>

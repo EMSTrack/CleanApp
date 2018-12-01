@@ -1,10 +1,10 @@
 package org.emstrack.models;
 
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class AmbulanceCall {
 
@@ -13,6 +13,20 @@ public class AmbulanceCall {
     public static final String STATUS_DECLINED = "D";
     public static final String STATUS_SUSPENDED = "S";
     public static final String STATUS_COMPLETED = "C";
+
+    public static final Map<String, String> statusLabel;
+    static {
+
+        Map<String, String> map = new HashMap<>();
+
+        map.put(STATUS_REQUESTED, "Requested");
+        map.put(STATUS_ONGOING,"Ongoing");
+        map.put(STATUS_DECLINED,"Declined");
+        map.put(STATUS_SUSPENDED,"Suspended");
+        map.put(STATUS_COMPLETED,"Completed");
+
+        statusLabel = Collections.unmodifiableMap(map);
+    }
 
     private int id;
     private int ambulanceId;
@@ -66,6 +80,10 @@ public class AmbulanceCall {
         return sorted;
     }
 
+    public void setSorted(boolean sorted) {
+        this.sorted = sorted;
+    }
+
     public List<Waypoint> getWaypointSet() {
         return waypointSet;
     }
@@ -75,8 +93,14 @@ public class AmbulanceCall {
     }
 
     public void sortWaypoints() {
-        Collections.sort(waypointSet, new Waypoint.SortByOrder());
-        this.sorted = true;
+        sortWaypoints(false);
+    }
+
+    public void sortWaypoints(boolean force) {
+        if (force || !this.sorted) {
+            Collections.sort(waypointSet, new Waypoint.SortByAscendingOrder());
+            this.sorted = true;
+        }
     }
 
     public Waypoint getNextIncidentWaypoint() {
@@ -88,12 +112,11 @@ public class AmbulanceCall {
     }
 
     public Waypoint getNextWaypoint(String type) {
-        // Sort first?
-        if (!isSorted())
-            sortWaypoints();
+        // Sort first
+        sortWaypoints();
 
         // Find first non-visited waypoint
-        for (Waypoint waypoint : waypointSet) {
+        for (Waypoint waypoint : this.waypointSet) {
             if ((type == null || waypoint.getLocation().getType().equals(type)) && !waypoint.isVisited())
                 return waypoint;
         }
@@ -103,21 +126,24 @@ public class AmbulanceCall {
     }
 
     public boolean containsWaypoint(Waypoint waypoint) {
-        return waypointSet.contains(waypoint);
+        return this.waypointSet.contains(waypoint);
     }
 
     public int getMaximumWaypointOrder() {
         // Sort first?
-        if (!isSorted())
-            sortWaypoints();
+        sortWaypoints();
 
         // Find maximum order
         int maximumOrder = -1;
-        for (Waypoint waypoint : waypointSet)
+        for (Waypoint waypoint : this.waypointSet)
             maximumOrder = Math.max(maximumOrder, waypoint.getOrder());
 
         // Return maximum
         return maximumOrder;
+    }
+
+    public int getNextNewWaypointOrder() {
+        return getMaximumWaypointOrder() + 1;
     }
 
 }

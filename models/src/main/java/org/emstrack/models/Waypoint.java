@@ -8,7 +8,7 @@ import java.util.Map;
 
 public class Waypoint {
 
-    static class SortByOrder implements Comparator<Waypoint>
+    static class SortByAscendingOrder implements Comparator<Waypoint>
     {
         public int compare(Waypoint a, Waypoint b) {
             return a.order - b.order;
