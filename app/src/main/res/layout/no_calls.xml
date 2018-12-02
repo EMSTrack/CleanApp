@@ -3,9 +3,17 @@
     android:orientation="vertical" android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <TextView
-        android:id="@+id/textView"
+    <Spinner
+        android:id="@+id/callResumeSpinner"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <Button
+        android:id="@+id/callResumeButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/noIncomingCallsText" />
+        android:layout_marginTop="10dp"
+        android:background="@color/bootstrapPrimary"
+        android:text="Resume Calls" />
+
 </LinearLayout>

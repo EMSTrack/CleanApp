@@ -1,5 +1,7 @@
 package org.emstrack.models;
 
+import android.util.Pair;
+
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -85,6 +87,10 @@ public class CallStack implements Iterable {
         setCurrentCall(call.getId());
     }
 
+    public boolean isCurrentCall(int id) {
+        return this.currentCallId > 0 && this.currentCallId == id;
+    }
+
     public boolean hasCurrentCall() {
         return this.currentCallId > 0;
     }
@@ -161,6 +167,20 @@ public class CallStack implements Iterable {
             Map.Entry<Integer, Call> entry = iterator.next();
             String status = entry.getValue().getAmbulanceCall(ambulanceId).getStatus();
             map.put(status, map.get(status) + 1);
+        }
+        return map;
+    }
+
+    public Map<Integer,Pair<Call,AmbulanceCall>> filterByStatus(int ambulanceId, String status) {
+        // Loop through call stack
+        Map<Integer, Pair<Call,AmbulanceCall>> map = new HashMap<>();
+        CallStackIterator iterator = iterator();
+        while (iterator.hasNext()) {
+            Map.Entry<Integer, Call> entry = iterator.next();
+            Call call = entry.getValue();
+            AmbulanceCall ambulanceCall = call.getAmbulanceCall(ambulanceId);
+            if (ambulanceCall.getStatus().equals(status))
+                map.put(entry.getKey(), new Pair<>(call,ambulanceCall));
         }
         return map;
     }

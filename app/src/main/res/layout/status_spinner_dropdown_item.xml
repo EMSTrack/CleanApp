@@ -6,6 +6,6 @@
     android:layout_height="wrap_content"
     android:gravity="center"
     android:background="@color/colorAvailable"
-    android:textSize="24dp"
+    android:textSize="18dp"
     android:id="@+id/statusSpinnerDropdownItemText"
     />

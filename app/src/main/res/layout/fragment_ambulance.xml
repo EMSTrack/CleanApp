@@ -52,12 +52,19 @@
                 android:layout_toRightOf="@id/callLabel"/>
 
             <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-                android:id="@+id/callLayout"
+                android:id="@+id/callResumeLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:layout_below="@+id/callLabel">
+            </LinearLayout>
 
+            <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                android:id="@+id/callLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_below="@+id/callResumeLayout">
             </LinearLayout>
 
             <TextView

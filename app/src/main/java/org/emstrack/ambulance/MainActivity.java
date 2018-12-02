@@ -216,14 +216,6 @@ public class MainActivity extends AppCompatActivity {
                     int myVectorColor = ContextCompat.getColor(MainActivity.this, R.color.colorRed);
                     trackingIcon.setColorFilter(myVectorColor, PorterDuff.Mode.SRC_IN);
 
-                } else if (action.equals(AmbulanceForegroundService.BroadcastActions.CALL_DECLINED)) {
-
-                    Log.i(TAG, "CALL_DECLINED");
-
-                    // change button color to black
-                    int myVectorColor = ContextCompat.getColor(MainActivity.this, R.color.colorBlack);
-                    trackingIcon.setColorFilter(myVectorColor, PorterDuff.Mode.SRC_IN);
-
                 } else if (action.equals(AmbulanceForegroundService.BroadcastActions.CALL_FINISHED)) {
 
                     Log.i(TAG, "CALL_FINISHED");
@@ -285,12 +277,12 @@ public class MainActivity extends AppCompatActivity {
         });
 
         // Set a Toolbar to replace the ActionBar.
-        toolbar = (Toolbar) findViewById(R.id.toolbar);
+        toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         // getSupportActionBar().setDisplayShowTitleEnabled(false);
 
         // Find our drawer view
-        mDrawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        mDrawer = findViewById(R.id.drawer_layout);
         drawerToggle = setupDrawerToggle();
         mDrawer.addDrawerListener(drawerToggle);
 
@@ -298,13 +290,13 @@ public class MainActivity extends AppCompatActivity {
         drawerToggle.getDrawerArrowDrawable().setColor(getResources().getColor(R.color.colorBlack));
 
         // Find our drawer view
-        nvDrawer = (NavigationView) findViewById(R.id.nvView);
+        nvDrawer = findViewById(R.id.nvView);
 
         // Setup drawer view
         setupDrawerContent(nvDrawer);
 
         // pager
-        viewPager = (ViewPager) findViewById(R.id.pager);
+        viewPager = findViewById(R.id.pager);
 
         // Setup Adapter for tabLayout
         adapter = new FragmentPager(getSupportFragmentManager(),
@@ -604,7 +596,7 @@ public class MainActivity extends AppCompatActivity {
         return LocalBroadcastManager.getInstance(this);
     }
 
-    private void promptAcceptCallDialog(final int callId) {
+    public void promptAcceptCallDialog(final int callId) {
 
         Log.i(TAG, "Creating accept dialog");
 
@@ -644,7 +636,7 @@ public class MainActivity extends AppCompatActivity {
                     patientsText += " (" + patient.getAge() + ")";
             }
         } else
-            patientsText = String.valueOf(R.string.noPatientAvailable);
+            patientsText = getResources().getString(R.string.noPatientAvailable);
 
         // Get number of waypoints
         int numberOfWaypoints = ambulanceCall == null ? 0 : ambulanceCall.getWaypointSet().size();

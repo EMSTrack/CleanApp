@@ -151,10 +151,9 @@
     <string name="equipment_sting_button_negative_text">Cancel</string>
     <string name="couldNotSuspendCall">Could not suspend call.</string>
     <string name="CallStarted">Call started.</string>
-    <string name="CallFinished">Call finished.</string>
-    <string name="CallDeclined">Call declined.</string>
+    <string name="CallFinished">Interrupting call</string>
     <string name="noPatientAvailable">No patient information available</string>
-    <string name="noDistanceAvailable">No distance to patient information available.</string>
+    <string name="noDistanceAvailable">No distance to patient information available</string>
 
     <string-array name="spinner_list_item_array">
         <item>@string/dispatch</item>

@@ -656,7 +656,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
             int callId = intent.getIntExtra("CALL_ID", -1);
 
             // next steps to publish information to server (steps 3, 4)
-            suspendCall(callId, uuid);
+            requestToSuspendCall(callId, uuid);
 
         } else if (action.equals(Actions.CALL_FINISH)) {
 
@@ -2717,8 +2717,6 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         // subscribe to call status
         try {
 
-            final String clientId = profileClient.getClientId();
-
             final int ambulanceId = ambulance.getId();
             profileClient.subscribe(String.format("ambulance/%1$d/call/+/status", ambulanceId),
                     2, new MqttProfileMessageCallback() {
@@ -2733,82 +2731,77 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                                 // parse the status
                                 String status = new String(message.getPayload());
 
-                                // the call id is the 3rd value
-                                int callId = Integer.valueOf(topic.split("/")[3]);
-
-                                Log.i(TAG, "Received ambulance/" + ambulanceId + "/call/" + callId + "/status='" + status + "'");
-
-                                AmbulanceCall ambulanceCall = AmbulanceForegroundService.getCurrentAmbulanceCall();
-                                if (ambulanceCall == null)
-                                    throw new Exception("AmbulanceCall is null");
-
-                                if (status.equals("")) {
-
+                                if (status.equals("") || status.length() < 2)
                                     Log.i(TAG, "Received empty status, skipping update");
 
-                                } else {
+                                else {
 
-                                    // check if message is "requested"
-                                    // literally has to be "requested" in quotes
-                                    String newStatus;
-                                    if (status.equalsIgnoreCase(AmbulanceCall.statusLabel.get(AmbulanceCall.STATUS_REQUESTED))) {
+                                     status = status.substring(1, status.length() - 1);
 
-                                        // subscribe to call data then prompt user to accept
-                                        subscribeToCall(callId, uuid);
-                                        newStatus = AmbulanceCall.STATUS_REQUESTED;
+                                    // the call id is the 3rd value
+                                    int callId = Integer.valueOf(topic.split("/")[3]);
 
-                                    } else if (status.equalsIgnoreCase(AmbulanceCall.statusLabel.get(AmbulanceCall.STATUS_ONGOING))) {
+                                    Log.i(TAG, "Received ambulance/" + ambulanceId + "/call/" + callId + "/status='" + status + "'");
 
-                                        if (!pendingCalls.hasCurrentCall()) {
+                                    // Is this a new call?
+                                    if (!pendingCalls.contains(callId)) {
 
-                                            // reply to ongoing
+                                        // this is a new call, subscribe
+                                        processOrSubscribeToCall(callId, uuid);
+
+                                    } else {
+
+                                        // this is an existing call
+
+                                        String newStatus;
+                                        if (status.equalsIgnoreCase(AmbulanceCall.statusLabel.get(AmbulanceCall.STATUS_REQUESTED))) {
+
+                                            // if status is "requested", process call
+                                            processOrSubscribeToCall(callId, uuid);
+                                            newStatus = AmbulanceCall.STATUS_REQUESTED;
+
+                                        } else if (status.equalsIgnoreCase(AmbulanceCall.statusLabel.get(AmbulanceCall.STATUS_ONGOING))) {
+
+                                            // if status is "ongoing", set call ongoing
                                             setCallOngoing(callId, uuid);
+                                            newStatus = AmbulanceCall.STATUS_ONGOING;
 
                                         } else {
 
-                                            // TODO: Resume call instead of accept fresh
+                                            if (status.equalsIgnoreCase(AmbulanceCall.statusLabel.get(AmbulanceCall.STATUS_DECLINED)))
+                                                newStatus = AmbulanceCall.STATUS_DECLINED;
+                                            else if (status.equalsIgnoreCase(AmbulanceCall.statusLabel.get(AmbulanceCall.STATUS_COMPLETED)))
+                                                newStatus = AmbulanceCall.STATUS_COMPLETED;
+                                            else if (status.equalsIgnoreCase(AmbulanceCall.statusLabel.get(AmbulanceCall.STATUS_SUSPENDED)))
+                                                newStatus = AmbulanceCall.STATUS_SUSPENDED;
+                                            else
+                                                throw new Exception("Unknown status '" + status + "'");
+
+                                            // if current call
+                                            if (pendingCalls.isCurrentCall(callId)) {
+
+                                                // clean up
+                                                cleanUpCall(callId, uuid);
+
+                                                // broadcast CALL_FINISHED
+                                                Intent callCompletedIntent = new Intent(BroadcastActions.CALL_FINISHED);
+                                                callCompletedIntent.putExtra("CALL_ID", callId);
+                                                sendBroadcastWithUUID(callCompletedIntent, uuid);
+
+                                            }
 
                                         }
-                                        newStatus = AmbulanceCall.STATUS_ONGOING;
 
-                                    } else if (status.equalsIgnoreCase(AmbulanceCall.statusLabel.get(AmbulanceCall.STATUS_DECLINED))) {
+                                        // Update status, since call is not refreshed with status updates
+                                        pendingCalls.get(callId).getAmbulanceCall(ambulanceId).setStatus(newStatus);
 
-                                        // broadcast CALL_DECLINED
-                                        Intent callDeclinedIntent = new Intent(BroadcastActions.CALL_DECLINED);
-                                        callDeclinedIntent.putExtra("CALL_ID", callId);
-                                        sendBroadcastWithUUID(callDeclinedIntent, uuid);
-
-                                        // clean up and next
-                                        cleanUpCall(callId, uuid);
-                                        newStatus = AmbulanceCall.STATUS_DECLINED;
-
-                                    } else if (status.equalsIgnoreCase(AmbulanceCall.statusLabel.get(AmbulanceCall.STATUS_COMPLETED))) {
-
-                                        // broadcast CALL_FINISHED
-                                        Intent callFinishedIntent = new Intent(BroadcastActions.CALL_FINISHED);
-                                        callFinishedIntent.putExtra("CALL_ID", callId);
-                                        sendBroadcastWithUUID(callFinishedIntent, uuid);
-
-                                        // clean up and next
-                                        cleanUpCall(callId, uuid);
-                                        newStatus = AmbulanceCall.STATUS_COMPLETED;
-
-                                    } else if (status.equalsIgnoreCase(AmbulanceCall.statusLabel.get(AmbulanceCall.STATUS_SUSPENDED))) {
-
-                                        // TODO: Suspend call...
-                                        newStatus = AmbulanceCall.STATUS_SUSPENDED;
-
-                                    } else
-                                        throw new Exception("Unknown status '" + status + "'");
-
-                                    // Update status, since call is not refreshed with status updates
-                                    ambulanceCall.setStatus(newStatus);
+                                    }
 
                                 }
 
                             } catch (Exception e) {
 
-                                Log.i(TAG, "Could not parse status '" + topic + ":" + message + "'. Excpetion='" + e.toString() + "'");
+                                Log.i(TAG, "Could not parse status '" + topic + ":" + message + "'. Exception='" + e.toString() + "'");
 
                                 // Broadcast failure
                                 Intent localIntent = new Intent(BroadcastActions.FAILURE);
@@ -2831,102 +2824,102 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
     }
 
-    public void subscribeToCall(final int callId, final String uuid) {
+    public void processOrSubscribeToCall(final int callId, final String uuid) {
 
         if (pendingCalls.contains(callId) && !pendingCalls.hasCurrentOrPendingCall()) {
 
             // Is this an existing call and no calls are currently being served?
 
             processNextCall(uuid);
+            return;
 
-        } else {
+        }
 
-            // Subscribe to call to get call information
+        // Subscribe to call to get call information
 
-            MqttProfileClient profileClient = getProfileClient(this);
+        MqttProfileClient profileClient = getProfileClient(this);
 
-            try {
+        try {
 
-                Log.i(TAG, "Subscribing to call/" + callId);
+            Log.i(TAG, "Subscribing to call/" + callId);
 
-                profileClient.subscribe(String.format("call/%1$s/data", callId),
-                        2, new MqttProfileMessageCallback() {
-                            @Override
-                            public void messageArrived(String topic, MqttMessage message) {
+            profileClient.subscribe(String.format("call/%1$s/data", callId),
+                    2, new MqttProfileMessageCallback() {
+                        @Override
+                        public void messageArrived(String topic, MqttMessage message) {
 
-                                // Keep subscription to calls to make sure we receive latest updates
-                                Log.i(TAG, "Retrieving call data");
+                            // Keep subscription to calls to make sure we receive latest updates
+                            Log.i(TAG, "Retrieving call data");
 
-                                // parse call id data
-                                GsonBuilder gsonBuilder = new GsonBuilder();
-                                gsonBuilder.setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES);
-                                Gson gson = gsonBuilder.create();
+                            // parse call id data
+                            GsonBuilder gsonBuilder = new GsonBuilder();
+                            gsonBuilder.setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES);
+                            Gson gson = gsonBuilder.create();
 
-                                String payload = new String(message.getPayload());
-                                if (payload == null || payload.isEmpty())
-                                    // This can happen when clearing a call
-                                    // It will also broadcast a "ended" state so call will be finalized then
-                                    return;
+                            String payload = new String(message.getPayload());
+                            if (payload == null || payload.isEmpty())
+                                // This can happen when clearing a call
+                                // It will also broadcast a "ended" state so call will be finalized then
+                                return;
 
-                                try {
+                            try {
 
-                                    // Parse call data
-                                    Call call = gson.fromJson(payload, Call.class);
-                                    if (call == null)
-                                        throw new Exception("Got null call");
+                                // Parse call data
+                                Call call = gson.fromJson(payload, Call.class);
+                                if (call == null)
+                                    throw new Exception("Got null call");
 
-                                    // Sort waypoints
-                                    call.sortWaypoints(true);
+                                // Sort waypoints
+                                call.sortWaypoints(true);
 
-                                    // Is this an existing call?
-                                    if (pendingCalls.contains(call.getId())) {
+                                // Is this an existing call?
+                                if (pendingCalls.contains(call.getId())) {
 
-                                        // Update call information
-                                        updateCallInformation(call, uuid);
+                                    // Update call information
+                                    updateCallInformation(call, uuid);
 
-                                    } else if (call.getStatus() == "E") {
+                                } else if (call.getStatus() == "E") {
 
-                                        // Call has ended and is not longer on the queue, ignore
-                                        Log.d(TAG, "Ignoring call " + call.getId());
+                                    // Call has ended and is not longer on the queue, ignore
+                                    Log.d(TAG, "Ignoring call " + call.getId());
 
-                                    } else {
+                                } else {
 
-                                        // Add to pending calls
-                                        pendingCalls.put(call.getId(), call);
+                                    // Add to pending calls
+                                    pendingCalls.put(call.getId(), call);
 
-                                        // if no current, process next
-                                        if (!pendingCalls.hasCurrentOrPendingCall())
-                                            processNextCall(uuid);
-
-                                    }
-
-
-                                } catch (Exception e) {
-
-                                    Log.d(TAG, "Failed to parse call '" + payload + "'. Excpetion='" + e + "'");
-
-                                    // Broadcast failure
-                                    Intent localIntent = new Intent(BroadcastActions.FAILURE);
-                                    localIntent.putExtra(BroadcastExtras.MESSAGE, getString(R.string.couldNotParseCallData));
-                                    sendBroadcastWithUUID(localIntent, uuid);
+                                    // if no current, process next
+                                    if (!pendingCalls.hasCurrentOrPendingCall())
+                                        processNextCall(uuid);
 
                                 }
 
+
+                            } catch (Exception e) {
+
+                                Log.d(TAG, "Failed to parse call '" + payload + "'. Excpetion='" + e + "'");
+
+                                // Broadcast failure
+                                Intent localIntent = new Intent(BroadcastActions.FAILURE);
+                                localIntent.putExtra(BroadcastExtras.MESSAGE, getString(R.string.couldNotParseCallData));
+                                sendBroadcastWithUUID(localIntent, uuid);
+
                             }
-                        });
 
-            } catch (MqttException e) {
+                        }
+                    });
 
-                Log.d(TAG, "Could not subscribe to call data");
+        } catch (MqttException e) {
 
-                // Broadcast failure
-                Intent localIntent = new Intent(BroadcastActions.FAILURE);
-                localIntent.putExtra(BroadcastExtras.MESSAGE, getString(R.string.couldNotSubscribe, "data for call " + callId));
-                sendBroadcastWithUUID(localIntent, uuid);
+            Log.d(TAG, "Could not subscribe to call data");
 
-            }
+            // Broadcast failure
+            Intent localIntent = new Intent(BroadcastActions.FAILURE);
+            localIntent.putExtra(BroadcastExtras.MESSAGE, getString(R.string.couldNotSubscribe, "data for call " + callId));
+            sendBroadcastWithUUID(localIntent, uuid);
 
         }
+
     }
 
     public void updateCallInformation(final Call call, final String uuid) {
@@ -3061,83 +3054,94 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
             return;
         }
 
-        // If current call, stop geofences first
-        if (callId == pendingCalls.getCurrentCallId()) {
+        try {
 
-            // Get current call
-            Call call = pendingCalls.getCurrentCall();
-                    
-            // call is current call
-            Ambulance ambulance = getCurrentAmbulance();
-            if (ambulance != null) {
-                
+            // If current call, stop geofences first
+            if (callId == pendingCalls.getCurrentCallId()) {
+
+                // Get current call
+                Call call = pendingCalls.getCurrentCall();
+
+                // call is current call
+                Ambulance ambulance = getCurrentAmbulance();
                 AmbulanceCall ambulanceCall = call.getCurrentAmbulanceCall();
-                if (ambulanceCall != null) {
 
-                    // Stop geofences
-                    Log.i(TAG, "Stopping geofences");
+                // Stop geofences
+                Log.i(TAG, "Stopping geofences");
 
-                    List<String> requestIds = new ArrayList<>();
-                    for (Map.Entry<String, Geofence> entry : _geofences.entrySet()) {
+                List<String> requestIds = new ArrayList<>();
+                for (Map.Entry<String, Geofence> entry : _geofences.entrySet()) {
 
-                        Waypoint waypoint = entry.getValue().getWaypoint();
-                        if (ambulanceCall.containsWaypoint(waypoint)) {
-                            // Add to list to remove
-                            requestIds.add(entry.getKey());
-                        }
-
+                    Waypoint waypoint = entry.getValue().getWaypoint();
+                    if (ambulanceCall.containsWaypoint(waypoint)) {
+                        // Add to list to remove
+                        requestIds.add(entry.getKey());
                     }
-
-                    // Stop geofences
-                    stopGeofence(uuid, requestIds);
 
                 }
 
-                Log.d(TAG, "Making ambulance '" + getCurrentAmbulance().getId() + "' available");
+                // Stop geofences
+                stopGeofence(uuid, requestIds);
 
+                // Set status as available
+                Log.d(TAG, "Set ambulance '" + getCurrentAmbulance().getId() + "' available");
                 updateAmbulanceStatus(ambulance.getId(), "AV");
 
+                // Release current call
+                pendingCalls.setPendingCall(false);
+
             } else
-                Log.d(TAG, "THIS SHOULD NOT HAPPEN: ambulance is null!");
+                Log.d(TAG, "Call '" + callId + "' is not current call (" + pendingCalls.getCurrentCallId() + ")");
 
-        } else
-            Log.d(TAG, "Call '" + callId + "' is not current call (" + pendingCalls.getCurrentCallId() + ")");
+            // Should stop listening to call?
+            if (callId > 0) {
 
-        // Stop listening to call
-        if (callId > 0) {
+                // Get ambulancecall
+                Ambulance ambulance = getCurrentAmbulance();
+                AmbulanceCall ambulanceCall = pendingCalls.get(callId).getAmbulanceCall(ambulance.getId());
 
-            Log.i(TAG, "Unsubscribe from call/" + callId + "/data");
+                if (ambulanceCall.getStatus().equals(AmbulanceCall.STATUS_COMPLETED)) {
 
-            // unsubscribe from call
-            try {
-                // get profile client
-                MqttProfileClient profileClient = AmbulanceForegroundService.getProfileClient(this);
-                profileClient.unsubscribe("call/" + callId + "/data");
-            } catch (MqttException e) {
-                Log.d(TAG, "Could not unsubscribe from 'call/" + callId + "/data'");
+                    Log.i(TAG, "Unsubscribe from call/" + callId + "/data");
+
+                    // unsubscribe from call
+                    try {
+                        // get profile client
+                        MqttProfileClient profileClient = AmbulanceForegroundService.getProfileClient(this);
+                        profileClient.unsubscribe("call/" + callId + "/data");
+                    } catch (MqttException e) {
+                        Log.d(TAG, "Could not unsubscribe from 'call/" + callId + "/data'");
+                    }
+
+                    // remove call from the queue
+                    pendingCalls.remove(callId);
+
+                }
+
             }
 
-            // remove call from the queue
-            pendingCalls.remove(callId);
-            
-        }
+            if (pendingCalls.hasPendingCall()) {
 
-        if (pendingCalls.hasPendingCall()) {
+                // It was prompting user, most likely declined
+                Log.d(TAG, "Was prompting user, opening up to new calls");
 
-            // It was prompting user, most likely declined
-            Log.d(TAG, "Was prompting user, opening up to new calls");
+                // open up to new calls
+                pendingCalls.setPendingCall(false);
 
-            // open up to new calls
-            pendingCalls.setPendingCall(false);
+            }
 
-        }
+            if (processNext) {
 
-        if (processNext) {
+                Log.d(TAG, "Processing next call...");
 
-            Log.d(TAG, "Processing next call...");
+                // process next call
+                processNextCall(uuid);
 
-            // process next call
-            processNextCall(uuid);
+            }
+
+        } catch (Exception e) {
+
+            Log.d(TAG, "Could not clean up call. Exception='" + e + "'");
 
         }
 
@@ -3163,7 +3167,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
     }
 
-    public void suspendCall(int callId, String uuid) {
+    public void requestToSuspendCall(int callId, String uuid) {
 
         // if not currently serving call, can't suspend
         if (!pendingCalls.hasCurrentCall()) {
@@ -3293,11 +3297,6 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         if (pendingCalls.hasCurrentCall()) {
 
             Log.d(TAG, "Can't set call as ongoing: already servicing call " + pendingCalls.getCurrentCallId());
-
-            Intent localIntent = new Intent(BroadcastActions.FAILURE);
-            localIntent.putExtra(BroadcastExtras.MESSAGE, getString(R.string.cannotSetCallOngoing));
-            sendBroadcastWithUUID(localIntent, uuid);
-
             return;
         }
 
