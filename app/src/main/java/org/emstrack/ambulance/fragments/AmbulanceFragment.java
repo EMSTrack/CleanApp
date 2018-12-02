@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
+import android.util.Pair;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -24,6 +25,7 @@ import org.emstrack.ambulance.MainActivity;
 import org.emstrack.ambulance.R;
 import org.emstrack.models.Ambulance;
 import org.emstrack.models.AmbulanceCall;
+import org.emstrack.models.AmbulancePermission;
 import org.emstrack.models.Call;
 import org.emstrack.models.CallStack;
 import org.emstrack.models.Location;
@@ -37,6 +39,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
@@ -51,13 +54,6 @@ public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSel
 
     private Spinner statusSpinner;
 
-    /*
-    private TextView latitudeText;
-    private TextView longitudeText;
-    private TextView timestampText;
-    private TextView orientationText;
-    */
-
     private TextView capabilityText;
 
     private TextView commentText;
@@ -70,7 +66,8 @@ public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSel
     private Map<String,String> ambulanceCapabilities;
     private List<String> ambulanceCapabilityList;
 
-    AmbulancesUpdateBroadcastReceiver receiver;
+    private AmbulancesUpdateBroadcastReceiver receiver;
+    private LinearLayout callResumeLayout;
     private LinearLayout callLayout;
     private int currentCallId;
     private TextView callDescriptionTextView;
@@ -95,17 +92,13 @@ public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSel
                     Log.i(TAG, "AMBULANCE_UPDATE");
                     updateAmbulance(AmbulanceForegroundService.getCurrentAmbulance());
 
-                }
-
-                else if (action.equals(AmbulanceForegroundService.BroadcastActions.CALL_UPDATE)) {
+                } else if (action.equals(AmbulanceForegroundService.BroadcastActions.CALL_UPDATE)) {
 
                     Log.i(TAG, "CALL_UPDATE");
                     if (currentCallId > 0)
                         updateCall(AmbulanceForegroundService.getCurrentCall());
 
-                }
-
-                else if (action.equals(AmbulanceForegroundService.BroadcastActions.CALL_ONGOING)) {
+                } else if (action.equals(AmbulanceForegroundService.BroadcastActions.CALL_ONGOING)) {
 
                     Log.i(TAG, "CALL_ONGOING");
 
@@ -116,27 +109,12 @@ public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSel
                     currentCallId = -1;
                     updateCall(AmbulanceForegroundService.getCurrentCall());
 
-                }
-
-                else if (action.equals(AmbulanceForegroundService.BroadcastActions.CALL_FINISHED)) {
+                } else if (action.equals(AmbulanceForegroundService.BroadcastActions.CALL_FINISHED)) {
 
                     Log.i(TAG, "CALL_FINISHED");
 
                     // Toast to warn user
                     Toast.makeText(getContext(), R.string.CallFinished, Toast.LENGTH_LONG).show();
-
-                    int callId = intent.getIntExtra("CALL_ID", -1);
-                    if (currentCallId == callId)
-                        updateCall(null);
-
-                }
-
-                else if (action.equals(AmbulanceForegroundService.BroadcastActions.CALL_DECLINED)) {
-
-                    Log.i(TAG, "CALL_DECLINED");
-
-                    // Toast to warn user
-                    Toast.makeText(getContext(), R.string.CallDeclined, Toast.LENGTH_LONG).show();
 
                     int callId = intent.getIntExtra("CALL_ID", -1);
                     if (currentCallId == callId)
@@ -156,12 +134,15 @@ public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSel
         // inflate view
         view = inflater.inflate(R.layout.fragment_ambulance, container, false);
 
+        // get callResumeLayout
+        callResumeLayout = view.findViewById(R.id.callResumeLayout);
+
         // get callLayout
-        callLayout = (LinearLayout) view.findViewById(R.id.callLayout);
+        callLayout = view.findViewById(R.id.callLayout);
 
         // setup as no current call
-        View child = getLayoutInflater().inflate(R.layout.no_calls, null);
-        callLayout.addView(child);
+        // View child = getLayoutInflater().inflate(R.layout.no_calls, null);
+        // callLayout.addView(child);
         currentCallId = -1;
 
         try {
@@ -173,7 +154,6 @@ public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSel
             ambulanceStatusList = new ArrayList<>(ambulanceStatus.values());
             Collections.sort(ambulanceStatusList);
 
-            int colors [] = getResources().getIntArray(R.array.statusColors);
             ambulanceStatusColorList = new ArrayList<>();
             for (String value : ambulanceStatusList)
                 for (Map.Entry<String,String> entry : ambulanceStatus.entrySet())
@@ -415,19 +395,97 @@ public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSel
         // set identifier
         ((MainActivity) getActivity()).setAmbulanceButtonText(ambulance.getIdentifier());
 
+        Log.d(TAG,"Sumarizing pending calls");
+
         // Set calls info
         Map<String, Integer> callSummary = AmbulanceForegroundService.getPendingCalls().summary(ambulance.getId());
         Log.d(TAG, "Call summary = " + callSummary.toString());
-        String summaryText = String.format("requested (%1$d), suspended (%2$d), ongoing (%3$d)",
+        final String summaryText = String.format("requested (%1$d), suspended (%2$d)",
                 callSummary.get(AmbulanceCall.STATUS_REQUESTED),
-                callSummary.get(AmbulanceCall.STATUS_SUSPENDED),
-                callSummary.get(AmbulanceCall.STATUS_ONGOING));
+                callSummary.get(AmbulanceCall.STATUS_SUSPENDED));
         callInformationText.setText(summaryText);
+
+        // destroy current views
+        callResumeLayout.removeAllViews();
+
+        // deploy resume panel
+        if ((callSummary.get(AmbulanceCall.STATUS_REQUESTED) + callSummary.get(AmbulanceCall.STATUS_SUSPENDED)) > 0) {
+
+            Log.d(TAG,"Will add resume call view");
+
+            // Expand resume call view
+            View child = getLayoutInflater().inflate(R.layout.no_calls, null);
+
+            // List of calls
+            ArrayList<String> pendingCallList = new ArrayList<>();
+
+            // Create lists of suspended calls
+            final ArrayList<Pair<Call,AmbulanceCall>> suspendedCallList = new ArrayList<>();
+            if (callSummary.get(AmbulanceCall.STATUS_SUSPENDED) > 0) {
+                for (Map.Entry<Integer, Pair<Call,AmbulanceCall>> ambulanceCallEntry : AmbulanceForegroundService
+                        .getPendingCalls()
+                        .filterByStatus(ambulance.getId(),
+                                AmbulanceCall.STATUS_SUSPENDED)
+                        .entrySet()) {
+                    Pair<Call,AmbulanceCall> ambulanceCall = ambulanceCallEntry.getValue();
+                    suspendedCallList.add(ambulanceCall);
+                    pendingCallList.add("(S) " + ambulanceCall.second.getCreatedAt());
+                }
+            }
+
+            // Create lists of requested calls
+            final ArrayList<Pair<Call,AmbulanceCall>> requestedCallList = new ArrayList<>();
+            if (callSummary.get(AmbulanceCall.STATUS_REQUESTED) > 0) {
+                for (Map.Entry<Integer, Pair<Call,AmbulanceCall>> ambulanceCallEntry : AmbulanceForegroundService
+                        .getPendingCalls()
+                        .filterByStatus(ambulance.getId(),
+                                AmbulanceCall.STATUS_REQUESTED)
+                        .entrySet()) {
+                    Pair<Call,AmbulanceCall> ambulanceCall = ambulanceCallEntry.getValue();
+                    requestedCallList.add(ambulanceCall);
+                    pendingCallList.add("(R) " + ambulanceCall.second.getCreatedAt());
+                }
+            }
+
+                        // Create the spinner adapter
+            ArrayAdapter<String> pendingCallListAdapter = new ArrayAdapter<>(getContext(),
+                    android.R.layout.simple_spinner_dropdown_item, pendingCallList);
+            pendingCallListAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+
+            // Retrieve parts
+            final Spinner callResumeSpinner = child.findViewById(R.id.callResumeSpinner);
+
+            // set adapter
+            callResumeSpinner.setAdapter(pendingCallListAdapter);
+
+            final Button callResumeButton= child.findViewById(R.id.callResumeButton);
+            callResumeButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    // retrieve spinner selection
+                    int position = callResumeSpinner.getSelectedItemPosition();
+                    Call call;
+                    if (position < suspendedCallList.size())
+                        call = suspendedCallList.get(position).first;
+                    else
+                        call = requestedCallList.get(position - suspendedCallList.size()).first;
+
+                    // prompt user
+                    Log.d(TAG,"Will prompt user to resume call");
+                    ((MainActivity) getActivity()).promptAcceptCallDialog(call.getId());
+
+                }
+            });
+
+            // add view to panel
+            callResumeLayout.addView(child);
+
+        }
 
         // update call distance?
         if (currentCallId > 0) {
 
-            AmbulanceCall ambulanceCall = AmbulanceForegroundService.getCurrentCall().getCurrentAmbulanceCall();
+            AmbulanceCall ambulanceCall = AmbulanceForegroundService.getCurrentAmbulanceCall();
             if (ambulanceCall != null) {
 
                 Waypoint waypoint = ambulanceCall.getNextWaypoint();
