@@ -71,7 +71,7 @@
     <string name="gpsIdentifierLabel">Identificador:</string>
     <string name="gpsCapabilityLabel">Capacidad:</string>
     <string name="gpsCommentsLabel">Commentarios:</string>
-    <string name="gpsLastUpdatedOnLabel">Ultima actualizacion:</string>
+    <string name="gpsLastUpdatedOnLabel">Actualizado en:</string>
     <string name="equipment_string_button_negative_text">Cancelar</string>
     <string name="callLabel">LLamadas:</string>
     <string name="failedToConnectToBrocker">No se pudo conectar.</string>
@@ -140,7 +140,7 @@
     <string name="selectAmbulance">Seleccione ambulancia:</string>
     <string name="requestToStreamLocation">Solicitando transmitir actualizaciones ...</string>
     <string name="ambulanceButtonDefaultText">Seleccionar ambulancia</string>
-    <string name="noIncomingCallsText">No hay llamadas entrantes.</string>
+    <string name="noIncomingCallsText">No hay llamadas entrantes</string>
     <string name="server_select">Seleccionar servidor:</string>
     <string name="alert_ambulance_switch">Evita que \'%1$s\' envíe actualizaciones primero.</string>
     <string name="error_invalid_server">Por favor seleccione el servidor.</string>
@@ -148,10 +148,11 @@
     <string name="CallStarted">Llamada iniciada.</string>
     <string name="CallFinished">llamada terminada.</string>
     <string name="CallDeclined">Llamada rechazada.</string>
-    <string name="noPatientAvailable">No hay información del paciente disponible.</string>
+    <string name="noPatientAvailable">No hay información de pacientes disponible</string>
     <string name="noDistanceAvailable">No se puede calcular la distancia al paciente.</string>
     <string name="nextWaypointNotAvailable">El siguiente punto de ruta no está disponible</string>
     <string name="couldNotForceUpdates">No se pudo forzar actualizaciones.</string>
     <string name="couldNotFindAmbulanceCall">No se pudo encontrar información de ambulancia para la llamada actual.</string>
+    <string name="couldNotSetCurrentCall">No se pudo establecer la llamada</string>
 
 </resources>

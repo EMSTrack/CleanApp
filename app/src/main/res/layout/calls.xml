@@ -4,6 +4,13 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Current Call:"
+        android:textStyle="bold"
+        android:textSize="18dp"/>
+
     <include layout="@layout/call_information"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"/>

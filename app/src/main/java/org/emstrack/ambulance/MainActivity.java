@@ -635,9 +635,7 @@ public class MainActivity extends AppCompatActivity {
         // Build patient list
         String patientsText = "";
         List<Patient> patients = call.getPatientSet();
-        if (patients == null)
-            patientsText = String.valueOf(R.string.noPatientAvailable);
-        else {
+        if (patients != null && patients.size() > 0) {
             for (Patient patient : patients) {
                 if (!patientsText.isEmpty())
                     patientsText += ", ";
@@ -645,7 +643,11 @@ public class MainActivity extends AppCompatActivity {
                 if (patient.getAge() != null)
                     patientsText += " (" + patient.getAge() + ")";
             }
-        }
+        } else
+            patientsText = String.valueOf(R.string.noPatientAvailable);
+
+        // Get number of waypoints
+        int numberOfWaypoints = ambulanceCall == null ? 0 : ambulanceCall.getWaypointSet().size();
 
         // Get next incident waypoint
         Waypoint waypoint = ambulanceCall.getNextIncidentWaypoint();
@@ -696,6 +698,7 @@ public class MainActivity extends AppCompatActivity {
 
         ((TextView) view.findViewById(R.id.callDetailsText)).setText(call.getDetails());
         ((TextView) view.findViewById(R.id.callPatientsText)).setText(patientsText);
+        ((TextView) view.findViewById(R.id.callNumberWaypointsText)).setText(String.valueOf(numberOfWaypoints));
 
         ((TextView) view.findViewById(R.id.callWaypointTypeText)).setText(waypointType);
         ((TextView) view.findViewById(R.id.callDistanceText)).setText(distanceText);

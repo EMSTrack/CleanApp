@@ -1,59 +1,75 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:gravity="right">
+    android:layout_height="wrap_content"
+    android:layout_marginHorizontal="10dp">
 
-    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-        android:orientation="horizontal"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="right">
+    <Button
+        android:id="@+id/callPriorityButton"
+        android:layout_width="30dp"
+        android:layout_height="40dp"
+        android:layout_alignParentRight="true"
+        android:text="B" />
 
-        <TextView
-            android:id="@+id/callPriorityLabel"
-            android:layout_width="wrap_content"
-            android:layout_height="fill_parent"
-            android:layout_marginTop="5dp"
-            android:text="Priority:"
-            android:gravity="top"
-            android:textStyle="bold"
-            android:layout_weight="1"/>
-
-        <Button
-            android:id="@+id/callPriorityButton"
-            android:layout_width="30dp"
-            android:layout_height="wrap_content"
-            android:text="B" />
-
-    </LinearLayout>
+    <TextView
+        android:id="@+id/callPriorityLabel"
+        android:layout_width="fill_parent"
+        android:layout_height="40dp"
+        android:gravity="bottom"
+        android:text="Priority:"
+        android:textStyle="bold"
+        android:layout_toLeftOf="@id/callPriorityButton" />
 
     <TextView
         android:id="@+id/callDetailsLabel"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Details:"
+        android:layout_below="@id/callPriorityButton"
         android:textStyle="bold" />
 
     <TextView
         android:id="@+id/callDetailsText"
-        android:layout_width="match_parent"
+        android:layout_width="fill_parent"
         android:layout_height="wrap_content"
+        android:layout_toRightOf="@id/callDetailsLabel"
+        android:layout_below="@id/callPriorityButton"
+        android:gravity="right"
         android:text="Details" />
 
     <TextView
         android:id="@+id/callPatientsLabel"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Patients:"
+        android:layout_below="@id/callDetailsLabel"
         android:textStyle="bold" />
 
     <TextView
         android:id="@+id/callPatientsText"
-        android:layout_width="match_parent"
+        android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:text="No patient information available." />
+        android:layout_toRightOf="@id/callPatientsLabel"
+        android:layout_below="@id/callDetailsText"
+        android:gravity="right"
+        android:text="No patient information available" />
+
+    <TextView
+        android:id="@+id/callNumberWaypointsLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Number of waypoints:"
+        android:layout_below="@id/callPatientsText"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/callNumberWaypointsText"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_toRightOf="@id/callNumberWaypointsLabel"
+        android:layout_below="@id/callPatientsText"
+        android:gravity="right"
+        android:text="0" />
 
     <TextView
         android:id="@+id/callNextWaypointLabel"
@@ -61,62 +77,58 @@
         android:layout_height="wrap_content"
         android:text="Next waypoint:"
         android:layout_marginTop="10dp"
+        android:layout_below="@id/callNumberWaypointsLabel"
         android:textStyle="bold" />
 
-    <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    <TextView
+        android:id="@+id/callWaypointTypeLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Type:"
+        android:layout_below="@id/callNextWaypointLabel"
+        android:textStyle="italic" />
+
+    <TextView
+        android:id="@+id/callWaypointTypeText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginHorizontal="10dp">
+        android:layout_below="@id/callNextWaypointLabel"
+        android:layout_toRightOf="@id/callWaypointTypeLabel"
+        android:gravity="right"
+        android:text="Waypoint type" />
 
-        <TextView
-            android:id="@+id/callWaypointTypeLabel"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Type:"
-            android:textStyle="italic" />
+    <TextView
+        android:id="@+id/callDistanceLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/callWaypointTypeLabel"
+        android:text="Distance:"
+        android:textStyle="italic" />
 
-        <TextView
-            android:id="@+id/callWaypointTypeText"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_toRightOf="@id/callWaypointTypeLabel"
-            android:gravity="right"
-            android:text="Waypoint type" />
+    <TextView
+        android:id="@+id/callDistanceText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/callWaypointTypeLabel"
+        android:layout_toRightOf="@id/callDistanceLabel"
+        android:gravity="right"
+        android:text="No distance information available" />
 
-        <TextView
-            android:id="@+id/callDistanceLabel"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/callWaypointTypeLabel"
-            android:text="Distance:"
-            android:textStyle="italic" />
+    <TextView
+        android:id="@+id/callAddressLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/callDistanceLabel"
+        android:text="Address:"
+        android:textStyle="italic"/>
 
-        <TextView
-            android:id="@+id/callDistanceText"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/callWaypointTypeLabel"
-            android:layout_toRightOf="@id/callDistanceLabel"
-            android:gravity="right"
-            android:text="No distance information available." />
+    <TextView
+        android:id="@+id/callAddressText"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/callDistanceText"
+        android:layout_toRightOf="@id/callAddressLabel"
+        android:gravity="right"
+        android:text="Address" />
 
-        <TextView
-            android:id="@+id/callAddressLabel"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/callDistanceLabel"
-            android:text="Address:"
-            android:textStyle="italic"/>
-
-        <TextView
-            android:id="@+id/callAddressText"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/callDistanceText"
-            android:layout_toRightOf="@id/callAddressLabel"
-            android:gravity="right"
-            android:text="Address" />
-
-    </RelativeLayout>
-
-</LinearLayout>
+</RelativeLayout>

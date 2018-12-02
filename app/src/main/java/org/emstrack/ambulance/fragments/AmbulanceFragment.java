@@ -25,6 +25,7 @@ import org.emstrack.ambulance.R;
 import org.emstrack.models.Ambulance;
 import org.emstrack.models.AmbulanceCall;
 import org.emstrack.models.Call;
+import org.emstrack.models.CallStack;
 import org.emstrack.models.Location;
 import org.emstrack.models.Patient;
 import org.emstrack.models.Waypoint;
@@ -80,6 +81,8 @@ public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSel
     private TextView callDistanceTextView;
     private Button callAddWaypointButton;
     private TextView callNextWaypointTextView;
+    private TextView callNumberWayointsView;
+    private TextView callInformationText;
 
     public class AmbulancesUpdateBroadcastReceiver extends BroadcastReceiver {
 
@@ -188,6 +191,7 @@ public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSel
         }
 
         // Other text
+        callInformationText = view.findViewById(R.id.callInformationText);
         capabilityText = view.findViewById(R.id.capabilityText);
         commentText = view.findViewById(R.id.commentText);
         updatedOnText = view.findViewById(R.id.updatedOnText);
@@ -278,23 +282,23 @@ public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSel
             callLayout.removeAllViews();
 
             // create new layout
-            View child;
             if (call == null) {
 
-                child = getLayoutInflater().inflate(R.layout.no_calls, null);
+                // child = getLayoutInflater().inflate(R.layout.no_calls, null);
                 currentCallId = -1;
 
             } else {
 
-                child = getLayoutInflater().inflate(R.layout.calls, null);
+                View child = getLayoutInflater().inflate(R.layout.calls, null);
                 callPriorityButton = child.findViewById(R.id.callPriorityButton);
                 callDescriptionTextView = child.findViewById(R.id.callDetailsText);
                 callNextWaypointTextView = child.findViewById(R.id.callWaypointTypeText);
                 callAddressTextView = child.findViewById(R.id.callAddressText);
                 callPatientsTextView = child.findViewById(R.id.callPatientsText);
+                callNumberWayointsView = child.findViewById(R.id.callNumberWaypointsText);
                 callDistanceTextView = child.findViewById(R.id.callDistanceText);
 
-                callEndButton = (Button) child.findViewById(R.id.callEndButton);
+                callEndButton = child.findViewById(R.id.callEndButton);
                 callEndButton.setOnClickListener(
                         new View.OnClickListener() {
                             @Override
@@ -305,7 +309,7 @@ public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSel
                         }
                 );
 
-                callAddWaypointButton = (Button) child.findViewById(R.id.callAddWaypointButton);
+                callAddWaypointButton = child.findViewById(R.id.callAddWaypointButton);
                 callAddWaypointButton.setOnClickListener(
                         new View.OnClickListener() {
                             @Override
@@ -318,8 +322,9 @@ public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSel
 
                 currentCallId = call.getId();
 
+                callLayout.addView(child);
+
             }
-            callLayout.addView(child);
 
         }
 
@@ -328,9 +333,14 @@ public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSel
 
             // get ambulanceCall
             AmbulanceCall ambulanceCall = call.getCurrentAmbulanceCall();
+            if (ambulanceCall == null)
+                Log.d(TAG, "Call does not have a current ambulance!");
+
             Waypoint waypoint = null;
             if (ambulanceCall != null)
                 waypoint = ambulanceCall.getNextWaypoint();
+            else
+                Log.d(TAG, "Call does not have a next waypoint!");
 
             callPriorityButton.setText(call.getPriority());
             callPriorityButton.setBackgroundColor(((MainActivity) getActivity()).getCallPriorityBackgroundColors().get(call.getPriority()));
@@ -344,7 +354,7 @@ public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSel
                 String text = "";
                 for (Patient patient: patients)  {
                     if (!text.isEmpty())
-                        text += "\n";
+                        text += ", ";
                     text += patient.getName();
                     if (patient.getAge() != null)
                         text += " (" + patient.getAge() + ")";
@@ -353,6 +363,9 @@ public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSel
                 callPatientsTextView.setText(text);
             } else
                 callPatientsTextView.setText(R.string.noPatientAvailable);
+
+            int numberOfWaypoints = ambulanceCall == null ? 0 : ambulanceCall.getWaypointSet().size();
+            callNumberWayointsView.setText(String.valueOf(numberOfWaypoints));
 
             if (waypoint != null) {
 
@@ -401,6 +414,15 @@ public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSel
 
         // set identifier
         ((MainActivity) getActivity()).setAmbulanceButtonText(ambulance.getIdentifier());
+
+        // Set calls info
+        Map<String, Integer> callSummary = AmbulanceForegroundService.getPendingCalls().summary(ambulance.getId());
+        Log.d(TAG, "Call summary = " + callSummary.toString());
+        String summaryText = String.format("requested (%1$d), suspended (%2$d), ongoing (%3$d)",
+                callSummary.get(AmbulanceCall.STATUS_REQUESTED),
+                callSummary.get(AmbulanceCall.STATUS_SUSPENDED),
+                callSummary.get(AmbulanceCall.STATUS_ONGOING));
+        callInformationText.setText(summaryText);
 
         // update call distance?
         if (currentCallId > 0) {
@@ -500,6 +522,11 @@ public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSel
         Log.i(TAG, "Processing status spinner updateAmbulance.");
 
         Ambulance ambulance = AmbulanceForegroundService.getCurrentAmbulance();
+        if (ambulance == null) {
+            Log.i(TAG, "Ambulance is null. This should never happen!");
+            return;
+        }
+
         if ((ambulance != null) && !((MainActivity) getActivity()).canWrite()) {
 
             // Toast to warn user
@@ -540,6 +567,7 @@ public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSel
         Intent intent = new Intent(getContext(), AmbulanceForegroundService.class);
         intent.setAction(AmbulanceForegroundService.Actions.UPDATE_AMBULANCE);
         Bundle bundle = new Bundle();
+        bundle.putInt("AMBULANCE_ID", ambulance.getId());
         bundle.putString("UPDATE", updateString);
         intent.putExtras(bundle);
         getActivity().startService(intent);
