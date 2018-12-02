@@ -41,6 +41,16 @@
                 android:textSize="18dp"
                 android:layout_below="@+id/statusSpinner"/>
 
+            <TextView
+                android:id="@+id/callInformationText"
+                android:layout_height="wrap_content"
+                android:layout_width="fill_parent"
+                android:text="info"
+                android:gravity="right"
+                android:layout_marginTop="20dp"
+                android:layout_below="@id/statusSpinner"
+                android:layout_toRightOf="@id/callLabel"/>
+
             <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
                 android:id="@+id/callLayout"
                 android:layout_width="match_parent"

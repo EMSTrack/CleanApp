@@ -2,7 +2,7 @@
 <resources>
 
     <string name="app_name">EMSTrack</string>
-    <string name="app_version" translatable="false">v0_3_3</string>
+    <string name="app_version" translatable="false">v0_4_0</string>
     <string name="client_name" translatable="false">_AndroidClient_</string>
 
     <string name="drawer_open">Open navigation drawer</string>
@@ -78,7 +78,7 @@
     <string name="gpsIdentifierLabel">Identifier:</string>
     <string name="gpsCapabilityLabel">Capability:</string>
     <string name="gpsCommentsLabel">Comments:</string>
-    <string name="gpsLastUpdatedOnLabel">Last updated on:</string>
+    <string name="gpsLastUpdatedOnLabel">Last update:</string>
     <string name="access_token" translatable="false">pk.eyJ1IjoieWFuZ2Y5NiIsImEiOiJjaXltYTNmbTcwMDJzMzNwZnpzM3Z6ZW9kIn0.gjEwLiCIbYhVFUGud9B56w</string>
     <string name="failedToConnectToBrocker">Failed to connected to broker.</string>
     <string name="Exception">Exception:</string>
@@ -147,13 +147,13 @@
     <string name="requestToStreamLocation">Requesting to stream updates…</string>
     <string name="selectAmbulance">Select ambulance:</string>
     <string name="ambulanceButtonDefaultText">Select ambulance</string>
-    <string name="noIncomingCallsText">No incoming calls.</string>
+    <string name="noIncomingCallsText">No incoming calls</string>
     <string name="equipment_sting_button_negative_text">Cancel</string>
     <string name="couldNotSuspendCall">Could not suspend call.</string>
     <string name="CallStarted">Call started.</string>
     <string name="CallFinished">Call finished.</string>
     <string name="CallDeclined">Call declined.</string>
-    <string name="noPatientAvailable">No patient information available.</string>
+    <string name="noPatientAvailable">No patient information available</string>
     <string name="noDistanceAvailable">No distance to patient information available.</string>
 
     <string-array name="spinner_list_item_array">
@@ -171,6 +171,7 @@
     <string name="nextWaypointNotAvailable">Next waypoint is not available</string>
     <string name="couldNotFindAmbulanceCall">Could not find ambulance information for the current call.</string>
     <string name="couldNotForceUpdates">Could not force updates.</string>
+    <string name="couldNotSetCurrentCall">Could not set current call</string>
     <string-array name="spinner_list_item_array_server">
         <item>@string/server_select</item>
         <item>Tijuana Red Cross:tijuana.emstrack.org:8883</item>
