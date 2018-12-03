@@ -713,7 +713,7 @@ public class ModelsUnitTest {
     @Test
     public void test_ambulance_call() throws Exception {
 
-        Waypoint waypoint = new Waypoint(0,Waypoint.STATUS_NOT_VISITED,
+        Waypoint waypoint = new Waypoint(0,Waypoint.STATUS_CREATED,
                 new Location(null, Location.TYPE_INCIDENT,"O",
                         "Bonifácio Avilés", null, null,
                         "Tijuana","BCN","" ,"MX",
@@ -767,7 +767,7 @@ public class ModelsUnitTest {
 
         DateFormat df = new SimpleDateFormat("MMM d, y K:mm:ss a");
 
-        to_json = "{\"id\":1,\"ambulance_id\":2,\"status\":\"S\",\"created_at\":\"" + df.format(ambulanceCall.getCreatedAt()) + "\",\"waypoint_set\":[{\"order\":0,\"status\":\"N\",\"location\":{\"type\":\"i\",\"number\":\"\",\"street\":\"Bonifácio Avilés\",\"unit\":null,\"neighborhood\":null,\"city\":\"Tijuana\",\"state\":\"BCN\",\"zipcode\":\"\",\"country\":\"MX\",\"waypoint\":{\"latitude\":\"32.51543632662701\",\"longitude\":\"-117.03812250149775\"},\"created_at\":\"2018-11-14T22:33:46.055339Z\",\"pending_at\":\"2018-11-14T22:33:46.054955Z\",\"started_at\":\"2018-11-14T22:34:50.329321Z\",\"ended_at\":null,\"comment\":null,\"updated_by\":1,\"updated_on\":\"2018-11-14T22:34:50.329428Z\"}}]}";
+        to_json = "{\"id\":1,\"ambulance_id\":2,\"status\":\"S\",\"created_at\":\"" + df.format(ambulanceCall.getCreatedAt()) + "\",\"waypoint_set\":[{\"order\":0,\"status\":\"C\",\"location\":{\"type\":\"i\",\"number\":\"\",\"street\":\"Bonifácio Avilés\",\"unit\":null,\"neighborhood\":null,\"city\":\"Tijuana\",\"state\":\"BCN\",\"zipcode\":\"\",\"country\":\"MX\",\"waypoint\":{\"latitude\":\"32.51543632662701\",\"longitude\":\"-117.03812250149775\"},\"created_at\":\"2018-11-14T22:33:46.055339Z\",\"pending_at\":\"2018-11-14T22:33:46.054955Z\",\"started_at\":\"2018-11-14T22:34:50.329321Z\",\"ended_at\":null,\"comment\":null,\"updated_by\":1,\"updated_on\":\"2018-11-14T22:34:50.329428Z\"}}]}";
         from_json = gson.fromJson(to_json, AmbulanceCall.class);
         System.out.println("to_json = '" + to_json + "'");
 
@@ -814,7 +814,7 @@ public class ModelsUnitTest {
         patientSet.add(new Patient(31, "Maria",0));
         patientSet.add(new Patient(30, "Jose",13));
 
-        Waypoint waypoint = new Waypoint(0,Waypoint.STATUS_NOT_VISITED,
+        Waypoint waypoint = new Waypoint(0,Waypoint.STATUS_CREATED,
                 new Location(null, Location.TYPE_INCIDENT,"O",
                         "Bonifácio Avilés", null, null,
                         "Tijuana","BCN","" ,"MX",
@@ -890,7 +890,7 @@ public class ModelsUnitTest {
         assertEquals(expectedStreet, answerStreet);
 
         DateFormat df = new SimpleDateFormat("MMM d, y K:mm:ss a");
-        String ambulance_call_json = "{\"id\":1,\"ambulance_id\":2,\"status\":\"S\",\"created_at\":\"" + df.format(ambulanceCall.getCreatedAt()) + "\",\"waypoint_set\":[{\"order\":0,\"status\":\"N\",\"location\":{\"type\":\"i\",\"number\":\"\",\"street\":\"Bonifácio Avilés\",\"unit\":null,\"neighborhood\":null,\"city\":\"Tijuana\",\"state\":\"BCN\",\"zipcode\":\"\",\"country\":\"MX\",\"waypoint\":{\"latitude\":\"32.51543632662701\",\"longitude\":\"-117.03812250149775\"},\"created_at\":\"2018-11-14T22:33:46.055339Z\",\"pending_at\":\"2018-11-14T22:33:46.054955Z\",\"started_at\":\"2018-11-14T22:34:50.329321Z\",\"ended_at\":null,\"comment\":null,\"updated_by\":1,\"updated_on\":\"2018-11-14T22:34:50.329428Z\"}}]}";
+        String ambulance_call_json = "{\"id\":1,\"ambulance_id\":2,\"status\":\"S\",\"created_at\":\"" + df.format(ambulanceCall.getCreatedAt()) + "\",\"waypoint_set\":[{\"order\":0,\"status\":\"C\",\"location\":{\"type\":\"i\",\"number\":\"\",\"street\":\"Bonifácio Avilés\",\"unit\":null,\"neighborhood\":null,\"city\":\"Tijuana\",\"state\":\"BCN\",\"zipcode\":\"\",\"country\":\"MX\",\"waypoint\":{\"latitude\":\"32.51543632662701\",\"longitude\":\"-117.03812250149775\"},\"created_at\":\"2018-11-14T22:33:46.055339Z\",\"pending_at\":\"2018-11-14T22:33:46.054955Z\",\"started_at\":\"2018-11-14T22:34:50.329321Z\",\"ended_at\":null,\"comment\":null,\"updated_by\":1,\"updated_on\":\"2018-11-14T22:34:50.329428Z\"}}]}";
         to_json = "{\"id\":64,\"status\":\"S\",\"details\":\"ads asd\",\"priority\":\"O\",\"created_at\":\"2018-11-14T22:33:46.055339Z\",\"pending_at\":\"2018-11-14T22:33:46.054955Z\",\"started_at\":\"2018-11-14T22:34:50.329321Z\",\"ended_at\":null,\"comment\":null,\"updated_by\":1,\"updated_on\":\"2018-11-14T22:34:50.329428Z\",\"ambulancecall_set\":[" + ambulance_call_json + "],\"patient_set\":[{\"id\":31,\"name\":\"Maria\",\"age\":null},{\"id\":30,\"name\":\"Jose\",\"age\":13}]}";
 
         from_json = gson.fromJson(to_json, Call.class);

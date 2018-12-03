@@ -15,18 +15,20 @@ public class Waypoint {
         }
     }
 
-    public static final String STATUS_NOT_VISITED = "N";
+    public static final String STATUS_CREATED = "C";
     public static final String STATUS_VISITING = "V";
     public static final String STATUS_VISITED = "D";
+    public static final String STATUS_SKIPPED = "S";
 
     public static final Map<String, String> statusLabel;
     static {
 
         Map<String, String> map = new HashMap<>();
 
-        map.put(STATUS_NOT_VISITED, "Not yet visited");
+        map.put(STATUS_CREATED, "Created");
         map.put(STATUS_VISITED, "Visited");
         map.put(STATUS_VISITING, "Visiting");
+        map.put(STATUS_SKIPPED, "Skipped");
 
         statusLabel = Collections.unmodifiableMap(map);
     }
@@ -35,20 +37,18 @@ public class Waypoint {
     private int ambulanceCallId;
     private int order;
     private String status;
-    private boolean active;
     private Location location;
     private String comment;
     private int updatedBy;
     private Date updatedOn;
 
-    public Waypoint(int id, int ambulanceCallId, int order, String status,
-                    boolean active, Location location,
+    public Waypoint(int id, int ambulanceCallId,
+                    int order, String status, Location location,
                     String comment, int updatedBy, Date updatedOn) {
         this.id = id;
         this.ambulanceCallId = ambulanceCallId;
         this.order = order;
         this.status = status;
-        this.active = active;
         this.location = location;
         this.comment = comment;
         this.updatedBy = updatedBy;
@@ -56,7 +56,7 @@ public class Waypoint {
     }
 
     public Waypoint(int order, String status, Location location) {
-        this(-1, -1, order, status, true, location,
+        this(-1, -1, order, status, location,
                 "", -1, new Date());
     }
 
@@ -84,16 +84,8 @@ public class Waypoint {
         this.order = order;
     }
 
-    public boolean isActive() {
-        return active;
-    }
-
-    public void setActive(boolean active) {
-        this.active = active;
-    }
-
-    public boolean isNotVisited() {
-        return status.equals(STATUS_NOT_VISITED);
+    public boolean isCreated() {
+        return status.equals(STATUS_CREATED);
     }
 
     public boolean isVisited() {
@@ -102,6 +94,10 @@ public class Waypoint {
 
     public boolean isVisiting() {
         return status.equals(STATUS_VISITING);
+    }
+
+    public boolean isSkipped() {
+        return status.equals(STATUS_SKIPPED);
     }
 
     public void setStatus(String status) {
