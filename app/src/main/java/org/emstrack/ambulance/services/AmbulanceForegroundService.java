@@ -3454,10 +3454,10 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
             return;
         }
 
-        if (!currentWaypoint.isActive()) {
+        if (currentWaypoint.isSkipped()) {
 
             // Ignore if not active
-            Log.d(TAG, "Arrived at inactive waypoint. Ignoring transition...");
+            Log.d(TAG, "Arrived at skipped waypoint. Ignoring transition...");
             return;
         }
 
@@ -3523,14 +3523,14 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
             return;
         }
 
-        if (!currentWaypoint.isActive()) {
+        if (!currentWaypoint.isSkipped()) {
 
             // Ignore if not active
-            Log.d(TAG, "Left an inactive waypoint. Ignoring transition...");
+            Log.d(TAG, "Left a skipped waypoint. Ignoring transition...");
             return;
         }
 
-        if (currentWaypoint.isVisited() || currentWaypoint.isNotVisited()) {
+        if (currentWaypoint.isVisited() || currentWaypoint.isCreated()) {
 
             // Ignore if already visited
             Log.d(TAG, "Left a visited or not visited waypoint. Ignoring transition...");
