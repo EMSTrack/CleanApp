@@ -36,11 +36,15 @@ public class Geofence {
         return waypoint;
     }
 
+    public void setWaypoint(Waypoint waypoint) {
+        this.waypoint = waypoint;
+    }
+
     public GPSLocation getLocation() { return waypoint.getLocation().getLocation(); }
 
     public float getRadius() { return radius; }
 
-    public boolean isHospital() { return waypoint.getLocation().getType().equals("h"); }
+    public boolean isHospital() { return waypoint.getLocation().getType().equals(Location.TYPE_HOSPITAL); }
 
     public void removeId(String id) {
         ids.remove(id);

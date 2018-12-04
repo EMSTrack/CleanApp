@@ -84,7 +84,8 @@ public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSel
 
     private Map<String,String> ambulanceStatus;
     private List<String> ambulanceStatusList;
-    private ArrayList<Integer> ambulanceStatusColorList;
+    private ArrayList<Integer> ambulanceStatusBackgroundColorList;
+    private ArrayList<Integer> ambulanceStatusTextColorList;
     private Map<String,String> ambulanceCapabilities;
     private List<String> ambulanceCapabilityList;
 
@@ -197,11 +198,14 @@ public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSel
             ambulanceStatusList = new ArrayList<>(ambulanceStatus.values());
             Collections.sort(ambulanceStatusList);
 
-            ambulanceStatusColorList = new ArrayList<>();
+            ambulanceStatusBackgroundColorList = new ArrayList<>();
+            ambulanceStatusTextColorList = new ArrayList<>();
             for (String value : ambulanceStatusList)
                 for (Map.Entry<String,String> entry : ambulanceStatus.entrySet())
-                    if (value.equals(entry.getValue()))
-                        ambulanceStatusColorList.add(getResources().getColor(Ambulance.statusColorList.get(entry.getKey())));
+                    if (value.equals(entry.getValue())) {
+                        ambulanceStatusBackgroundColorList.add(getResources().getColor(Ambulance.statusBackgroundColorMap.get(entry.getKey())));
+                        ambulanceStatusTextColorList.add(getResources().getColor(Ambulance.statusTextColorMap.get(entry.getKey())));
+                    }
 
             ambulanceCapabilities = profileClient.getSettings().getAmbulanceCapability();
             ambulanceCapabilityList = new ArrayList<>(ambulanceCapabilities.values());
@@ -233,7 +237,8 @@ public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSel
                         LayoutInflater inflater = LayoutInflater.from(context);
                         view = inflater.inflate(R.layout.status_spinner_dropdown_item, null);
                         TextView textView = view.findViewById(R.id.statusSpinnerDropdownItemText);
-                        textView.setBackgroundColor(ambulanceStatusColorList.get(pos));
+                        textView.setBackgroundColor(ambulanceStatusBackgroundColorList.get(pos));
+                        textView.setTextColor(ambulanceStatusTextColorList.get(pos));
                         textView.setTextSize(context.getResources().getDimension(R.dimen.statusTextSize));
                         textView.setText(ambulanceStatusList.get(pos));
                         return view;
