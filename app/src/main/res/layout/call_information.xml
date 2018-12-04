@@ -71,64 +71,71 @@
         android:gravity="right"
         android:text="0" />
 
-    <TextView
-        android:id="@+id/callNextWaypointLabel"
+    <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/callNextWaypointLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Next waypoint:"
-        android:layout_marginTop="10dp"
-        android:layout_below="@id/callNumberWaypointsLabel"
-        android:textStyle="bold" />
+        android:layout_below="@id/callNumberWaypointsLabel">
 
-    <TextView
-        android:id="@+id/callWaypointTypeLabel"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Type:"
-        android:layout_below="@id/callNextWaypointLabel"
-        android:textStyle="italic" />
+        <TextView
+            android:id="@+id/callNextWaypointLabel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Next waypoint:"
+            android:layout_marginTop="10dp"
+            android:textStyle="bold" />
 
-    <TextView
-        android:id="@+id/callWaypointTypeText"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/callNextWaypointLabel"
-        android:layout_toRightOf="@id/callWaypointTypeLabel"
-        android:gravity="right"
-        android:text="Waypoint type" />
+        <TextView
+            android:id="@+id/callWaypointTypeLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Type:"
+            android:layout_below="@id/callNextWaypointLabel"
+            android:textStyle="italic" />
 
-    <TextView
-        android:id="@+id/callDistanceLabel"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/callWaypointTypeLabel"
-        android:text="Distance:"
-        android:textStyle="italic" />
+        <TextView
+            android:id="@+id/callWaypointTypeText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/callNextWaypointLabel"
+            android:layout_toRightOf="@id/callWaypointTypeLabel"
+            android:gravity="right"
+            android:text="Waypoint type" />
 
-    <TextView
-        android:id="@+id/callDistanceText"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/callWaypointTypeLabel"
-        android:layout_toRightOf="@id/callDistanceLabel"
-        android:gravity="right"
-        android:text="No distance information available" />
+        <TextView
+            android:id="@+id/callDistanceLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/callWaypointTypeLabel"
+            android:text="Distance:"
+            android:textStyle="italic" />
 
-    <TextView
-        android:id="@+id/callAddressLabel"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/callDistanceLabel"
-        android:text="Address:"
-        android:textStyle="italic"/>
+        <TextView
+            android:id="@+id/callDistanceText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/callWaypointTypeLabel"
+            android:layout_toRightOf="@id/callDistanceLabel"
+            android:gravity="right"
+            android:text="No distance information available" />
 
-    <TextView
-        android:id="@+id/callAddressText"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/callDistanceText"
-        android:layout_toRightOf="@id/callAddressLabel"
-        android:gravity="right"
-        android:text="Address" />
+        <TextView
+            android:id="@+id/callAddressLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/callDistanceLabel"
+            android:text="Address:"
+            android:textStyle="italic"/>
+
+        <TextView
+            android:id="@+id/callAddressText"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/callDistanceText"
+            android:layout_toRightOf="@id/callAddressLabel"
+            android:gravity="right"
+            android:text="Address" />
+
+    </RelativeLayout>
 
 </RelativeLayout>

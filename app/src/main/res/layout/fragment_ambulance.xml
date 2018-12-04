@@ -31,40 +31,68 @@
                 android:background="@drawable/spinner_background"
                 android:textSize="24dp"/>
 
-            <TextView
-                android:id="@+id/callLabel"
-                android:layout_height="wrap_content"
-                android:layout_width="wrap_content"
-                android:text="@string/callLabel"
-                android:layout_marginTop="20dp"
-                android:textStyle="bold"
-                android:textSize="18dp"
-                android:layout_below="@+id/statusSpinner"/>
-
-            <TextView
-                android:id="@+id/callInformationText"
-                android:layout_height="wrap_content"
-                android:layout_width="fill_parent"
-                android:text="info"
-                android:gravity="right"
-                android:layout_marginTop="20dp"
-                android:layout_below="@id/statusSpinner"
-                android:layout_toRightOf="@id/callLabel"/>
-
-            <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-                android:id="@+id/callResumeLayout"
+            <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                xmlns:tools="http://schemas.android.com/tools"
+                android:id="@+id/callInformationLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:layout_below="@+id/callLabel">
-            </LinearLayout>
+                android:layout_below="@+id/statusSpinner">
+
+                <TextView
+                    android:id="@+id/callLabel"
+                    android:layout_height="wrap_content"
+                    android:layout_width="wrap_content"
+                    android:text="@string/callLabel"
+                    android:layout_marginTop="10dp"
+                    android:textStyle="bold"
+                    android:textSize="18dp"/>
+
+                <TextView
+                    android:id="@+id/callInformationText"
+                    android:layout_height="wrap_content"
+                    android:layout_width="fill_parent"
+                    android:text="info"
+                    android:gravity="right"
+                    android:layout_marginTop="20dp"
+                    android:layout_toRightOf="@id/callLabel"/>
+
+                <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                    android:id="@+id/callResumeLayout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_below="@+id/callLabel">
+
+                    <Spinner
+                        android:id="@+id/callResumeSpinner"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content" />
+
+                    <Button
+                        android:id="@+id/callResumeButton"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:layout_marginStart="10dp"
+                        android:layout_marginEnd="10dp"
+                        android:background="@color/bootstrapPrimary"
+                        android:text="Resume Calls" />
+
+                </LinearLayout>
+
+            </RelativeLayout>
 
             <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
                 android:id="@+id/callLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:layout_below="@+id/callResumeLayout">
+                android:layout_below="@+id/callInformationLayout">
+
+                <include layout="@layout/call_current"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"/>
+
             </LinearLayout>
 
             <TextView
@@ -74,7 +102,7 @@
                 android:text="@string/gpsCapabilityLabel"
                 android:textStyle="bold"
                 android:textSize="18dp"
-                android:layout_marginTop="20dp"
+                android:layout_marginTop="10dp"
                 android:layout_below="@+id/callLayout"/>
 
             <TextView
@@ -93,7 +121,7 @@
                 android:text="@string/gpsCommentsLabel"
                 android:textStyle="bold"
                 android:textSize="18dp"
-                android:layout_marginTop="20dp"
+                android:layout_marginTop="10dp"
                 android:layout_below="@+id/capabilityText"/>
 
             <TextView
@@ -111,6 +139,7 @@
                 android:text="@string/gpsLastUpdatedOnLabel"
                 android:textStyle="bold"
                 android:textSize="18dp"
+                android:layout_marginTop="10dp"
                 android:layout_below="@+id/commentText"/>
 
             <TextView

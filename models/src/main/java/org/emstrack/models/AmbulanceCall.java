@@ -117,11 +117,20 @@ public class AmbulanceCall {
 
         // Find first non-visited waypoint
         for (Waypoint waypoint : this.waypointSet) {
-            if ((type == null || waypoint.getLocation().getType().equals(type)) && !waypoint.isVisited())
+            if ((type == null || waypoint.getLocation().getType().equals(type))
+                    && !(waypoint.isSkipped() || waypoint.isVisited()))
                 return waypoint;
         }
 
         // Otherwise return null
+        return null;
+    }
+
+    public Waypoint getWaypoint(int id) {
+        // Find waypoint
+        for (Waypoint waypoint : this.waypointSet)
+            if (waypoint.getId() == id)
+                return waypoint;
         return null;
     }
 
