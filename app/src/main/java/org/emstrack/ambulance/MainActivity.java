@@ -78,6 +78,8 @@ public class MainActivity extends AppCompatActivity {
     private ArrayAdapter<String> ambulanceListAdapter;
     private List<HospitalPermission> hospitalPermissions;
     private ArrayAdapter<String> hospitalListAdapter;
+    private List<HospitalPermission> baseList;
+    private ArrayAdapter<String> baseListAdapter;
 
     private DrawerLayout mDrawer;
     private NavigationView nvDrawer;
@@ -356,7 +358,7 @@ public class MainActivity extends AppCompatActivity {
 
             // Creates list of hospital names
             ArrayList<String> hospitalList = new ArrayList<>();
-            hospitalList.add("");
+            hospitalList.add("Select hospital:");
             for (HospitalPermission hospitalPermission : hospitalPermissions)
                 hospitalList.add(hospitalPermission.getHospitalName());
 
@@ -364,6 +366,17 @@ public class MainActivity extends AppCompatActivity {
             hospitalListAdapter = new ArrayAdapter<>(this,
                     android.R.layout.simple_spinner_dropdown_item, hospitalList);
             hospitalListAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+
+            // Creates list of base names
+            ArrayList<String> baseList = new ArrayList<>();
+            baseList.add("Select base:");
+            // for (HospitalPermission hospitalPermission : hospitalPermissions)
+            //    hospitalList.add(hospitalPermission.getHospitalName());
+
+            // Create the adapter
+            baseListAdapter = new ArrayAdapter<>(this,
+                    android.R.layout.simple_spinner_dropdown_item, baseList);
+            baseListAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 
             // Any ambulance currently selected?
             Ambulance ambulance = AmbulanceForegroundService.getCurrentAmbulance();
@@ -844,6 +857,10 @@ public class MainActivity extends AppCompatActivity {
         final Spinner hospitalSpinner = view.findViewById(R.id.spinnerHospitals);
         hospitalSpinner.setAdapter(hospitalListAdapter);
 
+        // Create base spinner
+        final Spinner baseSpinner = view.findViewById(R.id.spinnerBases);
+        baseSpinner.setAdapter(baseListAdapter);
+
         // build dialog
         builder.setTitle("Select next waypoint")
                 .setView(view)
@@ -865,7 +882,7 @@ public class MainActivity extends AppCompatActivity {
                         if (waypoint != null) {
 
                             Intent serviceIntent = new Intent(MainActivity.this, AmbulanceForegroundService.class);
-                            serviceIntent.setAction(AmbulanceForegroundService.Actions.UPDATE_WAYPOINT);
+                            serviceIntent.setAction(AmbulanceForegroundService.Actions.WAYPOINT_CREATE);
                             serviceIntent.putExtra("UPDATE", waypoint);
                             serviceIntent.putExtra("WAYPOINT_ID", waypointId);
                             serviceIntent.putExtra("AMBULANCE_ID", ambulance.getId());
@@ -1091,7 +1108,7 @@ public class MainActivity extends AppCompatActivity {
         // Use the Builder class for convenient dialog construction
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Stop server updates")
-                .setMessage("Stoping updates will prevent you from relaying your GPS position, receiving calls or otherwise updating the ambulance status on the server. Do you want to stop server updates?")
+                .setMessage("Stoping updates will prevent you from relaying your GPS position, receiving call_current or otherwise updating the ambulance status on the server. Do you want to stop server updates?")
                 .setNegativeButton("No", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
 

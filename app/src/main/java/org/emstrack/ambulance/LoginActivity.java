@@ -244,7 +244,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         if (AmbulanceForegroundService.canUpdateLocation()) {
 
             // Toast to warn about check permissions
-            Toast.makeText(LoginActivity.this, "Location permissions satisfied.", Toast.LENGTH_LONG).show();
+            Toast.makeText(LoginActivity.this, "Location permissions satisfied.", Toast.LENGTH_SHORT).show();
 
         } else {
 
@@ -279,7 +279,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
         } else {
 
-            // requestPermissions calls checkLocationSettings if successful
+            // requestPermissions call_current checkLocationSettings if successful
             requestPermissions();
 
         }
