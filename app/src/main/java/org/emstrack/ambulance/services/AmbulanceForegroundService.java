@@ -3554,7 +3554,8 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         // Update next waypoint status if update waypoint is a different waypoint
         if ((nextWaypoint == null && nextUpdatedWaypoint != null) ||
                 (nextWaypoint != null && nextUpdatedWaypoint == null) ||
-                (nextWaypoint.getId() != nextUpdatedWaypoint.getId()))
+                (nextWaypoint != null && nextUpdatedWaypoint != null &&
+                        nextWaypoint.getId() != nextUpdatedWaypoint.getId()))
             updateAmbulanceNextWaypointStatus(uuid, ambulanceCall, call);
 
         // Add geofence

@@ -412,10 +412,15 @@ public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSel
 
                 // Setup visiting button text
                 String visitinWaypointText = "Mark as ";
-                if (waypoint.isCreated())
+                if (waypoint.isCreated()) {
                     visitinWaypointText += Waypoint.statusLabel.get(Waypoint.STATUS_VISITING);
-                else // if (waypoint.isVisting())
+                    callVisitingWaypointButton.setBackgroundColor(getResources().getColor(R.color.bootstrapWarning));
+                    callVisitingWaypointButton.setTextColor(getResources().getColor(R.color.bootstrapDark));
+                } else { // if (waypoint.isVisting())
                     visitinWaypointText += Waypoint.statusLabel.get(Waypoint.STATUS_VISITED);
+                    callVisitingWaypointButton.setBackgroundColor(getResources().getColor(R.color.bootstrapInfo));
+                    callVisitingWaypointButton.setTextColor(getResources().getColor(R.color.bootstrapLight));
+                }
                 callVisitingWaypointButton.setText(visitinWaypointText);
 
                 // Make callNextWaypointLayout visible

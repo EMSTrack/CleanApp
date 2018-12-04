@@ -28,38 +28,38 @@ public class Ambulance {
         Map<String, Integer> backgroundColorMap = new HashMap<>();
         Map<String, Integer> textColorMap = new HashMap<>();
 
-        backgroundColorMap.put(STATUS_UNKNOWN, R.color.bootstrapPrimary);
+        backgroundColorMap.put(STATUS_UNKNOWN, R.color.bootstrapDark);
         textColorMap.put(STATUS_UNKNOWN, R.color.bootstrapLight);
 
         backgroundColorMap.put(STATUS_AVAILABLE, R.color.bootstrapSuccess);
         textColorMap.put(STATUS_AVAILABLE, R.color.bootstrapLight);
 
-        backgroundColorMap.put(STATUS_OUT_OF_SERVICE, R.color.bootstrapSecondary);
+        backgroundColorMap.put(STATUS_OUT_OF_SERVICE, R.color.bootstrapDark);
         textColorMap.put(STATUS_OUT_OF_SERVICE, R.color.bootstrapLight);
 
-        backgroundColorMap.put(STATUS_PATIENT_BOUND, R.color.bootstrapDanger);
-        textColorMap.put(STATUS_PATIENT_BOUND, R.color.bootstrapLight);
+        backgroundColorMap.put(STATUS_AT_BASE, R.color.bootstrapWarning);
+        textColorMap.put(STATUS_AT_BASE, R.color.bootstrapDark);
 
         backgroundColorMap.put(STATUS_AT_PATIENT, R.color.bootstrapWarning);
         textColorMap.put(STATUS_AT_PATIENT, R.color.bootstrapDark);
 
-        backgroundColorMap.put(STATUS_HOSPITAL_BOUND, R.color.bootstrapDanger);
-        textColorMap.put(STATUS_HOSPITAL_BOUND, R.color.bootstrapLight);
-
         backgroundColorMap.put(STATUS_AT_HOSPITAL, R.color.bootstrapWarning);
         textColorMap.put(STATUS_AT_HOSPITAL, R.color.bootstrapDark);
 
-        backgroundColorMap.put(STATUS_BASE_BOUND, R.color.bootstrapInfo);
-        textColorMap.put(STATUS_BASE_BOUND, R.color.bootstrapDark);
-
-        backgroundColorMap.put(STATUS_AT_BASE, R.color.bootstrapSuccess);
-        textColorMap.put(STATUS_AT_BASE, R.color.bootstrapLight);
-
-        backgroundColorMap.put(STATUS_WAYPOINT_BOUND, R.color.bootstrapDanger);
-        textColorMap.put(STATUS_WAYPOINT_BOUND, R.color.bootstrapLight);
-
         backgroundColorMap.put(STATUS_AT_WAYPOINT, R.color.bootstrapWarning);
         textColorMap.put(STATUS_AT_WAYPOINT, R.color.bootstrapDark);
+
+        backgroundColorMap.put(STATUS_PATIENT_BOUND, R.color.bootstrapInfo);
+        textColorMap.put(STATUS_PATIENT_BOUND, R.color.bootstrapLight);
+
+        backgroundColorMap.put(STATUS_HOSPITAL_BOUND, R.color.bootstrapInfo);
+        textColorMap.put(STATUS_HOSPITAL_BOUND, R.color.bootstrapLight);
+
+        backgroundColorMap.put(STATUS_BASE_BOUND, R.color.bootstrapInfo);
+        textColorMap.put(STATUS_BASE_BOUND, R.color.bootstrapLight);
+
+        backgroundColorMap.put(STATUS_WAYPOINT_BOUND, R.color.bootstrapInfo);
+        textColorMap.put(STATUS_WAYPOINT_BOUND, R.color.bootstrapLight);
 
         statusBackgroundColorMap = Collections.unmodifiableMap(backgroundColorMap);
         statusTextColorMap = Collections.unmodifiableMap(textColorMap);
