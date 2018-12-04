@@ -19,6 +19,7 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
 import android.support.v4.content.LocalBroadcastManager;
+import android.support.v4.widget.ListViewAutoScrollHelper;
 import android.text.TextUtils;
 import android.util.Log;
 import android.util.Pair;
@@ -197,8 +198,16 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         public final static String CALL_UPDATE = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastaction.CALL_UPDATE";
     }
 
-    public static class ProfileClientException extends Exception {
+    public class AmbulanceForegroundServiceException extends Exception {
+        public AmbulanceForegroundServiceException(String message) {
+            super(message);
+        }
+    }
 
+    public static class ProfileClientException extends Exception {
+        public ProfileClientException(String message) {
+            super(message);
+        }
     }
 
     public class ReconnectionInformation {
@@ -778,8 +787,9 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
             return client;
 
         // otherwise log and throw exception
-        Log.e(TAG,"Failed to get profile client.");
-        throw new ProfileClientException();
+        String message = "Failed to get profile client.";
+        Log.e(TAG, message);
+        throw new ProfileClientException(message);
 
     }
 
@@ -1049,6 +1059,8 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
      * @param callId int
      */
     public void updateWaypointStatus(String status, Waypoint waypoint, int ambulanceId, int callId) {
+
+        Log.d(TAG, "Updating waypoint '" + waypoint.getId() + "' to status '" + status + "'");
 
         // Update locally
         waypoint.setStatus(status);
@@ -2952,7 +2964,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
                                 } else {
 
-                                    // Add to pending call_current
+                                    // Add to pending calls
                                     pendingCalls.put(call.getId(), call);
 
                                     // if no current, process next
@@ -2993,62 +3005,57 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
         Log.d(TAG, "Updating call " + call.getId());
 
-        try {
+        if (call.getId() == pendingCalls.getCurrentCallId()) {
 
-            if (call.getId() == pendingCalls.getCurrentCallId()) {
+            // Call is currently being served
+            Log.i(TAG, "Call is current call");
 
-                // Call is currently being served
-                Log.i(TAG, "Updating current call");
+            // Has call ended?
+            if (!call.getStatus().equals("E")) {
 
-                // Has call ended?
-                if (!call.getStatus().equals("E")) {
+                try {
 
-                    // Get current ambulance
-                    Ambulance ambulance = AmbulanceForegroundService.getCurrentAmbulance();
-                    AmbulanceCall ambulanceCall = AmbulanceForegroundService.getCurrentAmbulanceCall();
-
-                    // Get next waypoint
-                    Waypoint nextWaypoint = ambulanceCall.getNextWaypoint();
-
-                    // Update call
-                    pendingCalls.put(pendingCalls.getCurrentCallId(), call);
-
-                    // It this maybe the next waypoint?
-                    if (nextWaypoint == null && ambulanceCall.getNextWaypoint() != null)
-                        updateAmbulanceNextWaypointStatus(uuid, ambulanceCall, call);
-
-                    // Set current call
-                    call.setCurrentAmbulanceCall(ambulance.getId());
+                    // call setOrUpdateCall
+                    setOrUpdateCall(uuid, call);
 
                     // Broadcast current call updateAmbulance
                     Intent callFinishedIntent = new Intent(BroadcastActions.CALL_UPDATE);
                     sendBroadcastWithUUID(callFinishedIntent, uuid);
 
-                }
+                } catch (AmbulanceForegroundServiceException | CallStack.CallStackException | Call.CallException e) {
 
-                // Call ending is handled by ambulancecall update
+                    String message = "Exception in setOrUpdateCall: " + e.toString();
+                    Log.d(TAG, message);
 
-
-            } else {
-
-                // Call is on the queue
-
-                // Has call ended?
-                if (call.getStatus().equals("E")) {
-
-                    // Remove from pending call_current
-                    pendingCalls.remove(pendingCalls.getCurrentCallId());
-
-                } else {
-
-                    // Update call information
-                    pendingCalls.put(call.getId(), call);
+                    /// Broadcast failure
+                    Intent localIntent = new Intent(BroadcastActions.FAILURE);
+                    localIntent.putExtra(BroadcastExtras.MESSAGE, message);
+                    sendBroadcastWithUUID(localIntent, uuid);
 
                 }
 
             }
 
-        } catch (Exception e) {
+            // Call ending is handled by ambulancecall update
+
+
+        } else {
+
+            // Call is on the queue
+            Log.i(TAG, "Call is on the queue");
+
+            // Has call ended?
+            if (call.getStatus().equals("E")) {
+
+                // Remove from pending calls
+                pendingCalls.remove(pendingCalls.getCurrentCallId());
+
+            } else {
+
+                // Update call information
+                pendingCalls.put(call.getId(), call);
+
+            }
 
         }
 
@@ -3161,7 +3168,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
                 // Set status as available
                 Log.d(TAG, "Set ambulance '" + getCurrentAmbulance().getId() + "' available");
-                updateAmbulanceStatus(ambulance.getId(), "AV");
+                updateAmbulanceStatus(ambulance.getId(), Ambulance.STATUS_AVAILABLE);
 
                 // Release current call
                 pendingCalls.setPendingCall(false);
@@ -3368,7 +3375,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
     }
 
     // handles steps 6 to 7
-    public void setCallOngoing(final int callId, final String uuid) {
+    public void oldSetCallOngoing(final int callId, final String uuid) {
 
         if (pendingCalls.hasCurrentCall()) {
 
@@ -3387,7 +3394,6 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
             return;
         }
 
-        getProfileClient(AmbulanceForegroundService.this);
         Ambulance ambulance = getCurrentAmbulance();
 
         if (ambulance == null) {
@@ -3414,7 +3420,8 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
             // Set current call
             Log.i(TAG, "Setting current ambulanceCall");
-            AmbulanceCall ambulanceCall = call.setCurrentAmbulanceCall(ambulance.getId());
+            call.setCurrentAmbulanceCall(ambulance.getId());
+            AmbulanceCall ambulanceCall = call.getCurrentAmbulanceCall();
 
             // step 6
             // Add geofence
@@ -3451,13 +3458,116 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
             callOngoingIntent.putExtra("CALL_ID", callId);
             sendBroadcastWithUUID(callOngoingIntent, uuid);
 
-        } catch (CallStack.CallStackException e) {
+        } catch (CallStack.CallStackException | Call.CallException e) {
 
             Log.d(TAG, "Could not set current call");
 
             Intent localIntent = new Intent(BroadcastActions.FAILURE);
             localIntent.putExtra(BroadcastExtras.MESSAGE, R.string.couldNotSetCurrentCall);
             sendBroadcastWithUUID(localIntent, uuid);
+
+        }
+
+    }
+
+    // handles steps 6 to 7
+    public void setCallOngoing(final int callId, final String uuid) {
+
+        // Retrieve call
+        Call call = pendingCalls.get(callId);
+        if (call == null) {
+
+            String message = String.format("Could not retrieve call '%1$d'", callId);
+            Log.d(TAG, message);
+
+            Intent localIntent = new Intent(BroadcastActions.FAILURE);
+            localIntent.putExtra(BroadcastExtras.MESSAGE, message);
+            sendBroadcastWithUUID(localIntent, uuid);
+            return;
+
+        }
+
+        try {
+
+            // Call setOrUpdateCall
+            setOrUpdateCall(uuid, call);
+
+            // broadcast CALL_ONGOING
+            Intent callOngoingIntent = new Intent(BroadcastActions.CALL_ONGOING);
+            callOngoingIntent.putExtra("CALL_ID", callId);
+            sendBroadcastWithUUID(callOngoingIntent, uuid);
+
+        } catch (AmbulanceForegroundServiceException | CallStack.CallStackException | Call.CallException e) {
+
+            String message = "Exception in setOrUpdateCall: " + e.toString();
+            Log.d(TAG, message);
+
+            /// Broadcast failure
+            Intent localIntent = new Intent(BroadcastActions.FAILURE);
+            localIntent.putExtra(BroadcastExtras.MESSAGE, message);
+            sendBroadcastWithUUID(localIntent, uuid);
+
+        }
+
+    }
+
+    public void setOrUpdateCall(final String uuid, Call call)
+            throws AmbulanceForegroundServiceException, CallStack.CallStackException, Call.CallException {
+
+        // Fail if servicing another call
+        if (pendingCalls.hasCurrentCall() && pendingCalls.getCurrentCallId() != call.getId()) {
+            String message = String.format("Can't set call as ongoing: already servicing call '%1$d'", pendingCalls.getCurrentCallId());
+            throw new AmbulanceForegroundServiceException(message);
+        }
+
+        // Fails if call is not in stack
+        if (!pendingCalls.contains(call.getId())) {
+            String message = String.format("Call '%1$d' is not in the current call stack", pendingCalls.getCurrentCallId());
+            throw new AmbulanceForegroundServiceException(message);
+        }
+
+        // Get current ambulance and set call to it
+        Ambulance ambulance = AmbulanceForegroundService.getCurrentAmbulance();
+        call.setCurrentAmbulanceCall(ambulance.getId());
+        AmbulanceCall ambulanceCall = call.getCurrentAmbulanceCall();
+
+        // This is an update, what is next waypoint?
+        // Do this before updating...
+        Waypoint nextWaypoint = null;
+        if (pendingCalls.hasCurrentCall()) {
+
+            // Get current ambulancecall and next waypoint
+            AmbulanceCall currentAmbulanceCall = AmbulanceForegroundService.getCurrentAmbulanceCall();
+            nextWaypoint = currentAmbulanceCall.getNextWaypoint();
+
+        }
+        Log.d(TAG, "Next waypoint is " + (nextWaypoint == null ? "'null'" : "'" + nextWaypoint.getId() + "'"));
+
+        // Update call in stack and set as current call
+        pendingCalls.put(call.getId(), call);
+        pendingCalls.setCurrentCall(call.getId());
+
+        // It this maybe the next waypoint?
+        Waypoint nextUpdatedWaypoint = ambulanceCall.getNextWaypoint();
+        Log.d(TAG, "Next updated waypoint is " + (nextUpdatedWaypoint == null ? "'null'" : "'" + nextUpdatedWaypoint.getId() + "'"));
+
+        // Update next waypoint status if update waypoint is a different waypoint
+        if ((nextWaypoint == null && nextUpdatedWaypoint != null) ||
+                (nextWaypoint != null && nextUpdatedWaypoint == null) ||
+                (nextWaypoint.getId() != nextUpdatedWaypoint.getId()))
+            updateAmbulanceNextWaypointStatus(uuid, ambulanceCall, call);
+
+        // Add geofence
+        Log.i(TAG, "Will set waypoints");
+
+        // Sort waypoints
+        ambulanceCall.sortWaypoints();
+
+        // Loop through waypoints
+        for (Waypoint waypoint : ambulanceCall.getWaypointSet()) {
+
+            // Retrieve location
+            startGeofence(uuid, new Geofence(waypoint, _defaultGeofenceRadius));
 
         }
 
@@ -3475,22 +3585,22 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
             if (waypointType.equals(Location.TYPE_INCIDENT)) {
 
                 // step 7: publish patient bound to server
-                updateAmbulanceStatus(ambulanceCall.getAmbulanceId(),"PB");
+                updateAmbulanceStatus(ambulanceCall.getAmbulanceId(), Ambulance.STATUS_PATIENT_BOUND);
 
             } else if (waypointType.equals(Location.TYPE_BASE)) {
 
                 // step 7: publish base bound to server
-                updateAmbulanceStatus(ambulanceCall.getAmbulanceId(),"BB");
+                updateAmbulanceStatus(ambulanceCall.getAmbulanceId(),Ambulance.STATUS_BASE_BOUND);
 
             } else if (waypointType.equals(Location.TYPE_HOSPITAL)) {
 
                 // step 7: publish hospital bound to server
-                updateAmbulanceStatus(ambulanceCall.getAmbulanceId(),"HB");
+                updateAmbulanceStatus(ambulanceCall.getAmbulanceId(),Ambulance.STATUS_HOSPITAL_BOUND);
 
             } else if (waypointType.equals(Location.TYPE_WAYPOINT)) {
 
                 // step 7: publish waypoint bound to server
-                updateAmbulanceStatus(ambulanceCall.getAmbulanceId(),"WB");
+                updateAmbulanceStatus(ambulanceCall.getAmbulanceId(),Ambulance.STATUS_WAYPOINT_BOUND);
 
             }
 
@@ -3547,6 +3657,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
         String waypointType = waypoint.getLocation().getType();
         Log.d(TAG, "Arrived at waypoint of type '" + waypointType + "'");
+
         if (waypointType.equals(Location.TYPE_INCIDENT)) {
 
             // publish at patient to server
@@ -3750,8 +3861,54 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
         Log.d(TAG,String.format("GEOFENCE(%1$s, %2$f)", geofence.getLocation().toString(), geofence.getRadius()));
 
+        // Get waypoint
+        Waypoint waypoint = geofence.getWaypoint();
+
+        // Is it a legit waypoint?
+        if (waypoint.getId() < 0) {
+
+            Log.d(TAG, "Waypoint has invalid id");
+
+            // Broadcast failure and return
+            Intent localIntent = new Intent(BroadcastActions.FAILURE);
+            localIntent.putExtra(BroadcastExtras.MESSAGE, getString(R.string.failedToAddGeofence));
+            sendBroadcastWithUUID(localIntent, uuid);
+            return;
+
+        }
+
+        // It this a new waypoint?
+        boolean existing = false;
+        for (Map.Entry<String, Geofence> entry : _geofences.entrySet()) {
+
+            String[] splits = entry.getKey().split(":", 2);
+            if (waypoint.getId() == Integer.valueOf(splits[0])) {
+                // Found waypoint
+                existing = true;
+
+                // update waypoint on geofence
+                entry.getValue().setWaypoint(waypoint);
+
+            }
+
+        }
+
+        // if existing, done
+        if (existing) {
+
+            Log.d(TAG, String.format("Geofence '%1$d' updated", waypoint.getId()));
+
+            // Broadcast success
+            Intent localIntent = new Intent(BroadcastActions.SUCCESS);
+            sendBroadcastWithUUID(localIntent, uuid);
+            return;
+
+        }
+
+        // Otherwise add geofence
+
         // Set unique id
-        final String id = "GEOFENCE_" + geofencesId.getAndIncrement();
+        final String id = (waypoint.getId() < 0 ? "_" : waypoint.getId()) + ":" + geofencesId.getAndIncrement();
 
         // Create settings client
         SettingsClient settingsClient = LocationServices.getSettingsClient(this);
@@ -3763,9 +3920,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                     @Override
                     public void onSuccess(LocationSettingsResponse locationSettingsResponse) {
 
-                        Log.i(TAG, "All location settings are satisfied.");
-
-                        Log.i(TAG, "Adding GEOFENCE.");
+                        Log.i(TAG, String.format("Adding geofence '%1$s'...", id));
 
                         fenceClient.addGeofences(getGeofencingRequest(geofence.build(id)),
                                 getGeofencePendingIntent())
@@ -3774,7 +3929,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                                     @Override
                                     public void onSuccess(Void aVoid) {
                                         // Geofences added
-                                        Log.i(TAG, "GEOFENCES ADDED.");
+                                        Log.i(TAG, String.format("Geofence '%1$s' added", id));
 
                                         // Add to map
                                         _geofences.put(id, geofence);
@@ -3924,4 +4079,5 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
     private static LocalBroadcastManager getLocalBroadcastManager(Context context) {
         return LocalBroadcastManager.getInstance(context);
     }
+
 }

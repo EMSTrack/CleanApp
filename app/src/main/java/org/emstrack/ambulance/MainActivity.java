@@ -905,6 +905,16 @@ public class MainActivity extends AppCompatActivity {
                         */
 
                     }
+                })
+                .setNeutralButton("End Call", new DialogInterface.OnClickListener() {
+
+                    public void onClick(DialogInterface dialog, int id) {
+
+                        Log.i(TAG, "Ending call");
+
+                        promptEndCallDialog(callId);
+
+                    }
                 });
 
         // Create the AlertDialog object and display it

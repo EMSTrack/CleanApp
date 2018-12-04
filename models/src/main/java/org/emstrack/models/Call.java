@@ -29,6 +29,13 @@ public class Call {
         statusLabel = Collections.unmodifiableMap(map);
     }
 
+    public class CallException extends Exception {
+
+        public CallException(String message) {
+            super(message);
+        }
+    }
+
     private int id;
     private String status;
     private String details;
@@ -190,8 +197,10 @@ public class Call {
         return null;
     }
 
-    public AmbulanceCall setCurrentAmbulanceCall(int ambulance_id) {
-        return currentAmbulanceCall = getAmbulanceCall(ambulance_id);
+    public void setCurrentAmbulanceCall(int ambulance_id) throws CallException {
+        currentAmbulanceCall = getAmbulanceCall(ambulance_id);
+        if (currentAmbulanceCall == null)
+            throw new CallException("Ambulance is not part of call.");
     }
 
     public AmbulanceCall getCurrentAmbulanceCall() {
