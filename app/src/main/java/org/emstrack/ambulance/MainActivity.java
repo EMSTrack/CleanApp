@@ -247,6 +247,8 @@ public class MainActivity extends AppCompatActivity {
 
         super.onCreate(savedInstanceState);
 
+        Log.d(TAG, "onCreate");
+
         // Do not logout
         logoutAfterFinish = false;
 
@@ -794,8 +796,6 @@ public class MainActivity extends AppCompatActivity {
                 .setMessage("What do you want to do?")
                 .setNegativeButton("Continue", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
-
-                        Toast.makeText(MainActivity.this, "Continuing to handle call", Toast.LENGTH_SHORT).show();
 
                         Log.i(TAG, "Continuing with call");
 
