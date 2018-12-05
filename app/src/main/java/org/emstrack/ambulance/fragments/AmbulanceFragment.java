@@ -368,6 +368,8 @@ public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSel
             callPriorityButton.setBackgroundColor(((MainActivity) getActivity()).getCallPriorityBackgroundColors().get(call.getPriority()));
             callPriorityButton.setTextColor(((MainActivity) getActivity()).getCallPriorityForegroundColors().get(call.getPriority()));
 
+            ((TextView) view.findViewById(R.id.callPriorityLabel)).setText("Current Call:");
+
             callDescriptionTextView.setText(call.getDetails());
 
             // patients

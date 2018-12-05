@@ -123,17 +123,22 @@ public class CallStack implements Iterable {
 
     public Call getNextCall(int ambulanceId) {
 
-        // Try suspended first
-        Call call = getNextCall(ambulanceId, AmbulanceCall.STATUS_SUSPENDED);
+        // Try ongoing first
+        Call call = getNextCall(ambulanceId, AmbulanceCall.STATUS_ONGOING);
         if (call != null)
             return call;
 
-        // Then requested
+        // then suspended
+        call = getNextCall(ambulanceId, AmbulanceCall.STATUS_SUSPENDED);
+        if (call != null)
+            return call;
+
+        // then requested
         call = getNextCall(ambulanceId, AmbulanceCall.STATUS_REQUESTED);
         if (call != null)
             return call;
 
-        // Ignore STATUS_COMPLETED, STATUS_DECLINED and STATUS_ONGOING calls
+        // Ignore STATUS_COMPLETED and STATUS_DECLINED calls
         return null;
     }
 

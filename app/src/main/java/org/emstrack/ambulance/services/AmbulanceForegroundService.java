@@ -19,7 +19,6 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
 import android.support.v4.content.LocalBroadcastManager;
-import android.support.v4.widget.ListViewAutoScrollHelper;
 import android.text.TextUtils;
 import android.util.Log;
 import android.util.Pair;
@@ -702,7 +701,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
             int callId = intent.getIntExtra("CALL_ID", -1);
 
             // next steps to publish information to server (steps 3, 4)
-            declineCall(callId, uuid);
+            requestToDeclineCurrentCall(callId, uuid);
 
         } else if (action.equals(Actions.CALL_SUSPEND)) {
 
@@ -712,14 +711,14 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
             int callId = intent.getIntExtra("CALL_ID", -1);
 
             // next steps to publish information to server (steps 3, 4)
-            requestToSuspendCall(callId, uuid);
+            requestToSuspendCurrentCall(callId, uuid);
 
         } else if (action.equals(Actions.CALL_FINISH)) {
 
             Log.i(TAG, "CALL_FINISH Foreground Intent");
 
             // finish call
-            finishCurrentCall(uuid);
+            requestToFinishCurrentCall(uuid);
 
         } else if (action.equals(Actions.GEOFENCE_ENTER) ||
                 action.equals(Actions.GEOFENCE_EXIT)) {
@@ -2824,12 +2823,16 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                                     // Is this a new call?
                                     if (!pendingCalls.contains(callId)) {
 
+                                        Log.d(TAG, "New call");
+
                                         // this is a new call, subscribe
                                         processOrSubscribeToCall(callId, uuid);
 
                                     } else {
 
                                         // this is an existing call
+
+                                        Log.d(TAG, "Existing call");
 
                                         String newStatus;
                                         if (status.equalsIgnoreCase(AmbulanceCall.statusLabel.get(AmbulanceCall.STATUS_REQUESTED))) {
@@ -3108,22 +3111,6 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
     }
 
-    public void finishCurrentCall(String uuid) {
-
-        // if currently not serving call
-        if (!pendingCalls.hasCurrentCall()) {
-
-            Log.d(TAG, "Can't finish call: not serving any call.");
-
-            return;
-
-        }
-
-        // publish finished status to server
-        setCallStatus(pendingCalls.getCurrentCallId(), "finished", uuid);
-
-    }
-
     public void cleanUpCall(int callId, String uuid) {
         cleanUpCall(callId, uuid, true);
     }
@@ -3217,8 +3204,8 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
                 Log.d(TAG, "Processing next call...");
 
-                // process next call
-                processNextCall(uuid);
+                // process next call, expect if callId
+                processNextCall(uuid, callId);
 
             }
 
@@ -3230,7 +3217,32 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
     }
 
-    public void declineCall(int callId, String uuid) {
+    public void requestToFinishCurrentCall(String uuid) {
+
+        // if currently not serving call
+        if (!pendingCalls.hasCurrentCall()) {
+
+            Log.d(TAG, "Can't finish call: not serving any call.");
+
+            Intent localIntent = new Intent(BroadcastActions.FAILURE);
+            localIntent.putExtra(BroadcastExtras.MESSAGE, getString(R.string.couldNotFinishCall));
+            sendBroadcastWithUUID(localIntent, uuid);
+
+            return;
+
+        }
+
+        // Set ambulanceCall status to completed locally
+        // This prevents further processing of this call
+        Call call = pendingCalls.getCurrentCall();
+        call.getCurrentAmbulanceCall().setStatus(AmbulanceCall.STATUS_COMPLETED);
+
+        // publish finished status to server
+        setCallStatus(call.getId(), "finished", uuid);
+
+    }
+
+    public void requestToDeclineCurrentCall(int callId, String uuid) {
 
         // if currently serving call, can't decline
         if (pendingCalls.hasCurrentCall()) {
@@ -3245,12 +3257,26 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
         }
 
+        try {
+
+            // Set ambulanceCall status to suspended locally
+            // This prevents further processing of this call
+            Call call = pendingCalls.get(callId);
+            Ambulance ambulance = AmbulanceForegroundService.getCurrentAmbulance();
+            call.getAmbulanceCall(ambulance.getId()).setStatus(AmbulanceCall.STATUS_DECLINED);
+
+        } catch (Exception e) {
+
+            Log.d(TAG, "Could not set ambulance call status to declined. Moving on...");
+
+        }
+
         // publish declined as status
         setCallStatus(callId, "Declined", uuid);
 
     }
 
-    public void requestToSuspendCall(int callId, String uuid) {
+    public void requestToSuspendCurrentCall(int callId, String uuid) {
 
         // if not currently serving call, can't suspend
         if (!pendingCalls.hasCurrentCall()) {
@@ -3265,12 +3291,21 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
         }
 
+        // Set ambulanceCall status to suspended locally
+        // This prevents further processing of this call
+        Call call = pendingCalls.getCurrentCall();
+        call.getCurrentAmbulanceCall().setStatus(AmbulanceCall.STATUS_SUSPENDED);
+
         // publish suspended as status
         setCallStatus(callId, "Suspended", uuid);
 
     }
 
     public void processNextCall(String uuid) {
+        processNextCall(uuid, -1);
+    }
+
+    public void processNextCall(String uuid, int exceptCallId) {
 
         // if current call, bark
         if (pendingCalls.hasCurrentCall()) {
@@ -3307,7 +3342,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
         // Get next suitable call
         Call nextCall = pendingCalls.getNextCall(ambulance.getId());
-        if (nextCall != null) {
+        if (nextCall != null && nextCall.getId() != exceptCallId) {
 
             Log.i(TAG, "Will prompt user to accept call");
 
@@ -3324,26 +3359,6 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
             Log.i(TAG, "No more pending or suspended calls");
 
         }
-
-        /*
-        // Are there more call_current in the queue?
-        CallStack.CallStackIterator iterator = pendingCalls.iterator();
-        if (iterator.hasNext()) {
-
-            Log.i(TAG, "Will prompt user to accept call");
-
-            Map.Entry<Integer, Call> pair = iterator.next();
-
-            // set pending call
-            pendingCalls.setPendingCall(true);
-
-            // create intent to prompt user
-            Intent callPromptIntent = new Intent(BroadcastActions.PROMPT_CALL_ACCEPT);
-            callPromptIntent.putExtra("CALL_ID", pair.getKey());
-            sendBroadcastWithUUID(callPromptIntent, uuid);
-
-        }
-        */
 
     }
 
@@ -3370,102 +3385,6 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
             Intent localIntent = new Intent(BroadcastActions.FAILURE);
             localIntent.putExtra(BroadcastExtras.MESSAGE, getString(R.string.couldNotFindAmbulance));
             sendBroadcastWithUUID(localIntent, uuid);
-        }
-
-    }
-
-    // handles steps 6 to 7
-    public void oldSetCallOngoing(final int callId, final String uuid) {
-
-        if (pendingCalls.hasCurrentCall()) {
-
-            Log.d(TAG, "Can't set call as ongoing: already servicing call " + pendingCalls.getCurrentCallId());
-            return;
-        }
-
-        if (!pendingCalls.contains(callId)) {
-
-            Log.d(TAG, "Could not retrieve call/" + pendingCalls.getCurrentCallId());
-
-            Intent localIntent = new Intent(BroadcastActions.FAILURE);
-            localIntent.putExtra(BroadcastExtras.MESSAGE, "Could not retrieve call/" + pendingCalls.getCurrentCallId());
-            sendBroadcastWithUUID(localIntent, uuid);
-
-            return;
-        }
-
-        Ambulance ambulance = getCurrentAmbulance();
-
-        if (ambulance == null) {
-
-            Log.d(TAG, "Ambulance not found while in replyToOngoingCall()");
-
-            Intent localIntent = new Intent(BroadcastActions.FAILURE);
-            localIntent.putExtra(BroadcastExtras.MESSAGE, getString(R.string.couldNotFindAmbulance));
-            sendBroadcastWithUUID(localIntent, uuid);
-
-            return;
-        }
-
-        // step 6 & 7
-        Log.i(TAG, "Replying to ongoing call/" + callId);
-
-        try {
-
-            // set current call
-            pendingCalls.setCurrentCall(callId);
-
-            // retrieve call
-            Call call = pendingCalls.get(callId);
-
-            // Set current call
-            Log.i(TAG, "Setting current ambulanceCall");
-            call.setCurrentAmbulanceCall(ambulance.getId());
-            AmbulanceCall ambulanceCall = call.getCurrentAmbulanceCall();
-
-            // step 6
-            // Add geofence
-            if (ambulanceCall == null) {
-
-                Log.i(TAG, "Could not retrieve ambulanceCall");
-
-            } else {
-
-                Log.i(TAG, "Will set waypoints");
-
-                // Sort waypoints
-                ambulanceCall.sortWaypoints();
-
-                // Found waypoints
-                for (Waypoint waypoint : ambulanceCall.getWaypointSet()) {
-
-                    // Retrieve location
-                    Location location = waypoint.getLocation();
-                    Log.i(TAG, "Waypoint type '" + location.getType() + "'");
-
-                    Log.i(TAG, "Adding geofence");
-                    startGeofence(uuid, new Geofence(waypoint, _defaultGeofenceRadius));
-
-                }
-
-                // Set status based on next waypoint
-                updateAmbulanceNextWaypointStatus(uuid, ambulanceCall, call);
-
-            }
-
-            // broadcast CALL_ONGOING
-            Intent callOngoingIntent = new Intent(BroadcastActions.CALL_ONGOING);
-            callOngoingIntent.putExtra("CALL_ID", callId);
-            sendBroadcastWithUUID(callOngoingIntent, uuid);
-
-        } catch (CallStack.CallStackException | Call.CallException e) {
-
-            Log.d(TAG, "Could not set current call");
-
-            Intent localIntent = new Intent(BroadcastActions.FAILURE);
-            localIntent.putExtra(BroadcastExtras.MESSAGE, R.string.couldNotSetCurrentCall);
-            sendBroadcastWithUUID(localIntent, uuid);
-
         }
 
     }

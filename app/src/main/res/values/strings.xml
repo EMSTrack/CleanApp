@@ -171,6 +171,7 @@
     <string name="couldNotFindAmbulanceCall">Could not find ambulance information for the current call.</string>
     <string name="couldNotForceUpdates">Could not force updates.</string>
     <string name="couldNotSetCurrentCall">Could not set current call</string>
+    <string name="couldNotFinishCall">Could not finish call</string>
     <string-array name="spinner_list_item_array_server">
         <item>@string/server_select</item>
         <item>Tijuana Red Cross:tijuana.emstrack.org:8883</item>

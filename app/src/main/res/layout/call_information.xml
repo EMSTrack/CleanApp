@@ -17,10 +17,11 @@
         android:id="@+id/callPriorityLabel"
         android:layout_width="fill_parent"
         android:layout_height="40dp"
-        android:gravity="bottom"
-        android:text="Priority:"
-        android:textStyle="bold"
-        android:layout_toLeftOf="@id/callPriorityButton" />
+        android:layout_toLeftOf="@id/callPriorityButton"
+        android:gravity="top"
+        android:text="Current Call:"
+        android:textSize="18sp"
+        android:textStyle="bold" />
 
     <TextView
         android:id="@+id/callDetailsLabel"

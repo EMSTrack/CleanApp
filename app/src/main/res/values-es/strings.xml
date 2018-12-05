@@ -153,5 +153,6 @@
     <string name="couldNotForceUpdates">No se pudo forzar actualizaciones.</string>
     <string name="couldNotFindAmbulanceCall">No se pudo encontrar información de ambulancia para la llamada actual.</string>
     <string name="couldNotSetCurrentCall">No se pudo establecer la llamada</string>
+    <string name="couldNotFinishCall">Could not finish call</string>
 
 </resources>

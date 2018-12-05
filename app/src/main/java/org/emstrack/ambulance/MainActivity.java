@@ -1,5 +1,6 @@
 package org.emstrack.ambulance;
 
+import android.app.MediaRouteButton;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -22,6 +23,7 @@ import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewStructure;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageButton;
@@ -69,9 +71,6 @@ public class MainActivity extends AppCompatActivity {
     private static final float enabledAlpha = 1.0f;
     private static final float disabledAlpha = 0.25f;
 
-    private ViewPager viewPager;
-    private FragmentPager adapter;
-
     private Button ambulanceButton;
 
     private List<AmbulancePermission> ambulancePermissions;
@@ -82,16 +81,15 @@ public class MainActivity extends AppCompatActivity {
     private ArrayAdapter<String> baseListAdapter;
 
     private DrawerLayout mDrawer;
-    private NavigationView nvDrawer;
     private ActionBarDrawerToggle drawerToggle;
     private Toolbar toolbar;
-    private ImageButton panicButton;
     private ImageView onlineIcon;
     private ImageView trackingIcon;
     private MainActivityBroadcastReceiver receiver;
     private Map<String, Integer> callPriorityBackgroundColors;
     private Map<String, Integer> callPriorityForegroundColors;
-    private String[] callPriorityColorsArray;
+
+    private boolean logoutAfterFinish;
 
     public class TrackingClickListener implements View.OnClickListener {
 
@@ -193,6 +191,10 @@ public class MainActivity extends AppCompatActivity {
 
                     Log.i(TAG, "PROMPT_CALL_ACCEPT");
 
+                    if (logoutAfterFinish)
+                        // Ignore
+                        return;
+
                     int callId = intent.getIntExtra("CALL_ID", -1);
                     promptAcceptCallDialog(callId);
 
@@ -226,6 +228,12 @@ public class MainActivity extends AppCompatActivity {
                     int myVectorColor = ContextCompat.getColor(MainActivity.this, R.color.colorBlack);
                     trackingIcon.setColorFilter(myVectorColor, PorterDuff.Mode.SRC_IN);
 
+                    // Logout?
+                    if (logoutAfterFinish) {
+                        logoutAfterFinish = false;
+                        LogoutDialog.newInstance(MainActivity.this).show();
+                    }
+
                 }
             }
         }
@@ -239,8 +247,11 @@ public class MainActivity extends AppCompatActivity {
 
         super.onCreate(savedInstanceState);
 
+        // Do not logout
+        logoutAfterFinish = false;
+
         // Call priority colors
-        callPriorityColorsArray = getResources().getStringArray(R.array.call_priority_colors);
+        String[] callPriorityColorsArray = getResources().getStringArray(R.array.call_priority_colors);
         callPriorityBackgroundColors = new HashMap<>();
         callPriorityForegroundColors = new HashMap<>();
         for (String colors: callPriorityColorsArray) {
@@ -270,7 +281,7 @@ public class MainActivity extends AppCompatActivity {
         ambulanceButton = (Button) findViewById(R.id.ambulanceButton);
 
         // Panic button
-        panicButton = (ImageButton) findViewById(R.id.panicButton);
+        ImageButton panicButton = (ImageButton) findViewById(R.id.panicButton);
         panicButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -292,18 +303,18 @@ public class MainActivity extends AppCompatActivity {
         drawerToggle.getDrawerArrowDrawable().setColor(getResources().getColor(R.color.colorBlack));
 
         // Find our drawer view
-        nvDrawer = findViewById(R.id.nvView);
+        NavigationView nvDrawer = findViewById(R.id.nvView);
 
         // Setup drawer view
         setupDrawerContent(nvDrawer);
 
         // pager
-        viewPager = findViewById(R.id.pager);
+        ViewPager viewPager = findViewById(R.id.pager);
 
         // Setup Adapter for tabLayout
-        adapter = new FragmentPager(getSupportFragmentManager(),
-                new Fragment[] {new AmbulanceFragment(), new MapFragment(), new HospitalFragment()},
-                new CharSequence[] {"Ambulance", "Map", "Hospitals"});
+        FragmentPager adapter = new FragmentPager(getSupportFragmentManager(),
+                new Fragment[]{new AmbulanceFragment(), new MapFragment(), new HospitalFragment()},
+                new CharSequence[]{"Ambulance", "Map", "Hospitals"});
         viewPager.setAdapter(adapter);
 
         //set up TabLayout Structure
@@ -566,7 +577,7 @@ public class MainActivity extends AppCompatActivity {
         // Actions
         if (itemId == R.id.logout) {
 
-            LogoutDialog.newInstance(this).show();
+            promptLogout();
 
         } else if (itemId == R.id.about) {
 
@@ -655,7 +666,7 @@ public class MainActivity extends AppCompatActivity {
         int numberOfWaypoints = ambulanceCall == null ? 0 : ambulanceCall.getWaypointSet().size();
 
         // Get next incident waypoint
-        Waypoint waypoint = ambulanceCall.getNextIncidentWaypoint();
+        Waypoint waypoint = ambulanceCall.getNextWaypoint();
         String distanceText;
         String address;
         String waypointType;
@@ -701,6 +712,8 @@ public class MainActivity extends AppCompatActivity {
         callPriorityButton.setBackgroundColor(callPriorityBackgroundColors.get(call.getPriority()));
         callPriorityButton.setTextColor(callPriorityForegroundColors.get(call.getPriority()));
 
+        ((TextView) view.findViewById(R.id.callPriorityLabel)).setText("Next Call:");
+
         ((TextView) view.findViewById(R.id.callDetailsText)).setText(call.getDetails());
         ((TextView) view.findViewById(R.id.callPatientsText)).setText(patientsText);
         ((TextView) view.findViewById(R.id.callNumberWaypointsText)).setText(String.valueOf(numberOfWaypoints));
@@ -708,6 +721,15 @@ public class MainActivity extends AppCompatActivity {
         ((TextView) view.findViewById(R.id.callWaypointTypeText)).setText(waypointType);
         ((TextView) view.findViewById(R.id.callDistanceText)).setText(distanceText);
         ((TextView) view.findViewById(R.id.callAddressText)).setText(address);
+
+        if (waypoint == null)
+
+            // Make callNextWaypointLayout invisible
+            view.findViewById(R.id.callNextWaypointLayout).setVisibility(View.GONE);
+
+        else
+            // Make callNextWaypointLayout visible
+            view.findViewById(R.id.callNextWaypointLayout).setVisibility(View.VISIBLE);
 
         // build dialog
         builder.setTitle("Accept Incoming Call?")
@@ -776,6 +798,9 @@ public class MainActivity extends AppCompatActivity {
                         Toast.makeText(MainActivity.this, "Continuing to handle call", Toast.LENGTH_SHORT).show();
 
                         Log.i(TAG, "Continuing with call");
+
+                        if (logoutAfterFinish)
+                            logoutAfterFinish = false;
 
                     }
                 })
@@ -1176,10 +1201,30 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    public void promptLogout() {
+
+        Call call = AmbulanceForegroundService.getCurrentCall();
+        if (call == null)
+
+            // Go straight to dialog
+            LogoutDialog.newInstance(this).show();
+
+        else {
+
+            // Will ask to logout
+            logoutAfterFinish = true;
+
+            // Prompt to end call first
+            promptEndCallDialog(call.getId());
+
+        }
+
+    }
+
     @Override
     public void onBackPressed() {
 
-        LogoutDialog.newInstance(this).show();
+        promptLogout();
 
     }
 
