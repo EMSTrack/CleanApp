@@ -2,11 +2,13 @@ package org.emstrack.ambulance.fragments;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.LocalBroadcastManager;
+import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.util.Pair;
 import android.view.LayoutInflater;
@@ -141,6 +143,8 @@ public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSel
 
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
+        Log.d(TAG, "onCreateView");
+
         // set formatter
         df.setMaximumFractionDigits(3);
 
@@ -185,9 +189,6 @@ public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSel
 
         callSkipWaypoinButton = callSkipLayout.findViewById(R.id.callSkipWaypointButton);
         callVisitingWaypointButton = callSkipLayout.findViewById(R.id.callVisitingWaypoingButton);
-
-        // setup as no current call
-        currentCallId = -1;
 
         try {
 
@@ -260,11 +261,15 @@ public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSel
             callLayout.setVisibility(View.GONE);
 
         // Are there call_current?
+        currentCallId = -1;
         Call call = AmbulanceForegroundService.getCurrentCall();
-        if (call != null)
+        if (call != null) {
+            Log.d(TAG, String.format("Is currently handling call '%1$d'", call.getId()));
             updateCall(ambulance, call);
-        else
+        } else {
+            Log.d(TAG, "Is currently not handling any call");
             callResumeLayout.setVisibility(View.GONE);
+        }
 
         // Process change of status
         statusSpinner.setOnItemSelectedListener(this);
@@ -276,6 +281,8 @@ public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSel
     public void onResume() {
         super.onResume();
 
+        Log.d(TAG, "onResume");
+
         // Set auxiliary panels gone
         callLayout.setVisibility(View.GONE);
         callResumeLayout.setVisibility(View.GONE);
@@ -286,9 +293,15 @@ public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSel
             updateAmbulance(ambulance);
 
         // Are there call_current?
+        currentCallId = -1;
         Call call = AmbulanceForegroundService.getCurrentCall();
-        if (call != null)
+        if (call != null) {
+            Log.d(TAG, String.format("Is currently handling call '%1$d'", call.getId()));
             updateCall(ambulance, call);
+        } else {
+            Log.d(TAG, "Is currently not handling any call");
+            callResumeLayout.setVisibility(View.GONE);
+        }
 
         // Register receiver
         IntentFilter filter = new IntentFilter();
@@ -318,14 +331,20 @@ public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSel
 
         if ((call == null ^ currentCallId <= 0)) {
 
+            Log.d(TAG, "Call changed, will initialize layout");
+
             // create new layout
             if (call == null) {
+
+                Log.d(TAG, "NO CALL Layout");
 
                 callInformationLayout.setVisibility(View.VISIBLE);
                 callLayout.setVisibility(View.GONE);
                 currentCallId = -1;
 
             } else {
+
+                Log.d(TAG, "CALL Layout");
 
                 callInformationLayout.setVisibility(View.GONE);
                 callResumeLayout.setVisibility(View.GONE);
@@ -358,6 +377,8 @@ public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSel
 
         // Update call content
         if (call != null) {
+
+            Log.d(TAG, "Creating call layout");
 
             // get ambulanceCall
             AmbulanceCall ambulanceCall = call.getCurrentAmbulanceCall();
@@ -437,15 +458,10 @@ public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSel
                             @Override
                             public void onClick(View v) {
 
-                                // update waypoint status on server
-                                Intent intent = new Intent(getContext(), AmbulanceForegroundService.class);
-                                intent.setAction(AmbulanceForegroundService.Actions.WAYPOINT_SKIP);
-                                Bundle bundle = new Bundle();
-                                bundle.putInt("WAYPOINT_ID", waypoint.getId());
-                                bundle.putInt("AMBULANCE_ID", ambulance.getId());
-                                bundle.putInt("CALL_ID", call.getId());
-                                intent.putExtras(bundle);
-                                getActivity().startService(intent);
+                                promptSkipVisitingOrVisited(Waypoint.STATUS_SKIPPED,
+                                        waypoint.getId(), call.getId(), ambulance.getId(),
+                                        "Please confirm","Do you want to skip the current waypoint?",
+                                        "Skipping waypoint");
 
                             }
                         }
@@ -456,21 +472,18 @@ public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSel
                             @Override
                             public void onClick(View v) {
 
-                                String action;
                                 if (waypoint.isCreated())
-                                    action = AmbulanceForegroundService.Actions.WAYPOINT_ENTER;
-                                else
-                                    action = AmbulanceForegroundService.Actions.WAYPOINT_EXIT;
 
-                                // update waypoint status on server
-                                Intent intent = new Intent(getContext(), AmbulanceForegroundService.class);
-                                intent.setAction(action);
-                                Bundle bundle = new Bundle();
-                                bundle.putInt("WAYPOINT_ID", waypoint.getId());
-                                bundle.putInt("AMBULANCE_ID", ambulance.getId());
-                                bundle.putInt("CALL_ID", call.getId());
-                                intent.putExtras(bundle);
-                                getActivity().startService(intent);
+                                    promptSkipVisitingOrVisited(Waypoint.STATUS_VISITING,
+                                            waypoint.getId(), call.getId(), ambulance.getId(),
+                                            "Please confirm","Are you visiting this location?",
+                                            "Mark waypoint as visiting");
+                                else
+
+                                    promptSkipVisitingOrVisited(Waypoint.STATUS_VISITED,
+                                            waypoint.getId(), call.getId(), ambulance.getId(),
+                                            "Please confirm","Are you done visiting this location?",
+                                            "Marking waypoint as visited");
 
                             }
                         }
@@ -760,5 +773,58 @@ public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSel
     private LocalBroadcastManager getLocalBroadcastManager() {
         return LocalBroadcastManager.getInstance(getContext());
     }
+
+
+    public void promptSkipVisitingOrVisited(final String status,
+                                            final int waypointId, final int callId, final int ambulanceId,
+                                            final String title, final String message, final String doneMessage) {
+
+        Log.d(TAG, "Creating promptSkipVisitingOrVisited dialog");
+
+        // Use the Builder class for convenient dialog construction
+        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+        builder.setTitle(title)
+                .setMessage(message)
+                .setNegativeButton("No", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+
+                        Log.i(TAG, "Continuing...");
+
+                    }
+                })
+                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+
+                        Log.i(TAG, String.format("Will mark as '%1$s'", status));
+
+                        Toast.makeText(getContext(), doneMessage, Toast.LENGTH_SHORT).show();
+
+                        String action;
+                        if (status == Waypoint.STATUS_SKIPPED)
+                            action = AmbulanceForegroundService.Actions.WAYPOINT_SKIP;
+                        else if (status == Waypoint.STATUS_VISITING)
+                            action = AmbulanceForegroundService.Actions.WAYPOINT_ENTER;
+                        else // if (status == Waypoint.STATUS_VISITED)
+                            action = AmbulanceForegroundService.Actions.WAYPOINT_EXIT;
+
+                        // update waypoint status on server
+                        Intent intent = new Intent(getContext(), AmbulanceForegroundService.class);
+                        intent.setAction(action);
+                        Bundle bundle = new Bundle();
+                        bundle.putInt("WAYPOINT_ID", waypointId);
+                        bundle.putInt("AMBULANCE_ID", ambulanceId);
+                        bundle.putInt("CALL_ID", callId);
+                        intent.putExtras(bundle);
+                        getActivity().startService(intent);
+
+
+
+                    }
+                });
+        // Create the AlertDialog object and return it
+        builder.create().show();
+    }
+
+
 
 }
