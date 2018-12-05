@@ -131,7 +131,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
     // Geofences
     private final static AtomicInteger geofencesId = new AtomicInteger(1);
     private static Map<String, Geofence> _geofences;
-    private static float _defaultGeofenceRadius = 50.f;
+    private static float _defaultGeofenceRadius = 100.f;
 
     private static LocationSettingsRequest locationSettingsRequest;
     private static LocationRequest locationRequest;
