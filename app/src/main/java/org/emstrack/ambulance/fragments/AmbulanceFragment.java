@@ -557,9 +557,9 @@ public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSel
                         .filterByStatus(ambulance.getId(),
                                 AmbulanceCall.STATUS_SUSPENDED)
                         .entrySet()) {
-                    Pair<Call,AmbulanceCall> ambulanceCall = ambulanceCallEntry.getValue();
-                    suspendedCallList.add(ambulanceCall);
-                    pendingCallList.add("(S) " + ambulanceCall.second.getCreatedAt());
+                    Pair<Call,AmbulanceCall> ambulanceCallPair = ambulanceCallEntry.getValue();
+                    suspendedCallList.add(ambulanceCallPair);
+                    pendingCallList.add("(S) " + ambulanceCallPair.second.getUpdatedOn());
                 }
             }
 
@@ -573,7 +573,7 @@ public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSel
                         .entrySet()) {
                     Pair<Call,AmbulanceCall> ambulanceCall = ambulanceCallEntry.getValue();
                     requestedCallList.add(ambulanceCall);
-                    pendingCallList.add("(R) " + ambulanceCall.second.getCreatedAt());
+                    pendingCallList.add("(R) " + ambulanceCall.second.getUpdatedOn());
                 }
             }
 

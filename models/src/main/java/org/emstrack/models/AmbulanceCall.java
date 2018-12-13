@@ -31,17 +31,25 @@ public class AmbulanceCall {
     private int id;
     private int ambulanceId;
     private String status;
-    private Date createdAt;
+    // private Date createdAt;
     private List<Waypoint> waypointSet;
     private boolean sorted;
+    private String comment;
+    private int updatedBy;
+    private Date updatedOn;
 
-    public AmbulanceCall(int id, int ambulanceId, String status, Date createdAt, List<Waypoint> waypointSet) {
+    public AmbulanceCall(int id, int ambulanceId, String status,
+                         String comment, int updatedBy, Date updatedOn,
+                         List<Waypoint> waypointSet) {
         this.id = id;
         this.ambulanceId = ambulanceId;
         this.status = status;
-        this.createdAt = createdAt;
+        // this.createdAt = createdAt;
         this.waypointSet = waypointSet;
         this.sorted = false;
+        this.comment = comment;
+        this.updatedBy = updatedBy;
+        this.updatedOn = updatedOn;
     }
 
     public int getId() {
@@ -68,13 +76,13 @@ public class AmbulanceCall {
         this.status = status;
     }
 
-    public Date getCreatedAt() {
-        return createdAt;
-    }
+    // public Date getCreatedAt() {
+    //     return createdAt;
+    // }
 
-    public void setCreatedAt(Date createdAt) {
-        this.createdAt = createdAt;
-    }
+    // public void setCreatedAt(Date createdAt) {
+    //     this.createdAt = createdAt;
+    // }
 
     public boolean isSorted() {
         return sorted;
@@ -82,6 +90,30 @@ public class AmbulanceCall {
 
     public void setSorted(boolean sorted) {
         this.sorted = sorted;
+    }
+
+    public String getComment() {
+        return comment;
+    }
+
+    public void setComment(String comment) {
+        this.comment = comment;
+    }
+
+    public int getUpdatedBy() {
+        return updatedBy;
+    }
+
+    public void setUpdatedBy(int updatedBy) {
+        this.updatedBy = updatedBy;
+    }
+
+    public Date getUpdatedOn() {
+        return updatedOn;
+    }
+
+    public void setUpdatedOn(Date updatedOn) {
+        this.updatedOn = updatedOn;
     }
 
     public List<Waypoint> getWaypointSet() {

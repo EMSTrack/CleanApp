@@ -20,6 +20,7 @@ import org.emstrack.ambulance.R;
 import org.emstrack.ambulance.adapters.HospitalExpandableRecyclerAdapter;
 import org.emstrack.ambulance.models.HospitalExpandableGroup;
 import org.emstrack.ambulance.services.OnServiceComplete;
+import org.emstrack.models.EquipmentItem;
 import org.emstrack.models.Hospital;
 
 import java.util.ArrayList;
@@ -147,7 +148,7 @@ public class HospitalFragment extends Fragment {
             // Add to to expandable group
             hospitalExpandableGroup.add(
                     new HospitalExpandableGroup(hospital.getName(),
-                            hospital.getHospitalequipmentSet(),
+                            new ArrayList<EquipmentItem>(), // hospital.getHospitalequipmentSet(),
                             hospital));
 
         }
