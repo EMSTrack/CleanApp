@@ -1,6 +1,5 @@
 package org.emstrack.ambulance.adapters;
 
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -9,12 +8,11 @@ import com.thoughtbot.expandablerecyclerview.ExpandableRecyclerViewAdapter;
 import com.thoughtbot.expandablerecyclerview.models.ExpandableGroup;
 
 import org.emstrack.ambulance.R;
-import org.emstrack.ambulance.fragments.HospitalFragment;
 import org.emstrack.ambulance.models.HospitalExpandableGroup;
 import org.emstrack.ambulance.views.HospitalEquipmentViewHolder;
 import org.emstrack.ambulance.views.HospitalViewHolder;
+import org.emstrack.models.EquipmentItem;
 import org.emstrack.models.Hospital;
-import org.emstrack.models.HospitalEquipment;
 
 import java.util.List;
 
@@ -46,7 +44,7 @@ public class HospitalExpandableRecyclerAdapter
     @Override
     public void onBindChildViewHolder(HospitalEquipmentViewHolder holder, int flatPosition,
                                       ExpandableGroup group, int childIndex) {
-        HospitalEquipment hospitalEquipment = ((HospitalExpandableGroup) group).getItems().get(childIndex);
+        EquipmentItem hospitalEquipment = ((HospitalExpandableGroup) group).getItems().get(childIndex);
         // Log.d(TAG, "Binding equipment '" + hospitalEquipment + "'");
 
         holder.setHospitalEquipment(hospitalEquipment);

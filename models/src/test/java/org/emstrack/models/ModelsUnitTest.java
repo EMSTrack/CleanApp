@@ -153,15 +153,15 @@ public class ModelsUnitTest {
     @Test
     public void test_hospital_equipment_metadata() throws Exception {
 
-        List<HospitalEquipmentMetadata> metadata = new ArrayList<>();
-        metadata.add(new HospitalEquipmentMetadata(1,"beds", 'I', true));
-        metadata.add(new HospitalEquipmentMetadata(2,"x-ray", 'B', true));
+        List<EquipmentMetadata> metadata = new ArrayList<>();
+        metadata.add(new EquipmentMetadata(1,"beds", 'I', true));
+        metadata.add(new EquipmentMetadata(2,"x-ray", 'B', true));
 
         Gson gson = new Gson();
 
         String to_json = gson.toJson(metadata);
 
-        HospitalEquipmentMetadata[] from_json = gson.fromJson(to_json, HospitalEquipmentMetadata[].class);
+        EquipmentMetadata[] from_json = gson.fromJson(to_json, EquipmentMetadata[].class);
 
         // Check hospital permissions
         for (int i = 0; i < 2; i++) {
@@ -188,7 +188,7 @@ public class ModelsUnitTest {
     @Test
     public void test_hospital_equipment() throws Exception {
 
-        HospitalEquipment equipment = new HospitalEquipment(1,
+        EquipmentItem equipment = new EquipmentItem(1,
                                                             2, "beds",'I',
                                                             "12", "",
                                                             1, new Date());
@@ -197,10 +197,10 @@ public class ModelsUnitTest {
 
         String to_json = gson.toJson(equipment);
 
-        HospitalEquipment from_json = gson.fromJson(to_json, HospitalEquipment.class);
+        EquipmentItem from_json = gson.fromJson(to_json, EquipmentItem.class);
 
-        Integer expectedId = equipment.getHospitalId();
-        Integer answerId = from_json.getHospitalId();
+        Integer expectedId = equipment.getEquipmentHolderId();
+        Integer answerId = from_json.getEquipmentHolderId();
         assertEquals(expectedId, answerId);
 
 /*
@@ -433,7 +433,7 @@ public class ModelsUnitTest {
         to_json = gson.toJson(ambulance);
 
         df = new SimpleDateFormat("MMM d, y K:mm:ss a");
-        String expected_to_json = "{\"status\":\"UK\",\"orientation\":12.0,\"location\":{\"latitude\":32.5149,\"longitude\":-117.0382},\"timestamp\":\"" + df.format(ambulance.getTimestamp()) + "\"}";
+        String expected_to_json = "{\"capability\":\"B\",\"status\":\"UK\",\"orientation\":12.0,\"location\":{\"latitude\":32.5149,\"longitude\":-117.0382},\"timestamp\":\"" + df.format(ambulance.getTimestamp()) + "\"}";
 
         assertEquals(expected_to_json, to_json);
 
@@ -448,12 +448,12 @@ public class ModelsUnitTest {
 
         double epsilon = 1e-4;
 
-        List<HospitalEquipment> equipment = new ArrayList<HospitalEquipment>();
-        equipment.add(new HospitalEquipment(1,
+        List<EquipmentItem> equipment = new ArrayList<EquipmentItem>();
+        equipment.add(new EquipmentItem(1,
                 2, "beds",'I',
                 "12", "",
                 1, new Date()));
-        equipment.add(new HospitalEquipment(1,
+        equipment.add(new EquipmentItem(1,
                 3, "x-rays",'B',
                 "True", "no comment",
                 1, new Date()));
@@ -462,7 +462,7 @@ public class ModelsUnitTest {
                 "123","Some Street", null, null,
                 "Tijuana","BCN","28334","MX",
                 "Hospital Viejo", new GPSLocation(32.5149,-117.0382),
-                "No comments",1, new Date(), equipment);
+                "No comments",1, new Date());
 
         Gson gson = new Gson();
 
@@ -530,18 +530,22 @@ public class ModelsUnitTest {
         SimpleDateFormat df = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
         assertEquals(df.format(expectedDate), df.format(answerDate));
 
-        List<HospitalEquipment> expectedList = hospital.getHospitalequipmentSet();
-        List<HospitalEquipment> answerList = from_json.getHospitalequipmentSet();
-        
+        /*
+
+        // EQUIPMENT TESTS!
+
+        List<EquipmentItem> expectedList = hospital.getHospitalequipmentSet();
+        List<EquipmentItem> answerList = from_json.getHospitalequipmentSet();
+
         int n = expectedList.size();
         assertEquals(n, 2);
         for (int i = 0; i < n; i++) {
 
-            HospitalEquipment expectedEquipment = expectedList.get(i);
-            HospitalEquipment answerEquipment = expectedList.get(i);
+            EquipmentItem expectedEquipment = expectedList.get(i);
+            EquipmentItem answerEquipment = expectedList.get(i);
             
-            expectedId = expectedEquipment.getHospitalId();
-            answerId = answerEquipment.getHospitalId();
+            expectedId = expectedEquipment.getEquipmentHolderId();
+            answerId = answerEquipment.getEquipmentHolderId();
             assertEquals(expectedId, answerId);
 
             expectedId = expectedEquipment.getEquipmentId();
@@ -574,6 +578,7 @@ public class ModelsUnitTest {
             assertEquals(df.format(expectedDate), df.format(answerDate));
 
         }
+        */
     }
 
     @Test
@@ -640,7 +645,7 @@ public class ModelsUnitTest {
         String answerStreet = from_json.getStreet();
         assertEquals(expectedStreet, answerStreet);
 
-        to_json = "{\"type\":\"i\",\"number\":\"\",\"street\":\"Bonifácio Avilés\",\"unit\":null,\"neighborhood\":null,\"city\":\"Tijuana\",\"state\":\"BCN\",\"zipcode\":\"\",\"country\":\"MX\",\"location\":{\"latitude\":\"32.51543632662701\",\"longitude\":\"-117.03812250149775\"},\"created_at\":\"2018-11-14T22:33:46.055339Z\",\"pending_at\":\"2018-11-14T22:33:46.054955Z\",\"started_at\":\"2018-11-14T22:34:50.329321Z\",\"ended_at\":null,\"comment\":null,\"updated_by\":1,\"updated_on\":\"2018-11-14T22:34:50.329428Z\"}";
+        to_json = "{\"type\":\"i\",\"number\":\"\",\"street\":\"Bonifácio Avilés\",\"unit\":null,\"neighborhood\":null,\"city\":\"Tijuana\",\"state\":\"BCN\",\"zipcode\":\"\",\"country\":\"MX\",\"location\":{\"latitude\":\"32.51543632662701\",\"longitude\":\"-117.03812250149775\"},\"updated_on\":\"2018-11-14T22:33:46.055339Z\",\"pending_at\":\"2018-11-14T22:33:46.054955Z\",\"started_at\":\"2018-11-14T22:34:50.329321Z\",\"ended_at\":null,\"comment\":null,\"updated_by\":1,\"updated_on\":\"2018-11-14T22:34:50.329428Z\"}";
         from_json = gson.fromJson(to_json, Location.class);
 
         expectedName = location.getName();
@@ -687,7 +692,7 @@ public class ModelsUnitTest {
         String answerStreet = answerLocation.getStreet();
         assertEquals(expectedStreet, answerStreet);
 
-        to_json = "{\"order\":0,\"status\":\"V\",\"location\":{\"type\":\"i\",\"number\":\"\",\"street\":\"Bonifácio Avilés\",\"unit\":null,\"neighborhood\":null,\"city\":\"Tijuana\",\"state\":\"BCN\",\"zipcode\":\"\",\"country\":\"MX\",\"waypoint\":{\"latitude\":\"32.51543632662701\",\"longitude\":\"-117.03812250149775\"},\"created_at\":\"2018-11-14T22:33:46.055339Z\",\"pending_at\":\"2018-11-14T22:33:46.054955Z\",\"started_at\":\"2018-11-14T22:34:50.329321Z\",\"ended_at\":null,\"comment\":null,\"updated_by\":1,\"updated_on\":\"2018-11-14T22:34:50.329428Z\"}}";
+        to_json = "{\"order\":0,\"status\":\"V\",\"location\":{\"type\":\"i\",\"number\":\"\",\"street\":\"Bonifácio Avilés\",\"unit\":null,\"neighborhood\":null,\"city\":\"Tijuana\",\"state\":\"BCN\",\"zipcode\":\"\",\"country\":\"MX\",\"waypoint\":{\"latitude\":\"32.51543632662701\",\"longitude\":\"-117.03812250149775\"},\"updated_on\":\"2018-11-14T22:33:46.055339Z\",\"pending_at\":\"2018-11-14T22:33:46.054955Z\",\"started_at\":\"2018-11-14T22:34:50.329321Z\",\"ended_at\":null,\"comment\":null,\"updated_by\":1,\"updated_on\":\"2018-11-14T22:34:50.329428Z\"}}";
         from_json = gson.fromJson(to_json, Waypoint.class);
 
         expectedOrder = waypoint.getOrder();
@@ -721,7 +726,7 @@ public class ModelsUnitTest {
         List<Waypoint> waypointSet = new ArrayList<>();
         waypointSet.add(waypoint);
         
-        AmbulanceCall ambulanceCall = new AmbulanceCall(1,2,AmbulanceCall.STATUS_SUSPENDED, new Date(), waypointSet);
+        AmbulanceCall ambulanceCall = new AmbulanceCall(1,2,AmbulanceCall.STATUS_SUSPENDED, "", 1, new Date(), waypointSet);
 
         GsonBuilder gsonBuilder = new GsonBuilder();
         gsonBuilder.setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES);
@@ -767,7 +772,7 @@ public class ModelsUnitTest {
 
         DateFormat df = new SimpleDateFormat("MMM d, y K:mm:ss a");
 
-        to_json = "{\"id\":1,\"ambulance_id\":2,\"status\":\"S\",\"created_at\":\"" + df.format(ambulanceCall.getCreatedAt()) + "\",\"waypoint_set\":[{\"order\":0,\"status\":\"C\",\"location\":{\"type\":\"i\",\"number\":\"\",\"street\":\"Bonifácio Avilés\",\"unit\":null,\"neighborhood\":null,\"city\":\"Tijuana\",\"state\":\"BCN\",\"zipcode\":\"\",\"country\":\"MX\",\"waypoint\":{\"latitude\":\"32.51543632662701\",\"longitude\":\"-117.03812250149775\"},\"created_at\":\"2018-11-14T22:33:46.055339Z\",\"pending_at\":\"2018-11-14T22:33:46.054955Z\",\"started_at\":\"2018-11-14T22:34:50.329321Z\",\"ended_at\":null,\"comment\":null,\"updated_by\":1,\"updated_on\":\"2018-11-14T22:34:50.329428Z\"}}]}";
+        to_json = "{\"id\":1,\"ambulance_id\":2,\"status\":\"S\",\"updated_on\":\"" + df.format(ambulanceCall.getUpdatedOn()) + "\",\"waypoint_set\":[{\"order\":0,\"status\":\"C\",\"location\":{\"type\":\"i\",\"number\":\"\",\"street\":\"Bonifácio Avilés\",\"unit\":null,\"neighborhood\":null,\"city\":\"Tijuana\",\"state\":\"BCN\",\"zipcode\":\"\",\"country\":\"MX\",\"waypoint\":{\"latitude\":\"32.51543632662701\",\"longitude\":\"-117.03812250149775\"},\"updated_on\":\"2018-11-14T22:33:46.055339Z\",\"pending_at\":\"2018-11-14T22:33:46.054955Z\",\"started_at\":\"2018-11-14T22:34:50.329321Z\",\"ended_at\":null,\"comment\":null,\"updated_by\":1,\"updated_on\":\"2018-11-14T22:34:50.329428Z\"}}]}";
         from_json = gson.fromJson(to_json, AmbulanceCall.class);
         System.out.println("to_json = '" + to_json + "'");
 
@@ -822,7 +827,7 @@ public class ModelsUnitTest {
         List<Waypoint> waypointSet = new ArrayList<>();
         waypointSet.add(waypoint);
 
-        AmbulanceCall ambulanceCall = new AmbulanceCall(1,2,AmbulanceCall.STATUS_SUSPENDED, new Date(), waypointSet);
+        AmbulanceCall ambulanceCall = new AmbulanceCall(1,2,AmbulanceCall.STATUS_SUSPENDED, "", 1, new Date(), waypointSet);
         List<AmbulanceCall> ambulanceCallSet = new ArrayList<>();
         ambulanceCallSet.add(ambulanceCall);
 
@@ -890,8 +895,8 @@ public class ModelsUnitTest {
         assertEquals(expectedStreet, answerStreet);
 
         DateFormat df = new SimpleDateFormat("MMM d, y K:mm:ss a");
-        String ambulance_call_json = "{\"id\":1,\"ambulance_id\":2,\"status\":\"S\",\"created_at\":\"" + df.format(ambulanceCall.getCreatedAt()) + "\",\"waypoint_set\":[{\"order\":0,\"status\":\"C\",\"location\":{\"type\":\"i\",\"number\":\"\",\"street\":\"Bonifácio Avilés\",\"unit\":null,\"neighborhood\":null,\"city\":\"Tijuana\",\"state\":\"BCN\",\"zipcode\":\"\",\"country\":\"MX\",\"waypoint\":{\"latitude\":\"32.51543632662701\",\"longitude\":\"-117.03812250149775\"},\"created_at\":\"2018-11-14T22:33:46.055339Z\",\"pending_at\":\"2018-11-14T22:33:46.054955Z\",\"started_at\":\"2018-11-14T22:34:50.329321Z\",\"ended_at\":null,\"comment\":null,\"updated_by\":1,\"updated_on\":\"2018-11-14T22:34:50.329428Z\"}}]}";
-        to_json = "{\"id\":64,\"status\":\"S\",\"details\":\"ads asd\",\"priority\":\"O\",\"created_at\":\"2018-11-14T22:33:46.055339Z\",\"pending_at\":\"2018-11-14T22:33:46.054955Z\",\"started_at\":\"2018-11-14T22:34:50.329321Z\",\"ended_at\":null,\"comment\":null,\"updated_by\":1,\"updated_on\":\"2018-11-14T22:34:50.329428Z\",\"ambulancecall_set\":[" + ambulance_call_json + "],\"patient_set\":[{\"id\":31,\"name\":\"Maria\",\"age\":null},{\"id\":30,\"name\":\"Jose\",\"age\":13}]}";
+        String ambulance_call_json = "{\"id\":1,\"ambulance_id\":2,\"status\":\"S\",\"updated_on\":\"" + df.format(ambulanceCall.getUpdatedOn()) + "\",\"waypoint_set\":[{\"order\":0,\"status\":\"C\",\"location\":{\"type\":\"i\",\"number\":\"\",\"street\":\"Bonifácio Avilés\",\"unit\":null,\"neighborhood\":null,\"city\":\"Tijuana\",\"state\":\"BCN\",\"zipcode\":\"\",\"country\":\"MX\",\"waypoint\":{\"latitude\":\"32.51543632662701\",\"longitude\":\"-117.03812250149775\"},\"updated_on\":\"2018-11-14T22:33:46.055339Z\",\"pending_at\":\"2018-11-14T22:33:46.054955Z\",\"started_at\":\"2018-11-14T22:34:50.329321Z\",\"ended_at\":null,\"comment\":null,\"updated_by\":1,\"updated_on\":\"2018-11-14T22:34:50.329428Z\"}}]}";
+        to_json = "{\"id\":64,\"status\":\"S\",\"details\":\"ads asd\",\"priority\":\"O\",\"updated_on\":\"2018-11-14T22:33:46.055339Z\",\"pending_at\":\"2018-11-14T22:33:46.054955Z\",\"started_at\":\"2018-11-14T22:34:50.329321Z\",\"ended_at\":null,\"comment\":null,\"updated_by\":1,\"updated_on\":\"2018-11-14T22:34:50.329428Z\",\"ambulancecall_set\":[" + ambulance_call_json + "],\"patient_set\":[{\"id\":31,\"name\":\"Maria\",\"age\":null},{\"id\":30,\"name\":\"Jose\",\"age\":13}]}";
 
         from_json = gson.fromJson(to_json, Call.class);
         System.out.println("to_json = " + to_json + "'");

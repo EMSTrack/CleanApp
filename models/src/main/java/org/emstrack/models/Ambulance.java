@@ -68,6 +68,7 @@ public class Ambulance {
 
     private int id;
     private String identifier;
+    @Expose
     private String capability;
     @Expose
     private String status;
