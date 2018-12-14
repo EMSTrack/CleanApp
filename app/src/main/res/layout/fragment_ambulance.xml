@@ -22,21 +22,26 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
 
-            <Spinner
-                android:id="@+id/statusSpinner"
-                android:layout_width="fill_parent"
+            <Button
+                android:id="@+id/statusButton"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:gravity="center"
                 android:layout_alignParentTop="true"
-                android:background="@drawable/spinner_background"
-                android:textSize="24dp"/>
+                android:layout_marginTop="10dp"
+                android:background="@color/bootstrapPrimary"
+                android:fontFamily="sans-serif"
+                android:text="Status"
+                android:textAllCaps="false"
+                android:textColor="@color/colorWhite"
+                android:textSize="24sp"
+                android:textStyle="bold" />
 
             <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
                 xmlns:tools="http://schemas.android.com/tools"
                 android:id="@+id/callInformationLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_below="@+id/statusSpinner">
+                android:layout_below="@+id/statusButton">
 
                 <TextView
                     android:id="@+id/callLabel"
