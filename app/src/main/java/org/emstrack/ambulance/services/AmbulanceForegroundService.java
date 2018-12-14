@@ -49,8 +49,8 @@ import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.emstrack.ambulance.LoginActivity;
 import org.emstrack.ambulance.R;
 import org.emstrack.ambulance.util.Geofence;
-import org.emstrack.ambulance.util.LocationFilter;
-import org.emstrack.ambulance.util.LocationUpdate;
+import org.emstrack.ambulance.util.AmbulanceUpdateFilter;
+import org.emstrack.ambulance.util.AmbulanceUpdate;
 import org.emstrack.models.Ambulance;
 import org.emstrack.models.AmbulanceCall;
 import org.emstrack.models.AmbulancePermission;
@@ -66,7 +66,6 @@ import org.emstrack.mqtt.MqttProfileCallback;
 import org.emstrack.mqtt.MqttProfileClient;
 import org.emstrack.mqtt.MqttProfileMessageCallback;
 
-import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -75,7 +74,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.TimeZone;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -115,7 +113,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
     private static Ambulance _ambulance;
     private static Map<Integer, Hospital> _hospitals;
     private static Map<Integer, Ambulance> _otherAmbulances;
-    private static LocationUpdate _lastLocation;
+    private static AmbulanceUpdate _lastLocation;
     private static Date _lastServerUpdate;
     private static boolean _updatingLocation = false;
     private static boolean _canUpdateLocation = false;
@@ -141,7 +139,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
     private FusedLocationProviderClient fusedLocationClient;
     private SharedPreferences sharedPreferences;
 
-    public LocationFilter locationFilter = new LocationFilter(null);
+    public AmbulanceUpdateFilter ambulanceUpdateFilter = new AmbulanceUpdateFilter();
 
     private LocationCallback locationCallback;
     private GeofencingClient fenceClient;
@@ -237,22 +235,6 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                     hasAmbulance, hasOtherAmbulances, hasHospitals, isUpdatingLocation);
         }
 
-    }
-
-    public static String getUpdateString(LocationUpdate lastLocation) {
-        double latitude = lastLocation.getLocation().getLatitude();
-        double longitude = lastLocation.getLocation().getLongitude();
-        double orientation = lastLocation.getBearing();
-
-        // format timestamp
-        DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
-        df.setTimeZone(TimeZone.getTimeZone("UTC"));
-        String timestamp = df.format(lastLocation.getTimestamp());
-
-        String updateString =  "{\"orientation\":" + orientation + ",\"location\":{" +
-                "\"latitude\":"+ latitude + ",\"longitude\":" + longitude +"},\"timestamp\":\"" + timestamp + "\"}";
-
-        return updateString;
     }
 
     @Nullable
@@ -983,16 +965,17 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
      *
      * @param updates string array
      */
-    public boolean updateAmbulance(int ambulanceId, List<LocationUpdate> updates) {
+    public boolean updateAmbulance(int ambulanceId, List<AmbulanceUpdate> updates) {
 
         ArrayList<String> updateString = new ArrayList<>();
-        for (LocationUpdate update : updates) {
+        for (AmbulanceUpdate update : updates) {
 
-            // Set last location
-            _lastLocation = update;
+            if (update.hasLocation())
+                // Set last location
+                _lastLocation = update;
 
             // updateAmbulance ambulance string
-            updateString.add(getUpdateString(update));
+            updateString.add(update.toUpdateString());
 
         }
 
@@ -1095,19 +1078,26 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
      */
     public void updateAmbulanceStatus(int ambulanceId, String status) {
 
-        // publish status to server
-        String update = String.format("{\"status\":\"%1$s\"}", status);
-        updateAmbulance(ambulanceId, update);
+        if (ambulanceId == getAmbulanceId())
 
-        // Has ambulance?
-        Ambulance ambulance = getCurrentAmbulance();
-        if (ambulance != null ) {
+            // add status update to ambulanceUpdateFilter
+            ambulanceUpdateFilter.update(status);
 
-            // TODO: Should we modify locally as well?
-            // ambulance.getId();
+        else {
 
+            // publish status to server
+            String update = String.format("{\"status\":\"%1$s\"}", status);
+            updateAmbulance(ambulanceId, update);
+
+            // Has ambulance?
+            Ambulance ambulance = getCurrentAmbulance();
+            if (ambulance != null) {
+
+                // TODO: Should we modify locally as well?
+                // ambulance.getId();
+
+            }
         }
-
     }
 
     /**
@@ -1985,7 +1975,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                                 if (_lastLocation == null || ambulance.getTimestamp().after(_lastLocation.getTimestamp())) {
 
                                     // Update last location
-                                    _lastLocation = new LocationUpdate();
+                                    _lastLocation = new AmbulanceUpdate();
                                     android.location.Location location = new android.location.Location("FusedLocationClient");
                                     location.setLatitude(ambulance.getLocation().getLatitude());
                                     location.setLongitude(ambulance.getLocation().getLongitude());
@@ -2609,16 +2599,26 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                         List<android.location.Location> locations = result.getLocations();
                         Log.i(TAG, "Received " + locations.size() + " location updates");
 
-                        // Initialize locationFilter
+                        // Initialize ambulanceUpdateFilter
                         if (_lastLocation != null)
-                            locationFilter.setLocation(_lastLocation);
+                            ambulanceUpdateFilter.setCurrentAmbulanceUpdate(_lastLocation);
 
-                        // Filter location
-                        List<LocationUpdate> filteredLocations = locationFilter.update(locations);
+                        // Filter locations
+                        ambulanceUpdateFilter.update(locations);
 
                         // Publish updateAmbulance
-                        if (filteredLocations.size() > 0)
-                            updateAmbulance(ambulance.getId(), filteredLocations);
+                        if (ambulanceUpdateFilter.hasUpdates()) {
+
+                            // Sort updates
+                            ambulanceUpdateFilter.sort();
+
+                            // update server or buffer
+                            updateAmbulance(ambulance.getId(), ambulanceUpdateFilter.getFilteredAmbulanceUpdates());
+
+                            // reset filter
+                            ambulanceUpdateFilter.reset();
+
+                        }
 
                         // Notification message
                         // TODO: These need to be internationalized but cannot be retrieved without a context

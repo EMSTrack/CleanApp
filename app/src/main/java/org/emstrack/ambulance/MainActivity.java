@@ -280,10 +280,10 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         // Ambulance button
-        ambulanceButton = (Button) findViewById(R.id.ambulanceButton);
+        ambulanceButton = findViewById(R.id.ambulanceButton);
 
         // Panic button
-        ImageButton panicButton = (ImageButton) findViewById(R.id.panicButton);
+        ImageButton panicButton = findViewById(R.id.panicButton);
         panicButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -366,7 +366,7 @@ public class MainActivity extends AppCompatActivity {
                     android.R.layout.simple_spinner_dropdown_item, ambulanceList);
             ambulanceListAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 
-            // Set the spinner's adapter
+            // Set the ambulance button's adapter
             ambulanceButton.setOnClickListener(new AmbulanceButtonClickListener());
 
             // Creates list of hospital names

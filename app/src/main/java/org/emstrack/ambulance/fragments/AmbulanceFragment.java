@@ -14,7 +14,6 @@ import android.util.Pair;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.LinearLayout;
@@ -44,7 +43,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
 
-public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSelectedListener {
+public class AmbulanceFragment extends Fragment {
 
     private static final String TAG = AmbulanceFragment.class.getSimpleName();;
 
@@ -52,12 +51,10 @@ public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSel
 
     private View view;
 
-    private Spinner statusSpinner;
+    private Button statusButton;
 
     private TextView capabilityText;
-
     private TextView commentText;
-
     private TextView updatedOnText;
 
     private AmbulancesUpdateBroadcastReceiver receiver;
@@ -139,7 +136,53 @@ public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSel
 
             }
         }
-    };
+    }
+
+    public class StatusButtonClickListener implements View.OnClickListener {
+
+        private boolean enabled;
+        ArrayAdapter<String> ambulanceListAdapter;
+
+        public StatusButtonClickListener() {
+            this.enabled = true;
+
+            // Create the adapter
+            this.ambulanceListAdapter =
+                    new ArrayAdapter<>(AmbulanceFragment.this.getContext(),
+                            android.R.layout.simple_spinner_dropdown_item,
+                            ambulanceStatusList);
+            ambulanceListAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+
+        }
+
+        @Override
+        public void onClick(View v) {
+
+            // short return if disabled
+            if (!enabled)
+                return;
+
+            new AlertDialog.Builder(
+                    getActivity())
+                    .setTitle(R.string.selectAmbulanceStatus)
+                    .setAdapter(ambulanceListAdapter,
+                            new DialogInterface.OnClickListener() {
+
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+
+                                    // Get selected status
+                                    Log.i(TAG, "Status at position '" + which + "' selected.");
+
+                                    // Update ambulance status
+                                    updateAmbulanceStatus(which);
+
+                                }
+                            })
+                    .create()
+                    .show();
+        }
+    }
 
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
@@ -223,35 +266,11 @@ public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSel
         commentText = view.findViewById(R.id.commentText);
         updatedOnText = view.findViewById(R.id.updatedOnText);
 
-        // Set status spinner
-        statusSpinner = view.findViewById(R.id.statusSpinner);
-        // Create an ArrayAdapter using the string array and a default spinner layout
-        ArrayAdapter<String> statusSpinnerAdapter =
-                new ArrayAdapter<String>(getContext(),
-                        R.layout.status_spinner_item,
-                        ambulanceStatusList) {
+        // Set status button
+        statusButton = view.findViewById(R.id.statusButton);
 
-                    @Override
-                    public View getView(int pos, View view, ViewGroup parent)
-                    {
-                        Context context = AmbulanceFragment.this.getContext();
-                        LayoutInflater inflater = LayoutInflater.from(context);
-                        view = inflater.inflate(R.layout.status_spinner_dropdown_item, null);
-                        TextView textView = view.findViewById(R.id.statusSpinnerDropdownItemText);
-                        textView.setBackgroundColor(ambulanceStatusBackgroundColorList.get(pos));
-                        textView.setTextColor(ambulanceStatusTextColorList.get(pos));
-                        textView.setTextSize(context.getResources().getDimension(R.dimen.statusTextSize));
-                        textView.setText(ambulanceStatusList.get(pos));
-                        return view;
-                    }
-
-                    @Override
-                    public View getDropDownView(int pos, View view, ViewGroup parent) {
-                        return getView(pos, view, parent);
-                    }
-
-                };
-        statusSpinner.setAdapter(statusSpinnerAdapter);
+        // Set the ambulance button's adapter
+        statusButton.setOnClickListener(new StatusButtonClickListener());
 
         // Update ambulance
         Ambulance ambulance = AmbulanceForegroundService.getCurrentAmbulance();
@@ -270,9 +289,6 @@ public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSel
             Log.d(TAG, "Is currently not handling any call");
             callResumeLayout.setVisibility(View.GONE);
         }
-
-        // Process change of status
-        statusSpinner.setOnItemSelectedListener(this);
 
         return view;
     }
@@ -511,22 +527,8 @@ public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSel
 
     public void updateAmbulance(Ambulance ambulance) {
 
-        // set spinner only if position changed
-        // this helps to prevent a possible server loop
-        int position = ambulanceStatusList.indexOf(ambulanceStatus.get(ambulance.getStatus()));
-        int currentPosition = statusSpinner.getSelectedItemPosition();
-        if (currentPosition != position) {
-
-            Log.i(TAG,"Spinner changed from " + currentPosition + " to " + position);
-
-            // set spinner
-            setSpinner(position);
-
-        } else {
-
-            Log.i(TAG, "Spinner continues to be at position " + position + ". Skipping updateAmbulance");
-
-        }
+        // set status button
+        setStatusButton(ambulanceStatusList.indexOf(ambulanceStatus.get(ambulance.getStatus())));
 
         // set identifier
         ((MainActivity) getActivity()).setAmbulanceButtonText(ambulance.getIdentifier());
@@ -663,38 +665,75 @@ public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSel
 
     }
 
-    public void setSpinner(int position) {
+    public void setStatusButton(int position) {
 
-        // temporarily disconnect listener to prevent loop
-        Log.i(TAG, "Suppressing listener");
-        statusSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                /* do nothing */
-                Log.i(TAG,"Ignoring change in spinner. Position '" + position + "' selected.");
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {
-                Log.i(TAG,"Ignoring change in spinner. Nothing selected.");
-            }
-        });
-
-        // updateAmbulance spinner
-        statusSpinner.setSelection(position, false);
-
-        // connect listener
-        // this is tricky, see
-        // https://stackoverflow.com/questions/2562248/how-to-keep-onitemselected-from-firing-off-on-a-newly-instantiated-spinner
-        statusSpinner.post(new Runnable() {
-            public void run() {
-                Log.i(TAG, "Restoring listener");
-                statusSpinner.setOnItemSelectedListener(AmbulanceFragment.this);
-            }
-        });
+        // set status button
+        statusButton.setText(ambulanceStatusList.get(position));
+        statusButton.setTextColor(ambulanceStatusTextColorList.get(position));
+        statusButton.setBackgroundColor(ambulanceStatusBackgroundColorList.get(position));
 
     }
 
+    public void updateAmbulanceStatus(int position) {
+
+        try {
+
+            if (!((MainActivity) getActivity()).canWrite()) {
+
+                // Toast to warn user
+                Toast.makeText(getContext(), R.string.cantModifyAmbulance, Toast.LENGTH_LONG).show();
+
+                // Return
+                return;
+
+            }
+
+            // Get selected status
+            String status = ambulanceStatusList.get(position);
+
+            // Search for entry in ambulanceStatus map
+            String statusCode = "";
+            for (Map.Entry<String, String> entry : ambulanceStatus.entrySet()) {
+                if (status.equals(entry.getValue())) {
+                    statusCode = entry.getKey();
+                    break;
+                }
+            }
+
+            // format timestamp
+            DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+            df.setTimeZone(TimeZone.getTimeZone("UTC"));
+            String timestamp = df.format(new Date());
+
+            // Set updateAmbulance string
+            String updateString = "{\"status\":\"" + statusCode + "\",\"timestamp\":\"" + timestamp + "\"}";
+
+            // Update on server
+            // TODO: Update along with locations because it will be recorded with
+            //       the wrong location on the server
+            Ambulance ambulance = AmbulanceForegroundService.getCurrentAmbulance();
+            Intent intent = new Intent(getContext(), AmbulanceForegroundService.class);
+            intent.setAction(AmbulanceForegroundService.Actions.UPDATE_AMBULANCE);
+            Bundle bundle = new Bundle();
+            bundle.putInt("AMBULANCE_ID", ambulance.getId());
+            bundle.putString("UPDATE", updateString);
+            intent.putExtras(bundle);
+            getActivity().startService(intent);
+
+            // update button
+            setStatusButton(position);
+
+        }
+        catch (Exception e) {
+
+            Log.i(TAG, "updateAmbulanceStatus exception: " + e);
+
+        }
+
+    }
+
+
+/*
     @Override
     public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
 
@@ -759,11 +798,14 @@ public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSel
         getActivity().startService(intent);
 
     }
+*/
 
+/*
     @Override
     public void onNothingSelected(AdapterView<?> parent) {
         Log.i(TAG, "Nothing selected: this should never happen.");
     }
+*/
 
     /**
      * Get LocalBroadcastManager

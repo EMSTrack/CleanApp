@@ -45,9 +45,9 @@
         <!--
         <receiver android:name=".services.AmbulanceForegroundService$LocationUpdatesBroadcastReceiver"
             android:exported="true">
-            <intent-locationFilter>
+            <intent-ambulanceUpdateFilter>
                 <action android:name=".AmbulanceForegroundService.BroadcastActions.LOCATION_UPDATE" />
-            </intent-locationFilter>
+            </intent-ambulanceUpdateFilter>
         </receiver>
         -->
 
