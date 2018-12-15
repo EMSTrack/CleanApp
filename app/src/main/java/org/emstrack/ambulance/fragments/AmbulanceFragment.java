@@ -701,30 +701,26 @@ public class AmbulanceFragment extends Fragment {
             }
 
             // format timestamp
-            DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
-            df.setTimeZone(TimeZone.getTimeZone("UTC"));
-            String timestamp = df.format(new Date());
+            // DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+            // df.setTimeZone(TimeZone.getTimeZone("UTC"));
+            // String timestamp = df.format(new Date());
 
             // Set updateAmbulance string
-            String updateString = "{\"status\":\"" + statusCode + "\",\"timestamp\":\"" + timestamp + "\"}";
+            // String updateString = "{\"status\":\"" + statusCode + "\",\"timestamp\":\"" + timestamp + "\"}";
 
             // Update on server
             // TODO: Update along with locations because it will be recorded with
             //       the wrong location on the server
             Ambulance ambulance = AmbulanceForegroundService.getCurrentAmbulance();
             Intent intent = new Intent(getContext(), AmbulanceForegroundService.class);
-            intent.setAction(AmbulanceForegroundService.Actions.UPDATE_AMBULANCE);
+            intent.setAction(AmbulanceForegroundService.Actions.UPDATE_AMBULANCE_STATUS);
             Bundle bundle = new Bundle();
             bundle.putInt("AMBULANCE_ID", ambulance.getId());
-            bundle.putString("UPDATE", updateString);
+            bundle.putString("STATUS", statusCode);
             intent.putExtras(bundle);
             getActivity().startService(intent);
 
-            // update button
-            setStatusButton(position);
-
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
 
             Log.i(TAG, "updateAmbulanceStatus exception: " + e);
 

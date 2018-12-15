@@ -154,6 +154,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         public final static String GET_HOSPITALS = "org.emstrack.ambulance.ambulanceforegroundservice.action.GET_HOSPITALS";
         public final static String START_LOCATION_UPDATES = "org.emstrack.ambulance.ambulanceforegroundservice.action.START_LOCATION_UPDATES";
         public final static String STOP_LOCATION_UPDATES = "org.emstrack.ambulance.ambulanceforegroundservice.action.STOP_LOCATION_UPDATES";
+        public final static String UPDATE_AMBULANCE_STATUS = "org.emstrack.ambulance.ambulanceforegroundservice.action.UPDATE_AMBULANCE_STATUS";
         public final static String UPDATE_AMBULANCE = "org.emstrack.ambulance.ambulanceforegroundservice.action.UPDATE_AMBULANCE";
         public final static String UPDATE_NOTIFICATION = "org.emstrack.ambulance.ambulanceforegroundservice.action.UPDATE_NOTIFICATION";
         public final static String LOGOUT = "org.emstrack.ambulance.ambulanceforegroundservice.action.LOGOUT";
@@ -542,6 +543,22 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
             // stop requesting location updates
             stopLocationUpdates(uuid);
+
+        } else if (action.equals(Actions.UPDATE_AMBULANCE_STATUS)) {
+
+            Log.i(TAG, "UPDATE_AMBULANCE_STATUS Foreground Intent");
+
+            Bundle bundle = intent.getExtras();
+
+            // Retrieve ambulanceId
+            int ambulanceId = bundle.getInt("AMBULANCE_ID");
+
+            // Retrieve updateAmbulance string
+            String status = bundle.getString("STATUS");
+            Log.d(TAG, "AMBULANCE_ID = " + ambulanceId + ", STATUS = " + status);
+
+            // update status
+            updateAmbulanceStatus(uuid, ambulanceId, status);
 
         } else if (action.equals(Actions.UPDATE_AMBULANCE)) {
 
@@ -1076,14 +1093,32 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
      * @param ambulanceId int
      * @param status string
      */
-    public void updateAmbulanceStatus(int ambulanceId, String status) {
+    public void updateAmbulanceStatus(String uuid, int ambulanceId, String status) {
+        updateAmbulanceStatus(uuid, ambulanceId, status, new Date());
+    }
 
-        if (ambulanceId == getAmbulanceId())
+    /**
+     * Update ambulance status on the server
+     *
+     * @param ambulanceId int
+     * @param status string
+     */
+    public void updateAmbulanceStatus(String uuid, int ambulanceId, String status, Date timestamp) {
+
+        if (ambulanceId == getAmbulanceId()) {
 
             // add status update to ambulanceUpdateFilter
-            ambulanceUpdateFilter.update(status);
+            ambulanceUpdateFilter.update(status, timestamp);
 
-        else {
+            // Update locally
+            Ambulance ambulance = getCurrentAmbulance();
+            ambulance.setStatus(status);
+
+            // Broadcast ambulance updateAmbulance
+            Intent localIntent = new Intent(BroadcastActions.AMBULANCE_UPDATE);
+            sendBroadcastWithUUID(localIntent, uuid);
+
+        } else {
 
             // publish status to server
             String update = String.format("{\"status\":\"%1$s\"}", status);
@@ -3155,7 +3190,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
                 // Set status as available
                 Log.d(TAG, "Set ambulance '" + getCurrentAmbulance().getId() + "' available");
-                updateAmbulanceStatus(ambulance.getId(), Ambulance.STATUS_AVAILABLE);
+                updateAmbulanceStatus(uuid, ambulance.getId(), Ambulance.STATUS_AVAILABLE);
 
                 // Release current call
                 pendingCalls.setPendingCall(false);
@@ -3505,22 +3540,22 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
             if (waypointType.equals(Location.TYPE_INCIDENT)) {
 
                 // step 7: publish patient bound to server
-                updateAmbulanceStatus(ambulanceCall.getAmbulanceId(), Ambulance.STATUS_PATIENT_BOUND);
+                updateAmbulanceStatus(uuid, ambulanceCall.getAmbulanceId(), Ambulance.STATUS_PATIENT_BOUND);
 
             } else if (waypointType.equals(Location.TYPE_BASE)) {
 
                 // step 7: publish base bound to server
-                updateAmbulanceStatus(ambulanceCall.getAmbulanceId(),Ambulance.STATUS_BASE_BOUND);
+                updateAmbulanceStatus(uuid, ambulanceCall.getAmbulanceId(),Ambulance.STATUS_BASE_BOUND);
 
             } else if (waypointType.equals(Location.TYPE_HOSPITAL)) {
 
                 // step 7: publish hospital bound to server
-                updateAmbulanceStatus(ambulanceCall.getAmbulanceId(),Ambulance.STATUS_HOSPITAL_BOUND);
+                updateAmbulanceStatus(uuid, ambulanceCall.getAmbulanceId(),Ambulance.STATUS_HOSPITAL_BOUND);
 
             } else if (waypointType.equals(Location.TYPE_WAYPOINT)) {
 
                 // step 7: publish waypoint bound to server
-                updateAmbulanceStatus(ambulanceCall.getAmbulanceId(),Ambulance.STATUS_WAYPOINT_BOUND);
+                updateAmbulanceStatus(uuid, ambulanceCall.getAmbulanceId(),Ambulance.STATUS_WAYPOINT_BOUND);
 
             }
 
@@ -3581,22 +3616,22 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         if (waypointType.equals(Location.TYPE_INCIDENT)) {
 
             // publish at patient to server
-            updateAmbulanceStatus(ambulanceCall.getAmbulanceId(),Ambulance.STATUS_AT_PATIENT);
+            updateAmbulanceStatus(uuid, ambulanceCall.getAmbulanceId(),Ambulance.STATUS_AT_PATIENT);
 
         } else if (waypointType.equals(Location.TYPE_BASE)) {
 
             // publish base bound to server
-            updateAmbulanceStatus(ambulanceCall.getAmbulanceId(), Ambulance.STATUS_AT_BASE);
+            updateAmbulanceStatus(uuid, ambulanceCall.getAmbulanceId(), Ambulance.STATUS_AT_BASE);
 
         } else if (waypointType.equals(Location.TYPE_HOSPITAL)) {
 
             // publish hospital bound to server
-            updateAmbulanceStatus(ambulanceCall.getAmbulanceId(), Ambulance.STATUS_AT_HOSPITAL);
+            updateAmbulanceStatus(uuid, ambulanceCall.getAmbulanceId(), Ambulance.STATUS_AT_HOSPITAL);
 
         } else if (waypointType.equals(Location.TYPE_WAYPOINT)) {
 
             // publish waypoint bound to server
-            updateAmbulanceStatus(ambulanceCall.getAmbulanceId(), Ambulance.STATUS_AT_WAYPOINT);
+            updateAmbulanceStatus(uuid, ambulanceCall.getAmbulanceId(), Ambulance.STATUS_AT_WAYPOINT);
 
         }
 

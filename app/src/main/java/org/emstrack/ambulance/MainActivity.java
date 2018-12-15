@@ -1,6 +1,5 @@
 package org.emstrack.ambulance;
 
-import android.app.MediaRouteButton;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -23,7 +22,6 @@ import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewStructure;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageButton;

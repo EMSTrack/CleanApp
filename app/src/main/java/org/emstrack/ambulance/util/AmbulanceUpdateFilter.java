@@ -114,6 +114,12 @@ public class AmbulanceUpdateFilter {
 
     }
 
+    public void update(String status, Date timestamp) {
+
+        this.filteredAmbulanceUpdates.add(new AmbulanceUpdate(status, timestamp));
+
+    }
+
     public void update(Location location) {
 
         // initialize
