@@ -2908,7 +2908,6 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
                                         }
 
-                                        // TODO: Is this necessary?
                                         // Update status, server updates may take a while
                                         pendingCalls.get(callId).getAmbulanceCall(ambulanceId).setStatus(newStatus);
 

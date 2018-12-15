@@ -46,4 +46,16 @@
         android:padding="5dp"
         app:srcCompat="@drawable/ic_hospital" />
 
+    <ImageView
+        android:id="@+id/showWaypointsButton"
+        android:layout_width="40dp"
+        android:layout_height="36dp"
+        android:layout_alignParentRight="true"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginRight="12dp"
+        android:layout_marginTop="140dp"
+        android:background="@color/mapButtonOff"
+        android:padding="5dp"
+        app:srcCompat="@drawable/ic_map_marker" />
+
 </RelativeLayout>
