@@ -56,10 +56,14 @@ public class AmbulanceUpdate {
     }
 
     public AmbulanceUpdate(String status) {
+        this(status, new Date());
+    }
+
+    public AmbulanceUpdate(String status, Date timestamp) {
         this.location = null;
         this.bearing = 0;
         this.velocity = 0;
-        this.timestamp = new Date();
+        this.timestamp = timestamp == null ? new Date() : timestamp;
         this.status = status;
     }
 
