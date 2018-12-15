@@ -649,12 +649,13 @@ public class AmbulanceFragment extends Fragment {
 
         // Get current location
         android.location.Location lastLocation = AmbulanceForegroundService.getLastLocation();
-        Log.d(TAG,"last location = " + lastLocation);
 
         // Calculate distance to patient
         float distance = -1;
-        if (location != null)
+        if (lastLocation != null && location != null) {
+            Log.d(TAG,"last location = " + lastLocation);
             distance = lastLocation.distanceTo(location.getLocation().toLocation()) / 1000;
+        }
         String distanceText = getString(R.string.noDistanceAvailable);
         Log.d(TAG,"Distance = " + distance);
         if (distance > 0) {

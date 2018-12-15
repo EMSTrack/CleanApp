@@ -56,7 +56,8 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
     View rootView;
     private Map<String, String> ambulanceStatus;
     private Map<Integer, Marker> ambulanceMarkers;
-    private HashMap<Integer, Marker> hospitalMarkers;
+    private Map<Integer, Marker> hospitalMarkers;
+    private Map<Integer, Marker> waypointsMarkers;
 
     private ImageView showLocationButton;
     private boolean centerAmbulances = false;
@@ -66,6 +67,9 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
 
     private ImageView showHospitalsButton;
     private boolean showHospitals = false;
+
+    private ImageView showWaypointsButton;
+    private boolean showWaypoints = false;
 
     private boolean myLocationEnabled;
     private boolean useMyLocation = false;
@@ -99,8 +103,10 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
         @Override
         public void onReceive(Context context, Intent intent ) {
             if (intent != null) {
+
                 final String action = intent.getAction();
                 assert action != null;
+
                 if (action.equals(AmbulanceForegroundService.BroadcastActions.AMBULANCE_UPDATE)) {
 
                     if (centerAmbulances) {
@@ -164,7 +170,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
         });
 
         // Retrieve ambulance button
-        showAmbulancesButton = (ImageView) rootView.findViewById(R.id.showAmbulancesButton);
+        showAmbulancesButton = rootView.findViewById(R.id.showAmbulancesButton);
         showAmbulancesButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -204,7 +210,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
         });
 
         // Retrieve hospitals button
-        showHospitalsButton = (ImageView) rootView.findViewById(R.id.showHospitalsButton);
+        showHospitalsButton = rootView.findViewById(R.id.showHospitalsButton);
         showHospitalsButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -241,17 +247,64 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
 
                     }
 
-                    // updateAmbulance markers without centering
+                    // update markers without centering
                     updateMarkers();
 
                 }
 
             }
         });
-        
+
+        // Retrieve waypoints button
+        showWaypointsButton = rootView.findViewById(R.id.showWaypointsButton);
+        showWaypointsButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                // toggle show waypoints
+                showWaypoints = !showWaypoints;
+
+                // Switch color
+                if (showWaypoints)
+                    showWaypointsButton.setBackgroundColor(getResources().getColor(R.color.mapButtonOn));
+                else
+                    showWaypointsButton.setBackgroundColor(getResources().getColor(R.color.mapButtonOff));
+
+                Log.i(TAG, "Toggle show waypoints: " + (showWaypoints ? "ON" : "OFF"));
+
+                if (googleMap != null) {
+
+                    if (!showWaypoints) {
+
+                        // Clear markers
+                        Iterator<Map.Entry<Integer,Marker>> iter = waypointsMarkers.entrySet().iterator();
+                        while (iter.hasNext())
+                        {
+                            // get entry
+                            Map.Entry<Integer,Marker> entry = iter.next();
+
+                            // remove from map
+                            entry.getValue().remove();
+
+                            // remove from collection
+                            iter.remove();
+
+                        }
+
+                    }
+
+                    // update markers without centering
+                    updateMarkers();
+
+                }
+
+            }
+        });
+
         // Initialize markers maps
         ambulanceMarkers = new HashMap<>();
         hospitalMarkers = new HashMap<>();
+        waypointsMarkers = new HashMap<>();
 
         // Get settings, status and capabilities
         try {

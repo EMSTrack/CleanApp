@@ -89,25 +89,6 @@ public class MainActivity extends AppCompatActivity {
 
     private boolean logoutAfterFinish;
 
-    public class TrackingClickListener implements View.OnClickListener {
-
-        @Override
-        public void onClick(View v) {
-
-            if (AmbulanceForegroundService.isUpdatingLocation()) {
-
-                // stop updating location
-                stopUpdatingLocation();
-
-            } else {
-
-                // start updating location
-                startUpdatingLocation();
-
-            }
-        }
-    }
-
     public class AmbulanceButtonClickListener implements View.OnClickListener {
 
         @Override
@@ -126,7 +107,7 @@ public class MainActivity extends AppCompatActivity {
                                     Log.d(TAG, "Selected ambulance " + selectedAmbulance.getAmbulanceIdentifier());
 
                                     // Any ambulance currently selected?
-                                    final Ambulance ambulance = AmbulanceForegroundService.getCurrentAmbulance();
+                                    Ambulance ambulance = AmbulanceForegroundService.getCurrentAmbulance();
 
                                     // Warn if current ambulance
                                     if (ambulance != null) {
@@ -154,6 +135,19 @@ public class MainActivity extends AppCompatActivity {
 
                                 }
                             })
+                    .setOnCancelListener(new DialogInterface.OnCancelListener() {
+                        @Override
+                        public void onCancel(DialogInterface dialog) {
+
+                            // Any ambulance currently selected?
+                            if (AmbulanceForegroundService.getCurrentAmbulance()== null) {
+
+                                promptMustChooseAmbulance();
+
+                            }
+
+                        }
+                    })
                     .create()
                     .show();
         }
@@ -326,15 +320,15 @@ public class MainActivity extends AppCompatActivity {
         tabLayout.getTabAt(2).setIcon(R.drawable.ic_hospital);
 
         // Online icon
-        onlineIcon = (ImageView) findViewById(R.id.onlineIcon);
+        onlineIcon = findViewById(R.id.onlineIcon);
         if (AmbulanceForegroundService.isOnline())
             onlineIcon.setAlpha(enabledAlpha);
         else
             onlineIcon.setAlpha(disabledAlpha);
 
         // Tracking icon
-        trackingIcon = (ImageView) findViewById(R.id.trackingIcon);
-        trackingIcon.setOnClickListener(new TrackingClickListener());
+        trackingIcon = findViewById(R.id.trackingIcon);
+        // trackingIcon.setOnClickListener(new TrackingClickListener());
 
         if (AmbulanceForegroundService.isUpdatingLocation()) {
             trackingIcon.setAlpha(enabledAlpha);
@@ -688,12 +682,13 @@ public class MainActivity extends AppCompatActivity {
 
             // Get current location
             android.location.Location lastLocation = AmbulanceForegroundService.getLastLocation();
-            Log.d(TAG,"location = " + lastLocation);
 
             // Calculate distance to next waypoint
             float distance = -1;
-            if (lastLocation != null)
+            if (lastLocation != null && location != null) {
+                Log.d(TAG, "location = " + lastLocation);
                 distance = lastLocation.distanceTo(location.getLocation().toLocation()) / 1000;
+            }
             distanceText = getString(R.string.noDistanceAvailable);
             Log.d(TAG,"Distance = " + distance);
             if (distance > 0)
@@ -1005,7 +1000,7 @@ public class MainActivity extends AppCompatActivity {
                                     Ambulance ambulance = AmbulanceForegroundService.getCurrentAmbulance();
                                     if (ambulance == null) {
 
-                                        Log.d(TAG, "Could not for updates.");
+                                        Log.d(TAG, "Could not force updates.");
 
                                         // Toast to warn user
                                         Toast.makeText(MainActivity.this,
@@ -1096,28 +1091,7 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    public void stopUpdatingLocation() {
-
-        // is handling call?
-        Call currentCall = AmbulanceForegroundService.getCurrentCall();
-        if (currentCall != null) {
-
-            Log.d(TAG, "In call: prompt user");
-
-            // currently handling call, prompt if want to end call
-            promptEndCallDialog(currentCall.getId());
-
-        } else {
-
-            Log.d(TAG, "Not in call: prompt user");
-
-            endUpdateDialog();
-
-        }
-
-    }
-
-    void doStopUpdatingLocation() {
+    void stopUpdatingServer() {
 
         if (canWrite()) {
 
@@ -1131,38 +1105,6 @@ public class MainActivity extends AppCompatActivity {
                     Toast.LENGTH_SHORT).show();
 
         }
-
-    }
-
-    private void endUpdateDialog() {
-
-        Log.i(TAG, "Creating end updateAmbulance dialog");
-
-        // Use the Builder class for convenient dialog construction
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Stop server updates")
-                .setMessage("Stoping updates will prevent you from relaying your GPS position, receiving call_current or otherwise updating the ambulance status on the server. Do you want to stop server updates?")
-                .setNegativeButton("No", new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int id) {
-
-                        Log.i(TAG, "Continue updating");
-
-                    }
-                })
-                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int id) {
-
-                        Toast.makeText(MainActivity.this, "Stopping updates", Toast.LENGTH_SHORT).show();
-
-                        Log.d(TAG, "Stop location updates");
-
-                        // stop updating location
-                        doStopUpdatingLocation();
-
-                    }
-                });
-        // Create the AlertDialog object and return it
-        builder.create().show();
 
     }
 
@@ -1187,7 +1129,7 @@ public class MainActivity extends AppCompatActivity {
                         Log.d(TAG, String.format("Switching to ambulance %1$s", newAmbulance.getAmbulanceIdentifier()));
 
                         // stop updating first
-                        doStopUpdatingLocation();
+                        stopUpdatingServer();
 
                         // then retrieve new ambulance
                         retrieveAmbulance(newAmbulance);
@@ -1217,6 +1159,40 @@ public class MainActivity extends AppCompatActivity {
 
         }
 
+    }
+
+    public void promptMustChooseAmbulance() {
+
+        // Use the Builder class for convenient dialog construction
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Please select ambulance")
+                .setCancelable(false)
+                .setMessage("You must choose an ambulance or logout to proceed")
+                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+
+                        Log.i(TAG, "Will choose ambulance");
+
+                        // Invoke ambulance selection
+                        ambulanceButton.performClick();
+
+                    }
+                })
+                .setNegativeButton("Logout", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+
+                        Log.i(TAG, "Will logout");
+
+                        // Start login activity
+                        Intent loginIntent = new Intent(MainActivity.this, LoginActivity.class);
+                        loginIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP|Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                        loginIntent.setAction(LoginActivity.LOGOUT);
+                        MainActivity.this.startActivity(loginIntent);
+
+                    }
+                });
+        // Create the AlertDialog object and return it
+        builder.create().show();
     }
 
     @Override

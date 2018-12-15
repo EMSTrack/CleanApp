@@ -44,7 +44,7 @@ public class LogoutDialog {
 
                         Log.i(TAG,"LogoutDialog: OK Button Clicked");
 
-                        // Start login activity
+                        // Start logout activity
                         Intent loginIntent = new Intent(activity, LoginActivity.class);
                         loginIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP|Intent.FLAG_ACTIVITY_CLEAR_TASK);
                         loginIntent.setAction(LoginActivity.LOGOUT);
