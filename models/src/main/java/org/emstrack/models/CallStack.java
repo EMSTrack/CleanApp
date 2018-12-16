@@ -123,8 +123,8 @@ public class CallStack implements Iterable {
 
     public Call getNextCall(int ambulanceId) {
 
-        // Try ongoing first
-        Call call = getNextCall(ambulanceId, AmbulanceCall.STATUS_ONGOING);
+        // Try accepted first
+        Call call = getNextCall(ambulanceId, AmbulanceCall.STATUS_ACCEPTED);
         if (call != null)
             return call;
 

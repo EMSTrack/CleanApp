@@ -143,7 +143,7 @@
     <string name="couldNotParseCallData">Could not parse call data.</string>
     <string name="couldNotDeclineCall">Cannot decline call. Currently serving another call.</string>
     <string name="willNotProcessNextCall">Will not process next call. Currently serving call.</string>
-    <string name="cannotSetCallOngoing">Can\'t set call as ongoing: already servicing call</string>
+    <string name="cannotSetCallAccepted">Can\'t set call as accepted: already servicing call</string>
     <string name="requestToStreamLocation">Requesting to stream updates…</string>
     <string name="selectAmbulance">Select ambulance:</string>
     <string name="ambulanceButtonDefaultText">Select ambulance</string>

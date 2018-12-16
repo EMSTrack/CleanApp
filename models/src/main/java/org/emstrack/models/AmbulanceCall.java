@@ -9,7 +9,7 @@ import java.util.Map;
 public class AmbulanceCall {
 
     public static final String STATUS_REQUESTED = "R";
-    public static final String STATUS_ONGOING = "O";
+    public static final String STATUS_ACCEPTED = "A";
     public static final String STATUS_DECLINED = "D";
     public static final String STATUS_SUSPENDED = "S";
     public static final String STATUS_COMPLETED = "C";
@@ -20,10 +20,10 @@ public class AmbulanceCall {
         Map<String, String> map = new HashMap<>();
 
         map.put(STATUS_REQUESTED, "Requested");
-        map.put(STATUS_ONGOING,"Ongoing");
-        map.put(STATUS_DECLINED,"Declined");
-        map.put(STATUS_SUSPENDED,"Suspended");
-        map.put(STATUS_COMPLETED,"Completed");
+        map.put(STATUS_ACCEPTED, "Accepted");
+        map.put(STATUS_DECLINED, "Declined");
+        map.put(STATUS_SUSPENDED, "Suspended");
+        map.put(STATUS_COMPLETED, "Completed");
 
         statusLabel = Collections.unmodifiableMap(map);
     }

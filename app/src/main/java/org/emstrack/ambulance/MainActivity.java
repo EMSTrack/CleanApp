@@ -204,17 +204,17 @@ public class MainActivity extends AppCompatActivity {
                     int callId = intent.getIntExtra("CALL_ID", -1);
                     promptNextWaypointDialog(callId);
 
-                } else if (action.equals(AmbulanceForegroundService.BroadcastActions.CALL_ONGOING)) {
+                } else if (action.equals(AmbulanceForegroundService.BroadcastActions.CALL_ACCEPTED)) {
 
-                    Log.i(TAG, "CALL_ONGOING");
+                    Log.i(TAG, "CALL_ACCEPTED");
 
                     // change button color to red
                     int myVectorColor = ContextCompat.getColor(MainActivity.this, R.color.colorRed);
                     trackingIcon.setColorFilter(myVectorColor, PorterDuff.Mode.SRC_IN);
 
-                } else if (action.equals(AmbulanceForegroundService.BroadcastActions.CALL_FINISHED)) {
+                } else if (action.equals(AmbulanceForegroundService.BroadcastActions.CALL_COMPLETED)) {
 
-                    Log.i(TAG, "CALL_FINISHED");
+                    Log.i(TAG, "CALL_COMPLETED");
 
                     // change button color to black
                     int myVectorColor = ContextCompat.getColor(MainActivity.this, R.color.colorBlack);
@@ -447,9 +447,9 @@ public class MainActivity extends AppCompatActivity {
         filter.addAction(AmbulanceForegroundService.BroadcastActions.PROMPT_CALL_ACCEPT);
         filter.addAction(AmbulanceForegroundService.BroadcastActions.PROMPT_CALL_END);
         filter.addAction(AmbulanceForegroundService.BroadcastActions.PROMPT_NEXT_WAYPOINT);
-        filter.addAction(AmbulanceForegroundService.BroadcastActions.CALL_ONGOING);
+        filter.addAction(AmbulanceForegroundService.BroadcastActions.CALL_ACCEPTED);
         filter.addAction(AmbulanceForegroundService.BroadcastActions.CALL_DECLINED);
-        filter.addAction(AmbulanceForegroundService.BroadcastActions.CALL_FINISHED);
+        filter.addAction(AmbulanceForegroundService.BroadcastActions.CALL_COMPLETED);
         receiver = new MainActivityBroadcastReceiver();
         getLocalBroadcastManager().registerReceiver(receiver, filter);
 
