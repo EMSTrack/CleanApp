@@ -141,7 +141,7 @@ public class AmbulanceUpdate {
         }
 
         // format timestamp
-        DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+        DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
         df.setTimeZone(TimeZone.getTimeZone("UTC"));
         String timestamp = df.format(this.getTimestamp());
 

@@ -33,15 +33,11 @@ import org.emstrack.models.Patient;
 import org.emstrack.models.Waypoint;
 import org.emstrack.mqtt.MqttProfileClient;
 
-import java.text.DateFormat;
 import java.text.DecimalFormat;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.TimeZone;
 
 public class AmbulanceFragment extends Fragment {
 
@@ -90,6 +86,7 @@ public class AmbulanceFragment extends Fragment {
 
     private int currentCallId;
     private View callNextWaypointLayout;
+    private StatusButtonClickListener statusButtonClickListerner;
 
     public class AmbulancesUpdateBroadcastReceiver extends BroadcastReceiver {
 
@@ -109,9 +106,9 @@ public class AmbulanceFragment extends Fragment {
                         updateCall(AmbulanceForegroundService.getCurrentAmbulance(),
                                 AmbulanceForegroundService.getCurrentCall());
 
-                } else if (action.equals(AmbulanceForegroundService.BroadcastActions.CALL_ONGOING)) {
+                } else if (action.equals(AmbulanceForegroundService.BroadcastActions.CALL_ACCEPTED)) {
 
-                    Log.i(TAG, "CALL_ONGOING");
+                    Log.i(TAG, "CALL_ACCEPTED");
 
                     // Toast to warn user
                     Toast.makeText(getContext(), R.string.CallStarted, Toast.LENGTH_LONG).show();
@@ -121,9 +118,9 @@ public class AmbulanceFragment extends Fragment {
                     updateCall(AmbulanceForegroundService.getCurrentAmbulance(),
                             AmbulanceForegroundService.getCurrentCall());
 
-                } else if (action.equals(AmbulanceForegroundService.BroadcastActions.CALL_FINISHED)) {
+                } else if (action.equals(AmbulanceForegroundService.BroadcastActions.CALL_COMPLETED)) {
 
-                    Log.i(TAG, "CALL_FINISHED");
+                    Log.i(TAG, "CALL_COMPLETED");
 
                     // Toast to warn user
                     Toast.makeText(getContext(), R.string.CallFinished, Toast.LENGTH_LONG).show();
@@ -153,6 +150,14 @@ public class AmbulanceFragment extends Fragment {
                             ambulanceStatusList);
             ambulanceListAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 
+        }
+
+        public void setEnabled(boolean enabled) {
+            this.enabled = enabled;
+        }
+
+        public boolean isEnabled() {
+            return enabled;
         }
 
         @Override
@@ -270,7 +275,8 @@ public class AmbulanceFragment extends Fragment {
         statusButton = view.findViewById(R.id.statusButton);
 
         // Set the ambulance button's adapter
-        statusButton.setOnClickListener(new StatusButtonClickListener());
+        statusButtonClickListerner = new StatusButtonClickListener();
+        statusButton.setOnClickListener(statusButtonClickListerner);
 
         // Update ambulance
         Ambulance ambulance = AmbulanceForegroundService.getCurrentAmbulance();
@@ -323,8 +329,8 @@ public class AmbulanceFragment extends Fragment {
         IntentFilter filter = new IntentFilter();
         filter.addAction(AmbulanceForegroundService.BroadcastActions.AMBULANCE_UPDATE);
         filter.addAction(AmbulanceForegroundService.BroadcastActions.CALL_UPDATE);
-        filter.addAction(AmbulanceForegroundService.BroadcastActions.CALL_ONGOING);
-        filter.addAction(AmbulanceForegroundService.BroadcastActions.CALL_FINISHED);
+        filter.addAction(AmbulanceForegroundService.BroadcastActions.CALL_ACCEPTED);
+        filter.addAction(AmbulanceForegroundService.BroadcastActions.CALL_COMPLETED);
         filter.addAction(AmbulanceForegroundService.BroadcastActions.CALL_DECLINED);
         receiver = new AmbulanceFragment.AmbulancesUpdateBroadcastReceiver();
         getLocalBroadcastManager().registerReceiver(receiver, filter);
@@ -358,6 +364,8 @@ public class AmbulanceFragment extends Fragment {
                 callLayout.setVisibility(View.GONE);
                 currentCallId = -1;
 
+                statusButtonClickListerner.setEnabled(true);
+
             } else {
 
                 Log.d(TAG, "CALL Layout");
@@ -386,6 +394,8 @@ public class AmbulanceFragment extends Fragment {
                             }
                         }
                 );
+
+                statusButtonClickListerner.setEnabled(false);
 
             }
 

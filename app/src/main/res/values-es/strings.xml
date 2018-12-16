@@ -136,7 +136,7 @@
     <string name="couldNotDeclineCall">No se puede rechazar la llamada. Actualmente atiende otra llamada.</string>
     <string name="couldNotParseCallData">No se pudieron analizar los datos de llamadas.</string>
     <string name="willNotProcessNextCall">No procesará la próxima llamada. Llamada actualmente en servicio.</string>
-    <string name="cannotSetCallOngoing">No se puede establecer la llamada como en curso: ya se está atendiendo la llamada</string>
+    <string name="cannotSetCallAccepted">No se puede establecer la llamada como en curso: ya se está atendiendo la llamada</string>
     <string name="selectAmbulance">Seleccione ambulancia:</string>
     <string name="requestToStreamLocation">Solicitando transmitir actualizaciones ...</string>
     <string name="ambulanceButtonDefaultText">Seleccionar ambulancia</string>

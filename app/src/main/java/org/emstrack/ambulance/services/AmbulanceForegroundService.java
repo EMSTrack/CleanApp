@@ -190,9 +190,9 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         public final static String PROMPT_CALL_ACCEPT = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastaction.PROMPT_CALL_ACCEPT";
         public final static String PROMPT_CALL_END = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastaction.PROMPT_CALL_END";
         public final static String PROMPT_NEXT_WAYPOINT = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastaction.PROMPT_NEXT_WAYPOINT";
-        public final static String CALL_ONGOING = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastaction.CALL_ONGOING";
+        public final static String CALL_ACCEPTED = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastaction.CALL_ACCEPTED";
         public final static String CALL_DECLINED = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastaction.CALL_DECLINED";
-        public final static String CALL_FINISHED = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastaction.CALL_FINISHED";
+        public final static String CALL_COMPLETED = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastaction.CALL_COMPLETED";
         public final static String CALL_UPDATE = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastaction.CALL_UPDATE";
     }
 
@@ -690,7 +690,8 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
             int callId = intent.getIntExtra("CALL_ID", -1);
 
             // next steps to publish information to server (steps 3, 4)
-            setCallStatus(callId, "Accepted", uuid);
+            setAmbulanceCallStatus(callId,
+                    AmbulanceCall.statusLabel.get(AmbulanceCall.STATUS_ACCEPTED), uuid);
 
         } else if (action.equals(Actions.CALL_DECLINE)) {
 
@@ -2876,11 +2877,11 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                                             processOrSubscribeToCall(callId, uuid);
                                             newStatus = AmbulanceCall.STATUS_REQUESTED;
 
-                                        } else if (status.equalsIgnoreCase(AmbulanceCall.statusLabel.get(AmbulanceCall.STATUS_ONGOING))) {
+                                        } else if (status.equalsIgnoreCase(AmbulanceCall.statusLabel.get(AmbulanceCall.STATUS_ACCEPTED))) {
 
-                                            // if status is "ongoing", set call ongoing
-                                            setCallOngoing(callId, uuid);
-                                            newStatus = AmbulanceCall.STATUS_ONGOING;
+                                            // if status is "accepted", set call accepted
+                                            setCallAccepted(callId, uuid);
+                                            newStatus = AmbulanceCall.STATUS_ACCEPTED;
 
                                         } else {
 
@@ -2899,8 +2900,8 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                                                 // clean up
                                                 cleanUpCall(callId, uuid);
 
-                                                // broadcast CALL_FINISHED
-                                                Intent callCompletedIntent = new Intent(BroadcastActions.CALL_FINISHED);
+                                                // broadcast CALL_COMPLETED
+                                                Intent callCompletedIntent = new Intent(BroadcastActions.CALL_COMPLETED);
                                                 callCompletedIntent.putExtra("CALL_ID", callId);
                                                 sendBroadcastWithUUID(callCompletedIntent, uuid);
 
@@ -3272,7 +3273,8 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         call.getCurrentAmbulanceCall().setStatus(AmbulanceCall.STATUS_COMPLETED);
 
         // publish finished status to server
-        setCallStatus(call.getId(), "finished", uuid);
+        setAmbulanceCallStatus(call.getId(),
+                AmbulanceCall.statusLabel.get(AmbulanceCall.STATUS_COMPLETED), uuid);
 
     }
 
@@ -3306,7 +3308,8 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         }
 
         // publish declined as status
-        setCallStatus(callId, "Declined", uuid);
+        setAmbulanceCallStatus(callId,
+                AmbulanceCall.statusLabel.get(AmbulanceCall.STATUS_DECLINED), uuid);
 
     }
 
@@ -3331,7 +3334,8 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         call.getCurrentAmbulanceCall().setStatus(AmbulanceCall.STATUS_SUSPENDED);
 
         // publish suspended as status
-        setCallStatus(callId, "Suspended", uuid);
+        setAmbulanceCallStatus(callId,
+                AmbulanceCall.statusLabel.get(AmbulanceCall.STATUS_SUSPENDED), uuid);
 
     }
 
@@ -3397,7 +3401,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
     }
 
     // handles steps 3 and 4 of Accepting Calls
-    public void setCallStatus(int callId, String status, String uuid) {
+    public void setAmbulanceCallStatus(int callId, String status, String uuid) {
 
         Log.i(TAG, "Setting call/" + callId + "/status to '" + status + "'");
 
@@ -3424,7 +3428,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
     }
 
     // handles steps 6 to 7
-    public void setCallOngoing(final int callId, final String uuid) {
+    public void setCallAccepted(final int callId, final String uuid) {
 
         // Retrieve call
         Call call = pendingCalls.get(callId);
@@ -3445,10 +3449,10 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
             // Call setOrUpdateCall
             setOrUpdateCall(uuid, call);
 
-            // broadcast CALL_ONGOING
-            Intent callOngoingIntent = new Intent(BroadcastActions.CALL_ONGOING);
-            callOngoingIntent.putExtra("CALL_ID", callId);
-            sendBroadcastWithUUID(callOngoingIntent, uuid);
+            // broadcast CALL_ACCEPTED
+            Intent callAcceptedIntent = new Intent(BroadcastActions.CALL_ACCEPTED);
+            callAcceptedIntent.putExtra("CALL_ID", callId);
+            sendBroadcastWithUUID(callAcceptedIntent, uuid);
 
         } catch (AmbulanceForegroundServiceException | CallStack.CallStackException | Call.CallException e) {
 
@@ -3469,7 +3473,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
         // Fail if servicing another call
         if (pendingCalls.hasCurrentCall() && pendingCalls.getCurrentCallId() != call.getId()) {
-            String message = String.format("Can't set call as ongoing: already servicing call '%1$d'", pendingCalls.getCurrentCallId());
+            String message = String.format("Can't set call as accepted: already servicing call '%1$d'", pendingCalls.getCurrentCallId());
             throw new AmbulanceForegroundServiceException(message);
         }
 
