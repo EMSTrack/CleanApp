@@ -95,6 +95,8 @@ public class MqttProfileClient implements MqttCallbackExtended {
 
     public String getClientId() { return mqttClient.getClientId(); }
 
+    public String getServerURI() { return mqttClient.getServerURI(); }
+
     public void disconnect() throws MqttException { disconnect(null); }
 
     public void disconnect(final MqttProfileCallback disconnectCallback) throws MqttException {
@@ -302,7 +304,7 @@ public class MqttProfileClient implements MqttCallbackExtended {
     @Override
     public void connectComplete(final boolean reconnect, String serverURI) {
 
-         // TODO: Handle reconnection properly
+        // TODO: Handle reconnection properly
         if (reconnect) {
             Log.d(TAG, "Reconnected to broker, calling reconnect.");
             callOnReconnect();
@@ -457,7 +459,7 @@ public class MqttProfileClient implements MqttCallbackExtended {
         }
 
         // Report failure to handle topic
-        callOnFailure(new Exception("Mishandled topic '" + topic + "'"));
+        callOnFailure(new MishandledTopicException(topic));
 
     }
 

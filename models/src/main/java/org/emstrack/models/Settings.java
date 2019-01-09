@@ -10,13 +10,13 @@ import java.util.Map;
 
 public class Settings {
 
-    public Map<String, String> ambulanceCapability = new HashMap<>();
+    public Map<String, String> ambulanceCapability;
 
-    public Map<String, String> ambulanceStatus = new HashMap<>();
+    public Map<String, String> ambulanceStatus;
 
-    public Map<String, String> equipmentType = new HashMap<>();
+    public Map<String, String> equipmentType;
 
-    public Map<String, String> locationType = new HashMap<>();
+    public Map<String, String> locationType;
 
     private Defaults defaults;
 
@@ -65,7 +65,9 @@ public class Settings {
                     Defaults defaults) {
         this.ambulanceCapability = ambulanceCapability;
         this.ambulanceStatus = ambulanceStatus;
+        this.equipmentType = new HashMap<>();
         this.equipmentType = equipmentType;
+        this.locationType = new HashMap<>();
         this.locationType = locationType;
         this.defaults = defaults;
     }

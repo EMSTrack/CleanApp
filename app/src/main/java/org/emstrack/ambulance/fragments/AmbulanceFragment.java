@@ -2,19 +2,23 @@ package org.emstrack.ambulance.fragments;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.LocalBroadcastManager;
+import android.support.v7.app.AlertDialog;
 import android.util.Log;
+import android.util.Pair;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.Spinner;
-import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -22,48 +26,67 @@ import org.emstrack.ambulance.services.AmbulanceForegroundService;
 import org.emstrack.ambulance.MainActivity;
 import org.emstrack.ambulance.R;
 import org.emstrack.models.Ambulance;
+import org.emstrack.models.AmbulanceCall;
+import org.emstrack.models.Call;
+import org.emstrack.models.Location;
+import org.emstrack.models.Patient;
+import org.emstrack.models.Waypoint;
 import org.emstrack.mqtt.MqttProfileClient;
 
-import java.io.StringBufferInputStream;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.TimeZone;
 
-public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSelectedListener {
+public class AmbulanceFragment extends Fragment {
 
     private static final String TAG = AmbulanceFragment.class.getSimpleName();;
 
+    private static DecimalFormat df = new DecimalFormat();
+
     private View view;
 
-    private Spinner statusSpinner;
-
-    private TextView latitudeText;
-    private TextView longitudeText;
-    private TextView timestampText;
-    private TextView orientationText;
-
-    private Switch startTrackingSwitch;
+    private Button statusButton;
 
     private TextView capabilityText;
-
     private TextView commentText;
-
     private TextView updatedOnText;
+
+    private AmbulancesUpdateBroadcastReceiver receiver;
+
+    private LinearLayout callLayout;
+    private TextView callDescriptionTextView;
+    private Button callPriorityButton;
+    private TextView callAddressTextView;
+    private Button callEndButton;
+    private TextView callPatientsTextView;
+    private TextView callDistanceTextView;
+    private Button callAddWaypointButton;
+    private TextView callNextWaypointTypeTextView;
+    private TextView callNumberWayointsView;
+
+    private RelativeLayout callInformationLayout;
+    private TextView callInformationText;
+
+    private LinearLayout callResumeLayout;
+    private Spinner callResumeSpinner;
+    private Button callResumeButton;
+
+    private View callSkipLayout;
+    private Button callSkipWaypoinButton;
+    private Button callVisitingWaypointButton;
 
     private Map<String,String> ambulanceStatus;
     private List<String> ambulanceStatusList;
-    private ArrayList<Integer> ambulanceStatusColorList;
+    private ArrayList<Integer> ambulanceStatusBackgroundColorList;
+    private ArrayList<Integer> ambulanceStatusTextColorList;
     private Map<String,String> ambulanceCapabilities;
     private List<String> ambulanceCapabilityList;
 
-    AmbulancesUpdateBroadcastReceiver receiver;
-    private int requestingToStreamLocation;
-    private final int MAX_NUMBER_OF_LOCATION_REQUESTS_ATTEMPTS = 2;
+    private int currentCallId;
+    private View callNextWaypointLayout;
+    private StatusButtonClickListener statusButtonClickListerner;
 
     public class AmbulancesUpdateBroadcastReceiver extends BroadcastReceiver {
 
@@ -74,18 +97,146 @@ public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSel
                 if (action.equals(AmbulanceForegroundService.BroadcastActions.AMBULANCE_UPDATE)) {
 
                     Log.i(TAG, "AMBULANCE_UPDATE");
-                    update(AmbulanceForegroundService.getAmbulance());
+                    updateAmbulance(AmbulanceForegroundService.getCurrentAmbulance());
+
+                } else if (action.equals(AmbulanceForegroundService.BroadcastActions.CALL_UPDATE)) {
+
+                    Log.i(TAG, "CALL_UPDATE");
+                    if (currentCallId > 0)
+                        updateCall(AmbulanceForegroundService.getCurrentAmbulance(),
+                                AmbulanceForegroundService.getCurrentCall());
+
+                } else if (action.equals(AmbulanceForegroundService.BroadcastActions.CALL_ACCEPTED)) {
+
+                    Log.i(TAG, "CALL_ACCEPTED");
+
+                    // Toast to warn user
+                    Toast.makeText(getContext(), R.string.CallStarted, Toast.LENGTH_LONG).show();
+
+                    int callId = intent.getIntExtra("CALL_ID", -1);
+                    currentCallId = -1;
+                    updateCall(AmbulanceForegroundService.getCurrentAmbulance(),
+                            AmbulanceForegroundService.getCurrentCall());
+
+                } else if (action.equals(AmbulanceForegroundService.BroadcastActions.CALL_COMPLETED)) {
+
+                    Log.i(TAG, "CALL_COMPLETED");
+
+                    // Toast to warn user
+                    Toast.makeText(getContext(), R.string.CallFinished, Toast.LENGTH_LONG).show();
+
+                    int callId = intent.getIntExtra("CALL_ID", -1);
+                    if (currentCallId == callId)
+                        updateCall(AmbulanceForegroundService.getCurrentAmbulance(),null);
 
                 }
 
             }
         }
-    };
+    }
+
+    public class StatusButtonClickListener implements View.OnClickListener {
+
+        private boolean enabled;
+        ArrayAdapter<String> ambulanceListAdapter;
+
+        public StatusButtonClickListener() {
+            this.enabled = true;
+
+            // Create the adapter
+            this.ambulanceListAdapter =
+                    new ArrayAdapter<>(AmbulanceFragment.this.getContext(),
+                            android.R.layout.simple_spinner_dropdown_item,
+                            ambulanceStatusList);
+            ambulanceListAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+
+        }
+
+        public void setEnabled(boolean enabled) {
+            this.enabled = enabled;
+        }
+
+        public boolean isEnabled() {
+            return enabled;
+        }
+
+        @Override
+        public void onClick(View v) {
+
+            // short return if disabled
+            if (!enabled)
+                return;
+
+            new AlertDialog.Builder(
+                    getActivity())
+                    .setTitle(R.string.selectAmbulanceStatus)
+                    .setAdapter(ambulanceListAdapter,
+                            new DialogInterface.OnClickListener() {
+
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+
+                                    // Get selected status
+                                    Log.i(TAG, "Status at position '" + which + "' selected.");
+
+                                    // Update ambulance status
+                                    updateAmbulanceStatus(which);
+
+                                }
+                            })
+                    .create()
+                    .show();
+        }
+    }
 
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
+        Log.d(TAG, "onCreateView");
+
+        // set formatter
+        df.setMaximumFractionDigits(3);
+
         // inflate view
         view = inflater.inflate(R.layout.fragment_ambulance, container, false);
+
+        // get callInformationLayout
+        callInformationLayout = view.findViewById(R.id.callInformationLayout);
+
+        // Retrieve callInformationLayout parts
+        callInformationText = callInformationLayout.findViewById(R.id.callInformationText);
+
+        // get callResumeLayout
+        callResumeLayout = view.findViewById(R.id.callResumeLayout);
+
+        // Retrieve callResumeLayout parts
+        callResumeSpinner = callResumeLayout.findViewById(R.id.callResumeSpinner);
+        callResumeButton= callResumeLayout.findViewById(R.id.callResumeButton);
+        
+        // setup callLayout
+        callLayout = view.findViewById(R.id.callLayout);
+
+        // Retrieve callLayout parts
+        callPriorityButton = callLayout.findViewById(R.id.callPriorityButton);
+        callDescriptionTextView = callLayout.findViewById(R.id.callDetailsText);
+        callPatientsTextView = callLayout.findViewById(R.id.callPatientsText);
+        callNumberWayointsView = callLayout.findViewById(R.id.callNumberWaypointsText);
+
+        callEndButton = callLayout.findViewById(R.id.callEndButton);
+        callAddWaypointButton = callLayout.findViewById(R.id.callAddWaypointButton);
+
+        // setup callNextWaypointLayout
+        callNextWaypointLayout = callLayout.findViewById(R.id.callNextWaypointLayout);
+
+        // Retrieve callNextWaypointLayout parts
+        callDistanceTextView = callLayout.findViewById(R.id.callDistanceText);
+        callNextWaypointTypeTextView = callLayout.findViewById(R.id.callWaypointTypeText);
+        callAddressTextView = callLayout.findViewById(R.id.callAddressText);
+
+        // setup callSkipLayout
+        callSkipLayout = callLayout.findViewById(R.id.callSkipLayout);
+
+        callSkipWaypoinButton = callSkipLayout.findViewById(R.id.callSkipWaypointButton);
+        callVisitingWaypointButton = callSkipLayout.findViewById(R.id.callVisitingWaypoingButton);
 
         try {
 
@@ -93,87 +244,57 @@ public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSel
             final MqttProfileClient profileClient = AmbulanceForegroundService.getProfileClient();
 
             ambulanceStatus = profileClient.getSettings().getAmbulanceStatus();
-            ambulanceStatusList = new ArrayList<String>(ambulanceStatus.values());
+            ambulanceStatusList = new ArrayList<>(ambulanceStatus.values());
             Collections.sort(ambulanceStatusList);
 
-            int colors [] = getResources().getIntArray(R.array.statusColors);
-            ambulanceStatusColorList = new ArrayList<Integer>();
-            for (int i = 0; i < ambulanceStatusList.size(); i++) {
-                ambulanceStatusColorList.add(colors[i]);
-            }
+            ambulanceStatusBackgroundColorList = new ArrayList<>();
+            ambulanceStatusTextColorList = new ArrayList<>();
+            for (String value : ambulanceStatusList)
+                for (Map.Entry<String,String> entry : ambulanceStatus.entrySet())
+                    if (value.equals(entry.getValue())) {
+                        ambulanceStatusBackgroundColorList.add(getResources().getColor(Ambulance.statusBackgroundColorMap.get(entry.getKey())));
+                        ambulanceStatusTextColorList.add(getResources().getColor(Ambulance.statusTextColorMap.get(entry.getKey())));
+                    }
 
             ambulanceCapabilities = profileClient.getSettings().getAmbulanceCapability();
-            ambulanceCapabilityList = new ArrayList<String>(ambulanceCapabilities.values());
+            ambulanceCapabilityList = new ArrayList<>(ambulanceCapabilities.values());
             Collections.sort(ambulanceCapabilityList);
 
         } catch (AmbulanceForegroundService.ProfileClientException e) {
-
-            ambulanceStatusList = new ArrayList<String>();
-
+            
+            ambulanceStatusList = new ArrayList<>();
+            
         }
-
-        // Retrieve location
-        latitudeText = (TextView) view.findViewById(R.id.latitudeText);
-        longitudeText = (TextView) view.findViewById(R.id.longitudeText);
-        timestampText = (TextView) view.findViewById(R.id.timestampText);
-        orientationText = (TextView) view.findViewById(R.id.orientationText);
 
         // Other text
-        capabilityText = (TextView) view.findViewById(R.id.capabilityText);
-        commentText = (TextView) view.findViewById(R.id.commentText);
-        updatedOnText = (TextView) view.findViewById(R.id.updatedOnText);
+        capabilityText = view.findViewById(R.id.capabilityText);
+        commentText = view.findViewById(R.id.commentText);
+        updatedOnText = view.findViewById(R.id.updatedOnText);
 
-        // Set status spinner
-        statusSpinner = (Spinner) view.findViewById(R.id.statusSpinner);
-        // Create an ArrayAdapter using the string array and a default spinner layout
-        ArrayAdapter<String> statusSpinnerAdapter =
-                new ArrayAdapter<String>(getContext(),
-                        R.layout.status_spinner_item,
-                        ambulanceStatusList) {
+        // Set status button
+        statusButton = view.findViewById(R.id.statusButton);
 
-                    @Override
-                    public View getView(int pos, View view, ViewGroup parent)
-                    {
-                        Context context = AmbulanceFragment.this.getContext();
-                        LayoutInflater inflater = LayoutInflater.from(context);
-                        view = inflater.inflate(R.layout.status_spinner_dropdown_item, null);
-                        TextView textView = (TextView) view.findViewById(R.id.statusSpinnerDropdownItemText);
-                        textView.setBackgroundColor(ambulanceStatusColorList.get(pos));
-                        textView.setTextSize(context.getResources().getDimension(R.dimen.statusTextSize));
-                        textView.setText(ambulanceStatusList.get(pos));
-                        return view;
-                    }
-
-                    @Override
-                    public View getDropDownView(int pos, View view, ViewGroup parent) {
-                        return getView(pos, view, parent);
-                    }
-
-                };
-        //statusSpinnerAdapter.setDropDownViewResource(R.layout.status_spinner_dropdown_item);
-        statusSpinner.setAdapter(statusSpinnerAdapter);
+        // Set the ambulance button's adapter
+        statusButtonClickListerner = new StatusButtonClickListener();
+        statusButton.setOnClickListener(statusButtonClickListerner);
 
         // Update ambulance
-        Ambulance ambulance = AmbulanceForegroundService.getAmbulance();
-        if (ambulance != null) {
+        Ambulance ambulance = AmbulanceForegroundService.getCurrentAmbulance();
+        if (ambulance != null)
+            updateAmbulance(ambulance);
+        else
+            callLayout.setVisibility(View.GONE);
 
-            update(ambulance);
-
-            // TODO: REMOVE, JUST FOR TESTING
-            // Add geofence
-//            Log.i(TAG, "Adding geofence");
-//            Intent serviceIntent = new Intent(getActivity(),
-//                    AmbulanceForegroundService.class);
-//            serviceIntent.setAction(AmbulanceForegroundService.Actions.GEOFENCE_START);
-//            serviceIntent.putExtra("LATITUDE", (float) 32.881150);
-//            serviceIntent.putExtra("LONGITUDE", (float) -117.238200);
-//            serviceIntent.putExtra("RADIUS", 50.f);
-//            getActivity().startService(serviceIntent);
-
+        // Are there call_current?
+        currentCallId = -1;
+        Call call = AmbulanceForegroundService.getCurrentCall();
+        if (call != null) {
+            Log.d(TAG, String.format("Is currently handling call '%1$d'", call.getId()));
+            updateCall(ambulance, call);
+        } else {
+            Log.d(TAG, "Is currently not handling any call");
+            callResumeLayout.setVisibility(View.GONE);
         }
-
-        // Process change of status
-        statusSpinner.setOnItemSelectedListener(this);
 
         return view;
     }
@@ -182,14 +303,35 @@ public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSel
     public void onResume() {
         super.onResume();
 
+        Log.d(TAG, "onResume");
+
+        // Set auxiliary panels gone
+        callLayout.setVisibility(View.GONE);
+        callResumeLayout.setVisibility(View.GONE);
+
         // Update ambulance
-        Ambulance ambulance = AmbulanceForegroundService.getAmbulance();
+        Ambulance ambulance = AmbulanceForegroundService.getCurrentAmbulance();
         if (ambulance != null)
-            update(ambulance);
+            updateAmbulance(ambulance);
+
+        // Are there call_current?
+        currentCallId = -1;
+        Call call = AmbulanceForegroundService.getCurrentCall();
+        if (call != null) {
+            Log.d(TAG, String.format("Is currently handling call '%1$d'", call.getId()));
+            updateCall(ambulance, call);
+        } else {
+            Log.d(TAG, "Is currently not handling any call");
+            callResumeLayout.setVisibility(View.GONE);
+        }
 
         // Register receiver
         IntentFilter filter = new IntentFilter();
         filter.addAction(AmbulanceForegroundService.BroadcastActions.AMBULANCE_UPDATE);
+        filter.addAction(AmbulanceForegroundService.BroadcastActions.CALL_UPDATE);
+        filter.addAction(AmbulanceForegroundService.BroadcastActions.CALL_ACCEPTED);
+        filter.addAction(AmbulanceForegroundService.BroadcastActions.CALL_COMPLETED);
+        filter.addAction(AmbulanceForegroundService.BroadcastActions.CALL_DECLINED);
         receiver = new AmbulanceFragment.AmbulancesUpdateBroadcastReceiver();
         getLocalBroadcastManager().registerReceiver(receiver, filter);
 
@@ -207,33 +349,297 @@ public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSel
 
     }
 
-    public void update(Ambulance ambulance) {
+    public void updateCall(final Ambulance ambulance, final Call call) {
 
-        // set spinner only if position changed
-        // this helps to prevent a possible server loop
-        int position = ambulanceStatusList.indexOf(ambulanceStatus.get(ambulance.getStatus()));
-        int currentPosition = statusSpinner.getSelectedItemPosition();
-        if (currentPosition != position) {
+        if ((call == null ^ currentCallId <= 0)) {
 
-            Log.i(TAG,"Spinner changed from " + currentPosition + " to " + position);
+            Log.d(TAG, "Call changed, will initialize layout");
 
-            // set spinner
-            setSpinner(position);
+            // create new layout
+            if (call == null) {
 
-        } else {
+                Log.d(TAG, "NO CALL Layout");
 
-            Log.i(TAG, "Spinner continues to be at position " + position + ". Skipping update");
+                callInformationLayout.setVisibility(View.VISIBLE);
+                callLayout.setVisibility(View.GONE);
+                currentCallId = -1;
+
+                statusButtonClickListerner.setEnabled(true);
+
+            } else {
+
+                Log.d(TAG, "CALL Layout");
+
+                callInformationLayout.setVisibility(View.GONE);
+                callResumeLayout.setVisibility(View.GONE);
+                callLayout.setVisibility(View.VISIBLE);
+                currentCallId = call.getId();
+
+                callEndButton.setOnClickListener(
+                        new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                // Prompt end of call
+                                ((MainActivity) getActivity()).promptEndCallDialog(call.getId());
+                            }
+                        }
+                );
+
+                callAddWaypointButton.setOnClickListener(
+                        new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                // Prompt add new waypoint
+                                ((MainActivity) getActivity()).promptNextWaypointDialog(call.getId());
+                            }
+                        }
+                );
+
+                statusButtonClickListerner.setEnabled(false);
+
+            }
 
         }
 
-        // set identifier
-        ((MainActivity) getActivity()).setHeader(ambulance.getIdentifier());
+        // Update call content
+        if (call != null) {
 
-        // set location
-        latitudeText.setText(String.format("%.6f", ambulance.getLocation().getLatitude()));
-        longitudeText.setText(String.format("%.6f", ambulance.getLocation().getLongitude()));
-        orientationText.setText(String.format("%.1f", ambulance.getOrientation()));
-        timestampText.setText(ambulance.getTimestamp().toString());
+            Log.d(TAG, "Creating call layout");
+
+            // get ambulanceCall
+            AmbulanceCall ambulanceCall = call.getCurrentAmbulanceCall();
+            if (ambulanceCall == null)
+                Log.d(TAG, "Call does not have a current ambulance!");
+
+            callPriorityButton.setText(call.getPriority());
+            callPriorityButton.setBackgroundColor(((MainActivity) getActivity()).getCallPriorityBackgroundColors().get(call.getPriority()));
+            callPriorityButton.setTextColor(((MainActivity) getActivity()).getCallPriorityForegroundColors().get(call.getPriority()));
+
+            ((TextView) view.findViewById(R.id.callPriorityLabel)).setText("Current Call:");
+
+            callDescriptionTextView.setText(call.getDetails());
+
+            // patients
+            List<Patient> patients = call.getPatientSet();
+            if (patients != null && patients.size() > 0) {
+                String text = "";
+                for (Patient patient: patients)  {
+                    if (!text.isEmpty())
+                        text += ", ";
+                    text += patient.getName();
+                    if (patient.getAge() != null)
+                        text += " (" + patient.getAge() + ")";
+                }
+
+                callPatientsTextView.setText(text);
+            } else
+                callPatientsTextView.setText(R.string.noPatientAvailable);
+
+            int numberOfWaypoints = ambulanceCall == null ? 0 : ambulanceCall.getWaypointSet().size();
+            callNumberWayointsView.setText(String.valueOf(numberOfWaypoints));
+
+            final Waypoint waypoint =
+                    (ambulanceCall != null
+                            ? ambulanceCall.getNextWaypoint()
+                            : null);
+
+            if (waypoint != null) {
+
+                Log.d(TAG, "Setting up next waypoint");
+
+                // Get Location
+                Location location = waypoint.getLocation();
+
+                // Update waypoint type
+                callNextWaypointTypeTextView.setText(Location.typeLabel.get(location.getType()));
+
+                // Update address
+                callAddressTextView.setText(location.toString());
+
+                // Update call distance to next waypoint
+                callDistanceTextView.setText(updateCallDistance(location));
+
+                // Setup visiting button text
+                String visitinWaypointText = "Mark as ";
+                if (waypoint.isCreated()) {
+                    visitinWaypointText += Waypoint.statusLabel.get(Waypoint.STATUS_VISITING);
+                    callVisitingWaypointButton.setBackgroundColor(getResources().getColor(R.color.bootstrapWarning));
+                    callVisitingWaypointButton.setTextColor(getResources().getColor(R.color.bootstrapDark));
+                } else { // if (waypoint.isVisting())
+                    visitinWaypointText += Waypoint.statusLabel.get(Waypoint.STATUS_VISITED);
+                    callVisitingWaypointButton.setBackgroundColor(getResources().getColor(R.color.bootstrapInfo));
+                    callVisitingWaypointButton.setTextColor(getResources().getColor(R.color.bootstrapLight));
+                }
+                callVisitingWaypointButton.setText(visitinWaypointText);
+
+                // Make callNextWaypointLayout visible
+                callNextWaypointLayout.setVisibility(View.VISIBLE);
+
+                // Make callSkipLayout visible
+                callSkipLayout.setVisibility(View.VISIBLE);
+
+                // Setup skip buttons
+                callSkipWaypoinButton.setOnClickListener(
+                        new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+
+                                promptSkipVisitingOrVisited(Waypoint.STATUS_SKIPPED,
+                                        waypoint.getId(), call.getId(), ambulance.getId(),
+                                        "Please confirm","Do you want to skip the current waypoint?",
+                                        "Skipping waypoint");
+
+                            }
+                        }
+                );
+
+                callVisitingWaypointButton.setOnClickListener(
+                        new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+
+                                if (waypoint.isCreated())
+
+                                    promptSkipVisitingOrVisited(Waypoint.STATUS_VISITING,
+                                            waypoint.getId(), call.getId(), ambulance.getId(),
+                                            "Please confirm","Are you visiting this location?",
+                                            "Mark waypoint as visiting");
+                                else
+
+                                    promptSkipVisitingOrVisited(Waypoint.STATUS_VISITED,
+                                            waypoint.getId(), call.getId(), ambulance.getId(),
+                                            "Please confirm","Are you done visiting this location?",
+                                            "Marking waypoint as visited");
+
+                            }
+                        }
+                );
+
+            } else {
+
+                Log.d(TAG, "Call does not have a next waypoint!");
+
+                callNextWaypointTypeTextView.setText("Next waypoint hasn't been set yet.");
+                callAddressTextView.setText("---");
+                callDistanceTextView.setText("---");
+
+                // Make callNextWaypointLayout invisible
+                callNextWaypointLayout.setVisibility(View.GONE);
+
+                // Make callSkipLayout invisible
+                callSkipLayout.setVisibility(View.GONE);
+
+            }
+
+        }
+
+    }
+
+    public void updateAmbulance(Ambulance ambulance) {
+
+        // set status button
+        setStatusButton(ambulanceStatusList.indexOf(ambulanceStatus.get(ambulance.getStatus())));
+
+        // set identifier
+        ((MainActivity) getActivity()).setAmbulanceButtonText(ambulance.getIdentifier());
+
+        Log.d(TAG,"Sumarizing pending call_current");
+
+        // Set call_current info
+        Map<String, Integer> callSummary = AmbulanceForegroundService.getPendingCalls().summary(ambulance.getId());
+        Log.d(TAG, "Call summary = " + callSummary.toString());
+        final String summaryText = String.format("requested (%1$d), suspended (%2$d)",
+                callSummary.get(AmbulanceCall.STATUS_REQUESTED),
+                callSummary.get(AmbulanceCall.STATUS_SUSPENDED));
+        callInformationText.setText(summaryText);
+
+        // deploy resume panel
+        if (currentCallId < 0 && (callSummary.get(AmbulanceCall.STATUS_REQUESTED) + callSummary.get(AmbulanceCall.STATUS_SUSPENDED)) > 0) {
+
+            Log.d(TAG,"Will add resume call view");
+
+            // List of call_current
+            ArrayList<String> pendingCallList = new ArrayList<>();
+
+            // Create lists of suspended call_current
+            final ArrayList<Pair<Call,AmbulanceCall>> suspendedCallList = new ArrayList<>();
+            if (callSummary.get(AmbulanceCall.STATUS_SUSPENDED) > 0) {
+                for (Map.Entry<Integer, Pair<Call,AmbulanceCall>> ambulanceCallEntry : AmbulanceForegroundService
+                        .getPendingCalls()
+                        .filterByStatus(ambulance.getId(),
+                                AmbulanceCall.STATUS_SUSPENDED)
+                        .entrySet()) {
+                    Pair<Call,AmbulanceCall> ambulanceCallPair = ambulanceCallEntry.getValue();
+                    suspendedCallList.add(ambulanceCallPair);
+                    pendingCallList.add("(S) " + ambulanceCallPair.second.getUpdatedOn());
+                }
+            }
+
+            // Create lists of requested call_current
+            final ArrayList<Pair<Call,AmbulanceCall>> requestedCallList = new ArrayList<>();
+            if (callSummary.get(AmbulanceCall.STATUS_REQUESTED) > 0) {
+                for (Map.Entry<Integer, Pair<Call,AmbulanceCall>> ambulanceCallEntry : AmbulanceForegroundService
+                        .getPendingCalls()
+                        .filterByStatus(ambulance.getId(),
+                                AmbulanceCall.STATUS_REQUESTED)
+                        .entrySet()) {
+                    Pair<Call,AmbulanceCall> ambulanceCall = ambulanceCallEntry.getValue();
+                    requestedCallList.add(ambulanceCall);
+                    pendingCallList.add("(R) " + ambulanceCall.second.getUpdatedOn());
+                }
+            }
+
+            // Create the spinner adapter
+            ArrayAdapter<String> pendingCallListAdapter = new ArrayAdapter<>(getContext(),
+                    android.R.layout.simple_spinner_dropdown_item, pendingCallList);
+            pendingCallListAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+
+            // set adapter
+            callResumeSpinner.setAdapter(pendingCallListAdapter);
+
+            //final Button callResumeButton= child.findViewById(R.id.callResumeButton);
+            callResumeButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    // retrieve spinner selection
+                    int position = callResumeSpinner.getSelectedItemPosition();
+
+                    // retrieve corresponding call
+                    Call call = (position < suspendedCallList.size() ?
+                            suspendedCallList.get(position).first :
+                            requestedCallList.get(position - suspendedCallList.size()).first);
+
+                    // prompt user
+                    Log.d(TAG,"Will prompt user to resume call");
+                    ((MainActivity) getActivity()).promptAcceptCallDialog(call.getId());
+
+                }
+            });
+
+            callResumeLayout.setVisibility(View.VISIBLE);
+
+        } else {
+            callResumeLayout.setVisibility(View.GONE);
+        }
+
+            // update call distance?
+        if (currentCallId > 0) {
+
+            AmbulanceCall ambulanceCall = AmbulanceForegroundService.getCurrentAmbulanceCall();
+            if (ambulanceCall != null) {
+
+                Waypoint waypoint = ambulanceCall.getNextWaypoint();
+                if (waypoint != null) {
+
+                    String distanceText = updateCallDistance(waypoint.getLocation());
+                    callDistanceTextView.setText(distanceText);
+                } else
+                    callDistanceTextView.setText("---");
+
+            } else
+                callDistanceTextView.setText("---");
+
+        }
 
         // set status and comment
         commentText.setText(ambulance.getComment());
@@ -244,65 +650,123 @@ public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSel
 
     }
 
-    public void setSpinner(int position) {
+    public String updateCallDistance(Location location) {
 
-        // temporarily disconnect listener to prevent loop
-        Log.i(TAG, "Suppressing listener");
-        statusSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                /* do nothing */
-                Log.i(TAG,"Ignoring change in spinner. Position '" + position + "' selected.");
-            }
+        if (location == null)
+            return null;
 
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {
-                Log.i(TAG,"Ignoring change in spinner. Nothing selected.");
-            }
-        });
+        Log.d(TAG,"Will calculate distance");
 
-        // update spinner
-        statusSpinner.setSelection(position, false);
+        // Get current location
+        android.location.Location lastLocation = AmbulanceForegroundService.getLastLocation();
 
-        // connect listener
-        // this is tricky, see
-        // https://stackoverflow.com/questions/2562248/how-to-keep-onitemselected-from-firing-off-on-a-newly-instantiated-spinner
-        statusSpinner.post(new Runnable() {
-            public void run() {
-                Log.i(TAG, "Restoring listener");
-                statusSpinner.setOnItemSelectedListener(AmbulanceFragment.this);
-            }
-        });
+        // Calculate distance to patient
+        float distance = -1;
+        if (lastLocation != null && location != null) {
+            Log.d(TAG,"last location = " + lastLocation);
+            distance = lastLocation.distanceTo(location.getLocation().toLocation()) / 1000;
+        }
+        String distanceText = getString(R.string.noDistanceAvailable);
+        Log.d(TAG,"Distance = " + distance);
+        if (distance > 0) {
+            distanceText = df.format(distance) + " km";
+        }
+
+        return distanceText;
 
     }
 
+    public void setStatusButton(int position) {
+
+        // set status button
+        statusButton.setText(ambulanceStatusList.get(position));
+        statusButton.setTextColor(ambulanceStatusTextColorList.get(position));
+        statusButton.setBackgroundColor(ambulanceStatusBackgroundColorList.get(position));
+
+    }
+
+    public void updateAmbulanceStatus(int position) {
+
+        try {
+
+            if (!((MainActivity) getActivity()).canWrite()) {
+
+                // Toast to warn user
+                Toast.makeText(getContext(), R.string.cantModifyAmbulance, Toast.LENGTH_LONG).show();
+
+                // Return
+                return;
+
+            }
+
+            // Get selected status
+            String status = ambulanceStatusList.get(position);
+
+            // Search for entry in ambulanceStatus map
+            String statusCode = "";
+            for (Map.Entry<String, String> entry : ambulanceStatus.entrySet()) {
+                if (status.equals(entry.getValue())) {
+                    statusCode = entry.getKey();
+                    break;
+                }
+            }
+
+            // format timestamp
+            // DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+            // df.setTimeZone(TimeZone.getTimeZone("UTC"));
+            // String timestamp = df.format(new Date());
+
+            // Set updateAmbulance string
+            // String updateString = "{\"status\":\"" + statusCode + "\",\"timestamp\":\"" + timestamp + "\"}";
+
+            // Update on server
+            // TODO: Update along with locations because it will be recorded with
+            //       the wrong location on the server
+            Ambulance ambulance = AmbulanceForegroundService.getCurrentAmbulance();
+            Intent intent = new Intent(getContext(), AmbulanceForegroundService.class);
+            intent.setAction(AmbulanceForegroundService.Actions.UPDATE_AMBULANCE_STATUS);
+            Bundle bundle = new Bundle();
+            bundle.putInt("AMBULANCE_ID", ambulance.getId());
+            bundle.putString("STATUS", statusCode);
+            intent.putExtras(bundle);
+            getActivity().startService(intent);
+
+        } catch (Exception e) {
+
+            Log.i(TAG, "updateAmbulanceStatus exception: " + e);
+
+        }
+
+    }
+
+
+/*
     @Override
     public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
 
         Log.i(TAG, "Item '" + position + "' selected.");
 
-        // Should only update on server as a result of user interaction
+        // Should only updateAmbulance on server as a result of user interaction
         // Otherwise this will create a loop with mqtt updating ambulance
         // TODO: Debug spinner multiple updates
         // This may not be easy with the updates being called from a service
 
-        Log.i(TAG, "Processing status spinner update.");
+        Log.i(TAG, "Processing status spinner updateAmbulance.");
 
-        if (!((MainActivity) getActivity()).canWrite()) {
+        Ambulance ambulance = AmbulanceForegroundService.getCurrentAmbulance();
+        if (ambulance == null) {
+            Log.i(TAG, "Ambulance is null. This should never happen!");
+            return;
+        }
+
+        if ((ambulance != null) && !((MainActivity) getActivity()).canWrite()) {
 
             // Toast to warn user
             Toast.makeText(getContext(), R.string.cantModifyAmbulance, Toast.LENGTH_LONG).show();
 
             // set spinner
-            Ambulance ambulance = AmbulanceForegroundService.getAmbulance();
-            if (ambulance != null) {
-
-                int oldPosition = ambulanceStatusList.indexOf(ambulanceStatus.get(ambulance.getStatus()));
-                setSpinner(oldPosition);
-
-            } else {
-                Log.d(TAG,"Could not retrieve ambulance.");
-            }
+            int oldPosition = ambulanceStatusList.indexOf(ambulanceStatus.get(ambulance.getStatus()));
+            setSpinner(oldPosition);
 
             // Return
             return;
@@ -326,7 +790,7 @@ public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSel
         df.setTimeZone(TimeZone.getTimeZone("UTC"));
         String timestamp = df.format(new Date());
 
-        // Set update string
+        // Set updateAmbulance string
         String updateString = "{\"status\":\"" + statusCode + "\",\"timestamp\":\"" + timestamp + "\"}";
 
         // Update on server
@@ -335,16 +799,20 @@ public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSel
         Intent intent = new Intent(getContext(), AmbulanceForegroundService.class);
         intent.setAction(AmbulanceForegroundService.Actions.UPDATE_AMBULANCE);
         Bundle bundle = new Bundle();
+        bundle.putInt("AMBULANCE_ID", ambulance.getId());
         bundle.putString("UPDATE", updateString);
         intent.putExtras(bundle);
         getActivity().startService(intent);
 
     }
+*/
 
+/*
     @Override
     public void onNothingSelected(AdapterView<?> parent) {
         Log.i(TAG, "Nothing selected: this should never happen.");
     }
+*/
 
     /**
      * Get LocalBroadcastManager
@@ -354,5 +822,58 @@ public class AmbulanceFragment extends Fragment implements AdapterView.OnItemSel
     private LocalBroadcastManager getLocalBroadcastManager() {
         return LocalBroadcastManager.getInstance(getContext());
     }
+
+
+    public void promptSkipVisitingOrVisited(final String status,
+                                            final int waypointId, final int callId, final int ambulanceId,
+                                            final String title, final String message, final String doneMessage) {
+
+        Log.d(TAG, "Creating promptSkipVisitingOrVisited dialog");
+
+        // Use the Builder class for convenient dialog construction
+        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+        builder.setTitle(title)
+                .setMessage(message)
+                .setNegativeButton("No", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+
+                        Log.i(TAG, "Continuing...");
+
+                    }
+                })
+                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+
+                        Log.i(TAG, String.format("Will mark as '%1$s'", status));
+
+                        Toast.makeText(getContext(), doneMessage, Toast.LENGTH_SHORT).show();
+
+                        String action;
+                        if (status == Waypoint.STATUS_SKIPPED)
+                            action = AmbulanceForegroundService.Actions.WAYPOINT_SKIP;
+                        else if (status == Waypoint.STATUS_VISITING)
+                            action = AmbulanceForegroundService.Actions.WAYPOINT_ENTER;
+                        else // if (status == Waypoint.STATUS_VISITED)
+                            action = AmbulanceForegroundService.Actions.WAYPOINT_EXIT;
+
+                        // update waypoint status on server
+                        Intent intent = new Intent(getContext(), AmbulanceForegroundService.class);
+                        intent.setAction(action);
+                        Bundle bundle = new Bundle();
+                        bundle.putInt("WAYPOINT_ID", waypointId);
+                        bundle.putInt("AMBULANCE_ID", ambulanceId);
+                        bundle.putInt("CALL_ID", callId);
+                        intent.putExtras(bundle);
+                        getActivity().startService(intent);
+
+
+
+                    }
+                });
+        // Create the AlertDialog object and return it
+        builder.create().show();
+    }
+
+
 
 }

@@ -20,12 +20,12 @@ public class Hospital{
     private String state;
     private String zipcode;
     private String country;
-    private Location location;
+    private GPSLocation location;
     private String name;
     private String comment;
     private int updatedBy;
     private Date updatedOn;
-    private List<HospitalEquipment> hospitalequipmentSet = new ArrayList <HospitalEquipment>();
+    // private List<EquipmentItem> hospitalequipmentSet = new ArrayList <EquipmentItem>();
 
     public Hospital(int id,
                     String number,
@@ -37,10 +37,11 @@ public class Hospital{
                     String zipcode,
                     String country,
                     String name,
-                    Location location,
+                    GPSLocation location,
                     String comment,
-                    int updatedBy, Date updatedOn,
-                    List<HospitalEquipment> hospitalequipmentSet) {
+                    int updatedBy, Date updatedOn
+                    //List<EquipmentItem> hospitalequipmentSet
+                    ) {
         this.id = id;
 
         this.number = number;
@@ -59,7 +60,7 @@ public class Hospital{
         this.updatedBy = updatedBy;
         this.updatedOn = updatedOn;
 
-        this.hospitalequipmentSet = hospitalequipmentSet;
+        //this.hospitalequipmentSet = hospitalequipmentSet;
     }
 
     public int getId() {
@@ -134,11 +135,11 @@ public class Hospital{
         this.country = country;
     }
 
-    public Location getLocation() {
+    public GPSLocation getLocation() {
         return location;
     }
 
-    public void setLocation(Location location) {
+    public void setLocation(GPSLocation location) {
         this.location = location;
     }
 
@@ -174,18 +175,19 @@ public class Hospital{
         this.updatedOn = updatedOn;
     }
 
-    public List<HospitalEquipment> getHospitalequipmentSet() {
+    /*
+    public List<EquipmentItem> getHospitalequipmentSet() {
         return hospitalequipmentSet;
     }
 
-    public void setHospitalequipmentSet(List<HospitalEquipment> hospitalequipmentSet) {
+    public void setHospitalequipmentSet(List<EquipmentItem> hospitalequipmentSet) {
         this.hospitalequipmentSet = hospitalequipmentSet;
     }
+    */
 
     @Override
     public String toString() {
-        return "Hospital '" + name + "'" +
-                "\nequipment = " + Arrays.toString(hospitalequipmentSet.toArray());
+        return "Hospital '" + name + "'";
     }
 
 }

@@ -1,17 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <color name="colorPrimary">#ffffff</color>
-    <color name="colorPrimaryDark">#a6acb0</color>
-    <color name="colorAccent">#f65050</color>
-    <color name="colorWhite">#ffffffff</color>
-    <color name="colorBlack">#000000</color>
-    <color name="common_action_bar_splitter">#000000</color>
-    <color name="mapButtonOff">#8FFF</color>
-    <color name="mapButtonOn">#8888</color>
-    <color name="colorRed">#FFFF0000</color>
-    <color name="colorAvailable">#4CAF50</color>
-
     <color name="statusBlue">#FF33B5E5</color>
     <color name="statusPurple">#aa66cc</color>
     <color name="statusGreen">#FF99CC00</color>

@@ -1,7 +1,5 @@
 package org.emstrack.models;
 
-import java.util.Date;
-
 /**
  * Created by mauricio on 3/11/2018.
  * This model is not used yet since all database models are flat
@@ -18,7 +16,7 @@ public class Address {
     private String state;
     private String zipcode;
     private String country;
-    private Location location;
+    private GPSLocation location;
 
     public Address(String number,
                    String street,
@@ -28,7 +26,6 @@ public class Address {
                    String state,
                    String zipcode,
                    String country) {
-
         this.number = number;
         this.street= street;
         this.unit = unit;
@@ -37,6 +34,38 @@ public class Address {
         this.state = state;
         this.zipcode = zipcode;
         this.country = country;
+    }
+
+    public Address(String number,
+                   String street,
+                   String unit,
+                   String neighborhood,
+                   String city,
+                   String state,
+                   String zipcode,
+                   String country,
+                   GPSLocation location) {
+        this.number = number;
+        this.street= street;
+        this.unit = unit;
+        this.neighborhood= neighborhood;
+        this.city = city;
+        this.state = state;
+        this.zipcode = zipcode;
+        this.country = country;
+        this.location = location;
+    }
+
+    public Address(GPSLocation location) {
+        this.number = "";
+        this.street= "";
+        this.unit = "";
+        this.neighborhood= "";
+        this.city = "";
+        this.state = "";
+        this.zipcode = "";
+        this.country = "";
+        this.location = location;
     }
 
     public String getNumber() {
@@ -103,12 +132,31 @@ public class Address {
         this.country = country;
     }
 
-    public Location getLocation() {
+    public GPSLocation getLocation() {
         return location;
     }
 
-    public void setLocation(Location location) {
+    public void setLocation(GPSLocation location) {
         this.location = location;
     }
 
+    public String toString() {
+        String retValue = "";
+        retValue += this.number + " " + this.street;
+        if (this.unit != null && !this.unit.isEmpty())
+            retValue += " " + this.unit;
+        if (this.neighborhood != null && !this.neighborhood.isEmpty())
+            retValue += ", " + this.neighborhood;
+        if (this.city != null && !this.city.isEmpty())
+            retValue += ", " + this.city;
+        if (this.state != null && !this.state.isEmpty())
+            retValue += ", " + this.state;
+        if (this.zipcode != null && !this.zipcode.isEmpty())
+            retValue += " " + this.zipcode;
+        if (this.country != null && !this.country.isEmpty())
+            retValue += ", " + this.country;
+        return retValue;
+    }
+
 }
+

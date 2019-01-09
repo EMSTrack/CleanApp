@@ -1,10 +1,10 @@
 # Mobile Android Application
 
-Run this application on your android mobile phone to start tracking ambulances at cruzroja.ucsd.edu.
+Run this application on your android mobile phone to start tracking ambulances at emstrack.org.
 
 ## Installation
 
-Download the file `app-debug.apk` from:
+Download the file `app-debug.apk` for the latest release in:
 
 https://github.com/EMSTrack/CleanApp/releases
 

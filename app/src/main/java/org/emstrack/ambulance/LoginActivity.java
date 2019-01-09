@@ -18,7 +18,9 @@ import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -40,6 +42,7 @@ import org.emstrack.models.Profile;
 import org.emstrack.mqtt.MqttProfileCallback;
 import org.emstrack.mqtt.MqttProfileClient;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class LoginActivity extends AppCompatActivity implements View.OnClickListener {
@@ -55,7 +58,12 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     private Button loginSubmitButton;
     private TextView usernameField;
     private TextView passwordField;
+    private Spinner serverField;
     private boolean logout;
+
+    ArrayAdapter<CharSequence> serverNames;
+    String[] serverList;
+    List<String> serverURIs;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -73,12 +81,49 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         usernameField = (TextView) findViewById(R.id.editUserName);
         passwordField = (TextView) findViewById(R.id.editPassword);
 
+        // Retrieve list of servers
+        serverList = getResources().getStringArray(R.array.spinner_list_item_array_server);
+
+        // Populate server list
+        Log.d(TAG, "Populating server list");
+        serverNames = new ArrayAdapter(this, android.R.layout.simple_spinner_item);
+        serverURIs = new ArrayList<>();
+        for (String server: serverList) {
+            try {
+                String[] splits = server.split(":", 3);
+                serverNames.add(splits[0]);
+                if (!splits[1].isEmpty()) {
+                    serverURIs.add("ssl://" + splits[1] + ":" + splits[2]);
+                } else {
+                    serverURIs.add("");
+                }
+            } catch (Exception e) {
+                Log.d(TAG, "Malformed server string. Skipping.");
+            }
+        }
+        Log.d(TAG, serverURIs.toString());
+
+        // Create server spinner
+        serverField = (Spinner) findViewById(R.id.spinnerServer);
+        serverNames.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        serverField.setAdapter(serverNames);
+
         // Retrieving credentials
         sharedPreferences = getSharedPreferences(AmbulanceForegroundService.PREFERENCES_NAME, MODE_PRIVATE);
 
         // Retrieve past credentials
         usernameField.setText(sharedPreferences.getString(AmbulanceForegroundService.PREFERENCES_USERNAME, null));
         passwordField.setText(sharedPreferences.getString(AmbulanceForegroundService.PREFERENCES_PASSWORD, null));
+        String serverUri = sharedPreferences.getString(AmbulanceForegroundService.PREFERENCES_SERVER, null);
+
+        // set server item
+        int serverPos = 0;
+        if (serverUri != null) {
+            serverPos = serverURIs.indexOf(serverUri);
+        }
+        if (serverPos < 0)
+            serverPos = 0;
+        serverField.setSelection(serverPos);
 
         // Submit button
         loginSubmitButton = (Button) findViewById(R.id.buttonLogin);
@@ -167,29 +212,16 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
                     // Create intent
                     Intent intent = new Intent(LoginActivity.this,
-                            AmbulanceListActivity.class);
+                            MainActivity.class);
 
-                    Ambulance ambulance = AmbulanceForegroundService.getAmbulance();
-                    if (ambulance != null) {
-
-                        Log.i(TAG, "Already logged in with ambulance");
-
-                        intent.putExtra("SKIP_AMBULANCE_SELECTION", true);
-
-                    } else {
-
-                        Log.i(TAG, "Already logged in without ambulance");
-
-                    }
-
-                    Log.i(TAG, "Starting AmbulanceListActivity");
+                    Log.i(TAG, "Starting MainActivity");
 
                     // Toast
                     Toast.makeText(LoginActivity.this,
                             getResources().getString(R.string.loginSuccessMessage, username),
                             Toast.LENGTH_SHORT).show();
 
-                    // initiate AmbulanceListActivity
+                    // initiate MainActivity
                     startActivity(intent);
 
                     return;
@@ -212,7 +244,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         if (AmbulanceForegroundService.canUpdateLocation()) {
 
             // Toast to warn about check permissions
-            Toast.makeText(LoginActivity.this, "Location permissions satisfied.", Toast.LENGTH_LONG).show();
+            Toast.makeText(LoginActivity.this, "Location permissions satisfied.", Toast.LENGTH_SHORT).show();
 
         } else {
 
@@ -233,7 +265,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         // Disable login
         disableLogin();
 
-        // Can update?
+        // Can updateAmbulance?
         if (AmbulanceForegroundService.canUpdateLocation()) {
 
             // Enable login
@@ -247,7 +279,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
         } else {
 
-            // requestPermissions calls checkLocationSettings if successful
+            // requestPermissions call_current checkLocationSettings if successful
             requestPermissions();
 
         }
@@ -261,11 +293,22 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         final String username = usernameField.getText().toString().trim();
         final String password = passwordField.getText().toString().trim();
 
+        final String serverUri = serverURIs.get(serverField.getSelectedItemPosition());
+        Log.d(TAG, "Logging into server: " + serverUri);
+
+        /*String serverName = serverField.getSelectedItem().toString();
+        int serverPos = serverList.getPosition(serverName);
+        final String server = serverURLs.getItem(serverPos).toString();*/
+
         if (username.isEmpty())
             new AlertSnackbar(LoginActivity.this).alert(getResources().getString(R.string.error_empty_username));
 
         else if (password.isEmpty())
             new AlertSnackbar(LoginActivity.this).alert(getResources().getString(R.string.error_empty_password));
+
+        else if (serverUri.isEmpty())
+            new AlertSnackbar(LoginActivity.this).alert(getResources().getString(R.string.error_invalid_server));
+
 
         else {
 
@@ -274,7 +317,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
             // Login at service
             Intent intent = new Intent(LoginActivity.this, AmbulanceForegroundService.class);
             intent.setAction(AmbulanceForegroundService.Actions.LOGIN);
-            intent.putExtra("CREDENTIALS", new String[]{username, password});
+            intent.putExtra("CREDENTIALS", new String[]{username, password, serverUri});
 
             // What to do when service completes?
             new OnServiceComplete(LoginActivity.this,
@@ -291,9 +334,9 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                             getResources().getString(R.string.loginSuccessMessage, username),
                             Toast.LENGTH_SHORT).show();
 
-                    // initiate AmbulanceListActivity
+                    // initiate MainActivity
                     Intent intent = new Intent(LoginActivity.this,
-                            AmbulanceListActivity.class);
+                            MainActivity.class);
                     startActivity(intent);
 
                 }
@@ -447,7 +490,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                                 }
                                 break;
                             case LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:
-                                String errorMessage = "Location settings are inadequate, and cannot be " +
+                                String errorMessage = "GPSLocation settings are inadequate, and cannot be " +
                                         "fixed here. Fix in Settings.";
 
                                 new AlertSnackbar(LoginActivity.this)

@@ -26,20 +26,12 @@
             </intent-filter>
         </activity>
 
-        <activity android:name="org.emstrack.ambulance.AmbulanceListActivity"
+        <activity android:name="org.emstrack.ambulance.MainActivity"
             android:parentActivityName=".LoginActivity"
             android:screenOrientation="nosensor">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".LoginActivity" />
-        </activity>
-
-        <activity android:name="org.emstrack.ambulance.MainActivity"
-            android:parentActivityName=".AmbulanceListActivity"
-            android:screenOrientation="nosensor">
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value=".AmbulanceListActivity" />
         </activity>
 
         <service android:name="org.eclipse.paho.android.service.MqttService"/>
@@ -53,9 +45,9 @@
         <!--
         <receiver android:name=".services.AmbulanceForegroundService$LocationUpdatesBroadcastReceiver"
             android:exported="true">
-            <intent-locationFilter>
+            <intent-ambulanceUpdateFilter>
                 <action android:name=".AmbulanceForegroundService.BroadcastActions.LOCATION_UPDATE" />
-            </intent-locationFilter>
+            </intent-ambulanceUpdateFilter>
         </receiver>
         -->
 
