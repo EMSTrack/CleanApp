@@ -2,7 +2,7 @@ package org.emstrack.models;
 
 /**
  * Created by Fabian Choi on 5/4/2017.
- * Represents an HospitalEquipment from the database
+ * Represents an EquipmentItem from the database
  */
 
 import android.os.Parcel;
@@ -10,9 +10,9 @@ import android.os.Parcelable;
 
 import java.util.Date;
 
-public class HospitalEquipment implements Parcelable {
+public class EquipmentItem implements Parcelable {
 
-    private int hospitalId;
+    private int equipmentHolderId;
     // private String hospitalName;
     private int equipmentId;
     private String equipmentName;
@@ -22,12 +22,12 @@ public class HospitalEquipment implements Parcelable {
     private int updatedBy;
     private Date updatedOn;
 
-    public HospitalEquipment(int hospitalId, // String hospitalName,
-                             int equipmentId, String equipmentName,
-                             Character equipmentType,
-                             String value, String comment,
-                             int updatedBy, Date updatedOn) {
-        this.hospitalId = hospitalId;
+    public EquipmentItem(int equipmentHolderId, // String hospitalName,
+                         int equipmentId, String equipmentName,
+                         Character equipmentType,
+                         String value, String comment,
+                         int updatedBy, Date updatedOn) {
+        this.equipmentHolderId = equipmentHolderId;
         // this.hospitalName = hospitalName;
         this.equipmentId = equipmentId;
         this.equipmentName = equipmentName;
@@ -38,18 +38,18 @@ public class HospitalEquipment implements Parcelable {
         this.updatedOn = updatedOn;
     }
 
-    private HospitalEquipment(Parcel in) {
-        this.hospitalId = in.readInt();
+    private EquipmentItem(Parcel in) {
+        this.equipmentHolderId = in.readInt();
         this.equipmentName = in.readString();
         this.value = in.readString();
     }
 
-    public int getHospitalId() {
-        return hospitalId;
+    public int getEquipmentHolderId() {
+        return equipmentHolderId;
     }
 
-    public void setHospitalId(int hospitalId) {
-        this.hospitalId = hospitalId;
+    public void setEquipmentHolderId(int equipmentHolderId) {
+        this.equipmentHolderId = equipmentHolderId;
     }
 
 /*
@@ -131,14 +131,14 @@ public class HospitalEquipment implements Parcelable {
 
     }
 
-    public static final Parcelable.Creator<HospitalEquipment> CREATOR = new
-            Parcelable.Creator<HospitalEquipment>() {
-                public HospitalEquipment createFromParcel(Parcel in) {
-                    return new HospitalEquipment(in);
+    public static final Parcelable.Creator<EquipmentItem> CREATOR = new
+            Parcelable.Creator<EquipmentItem>() {
+                public EquipmentItem createFromParcel(Parcel in) {
+                    return new EquipmentItem(in);
                 }
 
-                public HospitalEquipment[] newArray(int size) {
-                    return new HospitalEquipment[size];
+                public EquipmentItem[] newArray(int size) {
+                    return new EquipmentItem[size];
                 }
     };
 }

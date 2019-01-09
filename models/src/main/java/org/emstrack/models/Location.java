@@ -1,32 +1,64 @@
 package org.emstrack.models;
 
-import com.google.gson.annotations.Expose;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
-public class Location {
+public class Location extends Address {
 
-    @Expose
-    private double latitude;
-    @Expose
-    private double longitude;
+    public static final String TYPE_BASE = "b";
+    public static final String TYPE_AED = "a";
+    public static final String TYPE_INCIDENT = "i";
+    public static final String TYPE_HOSPITAL = "h";
+    public static final String TYPE_WAYPOINT = "w";
+    public static final String TYPE_OTHER = "o";
 
-    public double getLatitude() {
-        return latitude;
+    public static final Map<String, String> typeLabel;
+    static {
+
+        Map<String, String> map = new HashMap<>();
+
+        map.put(TYPE_BASE, "Base");
+        map.put(TYPE_AED, "AED");
+        map.put(TYPE_INCIDENT, "Incident");
+        map.put(TYPE_HOSPITAL, "Hospital");
+        map.put(TYPE_WAYPOINT, "Waypoint");
+        map.put(TYPE_OTHER, "Other");
+
+        typeLabel = Collections.unmodifiableMap(map);
     }
 
-    public void setLatitude(double latitude) {
-        this.latitude = latitude;
+    private String name;
+    private String type;
+
+    public Location(String name, String type, GPSLocation location) {
+        super(location);
+        this.name = name;
+        this.type = type;
+    }
+    public Location(String name, String type,
+                    String number, String street, String unit, String neighborhood, String city,
+                    String state, String zipcode, String country,
+                    GPSLocation location) {
+        super(number, street, unit, neighborhood, city, state, zipcode, country, location);
+        this.name = name;
+        this.type = type;
     }
 
-    public double getLongitude() {
-        return longitude;
+    public String getName() {
+        return name;
     }
 
-    public void setLongitude(double longitude) {
-        this.longitude = longitude;
+    public void setName(String name) {
+        this.name = name;
     }
 
-    public Location(double latitude, double longitude) {
-        this.latitude = latitude;
-        this.longitude = longitude;
+    public String getType() {
+        return type;
     }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
 }

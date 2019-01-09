@@ -2,17 +2,17 @@ package org.emstrack.models;
 
 /**
  * Created by Fabian Choi on 5/4/2017.
- * Represents a HospitalEquipmentMetadata from the database
+ * Represents a EquipmentMetadata from the database
  */
 
-public class HospitalEquipmentMetadata {
+public class EquipmentMetadata {
     private Integer id;
     private String name;
     private Character type;
     private boolean toggleable;
 
-    public HospitalEquipmentMetadata(int id, String name,
-                                     Character type, boolean toggleable) {
+    public EquipmentMetadata(int id, String name,
+                             Character type, boolean toggleable) {
         this.id = id;
         this.name = name;
         this.type = type;

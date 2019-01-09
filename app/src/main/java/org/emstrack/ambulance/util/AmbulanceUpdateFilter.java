@@ -3,104 +3,152 @@ package org.emstrack.ambulance.util;
 import android.location.Location;
 import android.util.Log;
 
-import org.ejml.data.DMatrix5x5;
-import org.ejml.simple.SimpleMatrix;
-
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
-import static org.emstrack.ambulance.util.LatLon.calculateBearing;
 import static org.emstrack.ambulance.util.LatLon.calculateDistanceAndBearing;
-import static org.emstrack.ambulance.util.LatLon.calculateDistanceHaversine;
 import static org.emstrack.ambulance.util.LatLon.stationaryRadius;
 import static org.emstrack.ambulance.util.LatLon.stationaryVelocity;
-import static org.emstrack.ambulance.util.LatLon.updateLocation;
 
 /**
  * Created by mauricio on 3/22/2018.
  */
 
-public class LocationFilter {
+public class AmbulanceUpdateFilter {
 
-    private static final String TAG = LocationFilter.class.getSimpleName();
+    private static final String TAG = AmbulanceUpdateFilter.class.getSimpleName();
 
-    private LocationUpdate location;
+    private AmbulanceUpdate currentAmbulanceUpdate;
+    private List<AmbulanceUpdate> filteredAmbulanceUpdates;
 
-    public LocationFilter(LocationUpdate location) {
-        this.location = location;
+    public AmbulanceUpdateFilter() {
+        this(null);
     }
 
-    public void setLocation(LocationUpdate location) {
-        this.location = location;
+    public AmbulanceUpdateFilter(AmbulanceUpdate location) {
+        this.currentAmbulanceUpdate = location;
+        this.filteredAmbulanceUpdates = new ArrayList<>();
+    }
+
+    public void setCurrentAmbulanceUpdate(AmbulanceUpdate currentAmbulanceUpdate) {
+        this.currentAmbulanceUpdate = currentAmbulanceUpdate;
+    }
+
+    public List<AmbulanceUpdate> getFilteredAmbulanceUpdates() {
+        return this.filteredAmbulanceUpdates;
+    }
+
+    public boolean hasUpdates() {
+        return this.filteredAmbulanceUpdates.size() > 0;
+    }
+
+    public void reset() {
+        this.filteredAmbulanceUpdates = new ArrayList<>();
+    }
+
+    public void sort() {
+        Collections.sort(this.filteredAmbulanceUpdates,
+                new AmbulanceUpdate.SortByAscendingOrder());
     }
 
     /**
      * Update current position based on a new measurement
      *
-     * @param update the update
+     * @param update the updateAmbulance
      */
-    public void update(Location update, List<LocationUpdate> filteredLocations) {
+    private void _update(Location update) {
+
+        // return if null
+        if (currentAmbulanceUpdate.getLocation() == null) {
+            Log.d(TAG, "Null location, skipping...");
+            return;
+        }
 
         // elapsed time
-        double dt = update.getTime() - location.getTimestamp().getTime();
+        double dt = update.getTime() - currentAmbulanceUpdate.getTimestamp().getTime();
 
-        // Predict next location
-        // Location prediction = updateLocation(location, bearing, velocity * dt);
+        // Predict next currentAmbulanceUpdate
+        // GPSLocation prediction = updateLocation(currentAmbulanceUpdate, bearing, velocity * dt);
 
         // measure velocity and bearing
-        double[] dandb = calculateDistanceAndBearing(location.getLocation(), update);
+        double[] dandb = calculateDistanceAndBearing(currentAmbulanceUpdate.getLocation(), update);
         double distance = dandb[0];
         double brn = dandb[1];
-        double vel = location.getVelocity();
+        double vel = currentAmbulanceUpdate.getVelocity();
         if (dt > 0)
             vel = distance / dt;
 
-        // locationFilter velocity
+        // ambulanceUpdateFilter velocity
         double Kv = 0.9;
-        double velocity = location.getVelocity();
+        double velocity = currentAmbulanceUpdate.getVelocity();
         velocity += Kv * (vel - velocity);
-        location.setVelocity(velocity);
+        currentAmbulanceUpdate.setVelocity(velocity);
 
-        // locationFilter bearing
+        // ambulanceUpdateFilter bearing
         double Kb = 0.9;
-        double bearing = location.getBearing();
+        double bearing = currentAmbulanceUpdate.getBearing();
         bearing += Kb * (brn - bearing);
-        location.setBearing(bearing);
+        currentAmbulanceUpdate.setBearing(bearing);
 
         if ((velocity > stationaryVelocity && distance > stationaryRadius) ||
                 (velocity <= stationaryVelocity && distance > 3 * stationaryRadius)) {
 
-            // update location
-            location.setLocation(update);
-            location.setTimestamp(new Date(update.getTime()));
+            // updateAmbulance currentAmbulanceUpdate
+            currentAmbulanceUpdate.setLocation(update);
+            currentAmbulanceUpdate.setTimestamp(new Date(update.getTime()));
 
-            // add location to filtered locations
-            filteredLocations.add(new LocationUpdate(location));
+            // add currentAmbulanceUpdate to filtered locations
+            filteredAmbulanceUpdates.add(new AmbulanceUpdate(currentAmbulanceUpdate));
 
         }
 
         Log.i(TAG, "velocity = " + velocity + ", distance = " + distance + ", bearing = " + bearing + "(" + update.getBearing() + ")");
 
-}
+    }
 
-    public List<LocationUpdate> update(List<Location> locations) {
+    public void update(String status) {
 
-        // Fast return if no updates
-        List<LocationUpdate> filteredLocations = new ArrayList<>();
-        if (locations == null || locations.size() == 0)
-            return filteredLocations;
+        this.filteredAmbulanceUpdates.add(new AmbulanceUpdate(status));
+
+    }
+
+    public void update(String status, Date timestamp) {
+
+        this.filteredAmbulanceUpdates.add(new AmbulanceUpdate(status, timestamp));
+
+    }
+
+    public void update(Location location) {
 
         // initialize
-        if (location == null)
+        if (this.currentAmbulanceUpdate == null) {
             // use first record
-            location = new LocationUpdate(locations.get(0));
+            this.currentAmbulanceUpdate = new AmbulanceUpdate(location);
+            return;
+        }
+
+        // update records
+        _update(location);
+
+    }
+
+    public void update(List<Location> locations) {
+
+        // Fast return if no updates
+        if (locations == null || locations.size() == 0)
+            return;
+
+        // initialize
+        if (currentAmbulanceUpdate == null)
+            // use first record
+            currentAmbulanceUpdate = new AmbulanceUpdate(locations.get(0));
 
         // loop through records
         for (Location location : locations)
-            update(location, filteredLocations);
+            _update(location);
 
-        return filteredLocations;
     }
 
     /**
@@ -148,7 +196,7 @@ public class LocationFilter {
      *       0, 1, 0, 0];
      *
      *
-     * Extended Kalman locationFilter
+     * Extended Kalman ambulanceUpdateFilter
      *
      * Prediction:
      *
@@ -174,7 +222,7 @@ public class LocationFilter {
      *
      * XHat(tk+) = XHat(tk+|tk) + K (z(tk) - zHat(tk))
      *
-     * Covariance update:
+     * Covariance updateAmbulance:
      *
      * P(tk+ = P(tk+|tk+) = (I - Kk Hk) P(tk+|tk)
      *

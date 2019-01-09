@@ -1,24 +1,13 @@
 package org.emstrack.ambulance.dialogs;
 
 import android.app.Activity;
-import android.app.Dialog;
-import android.app.DialogFragment;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.os.Bundle;
-import android.support.annotation.NonNull;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
-import android.widget.Toast;
 
-import org.eclipse.paho.client.mqttv3.MqttException;
-import org.emstrack.ambulance.AmbulanceApp;
-import org.emstrack.ambulance.AmbulanceListActivity;
-import org.emstrack.ambulance.services.AmbulanceForegroundService;
 import org.emstrack.ambulance.LoginActivity;
 import org.emstrack.ambulance.R;
-import org.emstrack.ambulance.services.OnServiceComplete;
-import org.emstrack.mqtt.MqttProfileClient;
 
 /**
  * Created by devinhickey on 5/24/17.
@@ -55,7 +44,7 @@ public class LogoutDialog {
 
                         Log.i(TAG,"LogoutDialog: OK Button Clicked");
 
-                        // Start login activity
+                        // Start logout activity
                         Intent loginIntent = new Intent(activity, LoginActivity.class);
                         loginIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP|Intent.FLAG_ACTIVITY_CLEAR_TASK);
                         loginIntent.setAction(LoginActivity.LOGOUT);

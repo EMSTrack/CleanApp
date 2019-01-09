@@ -14,14 +14,13 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import org.emstrack.ambulance.AmbulanceListActivity;
-import org.emstrack.ambulance.MainActivity;
 import org.emstrack.ambulance.dialogs.AlertSnackbar;
 import org.emstrack.ambulance.services.AmbulanceForegroundService;
 import org.emstrack.ambulance.R;
 import org.emstrack.ambulance.adapters.HospitalExpandableRecyclerAdapter;
 import org.emstrack.ambulance.models.HospitalExpandableGroup;
 import org.emstrack.ambulance.services.OnServiceComplete;
+import org.emstrack.models.EquipmentItem;
 import org.emstrack.models.Hospital;
 
 import java.util.ArrayList;
@@ -78,7 +77,7 @@ public class HospitalFragment extends Fragment {
 
                     Log.i(TAG,"Got all hospitals.");
 
-                    // update hospitals
+                    // updateAmbulance hospitals
                     update(AmbulanceForegroundService.getHospitals());
 
                 }
@@ -107,7 +106,7 @@ public class HospitalFragment extends Fragment {
         receiver = new HospitalsUpdateBroadcastReceiver();
         getLocalBroadcastManager().registerReceiver(receiver, filter);
 
-        // update UI
+        // updateAmbulance UI
         update(AmbulanceForegroundService.getHospitals());
 
     }
@@ -149,7 +148,7 @@ public class HospitalFragment extends Fragment {
             // Add to to expandable group
             hospitalExpandableGroup.add(
                     new HospitalExpandableGroup(hospital.getName(),
-                            hospital.getHospitalequipmentSet(),
+                            new ArrayList<EquipmentItem>(), // hospital.getHospitalequipmentSet(),
                             hospital));
 
         }

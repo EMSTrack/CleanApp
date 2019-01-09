@@ -4,6 +4,8 @@ package org.emstrack.models;
  * Created by Leon on 5/8/2018.
  */
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -11,34 +13,82 @@ import java.util.Map;
 
 public class Call {
 
-    private Integer id;
+    public static final String STATUS_PENDING = "P";
+    public static final String STATUS_STARTED = "S";
+    public static final String STATUS_ENDED = "E";
+
+    public static final Map<String, String> statusLabel;
+    static {
+
+        Map<String, String> map = new HashMap<>();
+
+        map.put(STATUS_PENDING, "Pending");
+        map.put(STATUS_STARTED,"Started");
+        map.put(STATUS_ENDED,"Ended");
+
+        statusLabel = Collections.unmodifiableMap(map);
+    }
+
+    public class CallException extends Exception {
+
+        public CallException(String message) {
+            super(message);
+        }
+    }
+
+    private int id;
     private String status;
     private String details;
     private String priority;
-    private String number;
-    private String street;
-    private String unit;
-    private String neighborhood;
-    private String city;
-    private String state;
-    private String zipcode;
-    private String country;
-    private Location location;
-    private String createdAt;
+    private Date createdAt;
     private Date pendingAt;
     private Date startedAt;
     private Date endedAt;
-    private Date comment;
-    private Integer updatedBy;
-    private String updatedOn;
-    private List<Object> ambulancecallSet = null;
-    private List<Object> patientSet = null;
+    private String comment;
+    private int updatedBy;
+    private Date updatedOn;
+    private List<AmbulanceCall> ambulancecallSet = new ArrayList<>();
+    private List<Patient> patientSet = new ArrayList <>();
 
-    public Integer getId() {
+    private AmbulanceCall currentAmbulanceCall;
+    private boolean sorted;
+
+    public Call() {
+        id = -1;
+        updatedBy = -1;
+        this.currentAmbulanceCall = null;
+        this.sorted = false;
+    }
+
+    public Call(int id, String status, String details, String priority, 
+                Date createdAt, Date pendingAt, Date startedAt, Date endedAt,
+                String comment, int updatedBy, Date updatedOn,
+                List<AmbulanceCall> ambulancecallSet, List<Patient> patientSet) {
+    
+        this.id = id;
+        this.status = status;
+        this.details = details;
+        this.priority = priority;
+        this.createdAt = createdAt;
+        this.pendingAt = pendingAt;
+        this.startedAt = startedAt;
+        this.endedAt = endedAt;
+        this.comment = comment;
+        this.updatedBy = updatedBy;
+        this.updatedOn = updatedOn;
+
+        this.ambulancecallSet = ambulancecallSet;
+        this.patientSet = patientSet;
+
+        this.currentAmbulanceCall = null;
+        this.sorted = false;
+    }
+    
+    public int getId() {
         return id;
     }
 
-    public void setId(Integer id) {
+    public void setId(int id) {
         this.id = id;
     }
 
@@ -66,87 +116,15 @@ public class Call {
         this.priority = priority;
     }
 
-    public String getNumber() {
-        return number;
-    }
-
-    public void setNumber(String number) {
-        this.number = number;
-    }
-
-    public String getStreet() {
-        return street;
-    }
-
-    public void setStreet(String street) {
-        this.street = street;
-    }
-
-    public Object getUnit() {
-        return unit;
-    }
-
-    public void setUnit(String unit) {
-        this.unit = unit;
-    }
-
-    public Object getNeighborhood() {
-        return neighborhood;
-    }
-
-    public void setNeighborhood(String neighborhood) {
-        this.neighborhood = neighborhood;
-    }
-
-    public String getCity() {
-        return city;
-    }
-
-    public void setCity(String city) {
-        this.city = city;
-    }
-
-    public String getState() {
-        return state;
-    }
-
-    public void setState(String state) {
-        this.state = state;
-    }
-
-    public String getZipcode() {
-        return zipcode;
-    }
-
-    public void setZipcode(String zipcode) {
-        this.zipcode = zipcode;
-    }
-
-    public String getCountry() {
-        return country;
-    }
-
-    public void setCountry(String country) {
-        this.country = country;
-    }
-
-    public Location getLocation() {
-        return location;
-    }
-
-    public void setLocation(Location location) {
-        this.location = location;
-    }
-
-    public String getCreatedAt() {
+    public Date getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(String createdAt) {
+    public void setCreatedAt(Date createdAt) {
         this.createdAt = createdAt;
     }
 
-    public Object getPendingAt() {
+    public Date getPendingAt() {
         return pendingAt;
     }
 
@@ -154,7 +132,7 @@ public class Call {
         this.pendingAt = pendingAt;
     }
 
-    public Object getStartedAt() {
+    public Date getStartedAt() {
         return startedAt;
     }
 
@@ -162,7 +140,7 @@ public class Call {
         this.startedAt = startedAt;
     }
 
-    public Object getEndedAt() {
+    public Date getEndedAt() {
         return endedAt;
     }
 
@@ -170,15 +148,15 @@ public class Call {
         this.endedAt = endedAt;
     }
 
-    public Object getComment() {
+    public String getComment() {
         return comment;
     }
 
-    public void setComment(Date comment) {
+    public void setComment(String comment) {
         this.comment = comment;
     }
 
-    public Integer getUpdatedBy() {
+    public int getUpdatedBy() {
         return updatedBy;
     }
 
@@ -186,28 +164,67 @@ public class Call {
         this.updatedBy = updatedBy;
     }
 
-    public String getUpdatedOn() {
+    public Date getUpdatedOn() {
         return updatedOn;
     }
 
-    public void setUpdatedOn(String updatedOn) {
+    public void setUpdatedOn(Date updatedOn) {
         this.updatedOn = updatedOn;
     }
 
-    public List<Object> getAmbulancecallSet() {
+    public List<AmbulanceCall> getAmbulancecallSet() {
         return ambulancecallSet;
     }
 
-    public void setAmbulancecallSet(List<Object> ambulancecallSet) {
+    public void setAmbulancecallSet(List<AmbulanceCall> ambulancecallSet) {
         this.ambulancecallSet = ambulancecallSet;
     }
 
-    public List<Object> getPatientSet() {
+    public List<Patient> getPatientSet() {
         return patientSet;
     }
 
-    public void setPatientSet(List<Object> patientSet) {
+    public void setPatientSet(List<Patient> patientSet) {
         this.patientSet = patientSet;
     }
 
+    public AmbulanceCall getAmbulanceCall(int ambulance_id) {
+        for (AmbulanceCall ambulanceCall : ambulancecallSet) {
+            if (ambulanceCall.getAmbulanceId() == ambulance_id) {
+                return ambulanceCall;
+            }
+        }
+        return null;
+    }
+
+    public void setCurrentAmbulanceCall(int ambulance_id) throws CallException {
+        currentAmbulanceCall = getAmbulanceCall(ambulance_id);
+        if (currentAmbulanceCall == null)
+            throw new CallException("Ambulance is not part of call.");
+    }
+
+    public AmbulanceCall getCurrentAmbulanceCall() {
+        return currentAmbulanceCall;
+    }
+
+    public boolean isSorted() {
+        return sorted;
+    }
+
+    public void setSorted(boolean sorted) {
+        this.sorted = sorted;
+    }
+
+    public void sortWaypoints() {
+        sortWaypoints(false);
+    }
+
+    public void sortWaypoints(boolean force) {
+        if (force || !this.sorted) {
+            for (AmbulanceCall ambulanceCall : this.ambulancecallSet)
+                ambulanceCall.sortWaypoints();
+            this.sorted = true;
+        }
+
+    }
 }

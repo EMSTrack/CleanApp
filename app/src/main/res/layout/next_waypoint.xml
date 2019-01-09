@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/relativeLayout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/nextWaypointHospitalLabel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Hospital:"
+        android:textSize="14dp"
+        android:textStyle="bold" />
+
+    <Spinner
+        android:id="@+id/spinnerHospitals"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:fontFamily="sans-serif"
+        android:textAlignment="center" />
+
+    <TextView
+        android:id="@+id/nextWaypointBaseLabel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Base:"
+        android:textSize="14dp"
+        android:textStyle="bold" />
+
+    <Spinner
+        android:id="@+id/spinnerBases"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:fontFamily="sans-serif"
+        android:textAlignment="center" />
+
+    <TextView
+        android:id="@+id/nextWaypointCustomLabel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Custom:"
+        android:textSize="14dp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/customWaypointLabel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Not implemented yet." />
+
+</LinearLayout>

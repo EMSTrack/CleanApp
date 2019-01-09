@@ -2,8 +2,8 @@
 <resources>
 
     <string name="app_name">EMSTrack</string>
-    <string name="app_version">v0_3_2</string>
-    <string name="client_name">_AndroidClient_</string>
+    <string name="app_version" translatable="false">v0_4_0</string>
+    <string name="client_name" translatable="false">_AndroidClient_</string>
 
     <string name="drawer_open">Open navigation drawer</string>
     <string name="drawer_close">Close navigation drawer</string>
@@ -13,7 +13,7 @@
     <string name="alert_button_positive_text">OK</string>
     <string name="alert_button_negative_text">Cancel</string>
 
-    <string name="alert_ambulance_switch">Stop \'%1$s\' from updating locations first.</string>
+    <string name="alert_ambulance_switch">Stop \'%1$s\' from sending updating first.</string>
 
     <string name="message_please_wait">Please wait…</string>
 
@@ -29,6 +29,7 @@
     <string name="error_invalid_credentials">Please provide valid credentials.</string>
     <string name="error_connection_failed">Connection failed. Reason: \'%1$s\'</string>
     <string name="error_no_hospitals">No hospitals are associated with this account.</string>
+    <string name="error_invalid_server">Please select server.</string>
 
     <string name="hospital_button_text">OK</string>
 
@@ -51,7 +52,7 @@
 
     <string name="action_settings">Settings</string>
 
-    <string name="location_settings_inadequate_warning">The location settings on the device are not
+    <string name="location_settings_inadequate_warning">The currentAmbulanceUpdate settings on the device are not
         adequate to run this sample. Fix in Settings.</string>
 
     <string name="permission_rationale">Location permission is needed for core functionality</string>
@@ -65,6 +66,7 @@
 
     <string name="unknown">unknown</string>
 
+    <string name="callLabel">Calls:</string>
     <string name="gps_startTrackingSwitchText">Start tracking:</string>
     <string name="gpsLocationLabel">Location:</string>
     <string name="gpsLatitudeLabel">Latitude:</string>
@@ -76,73 +78,82 @@
     <string name="gpsIdentifierLabel">Identifier:</string>
     <string name="gpsCapabilityLabel">Capability:</string>
     <string name="gpsCommentsLabel">Comments:</string>
-    <string name="gpsLastUpdatedOnLabel">Last updated on:</string>
-    <string name="access_token">pk.eyJ1IjoieWFuZ2Y5NiIsImEiOiJjaXltYTNmbTcwMDJzMzNwZnpzM3Z6ZW9kIn0.gjEwLiCIbYhVFUGud9B56w</string>
+    <string name="gpsLastUpdatedOnLabel">Last update:</string>
+    <string name="access_token" translatable="false">pk.eyJ1IjoieWFuZ2Y5NiIsImEiOiJjaXltYTNmbTcwMDJzMzNwZnpzM3Z6ZW9kIn0.gjEwLiCIbYhVFUGud9B56w</string>
     <string name="failedToConnectToBrocker">Failed to connected to broker.</string>
     <string name="Exception">Exception:</string>
     <string name="loginSuccessMessage">User \'%1$s\' successfully logged in.</string>
     <string name="couldNotLoginUser">Could not login user \'%1$s\'</string>
-    <string name="invalidAmbulanceId">Invalid ambulance id</string>
-    <string name="couldNotParseAmbulance">Could not parse ambulance</string>
-    <string name="couldNotSubscribeToAmbulance">Could not subscribe to ambulance</string>
-    <string name="couldNotSubscribeToHospital">Could not subscribe to hospital data</string>
+    <string name="invalidAmbulanceId">Invalid ambulance id.</string>
+    <string name="couldNotParseAmbulance">Could not parse ambulance update.</string>
+    <string name="couldNotSubscribeToAmbulance">Could not subscribe to ambulance.</string>
+    <string name="couldNotSubscribeToHospital">Could not subscribe to hospital.</string>
     <string name="couldNotRetrieveAmbulance">Could not retrieve ambulance \'%1$s\'.</string>
-    <string name="couldNotRetrieveHospitals">Could not retrieve hospitals</string>
+    <string name="couldNotRetrieveHospitals">Could not retrieve hospitals.</string>
     <string name="couldNotUpdateAmbulanceOnServer">Could not update ambulance on server.</string>
     <string name="failedToDisconnectFromBroker">Failed to disconnect from brocker.</string>
     <string name="couldNotLogout">Could not logout.</string>
-    <string name="couldNotRetrieveAmbulances">Could not retrieve ambulances</string>
-    <string name="couldNotUnsubscribeToAmbulances">Could not unsubscribe to ambulances</string>
+    <string name="couldNotRetrieveAmbulances">Could not retrieve ambulances.</string>
+    <string name="couldNotUnsubscribeToAmbulances">Could not unsubscribe to ambulances.</string>
     <string name="cantModifyAmbulance">You do not have permission to modify this ambulance.</string>
-    <string name="anotherClientIsStreamingLocations">Another client is currently streaming locations.</string>
-    <string name="startedStreamingLocation">Location streaming started.</string>
+    <string name="anotherClientIsStreamingLocations">Another client is currently streaming updates.</string>
+    <string name="startedStreamingLocation">Started streaming updates.</string>
     <string name="forceLocationUpdates">Could not start sending updates to server. This probably means another user is logged in on the same ambulance. Would you like to force sending updates? This will disconnect the other user from the current ambulance.</string>
-    <string name="forcingLocationUpdates">Forcing location updates...</string>
-    <string name="anotherClientRequestedLocations">Another client requested to stream locations.</string>
-    <string name="requestingToStreamLocation">Requesting to stream location.</string>
-    <string name="EMSTrack">EMSTrack</string>
+    <string name="forcingLocationUpdates">Forcing updates…</string>
+    <string name="anotherClientRequestedLocations">Another client requested to stream updates.</string>
+    <string name="requestingToStreamLocation">Requesting to stream updates.</string>
+    <string name="EMSTrack" translatable="false">EMSTrack</string>
     <string name="couldNotProcessBuffer">Could not process entire buffer, %1$d messages left.</string>
     <string name="localBufferIsEmpty">Server is online, local buffer is empty.</string>
     <string name="serverIsOffline">Server is offline. Buffering updates.</string>
-    <string name="cannotUseLocationServices">Application cannot use location services. Please modify permissions on Settings.</string>
+    <string name="cannotUseLocationServices">Application cannot use currentAmbulanceUpdate services. Please modify permissions on Settings.</string>
     <string name="noAmbulanceSelected">No ambulance is currently selected.</string>
     <string name="inadequateLocationSettings">Location settings are inadequate, and cannot be fixed here.</string>
-    <string name="failedToStartLocationUpdates">Failed to start location updates.</string>
-    <string name="anotherClientReporting">Another client is currently reporting locations.</string>
+    <string name="failedToStartLocationUpdates">Failed to start sending updates.</string>
+    <string name="anotherClientReporting">Another client is currently reporting updates.</string>
     <string name="succeededForcingLocationUpdates">Success! Will attempt to start sending updates.</string>
-    <string name="couldNotForceLocationUpdate">Could not force updating location.</string>
+    <string name="couldNotForceLocationUpdate">Could not force updates.</string>
     <string name="serverIsNotOnlineMessages">Server is not online, %1$d message(s) in the buffer.</string>
     <string name="attemptingToReconnect">Attempting to reconnect to server.</string>
     <string name="serverIsBackOnline">Server is back online.</string>
     <string name="failedToReconnect">Failed to reconnect to server.</string>
-    <string name="couldNotLogin">Could not login user \'%1$s\'</string>
+    <string name="couldNotLogin">Could not login user \'%1$s\'.</string>
     <string name="pleaseLogin">Please login.</string>
-    <string name="welcomeUser">Welcome %1$s</string>
-    <string name="restartText">Restart</string>
+    <string name="welcomeUser">Welcome %1$s.</string>
+    <string name="restartText">Restart.</string>
     <string name="couldNotStartService">Could not start foreground service.</string>
-    <string name="serverError">Server error: %1$s</string>
-    <string name="stopText">Stop</string>
-    <string name="stopedStreamingLocation">Stopped streaming location.</string>
+    <string name="serverError">Server error: %1$s.</string>
+    <string name="stopText">Stop.</string>
+    <string name="stopedStreamingLocation">Stopped streaming updates.</string>
     <string name="app_descrip">Use this app to track emergency resources using the EMSTrack system.</string>
     <string name="app_credits">The following open source projects were used to build this app:</string>
     <string name="credits">Credits:</string>
     <string name="build_date">Build date:</string>
     <string name="build_version">Build version:</string>
     <string name="about">About:</string>
-    <string name="failedToAddGeofence">Failed to add geofence</string>
+    <string name="failedToAddGeofence">Failed to add geofence.</string>
     <string name="failedToRemoveGeofence">Failed to remove geofence.</string>
-    <string name="couldNotSubscribeToCalls">Could not subscribe to calls</string>
-    <string name="couldNotParseCall">Could not parse call</string>
-    <string name="couldNotSubscribeToStatuses">Could not subscribe to statuses</string>
-    <string name="couldNotParseStatus">Could not parse status</string>
-    <string name="couldNotPublish">Could not publish to %1$s</string>
-    <string name="couldNotSubscribe">Could not subscribe to %1$s</string>
-    <string name="couldNotFindAmbulance">Could not find ambulance</string>
-    <string name="couldNotParseCallData">Could not parse call data</string>
+    <string name="couldNotSubscribeToCalls">Could not subscribe to calls.</string>
+    <string name="couldNotParseCall">Could not parse call.</string>
+    <string name="couldNotSubscribeToStatuses">Could not subscribe to statuses.</string>
+    <string name="couldNotParseStatus">Could not parse status.</string>
+    <string name="couldNotPublish">Could not publish to %1$s.</string>
+    <string name="couldNotSubscribe">Could not subscribe to %1$s.</string>
+    <string name="couldNotFindAmbulance">Could not find ambulance.</string>
+    <string name="couldNotParseCallData">Could not parse call data.</string>
     <string name="couldNotDeclineCall">Cannot decline call. Currently serving another call.</string>
     <string name="willNotProcessNextCall">Will not process next call. Currently serving call.</string>
-    <string name="cannotSetCallOngoing">Can\'t set call as ongoing: already servicing call</string>
-    <string name="requestToStreamLocation">Requesting to stream updates...</string>
+    <string name="cannotSetCallAccepted">Can\'t set call as accepted: already servicing call</string>
+    <string name="requestToStreamLocation">Requesting to stream updates…</string>
+    <string name="selectAmbulance">Select ambulance:</string>
+    <string name="ambulanceButtonDefaultText">Select ambulance</string>
+    <string name="noIncomingCallsText">No incoming calls</string>
+    <string name="equipment_sting_button_negative_text">Cancel</string>
+    <string name="couldNotSuspendCall">Could not suspend call.</string>
+    <string name="CallStarted">Call started.</string>
+    <string name="CallFinished">Interrupting call</string>
+    <string name="noPatientAvailable">No patient information available</string>
+    <string name="noDistanceAvailable">No distance to patient information available</string>
 
     <string-array name="spinner_list_item_array">
         <item>@string/dispatch</item>
@@ -154,4 +165,27 @@
         <item>@string/hospital</item>
         <item>@string/gps</item>
     </string-array>
+
+    <string name="server_select">Select server:</string>
+    <string name="nextWaypointNotAvailable">Next waypoint is not available</string>
+    <string name="couldNotFindAmbulanceCall">Could not find ambulance information for the current call.</string>
+    <string name="couldNotForceUpdates">Could not force updates.</string>
+    <string name="couldNotSetCurrentCall">Could not set current call</string>
+    <string name="couldNotFinishCall">Could not finish call</string>
+    <string name="selectAmbulanceStatus">Select ambulance status:</string>
+    <string-array name="spinner_list_item_array_server">
+        <item>@string/server_select</item>
+        <item>Tijuana Red Cross:tijuana.emstrack.org:8883</item>
+        <item>UCSD:cruzroja.ucsd.edu:8883</item>
+    </string-array>
+
+    <string-array name="call_priority_colors">
+        <item>A:@color/bootstrapSuccess:@color/bootstrapLight</item>
+        <item>B:@color/bootstrapYellow:@color/bootstrapDark</item>
+        <item>C:@color/bootstrapWarning:@color/bootstrapDark</item>
+        <item>D:@color/bootstrapDanger:@color/bootstrapLight</item>
+        <item>E:@color/bootstrapInfo:@color/bootstrapLight</item>
+        <item>O:@color/bootstrapSecondary:@color/bootstrapLight</item>
+    </string-array>
+
 </resources>
