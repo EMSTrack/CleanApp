@@ -1830,7 +1830,9 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                         Log.d(TAG, "Failed to retrieve profile.");
 
                         // Build error message
-                        String message = exception.toString();
+                        String message = "Failed to retrieve profile";
+                        if (exception != null)
+                            message += ": " + exception.toString();
 
                         // Broadcast failure
                         Intent localIntent = new Intent(BroadcastActions.FAILURE);
