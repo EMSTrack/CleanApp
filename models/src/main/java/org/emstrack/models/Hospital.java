@@ -2,6 +2,7 @@ package org.emstrack.models;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 
@@ -10,6 +11,14 @@ import java.util.List;
  */
 
 public class Hospital{
+
+    public static class SortByName implements Comparator<Hospital>
+    {
+        public int compare(Hospital a, Hospital b)
+        {
+            return a.name.compareTo(b.name);
+        }
+    }
 
     private int id;
     private String number;
@@ -187,7 +196,7 @@ public class Hospital{
 
     @Override
     public String toString() {
-        return "Hospital '" + name + "'";
+        return name;
     }
 
 }
