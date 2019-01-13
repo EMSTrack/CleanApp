@@ -24,6 +24,7 @@ import org.emstrack.models.EquipmentItem;
 import org.emstrack.models.Hospital;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -136,9 +137,29 @@ public class HospitalFragment extends Fragment {
 
         Log.i(TAG,"Updating hospitals UI.");
 
-        // Loop through hospitals
+        // Create HospitalExpandableGroup
         final List hospitalExpandableGroup = new ArrayList<HospitalExpandableGroup>();
 
+        // Retrieve hospitals
+        ArrayList<Hospital> sortedHospitals = new ArrayList<>();
+        for (Map.Entry<Integer, Hospital> entry : hospitals.entrySet())
+            sortedHospitals.add( entry.getValue() );
+
+        // Sort hospitals
+        Collections.sort(sortedHospitals, new Hospital.SortByName());
+
+        // Loop over all hospitals
+        for (Hospital hospital : sortedHospitals ) {
+
+            // Add to to expandable group
+            hospitalExpandableGroup.add(
+                    new HospitalExpandableGroup(hospital.getName(),
+                            new ArrayList<EquipmentItem>(), // hospital.getHospitalequipmentSet(),
+                            hospital));
+
+        }
+
+        /*
         // Loop over all hospitals
         for (Map.Entry<Integer, Hospital> entry : hospitals.entrySet()) {
 
@@ -152,6 +173,7 @@ public class HospitalFragment extends Fragment {
                             hospital));
 
         }
+        */
 
         // Install fragment
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getContext());
