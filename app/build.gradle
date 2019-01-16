@@ -2,7 +2,7 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 27
-    buildToolsVersion '27.0.3'
+    // buildToolsVersion '27.0.3'
     defaultConfig {
         applicationId 'org.emstrack.ambulance'
         minSdkVersion 17
@@ -68,5 +68,5 @@ dependencies {
     compile project(':models')
     compile project(':mqtt')
 
-    testCompile 'junit:junit:4.12'
+    testImplementation 'junit:junit:4.12'
 }
