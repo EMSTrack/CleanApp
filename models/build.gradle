@@ -33,6 +33,9 @@ dependencies {
 
     api 'com.google.code.gson:gson:2.8.0'
 
+    api 'com.squareup.retrofit2:retrofit:2.5.0'
+    api 'com.squareup.retrofit2:converter-gson:2.5.0'
+
     compile group: 'org.ejml', name: 'ejml-all', version: '0.33'
 
 }
