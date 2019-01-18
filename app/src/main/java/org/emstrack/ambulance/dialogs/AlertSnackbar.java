@@ -5,11 +5,13 @@ import android.support.design.widget.Snackbar;
 import android.util.Log;
 import android.view.View;
 
+import org.emstrack.models.util.Alert;
+
 /**
  * Created by mauricio on 3/22/2018.
  */
 
-public class AlertSnackbar {
+public class AlertSnackbar extends Alert {
 
     private static String TAG = AlertSnackbar.class.getSimpleName();
 
@@ -33,13 +35,11 @@ public class AlertSnackbar {
     }
 
     public void alert(String message) {
-        alert(message, new View.OnClickListener() {
-            @Override
-            public void onClick(View view) { /* do nothing */ }
-        });
+        alert(message, view -> { /* do nothing */ });
     }
 
-    public void alert(String message, View.OnClickListener onOkClickAction) {
+    public void alert(String message,
+                      View.OnClickListener onOkClickAction) {
 
         // Log message
         Log.d(TAG, message);

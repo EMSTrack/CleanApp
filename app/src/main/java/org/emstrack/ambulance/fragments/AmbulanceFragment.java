@@ -199,13 +199,13 @@ public class AmbulanceFragment extends Fragment {
         // inflate view
         view = inflater.inflate(R.layout.fragment_ambulance, container, false);
 
-        // get callInformationLayout
+        // retrieveObject callInformationLayout
         callInformationLayout = view.findViewById(R.id.callInformationLayout);
 
         // Retrieve callInformationLayout parts
         callInformationText = callInformationLayout.findViewById(R.id.callInformationText);
 
-        // get callResumeLayout
+        // retrieveObject callResumeLayout
         callResumeLayout = view.findViewById(R.id.callResumeLayout);
 
         // Retrieve callResumeLayout parts
@@ -406,7 +406,7 @@ public class AmbulanceFragment extends Fragment {
 
             Log.d(TAG, "Creating call layout");
 
-            // get ambulanceCall
+            // retrieveObject ambulanceCall
             AmbulanceCall ambulanceCall = call.getCurrentAmbulanceCall();
             if (ambulanceCall == null)
                 Log.d(TAG, "Call does not have a current ambulance!");
@@ -765,7 +765,7 @@ public class AmbulanceFragment extends Fragment {
             Toast.makeText(getContext(), R.string.cantModifyAmbulance, Toast.LENGTH_LONG).show();
 
             // set spinner
-            int oldPosition = ambulanceStatusList.indexOf(ambulanceStatus.get(ambulance.getStatus()));
+            int oldPosition = ambulanceStatusList.indexOf(ambulanceStatus.retrieveObject(ambulance.getStatus()));
             setSpinner(oldPosition);
 
             // Return

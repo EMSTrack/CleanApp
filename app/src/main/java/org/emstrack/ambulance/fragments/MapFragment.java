@@ -37,7 +37,8 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import org.emstrack.ambulance.dialogs.AlertSnackbar;
 import org.emstrack.ambulance.services.AmbulanceForegroundService;
 import org.emstrack.ambulance.R;
-import org.emstrack.ambulance.services.OnServiceComplete;
+import org.emstrack.models.util.BroadcastActions;
+import org.emstrack.models.util.OnServiceComplete;
 import org.emstrack.models.Ambulance;
 import org.emstrack.models.AmbulanceCall;
 import org.emstrack.models.GPSLocation;
@@ -253,7 +254,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
                         Iterator<Map.Entry<Integer,Marker>> iter = hospitalMarkers.entrySet().iterator();
                         while (iter.hasNext())
                         {
-                            // get entry
+                            // retrieveObject entry
                             Map.Entry<Integer,Marker> entry = iter.next();
 
                             // remove from map
@@ -299,7 +300,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
                         Iterator<Map.Entry<Integer,Marker>> iter = waypointMarkers.entrySet().iterator();
                         while (iter.hasNext())
                         {
-                            // get entry
+                            // retrieveObject entry
                             Map.Entry<Integer,Marker> entry = iter.next();
 
                             // remove from map
@@ -402,8 +403,8 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
 
                 // What to do when GET_AMBULANCES service completes?
                 new OnServiceComplete(getContext(),
-                        AmbulanceForegroundService.BroadcastActions.SUCCESS,
-                        AmbulanceForegroundService.BroadcastActions.FAILURE,
+                        BroadcastActions.SUCCESS,
+                        BroadcastActions.FAILURE,
                         ambulancesIntent) {
 
                     @Override
@@ -446,7 +447,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
         Iterator<Map.Entry<Integer,Marker>> iter = ambulanceMarkers.entrySet().iterator();
         while (iter.hasNext())
         {
-            // get entry
+            // retrieveObject entry
             Map.Entry<Integer,Marker> entry = iter.next();
 
             // remove from map
@@ -463,8 +464,8 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
 
         // What to do when service completes?
         new OnServiceComplete(getContext(),
-                AmbulanceForegroundService.BroadcastActions.SUCCESS,
-                AmbulanceForegroundService.BroadcastActions.FAILURE,
+                BroadcastActions.SUCCESS,
+                BroadcastActions.FAILURE,
                 intent) {
 
             @Override

@@ -1,4 +1,4 @@
-package org.emstrack.ambulance.services;
+package org.emstrack.models.util;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -9,15 +9,11 @@ import android.os.Handler;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
-import org.emstrack.ambulance.dialogs.AlertSnackbar;
-
 /**
  * Created by mauricio on 3/21/2018.
  */
 
 public abstract class OnServicesComplete extends BroadcastReceiver {
-
-    public static final String UUID = "_UUID_";
 
     private final String TAG = OnServicesComplete.class.getSimpleName();
 
@@ -25,7 +21,7 @@ public abstract class OnServicesComplete extends BroadcastReceiver {
     private final String[] failureActions;
     private final String uuid;
     private String failureMessage;
-    private AlertSnackbar alert;
+    private Alert alert;
 
     private boolean successFlag;
     private boolean completeFlag;
@@ -56,9 +52,9 @@ public abstract class OnServicesComplete extends BroadcastReceiver {
         getLocalBroadcastManager(context).registerReceiver(this, intentFilter);
 
         // Default alert is AlertLog
-        this.alert = new AlertSnackbar(TAG);
+        this.alert = new Alert(TAG);
 
-        // Defaiult failure message
+        // Default failure message
         this.failureMessage = "Failed to complete service request";
 
         // Run
@@ -68,34 +64,31 @@ public abstract class OnServicesComplete extends BroadcastReceiver {
         if (intent != null) {
 
             // Start service
-            intent.putExtra(UUID, this.uuid);
+            intent.putExtra(BroadcastExtras.UUID, this.uuid);
             context.startService(intent);
 
         }
 
         // Start timeout timer
-        new Handler().postDelayed(new Runnable() {
-            @Override
-            public void run() {
+        new Handler().postDelayed(() -> {
 
-                if (!isComplete()) {
+            if (!isComplete()) {
 
-                    for (String action: failureActions) {
+                for (String action: failureActions) {
 
-                        // Broadcast failures
-                        Intent localIntent = new Intent(action);
-                        localIntent.putExtra(OnServicesComplete.UUID, uuid);
-                        localIntent.putExtra(AmbulanceForegroundService.BroadcastExtras.MESSAGE,
-                                "Timed out without completing service.");
-                        context.sendBroadcast(localIntent);
-
-                    }
+                    // Broadcast failures
+                    Intent localIntent = new Intent(action);
+                    localIntent.putExtra(BroadcastExtras.UUID, uuid);
+                    localIntent.putExtra(BroadcastExtras.MESSAGE,
+                            "Timed out without completing service.");
+                    context.sendBroadcast(localIntent);
 
                 }
 
-                // otherwise die graciously
-
             }
+
+            // otherwise die graciously
+
         }, timeout);
 
     }
@@ -119,7 +112,7 @@ public abstract class OnServicesComplete extends BroadcastReceiver {
         return completeFlag;
     }
 
-    public OnServicesComplete setAlert(AlertSnackbar alert) {
+    public OnServicesComplete setAlert(Alert alert) {
         this.alert = alert;
         return this;
     }
@@ -136,8 +129,8 @@ public abstract class OnServicesComplete extends BroadcastReceiver {
         if (intent == null)
             return;
 
-        // get uuid
-        String uuid = intent.getStringExtra(UUID);
+        // retrieve uuid
+        String uuid = intent.getStringExtra(BroadcastExtras.UUID);
 
         // quick return if not same uuid
         if (!this.uuid.equals(uuid))
@@ -202,7 +195,7 @@ public abstract class OnServicesComplete extends BroadcastReceiver {
         // Alert user
         String message = failureMessage;
         if (extras != null) {
-            String msg = extras.getString(AmbulanceForegroundService.BroadcastExtras.MESSAGE);
+            String msg = extras.getString(BroadcastExtras.MESSAGE);
             if (msg != null)
                message +=  '\n' + msg;
 
