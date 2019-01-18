@@ -3,7 +3,6 @@ package org.emstrack.ambulance;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
-import android.app.TaskStackBuilder;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.content.SharedPreferences;
@@ -35,11 +34,9 @@ import com.google.android.gms.tasks.OnSuccessListener;
 
 import org.emstrack.ambulance.dialogs.AlertSnackbar;
 import org.emstrack.ambulance.services.AmbulanceForegroundService;
-import org.emstrack.ambulance.services.OnServiceComplete;
-import org.emstrack.models.Ambulance;
-import org.emstrack.models.AmbulancePermission;
+import org.emstrack.models.util.BroadcastActions;
+import org.emstrack.models.util.OnServiceComplete;
 import org.emstrack.models.Profile;
-import org.emstrack.mqtt.MqttProfileCallback;
 import org.emstrack.mqtt.MqttProfileClient;
 
 import java.util.ArrayList;
@@ -61,9 +58,10 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     private Spinner serverField;
     private boolean logout;
 
-    ArrayAdapter<CharSequence> serverNames;
-    String[] serverList;
-    List<String> serverURIs;
+    private ArrayAdapter<CharSequence> serverNames;
+    private String[] serverList;
+    private List<String> serverURIs;
+    private List<String> serverAPIURIs;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -73,7 +71,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
         Log.d(TAG, "onCreate");
 
-        // get action
+        // retrieveObject action
         String action = getIntent().getAction();
         logout = LOGOUT.equals(action);
 
@@ -88,14 +86,17 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         Log.d(TAG, "Populating server list");
         serverNames = new ArrayAdapter(this, android.R.layout.simple_spinner_item);
         serverURIs = new ArrayList<>();
+        serverAPIURIs = new ArrayList<>();
         for (String server: serverList) {
             try {
                 String[] splits = server.split(":", 3);
                 serverNames.add(splits[0]);
                 if (!splits[1].isEmpty()) {
                     serverURIs.add("ssl://" + splits[1] + ":" + splits[2]);
+                    serverAPIURIs.add("https://" + splits[1]);
                 } else {
                     serverURIs.add("");
+                    serverAPIURIs.add("");
                 }
             } catch (Exception e) {
                 Log.d(TAG, "Malformed server string. Skipping.");
@@ -114,7 +115,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         // Retrieve past credentials
         usernameField.setText(sharedPreferences.getString(AmbulanceForegroundService.PREFERENCES_USERNAME, null));
         passwordField.setText(sharedPreferences.getString(AmbulanceForegroundService.PREFERENCES_PASSWORD, null));
-        String serverUri = sharedPreferences.getString(AmbulanceForegroundService.PREFERENCES_SERVER, null);
+        String serverUri = sharedPreferences.getString(AmbulanceForegroundService.PREFERENCES_MQTT_SERVER, null);
 
         // set server item
         int serverPos = 0;
@@ -173,8 +174,8 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
             // What to do when service completes?
             new OnServiceComplete(this,
-                    AmbulanceForegroundService.BroadcastActions.SUCCESS,
-                    AmbulanceForegroundService.BroadcastActions.FAILURE,
+                    BroadcastActions.SUCCESS,
+                    BroadcastActions.FAILURE,
                     intent) {
 
                 @Override
@@ -294,6 +295,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         final String password = passwordField.getText().toString().trim();
 
         final String serverUri = serverURIs.get(serverField.getSelectedItemPosition());
+        final String serverApiUri = serverAPIURIs.get(serverField.getSelectedItemPosition());
         Log.d(TAG, "Logging into server: " + serverUri);
 
         /*String serverName = serverField.getSelectedItem().toString();
@@ -309,6 +311,8 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         else if (serverUri.isEmpty())
             new AlertSnackbar(LoginActivity.this).alert(getResources().getString(R.string.error_invalid_server));
 
+        else if (serverApiUri.isEmpty())
+            new AlertSnackbar(LoginActivity.this).alert(getResources().getString(R.string.error_invalid_server));
 
         else {
 
@@ -317,12 +321,12 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
             // Login at service
             Intent intent = new Intent(LoginActivity.this, AmbulanceForegroundService.class);
             intent.setAction(AmbulanceForegroundService.Actions.LOGIN);
-            intent.putExtra("CREDENTIALS", new String[]{username, password, serverUri});
+            intent.putExtra("CREDENTIALS", new String[]{username, password, serverUri, serverApiUri});
 
             // What to do when service completes?
             new OnServiceComplete(LoginActivity.this,
-                    AmbulanceForegroundService.BroadcastActions.SUCCESS,
-                    AmbulanceForegroundService.BroadcastActions.FAILURE,
+                    BroadcastActions.SUCCESS,
+                    BroadcastActions.FAILURE,
                     intent) {
 
                 @Override
@@ -397,7 +401,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     }
 
     /**
-     * Callback received when a permissions request has been completed.
+     * APICallback received when a permissions request has been completed.
      */
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,

@@ -6,11 +6,7 @@ import com.google.gson.FieldNamingPolicy;
 
 import org.junit.Test;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 import java.text.DateFormat;
 import java.util.Date;
@@ -20,21 +16,12 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Map;
 
-import okhttp3.OkHttpClient;
-import retrofit2.Callback;
-import retrofit2.Response;
-import retrofit2.Retrofit;
-import retrofit2.converter.gson.GsonConverterFactory;
-import retrofit2.http.Body;
-import retrofit2.http.POST;
-import retrofit2.http.Path;
-
 /**
  * Example local unit test, which will execute on the development machine (host).
  *
  * @see <a href="http://d.android.com/tools/testing">Testing documentation</a>
  */
-public class ModelsUnitTest {
+public class TestModels {
 
     @Test
     public void test_profile() throws Exception {
@@ -957,23 +944,4 @@ public class ModelsUnitTest {
         assertEquals(expectedStreet, answerStreet);
 
     }
-
-    @Test
-    public void test_retrofit() throws Exception {
-
-        System.out.println("test_retrofit()");
-
-        UserService service = APIServiceGenerator.createService(UserService.class);
-
-        Credentials credentials = new Credentials("admin", "cruzrojaadmin");
-
-        retrofit2.Call<Token> callSync = service.getToken(credentials);
-
-        Response<Token> response = callSync.execute();
-        Token token = response.body();
-        assertTrue(token.getToken().length() > 0);
-        System.out.println("token = " + token.getToken());
-
-    }
-
 }

@@ -54,19 +54,30 @@ public class MqttInstrumentedTest {
         // Test login
         profileClient.setCallback(new MqttProfileCallback() {
             @Override
+            public void onReconnect() {
+                fail();
+            }
+
+            @Override
             public void onSuccess() {
-                assertEquals(true, true);
+                assertTrue(true);
             }
 
             @Override
             public void onFailure(Throwable exception) {
                 Log.d(TAG, "onFailure: " + exception);
-                assertEquals(true, false);
+                fail();
             }
+
         });
 
         // Test login
         profileClient.connect(username, password, new MqttProfileCallback() {
+            @Override
+            public void onReconnect() {
+                fail();
+            }
+
             @Override
             public void onSuccess() {
                 assertEquals(true, true);
@@ -74,7 +85,7 @@ public class MqttInstrumentedTest {
 
             @Override
             public void onFailure(Throwable exception) {
-                assertEquals(true, false);
+                fail();
             }
         });
         Thread.sleep(2000);
@@ -120,9 +131,6 @@ public class MqttInstrumentedTest {
                                 // / Found item in the ambulance equipments object
                                 Hospital hospital = gson
                                         .fromJson(message.toString(), Hospital.class);
-
-                                // Make sure it has equipments
-                                assertTrue(hospital.getHospitalequipmentSet() != null);
 
                                 // Got one hospital
                                 numberOfHospitals[0]--;

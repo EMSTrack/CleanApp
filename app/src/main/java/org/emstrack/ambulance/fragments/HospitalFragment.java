@@ -19,7 +19,8 @@ import org.emstrack.ambulance.services.AmbulanceForegroundService;
 import org.emstrack.ambulance.R;
 import org.emstrack.ambulance.adapters.HospitalExpandableRecyclerAdapter;
 import org.emstrack.ambulance.models.HospitalExpandableGroup;
-import org.emstrack.ambulance.services.OnServiceComplete;
+import org.emstrack.models.util.BroadcastActions;
+import org.emstrack.models.util.OnServiceComplete;
 import org.emstrack.models.EquipmentItem;
 import org.emstrack.models.Hospital;
 
@@ -69,8 +70,8 @@ public class HospitalFragment extends Fragment {
 
             // What to do when GET_HOSPITALS service completes?
             new OnServiceComplete(getContext(),
-                    AmbulanceForegroundService.BroadcastActions.SUCCESS,
-                    AmbulanceForegroundService.BroadcastActions.FAILURE,
+                    BroadcastActions.SUCCESS,
+                    BroadcastActions.FAILURE,
                     hospitalsIntent) {
 
                 @Override

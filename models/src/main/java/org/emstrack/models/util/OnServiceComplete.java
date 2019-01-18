@@ -1,4 +1,4 @@
-package org.emstrack.ambulance.services;
+package org.emstrack.models.util;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -9,15 +9,11 @@ import android.os.Handler;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
-import org.emstrack.ambulance.dialogs.AlertSnackbar;
-
 /**
  * Created by mauricio on 3/21/2018.
  */
 
 public abstract class OnServiceComplete extends BroadcastReceiver {
-
-    public static final String UUID = "_UUID_";
 
     private final String TAG = OnServiceComplete.class.getSimpleName();
 
@@ -25,7 +21,7 @@ public abstract class OnServiceComplete extends BroadcastReceiver {
     private final String failureAction;
     private final String uuid;
     private String failureMessage;
-    private AlertSnackbar alert;
+    private Alert alert;
 
     private boolean successFlag;
     private boolean completeFlag;
@@ -55,42 +51,45 @@ public abstract class OnServiceComplete extends BroadcastReceiver {
         getLocalBroadcastManager(context).registerReceiver(this, failureIntentFilter);
 
         // Default alert is AlertLog
-        this.alert = new AlertSnackbar(TAG);
+        this.alert = new Alert(TAG);
 
-        // Defaiult failure message
+        // Default failure message
         this.failureMessage = "Failed to complete service request";
 
         // Run
         this.run();
 
+        // Run with uuid
+        this.run(this.uuid);
+
         // Start service
         if (intent != null) {
 
             // Start service
-            intent.putExtra(UUID, this.uuid);
+            intent.putExtra(BroadcastExtras.UUID, this.uuid);
             context.startService(intent);
 
         }
 
         // Start timeout timer
-        new Handler().postDelayed(new Runnable() {
-            @Override
-            public void run() {
+        new Handler().postDelayed(() -> {
 
-                if (!isComplete()) {
+            if (!isComplete()) {
 
-                    // Broadcast failure
-                    Intent localIntent = new Intent(failureAction);
-                    localIntent.putExtra(OnServiceComplete.UUID, uuid);
-                    localIntent.putExtra(AmbulanceForegroundService.BroadcastExtras.MESSAGE,
-                            "Timed out without completing service.");
-                    context.sendBroadcast(localIntent);
+                Log.i(TAG, "TIMEOUT FAILURE");
+                this.successFlag = false;
 
-                }
+                // Make bundle
+                Bundle bundle = new Bundle();
+                bundle.putString(BroadcastExtras.UUID, uuid);
+                bundle.putString(BroadcastExtras.MESSAGE,
+                        "Timed out without completing service.");
 
-                // otherwise die graciously
+                // Call failure
+                onFailure(bundle);
 
             }
+
         }, timeout);
 
     }
@@ -114,7 +113,7 @@ public abstract class OnServiceComplete extends BroadcastReceiver {
         return completeFlag;
     }
 
-    public OnServiceComplete setAlert(AlertSnackbar alert) {
+    public OnServiceComplete setAlert(Alert alert) {
         this.alert = alert;
         return this;
     }
@@ -127,12 +126,16 @@ public abstract class OnServiceComplete extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
 
+        Log.d(TAG, "onReceive");
+
         // quick return if no intent
         if (intent == null)
             return;
 
-        // get uuid
-        String uuid = intent.getStringExtra(UUID);
+        // retrieve uuid
+        String uuid = intent.getStringExtra(BroadcastExtras.UUID);
+
+        Log.d(TAG, "uuid = " + uuid);
 
         // quick return if not same uuid
         if (!this.uuid.equals(uuid))
@@ -165,6 +168,8 @@ public abstract class OnServiceComplete extends BroadcastReceiver {
 
     public void run() { }
 
+    public void run(String uuid) { }
+
     public abstract void onSuccess(Bundle extras);
 
     public void onFailure(Bundle extras) {
@@ -172,7 +177,7 @@ public abstract class OnServiceComplete extends BroadcastReceiver {
         // Alert user
         String message = failureMessage;
         if (extras != null) {
-            String msg = extras.getString(AmbulanceForegroundService.BroadcastExtras.MESSAGE);
+            String msg = extras.getString(BroadcastExtras.MESSAGE);
             if (msg != null)
                message +=  '\n' + msg;
 

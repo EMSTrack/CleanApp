@@ -11,16 +11,17 @@ public class Credentials {
     @SerializedName("password")
     @Expose
     private String password;
-
+    private String serverURI;
 
     /**
      *
      * @param username
      * @param password
      */
-    public Credentials(String username, String password) {
+    public Credentials(String username, String password, String serverURI) {
         this.username = username;
         this.password = password;
+        this.serverURI = serverURI;
     }
 
     public void setPassword(String password) {
@@ -37,5 +38,13 @@ public class Credentials {
 
     public String getUsername() {
         return username;
+    }
+
+    public void setServerURI(String serverURI) {
+        this.serverURI = serverURI;
+    }
+
+    public String getServerURI() {
+        return serverURI;
     }
 }
