@@ -302,7 +302,9 @@ public class MainActivity extends AppCompatActivity {
         // Setup Adapter for tabLayout
         FragmentPager adapter = new FragmentPager(getSupportFragmentManager(),
                 new Fragment[]{new AmbulanceFragment(), new MapFragment(), new HospitalFragment()},
-                new CharSequence[]{"Ambulance", "Map", "Hospitals"});
+                new CharSequence[]{getString(R.string.ambulance),
+                        getString(R.string.map),
+                        getString(R.string.hospitals)});
         viewPager.setAdapter(adapter);
 
         //set up TabLayout Structure
@@ -581,9 +583,9 @@ public class MainActivity extends AppCompatActivity {
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setCancelable(true);
-        builder.setTitle("PANIC!");
-        builder.setMessage("Message");
-        builder.setPositiveButton("Confirm",
+        builder.setTitle(R.string.panicTitle);
+        builder.setMessage(R.string.panicMessage);
+        builder.setPositiveButton(R.string.confirm,
                 (dialog, which) -> {
                 });
         builder.setNegativeButton(android.R.string.cancel,
@@ -716,13 +718,13 @@ public class MainActivity extends AppCompatActivity {
             view.findViewById(R.id.callNextWaypointLayout).setVisibility(View.VISIBLE);
 
         // build dialog
-        builder.setTitle("Accept Incoming Call?")
+        builder.setTitle(R.string.acceptCall)
                 .setView(view)
-                .setPositiveButton("Accept",
+                .setPositiveButton(R.string.accept,
                         (dialog, id) -> {
 
                             Toast.makeText(MainActivity.this,
-                                    "Call accepted",
+                                    R.string.callAccepted,
                                     Toast.LENGTH_SHORT).show();
 
                             Log.i(TAG, "Call accepted");
@@ -734,11 +736,11 @@ public class MainActivity extends AppCompatActivity {
                             startService(serviceIntent);
 
                         })
-                .setNegativeButton("Decline",
+                .setNegativeButton(R.string.decline,
                         (dialog, id) -> {
 
                             Toast.makeText(MainActivity.this,
-                                    "Call declined",
+                                    R.string.callDeclined,
                                     Toast.LENGTH_SHORT).show();
 
                             Log.i(TAG, "Call declined");
@@ -778,9 +780,9 @@ public class MainActivity extends AppCompatActivity {
 
         // Use the Builder class for convenient dialog construction
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Currently handling call")
-                .setMessage("What do you want to do?")
-                .setNegativeButton("Continue",
+        builder.setTitle(R.string.currentlyHandlingCall)
+                .setMessage(R.string.whatDoYouWantToDo)
+                .setNegativeButton(R.string.toContinue,
                         (dialog, id) -> {
 
                             Log.i(TAG, "Continuing with call");
@@ -789,11 +791,11 @@ public class MainActivity extends AppCompatActivity {
                                 logoutAfterFinish = false;
 
                         })
-                .setNeutralButton("Suspend",
+                .setNeutralButton(R.string.suspend,
                         (dialog, id) -> {
 
                             Toast.makeText(MainActivity.this,
-                                    "Suspending call",
+                                    R.string.suspendingCall,
                                     Toast.LENGTH_SHORT).show();
 
                             Log.i(TAG, "Suspending call");
@@ -805,11 +807,11 @@ public class MainActivity extends AppCompatActivity {
                             startService(serviceIntent);
 
                         })
-                .setPositiveButton("End",
+                .setPositiveButton(R.string.end,
                         (dialog, id) -> {
 
                             Toast.makeText(MainActivity.this,
-                                    "Ending call",
+                                    R.string.endingCall,
                                     Toast.LENGTH_SHORT).show();
 
                             Log.i(TAG, "Ending call");
@@ -877,9 +879,9 @@ public class MainActivity extends AppCompatActivity {
         baseSpinner.setAdapter(baseListAdapter);
 
         // build dialog
-        builder.setTitle("Select next waypoint")
+        builder.setTitle(R.string.selectNextWaypoint)
                 .setView(view)
-                .setPositiveButton("Select",
+                .setPositiveButton(R.string.select,
                         (dialog, id) -> {
 
                             Log.i(TAG, "Waypoint selected");
@@ -906,7 +908,7 @@ public class MainActivity extends AppCompatActivity {
                             }
 
                         })
-                .setNegativeButton("Cancel",
+                .setNegativeButton(R.string.cancel,
                         (dialog, id) -> {
 
                             Log.i(TAG, "No waypoint selected");
@@ -919,7 +921,7 @@ public class MainActivity extends AppCompatActivity {
                             */
 
                         })
-                .setNeutralButton("End Call",
+                .setNeutralButton(R.string.endCall,
                         (dialog, id) -> {
 
                             Log.i(TAG, "Ending call");
@@ -974,7 +976,7 @@ public class MainActivity extends AppCompatActivity {
                             .setCancelable(false)
                             .setMessage(R.string.forceLocationUpdates)
                             .setNegativeButton(
-                                    R.string.alert_button_negative_text,
+                                    R.string.cancel,
                                     (dialog, which) -> {
 
                                         // User must always choose ambulance
@@ -982,7 +984,7 @@ public class MainActivity extends AppCompatActivity {
 
                                     })
                             .setPositiveButton(
-                                    R.string.alert_button_positive_text,
+                                    R.string.ok,
                                     (dialog, which) -> {
 
                                         Log.i(TAG, "ForceLocationUpdatesDialog: OK Button Clicked");
@@ -1002,7 +1004,8 @@ public class MainActivity extends AppCompatActivity {
                                         }
 
                                         // Toast to warn user
-                                        Toast.makeText(MainActivity.this, R.string.forcingLocationUpdates,
+                                        Toast.makeText(MainActivity.this,
+                                                R.string.forcingLocationUpdates,
                                                 Toast.LENGTH_LONG).show();
 
                                         // Reset location_client
@@ -1123,7 +1126,8 @@ public class MainActivity extends AppCompatActivity {
             startService(intent);
 
             // Toast to warn user
-            Toast.makeText(MainActivity.this, R.string.stopedStreamingLocation,
+            Toast.makeText(MainActivity.this,
+                    R.string.stopedStreamingLocation,
                     Toast.LENGTH_SHORT).show();
 
         }
@@ -1136,11 +1140,11 @@ public class MainActivity extends AppCompatActivity {
 
         // Use the Builder class for convenient dialog construction
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Switch ambulance")
-                .setMessage(String.format("Do you want to swtich to ambulance %1$s?", newAmbulance.getAmbulanceIdentifier()))
-                .setNegativeButton("No",
+        builder.setTitle(R.string.switchAmbulance)
+                .setMessage(String.format(getString(R.string.switchToAmbulance), newAmbulance.getAmbulanceIdentifier()))
+                .setNegativeButton(R.string.no,
                         (dialog, id) -> Log.i(TAG, "Continue with same ambulance"))
-                .setPositiveButton("Yes",
+                .setPositiveButton(R.string.yes,
                         (dialog, id) -> {
 
                             Log.d(TAG, String.format("Switching to ambulance %1$s", newAmbulance.getAmbulanceIdentifier()));
@@ -1182,10 +1186,10 @@ public class MainActivity extends AppCompatActivity {
 
         // Use the Builder class for convenient dialog construction
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Please select ambulance")
+        builder.setTitle(R.string.pleaseSelectAmbulance)
                 .setCancelable(false)
-                .setMessage("You must choose an ambulance or logout to proceed")
-                .setPositiveButton("OK",
+                .setMessage(R.string.mustChooseAmbulance)
+                .setPositiveButton(R.string.ok,
                         (dialog, id) -> {
 
                             Log.i(TAG, "Will choose ambulance");
@@ -1194,7 +1198,7 @@ public class MainActivity extends AppCompatActivity {
                             ambulanceButton.performClick();
 
                         })
-                .setNegativeButton("Logout",
+                .setNegativeButton(R.string.logout,
                         (dialog, id) -> {
 
                             Log.i(TAG, "Will logout");

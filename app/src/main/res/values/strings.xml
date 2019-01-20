@@ -10,8 +10,6 @@
 
     <string name="alert_error_title">Error</string>
     <string name="alert_warning_title">Warning</string>
-    <string name="alert_button_positive_text">OK</string>
-    <string name="alert_button_negative_text">Cancel</string>
 
     <string name="alert_ambulance_switch">Stop \'%1$s\' from sending updating first.</string>
 
@@ -22,7 +20,7 @@
     <string name="login_username_hint">Username</string>
     <string name="login_password_hint">Password</string>
     <string name="login_remember_user_text">Remember user</string>
-    <string name="login_button_text">LOGIN</string>
+    <string name="login_button_text">Login</string>
 
     <string name="error_empty_username">Please provide a valid user name.</string>
     <string name="error_empty_password">Please provide a valid password.</string>
@@ -30,8 +28,6 @@
     <string name="error_connection_failed">Connection failed. Reason: \'%1$s\'</string>
     <string name="error_no_hospitals">No hospitals are associated with this account.</string>
     <string name="error_invalid_server">Please select server.</string>
-
-    <string name="hospital_button_text">OK</string>
 
     <string name="equipment_boolean_image">Checkbox</string>
     <string name="equipment_bolean_button_positive_text">Update</string>
@@ -186,8 +182,8 @@
     <string name="visitedWaypoint">Marking waypoint as visited</string>
     <string name="skip">Skip</string>
     <string name="markAsVisiting">Mark as Visiting</string>
+    <string name="markAsVisited">Mark as Visited</string>
     <string name="addWaypoint">Add Waypoint</string>
-    <string name="endCall">End Call</string>
     <string name="details">Details:</string>
     <string name="detailsText">Details</string>
     <string name="patients">Patients:</string>
@@ -210,6 +206,41 @@
     <string name="enterPassword">Enter password</string>
     <string name="signIn">Sign In</string>
     <string name="currentCall">Current Call:</string>
+    <string name="ambulance">Ambulance</string>
+    <string name="map">Map</string>
+    <string name="hospitals">Hospitals</string>
+    <string name="callAccepted">Call accepted</string>
+    <string name="callDeclined">Call declined</string>
+    <string name="suspendingCall">Suspending call</string>
+    <string name="endingCall">Ending call</string>
+    <string name="checkingResources">Please be patient. Checking permissions...</string>
+    <string name="permissionsSatisfied">Location permissions satisfied.</string>
+    <string name="expectLimitedFuncionality">Location permissions not satisfied. Expect limited functionality.</string>
+    <string name="settingsAreInadequate">GPSLocation settings are inadequate, and cannot be fixed here. Fix in Settings.</string>
+    <string name="decline">Decline</string>
+    <string name="accept">Accept</string>
+    <string name="no">No</string>
+    <string name="yes">Yes</string>
+    <string name="confirm">Confirm</string>
+    <string name="end">End</string>
+    <string name="select">Select</string>
+    <string name="ok">OK</string>
+    <string name="mustChooseAmbulance">You must choose an ambulance or logout to proceed</string>
+    <string name="logout">Logout</string>
+    <string name="currentlyHandlingCall">Currently handling call</string>
+    <string name="whatDoYouWantToDo">What do you want to do?</string>
+    <string name="suspend">Suspend</string>
+    <string name="toContinue">Continue</string>
+    <string name="switchAmbulance">Switch ambulance</string>
+    <string name="switchToAmbulance">Do you want to switch to ambulance %1$s?</string>
+    <string name="panicMessage">Message</string>
+    <string name="panicTitle">Panic!</string>
+    <string name="acceptCall">Accept Incoming Call?</string>
+    <string name="selectNextWaypoint">Select next waypoint</string>
+    <string name="cancel">Cancel</string>
+    <string name="endCall">End Call</string>
+    <string name="loggingIn">Logging in \'%1$s\'</string>
+    <string name="pleaseSelectAmbulance">Please select ambulance</string>
     <string-array name="spinner_list_item_array_server">
         <item>@string/server_select</item>
         <item>Tijuana Red Cross:tijuana.emstrack.org:8883</item>

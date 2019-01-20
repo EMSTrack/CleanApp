@@ -457,17 +457,19 @@ public class AmbulanceFragment extends Fragment {
                 callDistanceTextView.setText(updateCallDistance(location));
 
                 // Setup visiting button text
-                String visitinWaypointText = "Mark as ";
+                String visitingWaypointText; // = "Mark as ";
                 if (waypoint.isCreated()) {
-                    visitinWaypointText += Waypoint.statusLabel.get(Waypoint.STATUS_VISITING);
+                    // visitingWaypointText += Waypoint.statusLabel.get(Waypoint.STATUS_VISITING);
+                    visitingWaypointText = getString(R.string.markAsVisiting);
                     callVisitingWaypointButton.setBackgroundColor(getResources().getColor(R.color.bootstrapWarning));
                     callVisitingWaypointButton.setTextColor(getResources().getColor(R.color.bootstrapDark));
                 } else { // if (waypoint.isVisting())
-                    visitinWaypointText += Waypoint.statusLabel.get(Waypoint.STATUS_VISITED);
+                    // visitingWaypointText += Waypoint.statusLabel.get(Waypoint.STATUS_VISITED);
+                    visitingWaypointText = getString(R.string.markAsVisited);
                     callVisitingWaypointButton.setBackgroundColor(getResources().getColor(R.color.bootstrapInfo));
                     callVisitingWaypointButton.setTextColor(getResources().getColor(R.color.bootstrapLight));
                 }
-                callVisitingWaypointButton.setText(visitinWaypointText);
+                callVisitingWaypointButton.setText(visitingWaypointText);
 
                 // Make callNextWaypointLayout visible
                 callNextWaypointLayout.setVisibility(View.VISIBLE);
@@ -827,9 +829,9 @@ public class AmbulanceFragment extends Fragment {
         AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
         builder.setTitle(title)
                 .setMessage(message)
-                .setNegativeButton("No",
+                .setNegativeButton(R.string.no,
                         (dialog, id) -> Log.i(TAG, "Continuing..."))
-                .setPositiveButton("Yes",
+                .setPositiveButton(R.string.yes,
                         (dialog, id) -> {
 
                             Log.i(TAG, String.format("Will mark as '%1$s'", status));

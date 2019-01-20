@@ -441,7 +441,9 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
             final String serverApi = loginInfo[3];
 
             // Notify user
-            Toast.makeText(this, "Logging in '" + username + "'", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this,
+                    String.format(getString(R.string.loggingIn), username),
+                    Toast.LENGTH_SHORT).show();
 
             // Set online false
             setOnline(false);

@@ -8,11 +8,9 @@
 
     <string name="alert_error_title">Error</string>
     <string name="alert_warning_title">Aviso</string>
-    <string name="alert_button_positive_text">OK</string>
-    <string name="alert_button_negative_text">Cancelar</string>
 
     <string name="message_please_wait">Por favor espere…</string>
-    <string name="logout_confirm">¿Seguro que desea cerrar sesión?</string>
+    <string name="logout_confirm">¿Seguro que desea cerrar la sesión?</string>
 
     <string name="login_username_hint">Usuário</string>
     <string name="login_password_hint">Contraseña</string>
@@ -24,8 +22,6 @@
     <string name="error_invalid_credentials">Por favor introduzca credenciales válidas.</string>
     <string name="error_connection_failed">No se pudo conectar. Razón: \'%1$s\'</string>
     <string name="error_no_hospitals">Ningún hospital esta asociado con esta cuenta.</string>
-
-    <string name="hospital_button_text">OK</string>
 
     <string name="equipment_boolean_image">Caja</string>
     <string name="equipment_bolean_button_positive_text">Actualizar</string>
@@ -73,7 +69,7 @@
     <string name="gpsCommentsLabel">Commentarios:</string>
     <string name="gpsLastUpdatedOnLabel">Actualizado en:</string>
     <string name="equipment_string_button_negative_text">Cancelar</string>
-    <string name="callLabel">LLamadas:</string>
+    <string name="callLabel">Llamadas:</string>
     <string name="failedToConnectToBrocker">No se pudo conectar.</string>
     <string name="Exception">Excepción:</string>
     <string name="loginSuccessMessage">Usuário \'%1$s\' conectado.</string>
@@ -162,14 +158,15 @@
     <string name="pleaseConfirm">Por favor confirmar</string>
     <string name="skipCurrentWaypoint">¿Quieres saltarte el punto de ruta actual?</string>
     <string name="visitCurrentWaypoint">¿Estás visitando este lugar?</string>
-    <string name="visitedCurrentWaypoint">" ¿Has terminado de visitar este lugar?"</string>
+    <string name="visitedCurrentWaypoint">¿Has terminado de visitar este lugar?</string>
     <string name="skippingWaypoint">Saltando punto de ruta</string>
     <string name="visitingWaypoint">Marcar punto de ruta como visitando</string>
     <string name="visitedWaypoint">Marcando punto de ruta como visitado</string>
     <string name="skip">Saltar</string>
     <string name="markAsVisiting">Visitando</string>
-    <string name="addWaypoint">Nuevo Punto de Ruta</string>
-    <string name="endCall">Terminar LLamada</string>
+    <string name="markAsVisited">Visitado</string>
+    <string name="addWaypoint">Nueva Ruta</string>
+    <string name="endCall">Terminar</string>
     <string name="details">Detalles:</string>
     <string name="detailsText">Detalles</string>
     <string name="patients">Pacientes:</string>
@@ -190,7 +187,40 @@
     <string name="notImplementedYet">Aún no implementado.</string>
     <string name="enterUsername">Usuario</string>
     <string name="enterPassword">Contraseña</string>
-    <string name="signIn">Iniciar Sessión</string>
+    <string name="signIn">Iniciar Sesión</string>
     <string name="currentCall">Llamada Actual:</string>
+    <string name="ambulance">Ambulancia</string>
+    <string name="map">Mapa</string>
+    <string name="hospitals">Hospitales</string>
+    <string name="callAccepted">Llamada aceptada</string>
+    <string name="callDeclined">Llamada rechazada</string>
+    <string name="suspendingCall">Suspendiendo llamada</string>
+    <string name="endingCall">Terminando llamada</string>
+    <string name="checkingResources">Por favor sea paciente. Comprobando permisos...</string>
+    <string name="permissionsSatisfied">Permisos de localización satisfechos.</string>
+    <string name="expectLimitedFuncionality">Permisos de localización no satisfechos. Espere una funcionalidad limitada.</string>
+    <string name="settingsAreInadequate">Los permisos de ubicación de GPS son inadecuados y no se pueden corregir aquí. Arreglo en Configuraciones.</string>
+    <string name="decline">Rechazar</string>
+    <string name="accept">Aceptar</string>
+    <string name="no">No</string>
+    <string name="yes">Si</string>
+    <string name="confirm">Confirmar</string>
+    <string name="end">Terminar</string>
+    <string name="select">Seleccionar</string>
+    <string name="ok">Ok</string>
+    <string name="mustChooseAmbulance">Debes elegir una ambulancia o cerrar la sesión para proceder.</string>
+    <string name="logout">Cerrar la sesión</string>
+    <string name="currentlyHandlingCall">Actualmente atendiendo llamada</string>
+    <string name="whatDoYouWantToDo">¿Qué quieres hacer?</string>
+    <string name="suspend">Suspender</string>
+    <string name="toContinue">Continuar</string>
+    <string name="switchAmbulance">Cambiar de ambulancia</string>
+    <string name="switchToAmbulance">" ¿Quieres cambiarte a la ambulancia %1$s?"</string>
+    <string name="panicMessage">Messaje</string>
+    <string name="panicTitle">Pánico!</string>
+    <string name="acceptCall">¿Aceptar llamada?</string>
+    <string name="selectNextWaypoint">Seleccione el siguiente punto de ruta</string>
+    <string name="cancel">Cancelar</string>
+    <string name="loggingIn">Iniciando sesíon para \'%1$s\'</string>
 
 </resources>
