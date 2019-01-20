@@ -3,11 +3,9 @@ package org.emstrack.models.util;
 import android.util.Log;
 
 /**
- * Created by mauricio on 3/22/2018.
- */
-
-/**
  * A simple alert class that logs alerts
+ * @author mauricio
+ * @since 3/22/2018
  */
 public class Alert  {
 

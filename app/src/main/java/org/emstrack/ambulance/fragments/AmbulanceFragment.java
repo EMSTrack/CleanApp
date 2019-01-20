@@ -41,7 +41,7 @@ import java.util.Map;
 
 public class AmbulanceFragment extends Fragment {
 
-    private static final String TAG = AmbulanceFragment.class.getSimpleName();;
+    private static final String TAG = AmbulanceFragment.class.getSimpleName();
 
     private static DecimalFormat df = new DecimalFormat();
 
@@ -94,41 +94,48 @@ public class AmbulanceFragment extends Fragment {
         public void onReceive(Context context, Intent intent ) {
             if (intent != null) {
                 final String action = intent.getAction();
-                if (action.equals(AmbulanceForegroundService.BroadcastActions.AMBULANCE_UPDATE)) {
+                switch (action) {
+                    case AmbulanceForegroundService.BroadcastActions.AMBULANCE_UPDATE:
 
-                    Log.i(TAG, "AMBULANCE_UPDATE");
-                    updateAmbulance(AmbulanceForegroundService.getCurrentAmbulance());
+                        Log.i(TAG, "AMBULANCE_UPDATE");
+                        updateAmbulance(AmbulanceForegroundService.getCurrentAmbulance());
 
-                } else if (action.equals(AmbulanceForegroundService.BroadcastActions.CALL_UPDATE)) {
+                        break;
+                    case AmbulanceForegroundService.BroadcastActions.CALL_UPDATE:
 
-                    Log.i(TAG, "CALL_UPDATE");
-                    if (currentCallId > 0)
+                        Log.i(TAG, "CALL_UPDATE");
+                        if (currentCallId > 0)
+                            updateCall(AmbulanceForegroundService.getCurrentAmbulance(),
+                                    AmbulanceForegroundService.getCurrentCall());
+
+                        break;
+                    case AmbulanceForegroundService.BroadcastActions.CALL_ACCEPTED: {
+
+                        Log.i(TAG, "CALL_ACCEPTED");
+
+                        // Toast to warn user
+                        Toast.makeText(getContext(), R.string.CallStarted, Toast.LENGTH_LONG).show();
+
+                        int callId = intent.getIntExtra("CALL_ID", -1);
+                        currentCallId = -1;
                         updateCall(AmbulanceForegroundService.getCurrentAmbulance(),
                                 AmbulanceForegroundService.getCurrentCall());
 
-                } else if (action.equals(AmbulanceForegroundService.BroadcastActions.CALL_ACCEPTED)) {
+                        break;
+                    }
+                    case AmbulanceForegroundService.BroadcastActions.CALL_COMPLETED: {
 
-                    Log.i(TAG, "CALL_ACCEPTED");
+                        Log.i(TAG, "CALL_COMPLETED");
 
-                    // Toast to warn user
-                    Toast.makeText(getContext(), R.string.CallStarted, Toast.LENGTH_LONG).show();
+                        // Toast to warn user
+                        Toast.makeText(getContext(), R.string.CallFinished, Toast.LENGTH_LONG).show();
 
-                    int callId = intent.getIntExtra("CALL_ID", -1);
-                    currentCallId = -1;
-                    updateCall(AmbulanceForegroundService.getCurrentAmbulance(),
-                            AmbulanceForegroundService.getCurrentCall());
+                        int callId = intent.getIntExtra("CALL_ID", -1);
+                        if (currentCallId == callId)
+                            updateCall(AmbulanceForegroundService.getCurrentAmbulance(), null);
 
-                } else if (action.equals(AmbulanceForegroundService.BroadcastActions.CALL_COMPLETED)) {
-
-                    Log.i(TAG, "CALL_COMPLETED");
-
-                    // Toast to warn user
-                    Toast.makeText(getContext(), R.string.CallFinished, Toast.LENGTH_LONG).show();
-
-                    int callId = intent.getIntExtra("CALL_ID", -1);
-                    if (currentCallId == callId)
-                        updateCall(AmbulanceForegroundService.getCurrentAmbulance(),null);
-
+                        break;
+                    }
                 }
 
             }

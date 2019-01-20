@@ -11,7 +11,7 @@
     <string name="alert_button_positive_text">OK</string>
     <string name="alert_button_negative_text">Cancelar</string>
 
-    <string name="message_please_wait">Por favor espere...</string>
+    <string name="message_please_wait">Por favor espere…</string>
     <string name="logout_confirm">¿Seguro que desea cerrar sesión?</string>
 
     <string name="login_username_hint">Usuário</string>
@@ -93,7 +93,7 @@
     <string name="anotherClientIsStreamingLocations">Otro cliente está actualmente transmitiendo actualizaciones.</string>
     <string name="startedStreamingLocation">Comenzó a transmitir actualizaciones.</string>
     <string name="forceLocationUpdates">No se pudo iniciar el envío de actualizaciones al servidor. Esto probablemente significa que otro usuario ha iniciado sesión en la misma ambulancia. ¿Te gustaría forzar el envío de actualizaciones? Esto desconectará al otro usuario de la ambulancia actual.</string>
-    <string name="forcingLocationUpdates">Obligando actualizaciones ...</string>
+    <string name="forcingLocationUpdates">Obligando actualizaciones…</string>
     <string name="anotherClientRequestedLocations">Otro cliente solicitó transmitir actualizaciones.</string>
     <string name="requestingToStreamLocation">Solicitando para transmitir actualizaciones.</string>
     <string name="couldNotProcessBuffer">No se pudo procesar el búfer completo, quedaron %1$d mensajes.</string>
@@ -138,7 +138,7 @@
     <string name="willNotProcessNextCall">No procesará la próxima llamada. Llamada actualmente en servicio.</string>
     <string name="cannotSetCallAccepted">No se puede establecer la llamada como en curso: ya se está atendiendo la llamada</string>
     <string name="selectAmbulance">Seleccione ambulancia:</string>
-    <string name="requestToStreamLocation">Solicitando transmitir actualizaciones ...</string>
+    <string name="requestToStreamLocation">Solicitando transmitir actualizaciones…</string>
     <string name="ambulanceButtonDefaultText">Seleccionar ambulancia</string>
     <string name="noIncomingCallsText">No hay llamadas entrantes</string>
     <string name="server_select">Seleccionar servidor:</string>

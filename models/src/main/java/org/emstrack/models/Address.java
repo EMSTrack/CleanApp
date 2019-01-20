@@ -1,12 +1,10 @@
 package org.emstrack.models;
 
 /**
- * Created by mauricio on 3/11/2018.
- */
-
-
-/**
  * A class representing an address.
+ *
+ * @author mauricio
+ * @since 3/11/2018.
  */
 public class Address {
 

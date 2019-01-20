@@ -1,11 +1,9 @@
 package org.emstrack.models;
 
 /**
- * Created by mauricio on 2/8/18.
- */
-
-/**
  * A class representing global default options.
+ * @author mauricio
+ * @since 2/8/18
  */
 public class Defaults {
 

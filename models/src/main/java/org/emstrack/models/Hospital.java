@@ -1,17 +1,11 @@
 package org.emstrack.models;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
 import java.util.Date;
-import java.util.List;
-
-/**
- * Created by mauricio on 3/11/2018.
- */
 
 /**
  * A class representing a hospital.
+ * @author mauricio
+ * @since 3/11/2018
  */
 public class Hospital{
 
@@ -29,7 +23,6 @@ public class Hospital{
     private String comment;
     private int updatedBy;
     private Date updatedOn;
-    // private List<EquipmentItem> hospitalequipmentSet = new ArrayList <EquipmentItem>();
 
     public Hospital(int id,
                     String number,
@@ -44,7 +37,6 @@ public class Hospital{
                     GPSLocation location,
                     String comment,
                     int updatedBy, Date updatedOn
-                    //List<EquipmentItem> hospitalequipmentSet
                     ) {
         this.id = id;
 
@@ -64,7 +56,6 @@ public class Hospital{
         this.updatedBy = updatedBy;
         this.updatedOn = updatedOn;
 
-        //this.hospitalequipmentSet = hospitalequipmentSet;
     }
 
     public int getId() {
@@ -178,16 +169,6 @@ public class Hospital{
     public void setUpdatedOn(Date updatedOn) {
         this.updatedOn = updatedOn;
     }
-
-    /*
-    public List<EquipmentItem> getHospitalequipmentSet() {
-        return hospitalequipmentSet;
-    }
-
-    public void setHospitalequipmentSet(List<EquipmentItem> hospitalequipmentSet) {
-        this.hospitalequipmentSet = hospitalequipmentSet;
-    }
-    */
 
     @Override
     public String toString() {

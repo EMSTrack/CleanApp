@@ -10,10 +10,6 @@ import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
 /**
- * Created by mauricio on 3/21/2018.
- */
-
-/**
  * <p>
  *     The <code>OnServiceComplete</code> class provides a convenient way to safely run services.
  *     It automatically registers to listen to success and failure messages and has a
@@ -112,6 +108,9 @@ import android.util.Log;
  *     will first run <code>intent1</code> and then, if <code>intent1</code> is successful, run
  *     and listen to the actions of <code>intent2</code>.
  * </p>
+ *
+ * @author mauricio
+ * @since 3/21/2018
  */
 public abstract class OnServiceComplete extends BroadcastReceiver {
 

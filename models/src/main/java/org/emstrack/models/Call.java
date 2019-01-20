@@ -8,11 +8,9 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Created by Leon on 5/8/2018.
- */
-
-/**
  * A class representing a call.
+ * @author Leon
+ * @since 5/8/2018
  */
 public class Call {
 
