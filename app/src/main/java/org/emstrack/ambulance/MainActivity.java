@@ -2,7 +2,6 @@ package org.emstrack.ambulance;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.res.Configuration;
@@ -39,9 +38,7 @@ import org.emstrack.ambulance.fragments.HospitalFragment;
 import org.emstrack.ambulance.fragments.MapFragment;
 import org.emstrack.ambulance.services.AmbulanceForegroundService;
 import org.emstrack.models.util.BroadcastActions;
-import org.emstrack.models.util.BroadcastExtras;
 import org.emstrack.models.util.OnServiceComplete;
-import org.emstrack.models.util.OnServicesComplete;
 import org.emstrack.models.Ambulance;
 import org.emstrack.models.AmbulanceCall;
 import org.emstrack.models.AmbulancePermission;
@@ -77,7 +74,7 @@ public class MainActivity extends AppCompatActivity {
     private ArrayAdapter<String> ambulanceListAdapter;
     private List<HospitalPermission> hospitalPermissions;
     private ArrayAdapter<String> hospitalListAdapter;
-    private List<HospitalPermission> baseList;
+    private List<Location> baseList;
     private ArrayAdapter<String> baseListAdapter;
 
     private DrawerLayout mDrawer;
@@ -100,57 +97,51 @@ public class MainActivity extends AppCompatActivity {
                     MainActivity.this)
                     .setTitle(R.string.selectAmbulance)
                     .setAdapter(ambulanceListAdapter,
-                            new DialogInterface.OnClickListener() {
+                            (dialog, which) -> {
 
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
+                                AmbulancePermission selectedAmbulance = ambulancePermissions.get(which);
+                                Log.d(TAG, "Selected ambulance " + selectedAmbulance.getAmbulanceIdentifier());
 
-                                    AmbulancePermission selectedAmbulance = ambulancePermissions.get(which);
-                                    Log.d(TAG, "Selected ambulance " + selectedAmbulance.getAmbulanceIdentifier());
+                                // Any ambulance currently selected?
+                                Ambulance ambulance = AmbulanceForegroundService.getCurrentAmbulance();
 
-                                    // Any ambulance currently selected?
-                                    Ambulance ambulance = AmbulanceForegroundService.getCurrentAmbulance();
+                                // Warn if current ambulance
+                                if (ambulance != null) {
 
-                                    // Warn if current ambulance
-                                    if (ambulance != null) {
+                                    Log.d(TAG, "Current ambulance " + ambulance.getIdentifier());
+                                    Log.d(TAG, "Requesting location updates? " +
+                                            (AmbulanceForegroundService.isUpdatingLocation() ? "TRUE" : "FALSE"));
 
-                                        Log.d(TAG, "Current ambulance " + ambulance.getIdentifier());
-                                        Log.d(TAG, "Requesting location updates? " +
-                                                (AmbulanceForegroundService.isUpdatingLocation() ? "TRUE" : "FALSE"));
+                                    // If same ambulance, just return
+                                    if (ambulance.getId() == selectedAmbulance.getAmbulanceId())
+                                        return;
 
-                                        // If same ambulance, just return
-                                        if (ambulance.getId() == selectedAmbulance.getAmbulanceId())
-                                            return;
+                                    if (AmbulanceForegroundService.isUpdatingLocation()) {
 
-                                        if (AmbulanceForegroundService.isUpdatingLocation()) {
-
-                                            // confirm first
-                                            switchAmbulanceDialog(selectedAmbulance);
-                                            return;
-                                        }
-
+                                        // confirm first
+                                        switchAmbulanceDialog(selectedAmbulance);
+                                        return;
                                     }
 
-                                    // otherwise go ahead!
-                                    retrieveAmbulance(selectedAmbulance);
-                                    dialog.dismiss();
+                                }
+
+                                // otherwise go ahead!
+                                retrieveAmbulance(selectedAmbulance);
+                                dialog.dismiss();
+
+                            })
+                    .setOnCancelListener(
+                            dialog -> {
+
+                                // Any ambulance currently selected?
+                                if (AmbulanceForegroundService.getCurrentAmbulance()== null) {
+
+                                    // User must always choose ambulance
+                                    promptMustChooseAmbulance();
 
                                 }
+
                             })
-                    .setOnCancelListener(new DialogInterface.OnCancelListener() {
-                        @Override
-                        public void onCancel(DialogInterface dialog) {
-
-                            // Any ambulance currently selected?
-                            if (AmbulanceForegroundService.getCurrentAmbulance()== null) {
-
-                                // User must always choose ambulance
-                                promptMustChooseAmbulance();
-
-                            }
-
-                        }
-                    })
                     .create()
                     .show();
         }
@@ -497,7 +488,8 @@ public class MainActivity extends AppCompatActivity {
         }
                 .setFailureMessage(getResources().getString(R.string.couldNotRetrieveAmbulance,
                         selectedAmbulance.getAmbulanceIdentifier()))
-                .setAlert(new AlertSnackbar(this));
+                .setAlert(new AlertSnackbar(this))
+                .start();
 
     }
 
@@ -547,18 +539,17 @@ public class MainActivity extends AppCompatActivity {
 
     // Hamburger Menu setup
     private ActionBarDrawerToggle setupDrawerToggle() {
-        return new ActionBarDrawerToggle(this, mDrawer, toolbar, R.string.drawer_open, R.string.drawer_close);
+        return new ActionBarDrawerToggle(this, mDrawer, toolbar,
+                R.string.drawer_open,
+                R.string.drawer_close);
     }
 
     // Hamburger Menu Listener
     private void setupDrawerContent(NavigationView navigationView) {
         navigationView.setNavigationItemSelectedListener(
-                new NavigationView.OnNavigationItemSelectedListener() {
-                    @Override
-                    public boolean onNavigationItemSelected(MenuItem menuItem) {
-                        selectDrawerItem(menuItem);
-                        return true;
-                    }
+                menuItem -> {
+                    selectDrawerItem(menuItem);
+                    return true;
                 });
     }
 
@@ -593,16 +584,11 @@ public class MainActivity extends AppCompatActivity {
         builder.setTitle("PANIC!");
         builder.setMessage("Message");
         builder.setPositiveButton("Confirm",
-                new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                    }
+                (dialog, which) -> {
                 });
-        builder.setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-            }
-        });
+        builder.setNegativeButton(android.R.string.cancel,
+                (dialog, which) -> {
+                });
 
         AlertDialog dialog = builder.create();
         dialog.show();
@@ -710,7 +696,7 @@ public class MainActivity extends AppCompatActivity {
         callPriorityButton.setBackgroundColor(callPriorityBackgroundColors.get(call.getPriority()));
         callPriorityButton.setTextColor(callPriorityForegroundColors.get(call.getPriority()));
 
-        ((TextView) view.findViewById(R.id.callPriorityLabel)).setText("Next Call:");
+        ((TextView) view.findViewById(R.id.callPriorityLabel)).setText(R.string.nextCall);
 
         ((TextView) view.findViewById(R.id.callDetailsText)).setText(call.getDetails());
         ((TextView) view.findViewById(R.id.callPatientsText)).setText(patientsText);
@@ -732,34 +718,38 @@ public class MainActivity extends AppCompatActivity {
         // build dialog
         builder.setTitle("Accept Incoming Call?")
                 .setView(view)
-                .setPositiveButton("Accept", new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int id) {
+                .setPositiveButton("Accept",
+                        (dialog, id) -> {
 
-                            Toast.makeText(MainActivity.this, "Call accepted", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(MainActivity.this,
+                                    "Call accepted",
+                                    Toast.LENGTH_SHORT).show();
 
                             Log.i(TAG, "Call accepted");
 
-                            Intent serviceIntent = new Intent(MainActivity.this, AmbulanceForegroundService.class);
+                            Intent serviceIntent = new Intent(MainActivity.this,
+                                    AmbulanceForegroundService.class);
                             serviceIntent.setAction(AmbulanceForegroundService.Actions.CALL_ACCEPT);
                             serviceIntent.putExtra("CALL_ID", callId);
                             startService(serviceIntent);
 
-                        }
-                })
-                .setNegativeButton("Decline", new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int id) {
+                        })
+                .setNegativeButton("Decline",
+                        (dialog, id) -> {
 
-                            Toast.makeText(MainActivity.this, "Call declined", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(MainActivity.this,
+                                    "Call declined",
+                                    Toast.LENGTH_SHORT).show();
 
                             Log.i(TAG, "Call declined");
 
-                            Intent serviceIntent = new Intent(MainActivity.this, AmbulanceForegroundService.class);
+                            Intent serviceIntent = new Intent(MainActivity.this,
+                                    AmbulanceForegroundService.class);
                             serviceIntent.setAction(AmbulanceForegroundService.Actions.CALL_DECLINE);
                             serviceIntent.putExtra("CALL_ID", callId);
                             startService(serviceIntent);
 
-                        }
-                });
+                        });
 
         // Create the AlertDialog object and display it
         builder.create().show();
@@ -790,43 +780,47 @@ public class MainActivity extends AppCompatActivity {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Currently handling call")
                 .setMessage("What do you want to do?")
-                .setNegativeButton("Continue", new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int id) {
+                .setNegativeButton("Continue",
+                        (dialog, id) -> {
 
-                        Log.i(TAG, "Continuing with call");
+                            Log.i(TAG, "Continuing with call");
 
-                        if (logoutAfterFinish)
-                            logoutAfterFinish = false;
+                            if (logoutAfterFinish)
+                                logoutAfterFinish = false;
 
-                    }
-                })
-                .setNeutralButton("Suspend", new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int id) {
+                        })
+                .setNeutralButton("Suspend",
+                        (dialog, id) -> {
 
-                        Toast.makeText(MainActivity.this, "Suspending call", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(MainActivity.this,
+                                    "Suspending call",
+                                    Toast.LENGTH_SHORT).show();
 
-                        Log.i(TAG, "Suspending call");
+                            Log.i(TAG, "Suspending call");
 
-                        Intent serviceIntent = new Intent(MainActivity.this, AmbulanceForegroundService.class);
-                        serviceIntent.setAction(AmbulanceForegroundService.Actions.CALL_SUSPEND);
-                        serviceIntent.putExtra("CALL_ID", call.getId());
-                        startService(serviceIntent);
+                            Intent serviceIntent = new Intent(MainActivity.this,
+                                    AmbulanceForegroundService.class);
+                            serviceIntent.setAction(AmbulanceForegroundService.Actions.CALL_SUSPEND);
+                            serviceIntent.putExtra("CALL_ID", call.getId());
+                            startService(serviceIntent);
 
-                    }
-                })
-                .setPositiveButton("End", new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int id) {
+                        })
+                .setPositiveButton("End",
+                        (dialog, id) -> {
 
-                        Toast.makeText(MainActivity.this, "Ending call", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(MainActivity.this,
+                                    "Ending call",
+                                    Toast.LENGTH_SHORT).show();
 
-                        Log.i(TAG, "Ending call");
+                            Log.i(TAG, "Ending call");
 
-                        Intent serviceIntent = new Intent(MainActivity.this, AmbulanceForegroundService.class);
-                        serviceIntent.setAction(AmbulanceForegroundService.Actions.CALL_FINISH);
-                        startService(serviceIntent);
+                            Intent serviceIntent = new Intent(MainActivity.this,
+                                    AmbulanceForegroundService.class);
+                            serviceIntent.setAction(AmbulanceForegroundService.Actions.CALL_FINISH);
+                            startService(serviceIntent);
 
-                    }
-                });
+                        });
+
         // Create the AlertDialog object and return it
         builder.create().show();
     }
@@ -885,58 +879,54 @@ public class MainActivity extends AppCompatActivity {
         // build dialog
         builder.setTitle("Select next waypoint")
                 .setView(view)
-                .setPositiveButton("Select", new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int id) {
+                .setPositiveButton("Select",
+                        (dialog, id) -> {
 
-                        Log.i(TAG, "Waypoint selected");
+                            Log.i(TAG, "Waypoint selected");
 
-                        int waypointId = -1;
+                            int waypointId = -1;
 
-                        String waypoint = null;
-                        int selectedHospital = hospitalSpinner.getSelectedItemPosition();
-                        if (selectedHospital > 0) {
-                            HospitalPermission hospital = hospitalPermissions.get(selectedHospital - 1);
-                            waypoint = "{\"order\":" + maximumOrder + ",\"location\":{\"id\":" + hospital.getHospitalId() + ",\"type\":\"" + Location.TYPE_HOSPITAL + "\"}}";
-                        }
+                            String waypoint = null;
+                            int selectedHospital = hospitalSpinner.getSelectedItemPosition();
+                            if (selectedHospital > 0) {
+                                HospitalPermission hospital = hospitalPermissions.get(selectedHospital - 1);
+                                waypoint = "{\"order\":" + maximumOrder + ",\"location\":{\"id\":" + hospital.getHospitalId() + ",\"type\":\"" + Location.TYPE_HOSPITAL + "\"}}";
+                            }
 
-                        // Publish waypoint
-                        if (waypoint != null) {
+                            // Publish waypoint
+                            if (waypoint != null) {
 
+                                Intent serviceIntent = new Intent(MainActivity.this, AmbulanceForegroundService.class);
+                                serviceIntent.setAction(AmbulanceForegroundService.Actions.WAYPOINT_CREATE);
+                                serviceIntent.putExtra("UPDATE", waypoint);
+                                serviceIntent.putExtra("WAYPOINT_ID", waypointId);
+                                serviceIntent.putExtra("AMBULANCE_ID", ambulance.getId());
+                                serviceIntent.putExtra("CALL_ID", callId);
+                                startService(serviceIntent);
+                            }
+
+                        })
+                .setNegativeButton("Cancel",
+                        (dialog, id) -> {
+
+                            Log.i(TAG, "No waypoint selected");
+
+                            /*
                             Intent serviceIntent = new Intent(MainActivity.this, AmbulanceForegroundService.class);
-                            serviceIntent.setAction(AmbulanceForegroundService.Actions.WAYPOINT_CREATE);
-                            serviceIntent.putExtra("UPDATE", waypoint);
-                            serviceIntent.putExtra("WAYPOINT_ID", waypointId);
-                            serviceIntent.putExtra("AMBULANCE_ID", ambulance.getId());
+                            serviceIntent.setAction(AmbulanceForegroundService.Actions.CALL_DECLINE);
                             serviceIntent.putExtra("CALL_ID", callId);
                             startService(serviceIntent);
-                        }
+                            */
 
-                    }
-                })
-                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int id) {
+                        })
+                .setNeutralButton("End Call",
+                        (dialog, id) -> {
 
-                        Log.i(TAG, "No waypoint selected");
+                            Log.i(TAG, "Ending call");
 
-                        /*
-                        Intent serviceIntent = new Intent(MainActivity.this, AmbulanceForegroundService.class);
-                        serviceIntent.setAction(AmbulanceForegroundService.Actions.CALL_DECLINE);
-                        serviceIntent.putExtra("CALL_ID", callId);
-                        startService(serviceIntent);
-                        */
+                            promptEndCallDialog(callId);
 
-                    }
-                })
-                .setNeutralButton("End Call", new DialogInterface.OnClickListener() {
-
-                    public void onClick(DialogInterface dialog, int id) {
-
-                        Log.i(TAG, "Ending call");
-
-                        promptEndCallDialog(callId);
-
-                    }
-                });
+                        });
 
         // Create the AlertDialog object and display it
         builder.create().show();
@@ -950,12 +940,14 @@ public class MainActivity extends AppCompatActivity {
         if (canWrite()) {
 
             // Toast to warn user
-            Toast.makeText(MainActivity.this, R.string.requestToStreamLocation,
+            Toast.makeText(MainActivity.this,
+                    R.string.requestToStreamLocation,
                     Toast.LENGTH_SHORT).show();
 
 
             // start updating location
-            Intent intent = new Intent(MainActivity.this, AmbulanceForegroundService.class);
+            Intent intent = new Intent(MainActivity.this,
+                    AmbulanceForegroundService.class);
             intent.setAction(AmbulanceForegroundService.Actions.START_LOCATION_UPDATES);
 
             new OnServiceComplete(MainActivity.this,
@@ -967,7 +959,8 @@ public class MainActivity extends AppCompatActivity {
                 public void onSuccess(Bundle extras) {
 
                     // Toast to warn user
-                    Toast.makeText(MainActivity.this, R.string.startedStreamingLocation,
+                    Toast.makeText(MainActivity.this,
+                            R.string.startedStreamingLocation,
                             Toast.LENGTH_SHORT).show();
 
                 }
@@ -982,97 +975,119 @@ public class MainActivity extends AppCompatActivity {
                             .setMessage(R.string.forceLocationUpdates)
                             .setNegativeButton(
                                     R.string.alert_button_negative_text,
-                                    new DialogInterface.OnClickListener() {
-                                        @Override
-                                        public void onClick(DialogInterface dialog, int which) {
+                                    (dialog, which) -> {
 
-                                            // User must always choose ambulance
-                                            promptMustChooseAmbulance();
+                                        // User must always choose ambulance
+                                        promptMustChooseAmbulance();
 
-                                        }
                                     })
                             .setPositiveButton(
                                     R.string.alert_button_positive_text,
-                                    new DialogInterface.OnClickListener() {
-                                        @Override
-                                        public void onClick(DialogInterface dialog, int which) {
+                                    (dialog, which) -> {
 
-                                            Log.i(TAG, "ForceLocationUpdatesDialog: OK Button Clicked");
+                                        Log.i(TAG, "ForceLocationUpdatesDialog: OK Button Clicked");
 
-                                            Ambulance ambulance = AmbulanceForegroundService.getCurrentAmbulance();
-                                            if (ambulance == null) {
+                                        Ambulance ambulance = AmbulanceForegroundService.getCurrentAmbulance();
+                                        if (ambulance == null) {
 
-                                                Log.d(TAG, "Could not force updates.");
+                                            Log.d(TAG, "Could not force updates.");
+
+                                            // Toast to warn user
+                                            Toast.makeText(MainActivity.this,
+                                                    R.string.couldNotForceUpdates,
+                                                    Toast.LENGTH_LONG).show();
+
+                                            return;
+
+                                        }
+
+                                        // Toast to warn user
+                                        Toast.makeText(MainActivity.this, R.string.forcingLocationUpdates,
+                                                Toast.LENGTH_LONG).show();
+
+                                        // Reset location_client
+                                        String payload = "{\"location_client_id\":\"\"}";
+                                        Intent intent1 = new Intent(MainActivity.this, AmbulanceForegroundService.class);
+                                        intent1.setAction(AmbulanceForegroundService.Actions.UPDATE_AMBULANCE);
+                                        Bundle bundle = new Bundle();
+                                        bundle.putInt("AMBULANCE_ID", ambulance.getId());
+                                        bundle.putString("UPDATE", payload);
+                                        intent1.putExtras(bundle);
+
+                                        // What to do when service completes?
+                                        new OnServiceComplete(MainActivity.this,
+                                                AmbulanceForegroundService.BroadcastActions.AMBULANCE_UPDATE,
+                                                BroadcastActions.FAILURE,
+                                                intent1) {
+
+                                            @Override
+                                            public void onSuccess(Bundle extras1) {
+                                                Log.i(TAG, "onSuccess");
 
                                                 // Toast to warn user
                                                 Toast.makeText(MainActivity.this,
-                                                        R.string.couldNotForceUpdates,
+                                                        R.string.succeededForcingLocationUpdates,
                                                         Toast.LENGTH_LONG).show();
 
-                                                return;
+                                                // Start updating locations
+                                                startUpdatingLocation();
 
                                             }
-
-                                            // Toast to warn user
-                                            Toast.makeText(MainActivity.this, R.string.forcingLocationUpdates,
-                                                    Toast.LENGTH_LONG).show();
-
-                                            // Reset location_client
-                                            String payload = "{\"location_client_id\":\"\"}";
-                                            Intent intent = new Intent(MainActivity.this, AmbulanceForegroundService.class);
-                                            intent.setAction(AmbulanceForegroundService.Actions.UPDATE_AMBULANCE);
-                                            Bundle bundle = new Bundle();
-                                            bundle.putInt("AMBULANCE_ID", ambulance.getId());
-                                            bundle.putString("UPDATE", payload);
-                                            intent.putExtras(bundle);
-
-                                            // What to do when service completes?
-                                            new OnServicesComplete(MainActivity.this,
-                                                    new String[]{
-                                                            BroadcastActions.SUCCESS,
-                                                            AmbulanceForegroundService.BroadcastActions.AMBULANCE_UPDATE
-                                                    },
-                                                    new String[]{BroadcastActions.FAILURE},
-                                                    intent) {
-
-                                                @Override
-                                                public void onSuccess(Bundle extras) {
-                                                    Log.i(TAG, "onSuccess");
-
-                                                    // Toast to warn user
-                                                    Toast.makeText(MainActivity.this, R.string.succeededForcingLocationUpdates,
-                                                            Toast.LENGTH_LONG).show();
-
-                                                    // Start updating locations
-                                                    startUpdatingLocation();
-
-                                                }
-
-                                                @Override
-                                                public void onReceive(Context context, Intent intent) {
-
-                                                    // Retrieve action
-                                                    String action = intent.getAction();
-
-                                                    // Intercept success
-                                                    if (action.equals(BroadcastActions.SUCCESS))
-                                                        // prevent propagation, still waiting for AMBULANCE_UPDATE
-                                                        return;
-
-                                                    // Intercept AMBULANCE_UPDATE
-                                                    if (action.equals(AmbulanceForegroundService.BroadcastActions.AMBULANCE_UPDATE))
-                                                        // Inject uuid into AMBULANCE_UPDATE
-                                                        intent.putExtra(BroadcastExtras.UUID, getUuid());
-
-                                                    // Call super
-                                                    super.onReceive(context, intent);
-                                                }
-
-                                            }
-                                                    .setFailureMessage(getString(R.string.couldNotForceLocationUpdate))
-                                                    .setAlert(new AlertSnackbar(MainActivity.this));
 
                                         }
+                                                .setFailureMessage(getString(R.string.couldNotForceLocationUpdate))
+                                                .setAlert(new AlertSnackbar(MainActivity.this))
+                                                .setSuccessIdCheck(false) // AMBULANCE_UPDATE will have a different UUID
+                                                .start();
+
+/*
+                                        // What to do when service completes?
+                                        new OnServicesComplete(MainActivity.this,
+                                                new String[]{
+                                                        BroadcastActions.SUCCESS,
+                                                        AmbulanceForegroundService.BroadcastActions.AMBULANCE_UPDATE
+                                                },
+                                                new String[]{BroadcastActions.FAILURE},
+                                                intent) {
+
+                                            @Override
+                                            public void onSuccess(Bundle extras) {
+                                                Log.i(TAG, "onSuccess");
+
+                                                // Toast to warn user
+                                                Toast.makeText(MainActivity.this,
+                                                        R.string.succeededForcingLocationUpdates,
+                                                        Toast.LENGTH_LONG).show();
+
+                                                // Start updating locations
+                                                startUpdatingLocation();
+
+                                            }
+
+                                            @Override
+                                            public void onReceive(Context context, Intent intent) {
+
+                                                // Retrieve action
+                                                String action = intent.getAction();
+
+                                                // Intercept success
+                                                if (action.equals(BroadcastActions.SUCCESS))
+                                                    // prevent propagation, still waiting for AMBULANCE_UPDATE
+                                                    return;
+
+                                                // Intercept AMBULANCE_UPDATE
+                                                if (action.equals(AmbulanceForegroundService.BroadcastActions.AMBULANCE_UPDATE))
+                                                    // Inject uuid into AMBULANCE_UPDATE
+                                                    intent.putExtra(BroadcastExtras.UUID, getUuid());
+
+                                                // Call super
+                                                super.onReceive(context, intent);
+                                            }
+
+                                        }
+                                                .setFailureMessage(getString(R.string.couldNotForceLocationUpdate))
+                                                .setAlert(new AlertSnackbar(MainActivity.this));
+*/
 
                                     });
 
@@ -1083,12 +1098,15 @@ public class MainActivity extends AppCompatActivity {
 
             }
                     .setFailureMessage(getResources().getString(R.string.anotherClientIsStreamingLocations))
-                    .setAlert(new AlertSnackbar(MainActivity.this));
+                    .setAlert(new AlertSnackbar(MainActivity.this))
+                    .start();
 
         } else {
 
             // Toast to warn user
-            Toast.makeText(MainActivity.this, R.string.cantModifyAmbulance, Toast.LENGTH_LONG).show();
+            Toast.makeText(MainActivity.this,
+                    R.string.cantModifyAmbulance,
+                    Toast.LENGTH_LONG).show();
 
         }
 
@@ -1099,7 +1117,8 @@ public class MainActivity extends AppCompatActivity {
         if (canWrite()) {
 
             // turn off tracking
-            Intent intent = new Intent(MainActivity.this, AmbulanceForegroundService.class);
+            Intent intent = new Intent(MainActivity.this,
+                    AmbulanceForegroundService.class);
             intent.setAction(AmbulanceForegroundService.Actions.STOP_LOCATION_UPDATES);
             startService(intent);
 
@@ -1119,26 +1138,21 @@ public class MainActivity extends AppCompatActivity {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Switch ambulance")
                 .setMessage(String.format("Do you want to swtich to ambulance %1$s?", newAmbulance.getAmbulanceIdentifier()))
-                .setNegativeButton("No", new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int id) {
+                .setNegativeButton("No",
+                        (dialog, id) -> Log.i(TAG, "Continue with same ambulance"))
+                .setPositiveButton("Yes",
+                        (dialog, id) -> {
 
-                        Log.i(TAG, "Continue with same ambulance");
+                            Log.d(TAG, String.format("Switching to ambulance %1$s", newAmbulance.getAmbulanceIdentifier()));
 
-                    }
-                })
-                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int id) {
+                            // stop updating first
+                            stopUpdatingServer();
 
-                        Log.d(TAG, String.format("Switching to ambulance %1$s", newAmbulance.getAmbulanceIdentifier()));
+                            // then retrieve new ambulance
+                            retrieveAmbulance(newAmbulance);
 
-                        // stop updating first
-                        stopUpdatingServer();
+                        });
 
-                        // then retrieve new ambulance
-                        retrieveAmbulance(newAmbulance);
-
-                    }
-                });
         // Create the AlertDialog object and return it
         builder.create().show();
 
@@ -1171,29 +1185,28 @@ public class MainActivity extends AppCompatActivity {
         builder.setTitle("Please select ambulance")
                 .setCancelable(false)
                 .setMessage("You must choose an ambulance or logout to proceed")
-                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int id) {
+                .setPositiveButton("OK",
+                        (dialog, id) -> {
 
-                        Log.i(TAG, "Will choose ambulance");
+                            Log.i(TAG, "Will choose ambulance");
 
-                        // Invoke ambulance selection
-                        ambulanceButton.performClick();
+                            // Invoke ambulance selection
+                            ambulanceButton.performClick();
 
-                    }
-                })
-                .setNegativeButton("Logout", new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int id) {
+                        })
+                .setNegativeButton("Logout",
+                        (dialog, id) -> {
 
-                        Log.i(TAG, "Will logout");
+                            Log.i(TAG, "Will logout");
 
-                        // Start login activity
-                        Intent loginIntent = new Intent(MainActivity.this, LoginActivity.class);
-                        loginIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP|Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                        loginIntent.setAction(LoginActivity.LOGOUT);
-                        MainActivity.this.startActivity(loginIntent);
+                            // Start login activity
+                            Intent loginIntent = new Intent(MainActivity.this, LoginActivity.class);
+                            loginIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP|Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                            loginIntent.setAction(LoginActivity.LOGOUT);
+                            MainActivity.this.startActivity(loginIntent);
 
-                    }
-                });
+                        });
+
         // Create the AlertDialog object and return it
         builder.create().show();
     }

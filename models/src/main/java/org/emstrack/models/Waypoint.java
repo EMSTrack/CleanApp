@@ -6,6 +6,9 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * A class representing a waypoint.
+ */
 public class Waypoint {
 
     static class SortByAscendingOrder implements Comparator<Waypoint>

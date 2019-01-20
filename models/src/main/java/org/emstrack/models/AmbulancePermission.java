@@ -6,6 +6,9 @@ package org.emstrack.models;
  * http://www.jsonschema2pojo.org/
  */
 
+/**
+ * A class representing ambulance permissions.
+ */
 public class AmbulancePermission {
 
     private int ambulanceId;

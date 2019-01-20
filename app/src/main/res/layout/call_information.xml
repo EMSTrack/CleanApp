@@ -19,7 +19,7 @@
         android:layout_height="40dp"
         android:layout_toLeftOf="@id/callPriorityButton"
         android:gravity="top"
-        android:text="Current Call:"
+        android:text="@string/currentCall"
         android:textSize="18sp"
         android:textStyle="bold" />
 
@@ -27,7 +27,7 @@
         android:id="@+id/callDetailsLabel"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Details:"
+        android:text="@string/details"
         android:layout_below="@id/callPriorityButton"
         android:textStyle="bold" />
 
@@ -38,13 +38,13 @@
         android:layout_toRightOf="@id/callDetailsLabel"
         android:layout_below="@id/callPriorityButton"
         android:gravity="right"
-        android:text="Details" />
+        android:text="@string/detailsText" />
 
     <TextView
         android:id="@+id/callPatientsLabel"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Patients:"
+        android:text="@string/patients"
         android:layout_below="@id/callDetailsLabel"
         android:textStyle="bold" />
 
@@ -55,13 +55,13 @@
         android:layout_toRightOf="@id/callPatientsLabel"
         android:layout_below="@id/callDetailsText"
         android:gravity="right"
-        android:text="No patient information available" />
+        android:text="@string/noPatientInformationAvailable" />
 
     <TextView
         android:id="@+id/callNumberWaypointsLabel"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Number of waypoints:"
+        android:text="@string/numberOfWaypoints"
         android:layout_below="@id/callPatientsText"
         android:textStyle="bold" />
 
@@ -84,7 +84,7 @@
             android:id="@+id/callNextWaypointLabel"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Next waypoint:"
+            android:text="@string/nextWaypoint"
             android:layout_marginTop="10dp"
             android:textStyle="bold" />
 
@@ -92,7 +92,7 @@
             android:id="@+id/callWaypointTypeLabel"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Type:"
+            android:text="@string/type"
             android:layout_below="@id/callNextWaypointLabel"
             android:textStyle="italic" />
 
@@ -103,7 +103,7 @@
             android:layout_below="@id/callNextWaypointLabel"
             android:layout_toRightOf="@id/callWaypointTypeLabel"
             android:gravity="right"
-            android:text="Waypoint type"
+            android:text="@string/waypointType"
             android:textStyle="bold" />
 
         <TextView
@@ -111,7 +111,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_below="@id/callWaypointTypeLabel"
-            android:text="Distance:"
+            android:text="@string/distance"
             android:textStyle="italic" />
 
         <TextView
@@ -121,14 +121,14 @@
             android:layout_below="@id/callWaypointTypeLabel"
             android:layout_toRightOf="@id/callDistanceLabel"
             android:gravity="right"
-            android:text="No distance information available" />
+            android:text="@string/noDistanceInformationAvailable" />
 
         <TextView
             android:id="@+id/callAddressLabel"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_below="@id/callDistanceLabel"
-            android:text="Address:"
+            android:text="@string/address"
             android:textStyle="italic"/>
 
         <TextView
@@ -138,7 +138,7 @@
             android:layout_below="@id/callDistanceText"
             android:layout_toRightOf="@id/callAddressLabel"
             android:gravity="right"
-            android:text="Address" />
+            android:text="@string/addressText" />
 
     </RelativeLayout>
 

@@ -3,6 +3,9 @@ package org.emstrack.models;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
+/**
+ * A class representing an API token.
+ */
 public class Token {
 
     @SerializedName("token")

@@ -81,8 +81,7 @@ public class TestOnServiceComplete {
         assertNotNull(appContext);
 
         // This will fail by timeout
-        final boolean[] done = {false};
-        new OnServiceComplete(appContext,
+        OnServiceComplete service = new OnServiceComplete(appContext,
                 BroadcastActions.SUCCESS,
                 BroadcastActions.FAILURE,
                 null,
@@ -96,19 +95,23 @@ public class TestOnServiceComplete {
             @Override
             public void onSuccess(Bundle extras) {
                 assertTrue(false);
-                done[0] = true;
             }
 
             @Override
             public void onFailure(Bundle extras) {
                 assertTrue(true);
-                done[0] = true;
             }
 
         };
 
-        ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
-        assertTrue(done[0]);
+        service.start();
+        while (!(service.isComplete() || service.isTimedOut())) {
+            Thread.sleep(1000);
+            ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
+        }
+        assertTrue(!service.isComplete());
+        assertTrue(!service.isSuccess());
+        assertTrue(service.isTimedOut());
     }
 
     @Test
@@ -129,11 +132,11 @@ public class TestOnServiceComplete {
                 1000) {
 
             @Override
-            public void run(String uuid) {
+            public void run() {
 
                 // Broadcast success
                 Intent localIntent = new Intent(BroadcastActions.SUCCESS);
-                localIntent.putExtra(BroadcastExtras.UUID, uuid);
+                localIntent.putExtra(BroadcastExtras.UUID, getUuid());
                 localIntent.putExtra(BroadcastExtras.MESSAGE, "PASSED!");
                 instance.sendBroadcast(localIntent);
 
@@ -151,14 +154,15 @@ public class TestOnServiceComplete {
                 assertTrue(false);
             }
 
-        };
+        }.start();
 
-        while (!service.isComplete()) {
+        while (!(service.isComplete() || service.isTimedOut())) {
             Thread.sleep(1000);
             ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
         }
         assertTrue(service.isComplete());
         assertTrue(service.isSuccess());
+        assertTrue(!service.isTimedOut());
     }
 
     @Test
@@ -179,11 +183,11 @@ public class TestOnServiceComplete {
                 1000) {
 
             @Override
-            public void run(String uuid) {
+            public void run() {
 
                 // Broadcast failure
                 Intent localIntent = new Intent(BroadcastActions.FAILURE);
-                localIntent.putExtra(BroadcastExtras.UUID, uuid);
+                localIntent.putExtra(BroadcastExtras.UUID, getUuid());
                 localIntent.putExtra(BroadcastExtras.MESSAGE, "FAILED!");
                 instance.sendBroadcast(localIntent);
 
@@ -199,14 +203,119 @@ public class TestOnServiceComplete {
                 assertTrue(true);
             }
 
-        };
+        }.start();
 
-        while (!service.isComplete()) {
+        while (!(service.isComplete() || service.isTimedOut())) {
             Thread.sleep(1000);
             ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
         }
         assertTrue(service.isComplete());
         assertTrue(!service.isSuccess());
+        assertTrue(!service.isTimedOut());
+    }
+
+    @Test
+    @UiThread
+    public void onServiceCompleteEnforceUUIDTest() throws Exception {
+
+        // Context of the app under test.
+        final Context appContext = ApplicationProvider.getApplicationContext();
+        assertNotNull(appContext);
+        LocalBroadcastManager instance = LocalBroadcastManager.getInstance(appContext);
+        assertNotNull(instance);
+
+        // This will pass because of success message
+        OnServiceComplete service = new OnServiceComplete(appContext,
+                BroadcastActions.SUCCESS,
+                BroadcastActions.FAILURE,
+                null,
+                1000) {
+
+            @Override
+            public void run() {
+
+                // Broadcast success
+                Intent localIntent = new Intent(BroadcastActions.SUCCESS);
+                localIntent.putExtra(BroadcastExtras.UUID, getUuid() + "NOT");
+                localIntent.putExtra(BroadcastExtras.MESSAGE, "FAILED");
+                instance.sendBroadcast(localIntent);
+
+                Log.d(TAG, "Sent message");
+
+            }
+
+            @Override
+            public void onSuccess(Bundle extras) {
+                assertTrue(false);
+            }
+
+            @Override
+            public void onFailure(Bundle extras) {
+                assertTrue(true);
+            }
+
+        }.start();
+
+        while (!(service.isComplete() || service.isTimedOut())) {
+            Thread.sleep(1000);
+            ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
+        }
+        assertTrue(!service.isComplete());
+        assertTrue(!service.isSuccess());
+        assertTrue(service.isTimedOut());
+    }
+
+    @Test
+    @UiThread
+    public void onServiceCompleteIgnoreUUIDTest() throws Exception {
+
+        // Context of the app under test.
+        final Context appContext = ApplicationProvider.getApplicationContext();
+        assertNotNull(appContext);
+        LocalBroadcastManager instance = LocalBroadcastManager.getInstance(appContext);
+        assertNotNull(instance);
+
+        // This will pass because of success message
+        OnServiceComplete service = new OnServiceComplete(appContext,
+                BroadcastActions.SUCCESS,
+                BroadcastActions.FAILURE,
+                null,
+                1000) {
+
+            @Override
+            public void run() {
+
+                // Broadcast success
+                Intent localIntent = new Intent(BroadcastActions.SUCCESS);
+                localIntent.putExtra(BroadcastExtras.UUID, getUuid() + "NOT");
+                localIntent.putExtra(BroadcastExtras.MESSAGE, "FAILED");
+                instance.sendBroadcast(localIntent);
+
+                Log.d(TAG, "Sent message");
+
+            }
+
+            @Override
+            public void onSuccess(Bundle extras) {
+                assertTrue(true);
+            }
+
+            @Override
+            public void onFailure(Bundle extras) {
+                assertTrue(false);
+            }
+
+        }
+                .setSuccessIdCheck(false)
+                .start();
+
+        while (!(service.isComplete() || service.isTimedOut())) {
+            Thread.sleep(1000);
+            ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
+        }
+        assertTrue(service.isComplete());
+        assertTrue(service.isSuccess());
+        assertTrue(!service.isTimedOut());
     }
 
 }

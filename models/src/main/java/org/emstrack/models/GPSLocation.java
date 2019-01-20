@@ -2,6 +2,9 @@ package org.emstrack.models;
 
 import com.google.gson.annotations.Expose;
 
+/**
+ * A class representing a GPS location.
+ */
 public class GPSLocation {
 
     @Expose

@@ -6,6 +6,9 @@ package org.emstrack.models;
  * http://www.jsonschema2pojo.org/
  */
 
+/**
+ * A class representing hospital permissions.
+ */
 public class HospitalPermission {
 
     private int hospitalId;

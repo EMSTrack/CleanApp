@@ -85,7 +85,8 @@ public class HospitalFragment extends Fragment {
                 }
             }
                     .setFailureMessage(getString(R.string.couldNotRetrieveHospitals))
-                    .setAlert(new AlertSnackbar(getActivity()));
+                    .setAlert(new AlertSnackbar(getActivity()))
+                    .start();
 
         } else {
 
@@ -147,7 +148,7 @@ public class HospitalFragment extends Fragment {
             sortedHospitals.add( entry.getValue() );
 
         // Sort hospitals
-        Collections.sort(sortedHospitals, new Hospital.SortByName());
+        Collections.sort(sortedHospitals, (a,b) -> { return a.getName().compareTo(b.getName()); });
 
         // Loop over all hospitals
         for (Hospital hospital : sortedHospitals ) {

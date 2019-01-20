@@ -1,9 +1,5 @@
 package org.emstrack.models;
 
-/**
- * Created by Leon on 5/8/2018.
- */
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -11,6 +7,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Created by Leon on 5/8/2018.
+ */
+
+/**
+ * A class representing a call.
+ */
 public class Call {
 
     public static final String STATUS_PENDING = "P";

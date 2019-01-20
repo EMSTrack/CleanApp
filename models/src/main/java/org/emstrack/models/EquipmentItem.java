@@ -10,6 +10,9 @@ import android.os.Parcelable;
 
 import java.util.Date;
 
+/**
+ * A class representing an equipment item.
+ */
 public class EquipmentItem implements Parcelable {
 
     private int equipmentHolderId;
