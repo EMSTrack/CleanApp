@@ -8,6 +8,9 @@ package org.emstrack.models;
 
 import java.util.List;
 
+/**
+ * A class representing a user profile.
+ */
 public class Profile {
 
     private List<AmbulancePermission> ambulances = null;

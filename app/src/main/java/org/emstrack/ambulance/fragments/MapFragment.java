@@ -421,7 +421,8 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
                     }
                 }
                         .setFailureMessage(getString(R.string.couldNotRetrieveAmbulances))
-                        .setAlert(new AlertSnackbar(getActivity()));
+                        .setAlert(new AlertSnackbar(getActivity()))
+                        .start();
 
             }
 
@@ -478,7 +479,8 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
 
         }
                 .setFailureMessage(getString(R.string.couldNotUnsubscribeToAmbulances))
-                .setAlert(new AlertSnackbar(getActivity()));
+                .setAlert(new AlertSnackbar(getActivity()))
+                .start();
 
     }
 

@@ -5,6 +5,9 @@ package org.emstrack.models;
  * Represents a EquipmentMetadata from the database
  */
 
+/**
+ * A class representing an equipment metadata.
+ */
 public class EquipmentMetadata {
     private Integer id;
     private String name;

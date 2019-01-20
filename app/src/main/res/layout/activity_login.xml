@@ -21,7 +21,7 @@
         android:layout_marginBottom="20dp"
         android:layout_marginLeft="30dp"
         android:layout_marginRight="30dp"
-        android:hint="Enter username"
+        android:hint="@string/enterUsername"
         android:inputType="text" />
 
     <EditText
@@ -32,7 +32,7 @@
         android:layout_marginLeft="30dp"
         android:layout_marginRight="30dp"
         android:fontFamily="sans-serif"
-        android:hint="Enter password"
+        android:hint="@string/enterPassword"
         android:inputType="textPassword" />
 
     <Spinner
@@ -53,7 +53,7 @@
         android:layout_marginRight="30dp"
         android:layout_marginBottom="120dp"
         android:background="@color/colorAccent"
-        android:text="Sign in"
+        android:text="@string/signIn"
         android:textColor="@color/common_google_signin_btn_text_dark_default" />
 
 </LinearLayout>

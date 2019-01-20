@@ -197,7 +197,8 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
             }
                     .setFailureMessage(this.getString(R.string.couldNotLogout))
-                    .setAlert(new AlertSnackbar(this));
+                    .setAlert(new AlertSnackbar(this))
+                    .start();
 
         } else {
 
@@ -347,7 +348,8 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
             }
                     .setFailureMessage(getResources().getString(R.string.couldNotLoginUser, username))
-                    .setAlert(new AlertSnackbar(LoginActivity.this));
+                    .setAlert(new AlertSnackbar(LoginActivity.this))
+                    .start();
 
 
         }

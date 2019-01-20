@@ -10,15 +10,10 @@ import java.util.List;
  * Created by mauricio on 3/11/2018.
  */
 
+/**
+ * A class representing a hospital.
+ */
 public class Hospital{
-
-    public static class SortByName implements Comparator<Hospital>
-    {
-        public int compare(Hospital a, Hospital b)
-        {
-            return a.name.compareTo(b.name);
-        }
-    }
 
     private int id;
     private String number;

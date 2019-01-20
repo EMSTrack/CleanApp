@@ -3,6 +3,9 @@ package org.emstrack.models;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
+/**
+ * A class representing a patient.
+ */
 public class Patient {
 
     @SerializedName("id")

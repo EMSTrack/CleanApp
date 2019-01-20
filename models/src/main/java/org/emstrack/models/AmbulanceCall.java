@@ -6,6 +6,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * A class representing an ambulance call.
+ */
 public class AmbulanceCall {
 
     public static final String STATUS_REQUESTED = "R";

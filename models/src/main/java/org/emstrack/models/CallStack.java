@@ -6,6 +6,9 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
+/**
+ * A stack for {@link Call}s.
+ */
 public class CallStack implements Iterable {
 
     private Map<Integer, Call> stack;

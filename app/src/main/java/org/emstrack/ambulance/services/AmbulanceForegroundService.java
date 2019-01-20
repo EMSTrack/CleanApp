@@ -64,9 +64,7 @@ import org.emstrack.models.GPSLocation;
 import org.emstrack.models.Hospital;
 import org.emstrack.models.HospitalPermission;
 import org.emstrack.models.Location;
-import org.emstrack.models.util.BroadcastExtras;
 import org.emstrack.models.util.OnServiceComplete;
-import org.emstrack.models.util.OnServicesComplete;
 import org.emstrack.models.Token;
 import org.emstrack.models.Waypoint;
 import org.emstrack.mqtt.MishandledTopicException;
@@ -427,7 +425,8 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
                 }
 
-            };
+            }
+                    .start();
 
 
         } else if (action.equals(Actions.LOGIN)) {
@@ -502,7 +501,8 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
                 }
 
-            };
+            }
+                    .start();
 
         } else if (action.equals(Actions.LOGOUT)) {
 
@@ -1591,7 +1591,8 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                                     super.onReceive(context, intent);
                                 }
 
-                            };
+                            }
+                                    .start();
 
                         } else {
 
@@ -1687,7 +1688,8 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
             }
                     .setFailureMessage(getResources().getString(R.string.couldNotRetrieveAmbulance,
-                            ambulanceIdentifier));
+                            ambulanceIdentifier))
+                    .start();
 
         } else {
 
@@ -1759,26 +1761,21 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         try {
 
             profileClient.subscribe(String.format("user/%1$s/client/%2$s/error",
-                    username, profileClient.getClientId()),
-                    1, new MqttProfileMessageCallback() {
+                    username, profileClient.getClientId()),1,
+                    (topic, message) -> {
 
-                        @Override
-                        public void messageArrived(String topic, MqttMessage message) {
+                        Log.d(TAG, "MQTT error message.");
 
-                            Log.d(TAG, "MQTT error message.");
+                        // Create notification
+                        NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(AmbulanceForegroundService.this, PRIMARY_CHANNEL)
+                                .setSmallIcon(R.mipmap.ic_launcher)
+                                .setContentTitle("EMSTrack")
+                                .setContentText(getString(R.string.serverError, String.valueOf(message.getPayload())))
+                                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                                .setAutoCancel(true);
 
-                            // Create notification
-                            NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(AmbulanceForegroundService.this, PRIMARY_CHANNEL)
-                                    .setSmallIcon(R.mipmap.ic_launcher)
-                                    .setContentTitle("EMSTrack")
-                                    .setContentText(getString(R.string.serverError, String.valueOf(message.getPayload())))
-                                    .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-                                    .setAutoCancel(true);
-
-                            NotificationManagerCompat notificationManager = NotificationManagerCompat.from(AmbulanceForegroundService.this);
-                            notificationManager.notify(notificationId.getAndIncrement(), mBuilder.build());
-
-                        }
+                        NotificationManagerCompat notificationManager = NotificationManagerCompat.from(AmbulanceForegroundService.this);
+                        notificationManager.notify(notificationId.getAndIncrement(), mBuilder.build());
 
                     });
 
@@ -2004,7 +2001,8 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
             }
 
-        };
+        }
+                .start();
 
     }
 
@@ -2064,86 +2062,81 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         try {
 
             // Start retrieving data
-            profileClient.subscribe(String.format("ambulance/%1$d/data", ambulanceId),
-                    1, new MqttProfileMessageCallback() {
+            profileClient.subscribe(String.format("ambulance/%1$d/data", ambulanceId),1,
+                    (topic, message) -> {
 
-                        @Override
-                        public void messageArrived(String topic, MqttMessage message) {
+                        // Keep subscription to ambulance to make sure we receive
+                        // the latest updates.
 
-                            // Keep subscription to ambulance to make sure we receive
-                            // the latest updates.
+                        Log.d(TAG, "Retrieving ambulance.");
 
-                            Log.d(TAG, "Retrieving ambulance.");
+                        // First time?
+                        boolean firstTime = (_ambulance == null);
 
-                            // First time?
-                            boolean firstTime = (_ambulance == null);
+                        // parse ambulance data
+                        GsonBuilder gsonBuilder = new GsonBuilder();
+                        gsonBuilder.setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES);
+                        Gson gson = gsonBuilder.create();
 
-                            // parse ambulance data
-                            GsonBuilder gsonBuilder = new GsonBuilder();
-                            gsonBuilder.setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES);
-                            Gson gson = gsonBuilder.create();
+                        try {
 
-                            try {
+                            // Parse and set ambulance
+                            // TODO: Check for potential errors
+                            Ambulance ambulance1 = gson
+                                    .fromJson(new String(message.getPayload()),
+                                            Ambulance.class);
 
-                                // Parse and set ambulance
-                                // TODO: Check for potential errors
-                                Ambulance ambulance = gson
-                                        .fromJson(new String(message.getPayload()),
-                                                Ambulance.class);
+                            // Has location been updated?
+                            if (_lastLocation == null || ambulance1.getTimestamp().after(_lastLocation.getTimestamp())) {
 
-                                // Has location been updated?
-                                if (_lastLocation == null || ambulance.getTimestamp().after(_lastLocation.getTimestamp())) {
+                                // Update last location
+                                _lastLocation = new AmbulanceUpdate();
+                                android.location.Location location = new android.location.Location("FusedLocationClient");
+                                location.setLatitude(ambulance1.getLocation().getLatitude());
+                                location.setLongitude(ambulance1.getLocation().getLongitude());
+                                _lastLocation.setLocation(location);
+                                _lastLocation.setBearing(ambulance1.getOrientation());
+                                _lastLocation.setTimestamp(ambulance1.getTimestamp());
 
-                                    // Update last location
-                                    _lastLocation = new AmbulanceUpdate();
-                                    android.location.Location location = new android.location.Location("FusedLocationClient");
-                                    location.setLatitude(ambulance.getLocation().getLatitude());
-                                    location.setLongitude(ambulance.getLocation().getLongitude());
-                                    _lastLocation.setLocation(location);
-                                    _lastLocation.setBearing(ambulance.getOrientation());
-                                    _lastLocation.setTimestamp(ambulance.getTimestamp());
+                            }
 
-                                }
+                            // Set current ambulance
+                            _ambulance = ambulance1;
 
-                                // Set current ambulance
-                                _ambulance = ambulance;
+                            // stop updates?
+                            MqttProfileClient profileClient1 = getProfileClient(AmbulanceForegroundService.this);
+                            String clientId = profileClient1.getClientId();
+                            if (isUpdatingLocation() &&
+                                    (ambulance1.getLocationClientId() == null ||
+                                            !clientId.equals(ambulance1.getLocationClientId()))) {
 
-                                // stop updates?
-                                MqttProfileClient profileClient = getProfileClient(AmbulanceForegroundService.this);
-                                String clientId = profileClient.getClientId();
-                                if (isUpdatingLocation() &&
-                                        (ambulance.getLocationClientId() == null ||
-                                                !clientId.equals(ambulance.getLocationClientId()))) {
+                                // turn off tracking
+                                Intent localIntent = new Intent(AmbulanceForegroundService.this, AmbulanceForegroundService.class);
+                                localIntent.setAction(Actions.STOP_LOCATION_UPDATES);
+                                startService(localIntent);
 
-                                    // turn off tracking
-                                    Intent localIntent = new Intent(AmbulanceForegroundService.this, AmbulanceForegroundService.class);
-                                    localIntent.setAction(AmbulanceForegroundService.Actions.STOP_LOCATION_UPDATES);
-                                    startService(localIntent);
+                            }
 
-                                }
+                            if (firstTime) {
 
-                                if (firstTime) {
-
-                                    // Broadcast success
-                                    Intent localIntent = new Intent(org.emstrack.models.util.BroadcastActions.SUCCESS);
-                                    sendBroadcastWithUUID(localIntent, uuid);
-
-                                }
-
-                                // Broadcast ambulance updateAmbulance
-                                Intent localIntent = new Intent(BroadcastActions.AMBULANCE_UPDATE);
-                                sendBroadcastWithUUID(localIntent, uuid);
-
-                            } catch (Exception e) {
-
-                                Log.i(TAG, "Could not parse ambulance update.");
-
-                                // Broadcast failure
-                                Intent localIntent = new Intent(org.emstrack.models.util.BroadcastActions.FAILURE);
-                                localIntent.putExtra(BroadcastExtras.MESSAGE, getString(R.string.couldNotParseAmbulance));
+                                // Broadcast success
+                                Intent localIntent = new Intent(org.emstrack.models.util.BroadcastActions.SUCCESS);
                                 sendBroadcastWithUUID(localIntent, uuid);
 
                             }
+
+                            // Broadcast ambulance updateAmbulance
+                            Intent localIntent = new Intent(BroadcastActions.AMBULANCE_UPDATE);
+                            sendBroadcastWithUUID(localIntent, uuid);
+
+                        } catch (Exception e) {
+
+                            Log.i(TAG, "Could not parse ambulance update.");
+
+                            // Broadcast failure
+                            Intent localIntent = new Intent(org.emstrack.models.util.BroadcastActions.FAILURE);
+                            localIntent.putExtra(BroadcastExtras.MESSAGE, getString(R.string.couldNotParseAmbulance));
+                            sendBroadcastWithUUID(localIntent, uuid);
 
                         }
 
@@ -2249,52 +2242,48 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
             try {
 
                 // Start retrieving data
-                profileClient.subscribe("hospital/" + hospitalId + "/data",
-                        1, new MqttProfileMessageCallback() {
+                profileClient.subscribe("hospital/" + hospitalId + "/data",1,
+                        (topic, message) -> {
 
-                            @Override
-                            public void messageArrived(String topic, MqttMessage message) {
+                            // first time?
+                            boolean firstTime = (_hospitals == null);
 
-                                // first time?
-                                boolean firstTime = (_hospitals == null);
+                            // Parse hospital
+                            GsonBuilder gsonBuilder = new GsonBuilder();
+                            gsonBuilder.setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES);
+                            Gson gson = gsonBuilder.create();
 
-                                // Parse hospital
-                                GsonBuilder gsonBuilder = new GsonBuilder();
-                                gsonBuilder.setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES);
-                                Gson gson = gsonBuilder.create();
+                            // Found hospital
+                            final Hospital hospital = gson.fromJson(message.toString(), Hospital.class);
 
-                                // Found hospital
-                                final Hospital hospital = gson.fromJson(message.toString(), Hospital.class);
+                            if (firstTime) {
 
-                                if (firstTime) {
+                                // Add to hospital map
+                                hospitals.put(hospitalId, hospital);
 
-                                    // Add to hospital map
-                                    hospitals.put(hospitalId, hospital);
+                                // Done yet?
+                                if (hospitals.size() == hospitalPermissions.size()) {
 
-                                    // Done yet?
-                                    if (hospitals.size() == hospitalPermissions.size()) {
+                                    Log.d(TAG, "Done retrieving all hospitals");
 
-                                        Log.d(TAG, "Done retrieving all hospitals");
-
-                                        // set _hospitals
-                                        _hospitals = hospitals;
-
-                                        // Broadcast hospitals updateAmbulance
-                                        Intent localIntent = new Intent(org.emstrack.models.util.BroadcastActions.SUCCESS);
-                                        sendBroadcastWithUUID(localIntent, uuid);
-
-                                    }
-
-                                } else {
-
-                                    // Modify hospital map
-                                    hospitals.put(hospitalId, hospital);
+                                    // set _hospitals
+                                    _hospitals = hospitals;
 
                                     // Broadcast hospitals updateAmbulance
-                                    Intent localIntent = new Intent(BroadcastActions.HOSPITALS_UPDATE);
-                                    sendBroadcastWithUUID(localIntent);
+                                    Intent localIntent = new Intent(org.emstrack.models.util.BroadcastActions.SUCCESS);
+                                    sendBroadcastWithUUID(localIntent, uuid);
 
                                 }
+
+                            } else {
+
+                                // Modify hospital map
+                                hospitals.put(hospitalId, hospital);
+
+                                // Broadcast hospitals updateAmbulance
+                                Intent localIntent = new Intent(BroadcastActions.HOSPITALS_UPDATE);
+                                sendBroadcastWithUUID(localIntent);
+
                             }
                         });
 
@@ -2477,53 +2466,49 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
             try {
 
                 // Start retrieving data
-                profileClient.subscribe("ambulance/" + ambulanceId + "/data",
-                        1, new MqttProfileMessageCallback() {
+                profileClient.subscribe("ambulance/" + ambulanceId + "/data",1,
+                        (topic, message) -> {
 
-                            @Override
-                            public void messageArrived(String topic, MqttMessage message) {
+                            // first time?
+                            boolean firstTime = (_otherAmbulances == null);
 
-                                // first time?
-                                boolean firstTime = (_otherAmbulances == null);
+                            // Parse ambulance
+                            GsonBuilder gsonBuilder = new GsonBuilder();
+                            gsonBuilder.setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES);
+                            Gson gson = gsonBuilder.create();
 
-                                // Parse ambulance
-                                GsonBuilder gsonBuilder = new GsonBuilder();
-                                gsonBuilder.setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES);
-                                Gson gson = gsonBuilder.create();
+                            // Found ambulance
+                            final Ambulance ambulance = gson.fromJson(message.toString(), Ambulance.class);
 
-                                // Found ambulance
-                                final Ambulance ambulance = gson.fromJson(message.toString(), Ambulance.class);
+                            if (firstTime) {
 
-                                if (firstTime) {
+                                // Add to ambulance map
+                                ambulances.put(ambulanceId, ambulance);
 
-                                    // Add to ambulance map
-                                    ambulances.put(ambulanceId, ambulance);
+                                // Done yet?
+                                if (ambulances.size() ==
+                                        (ambulancePermissions.size() + (getAmbulanceId() == -1 ? 0 : - 1))) {
 
-                                    // Done yet?
-                                    if (ambulances.size() ==
-                                            (ambulancePermissions.size() + (getAmbulanceId() == -1 ? 0 : - 1))) {
+                                    Log.d(TAG, "Done retrieving all ambulances");
 
-                                        Log.d(TAG, "Done retrieving all ambulances");
+                                    // set _otherAmbulances
+                                    _otherAmbulances = ambulances;
 
-                                        // set _otherAmbulances
-                                        _otherAmbulances = ambulances;
-
-                                        // Broadcast success
-                                        Intent localIntent = new Intent(org.emstrack.models.util.BroadcastActions.SUCCESS);
-                                        sendBroadcastWithUUID(localIntent, uuid);
-
-                                    }
-
-                                } else {
-
-                                    // Update ambulance map
-                                    ambulances.put(ambulanceId, ambulance);
-
-                                    // Broadcast ambulances updateAmbulance
-                                    Intent localIntent = new Intent(BroadcastActions.OTHER_AMBULANCES_UPDATE);
-                                    sendBroadcastWithUUID(localIntent);
+                                    // Broadcast success
+                                    Intent localIntent = new Intent(org.emstrack.models.util.BroadcastActions.SUCCESS);
+                                    sendBroadcastWithUUID(localIntent, uuid);
 
                                 }
+
+                            } else {
+
+                                // Update ambulance map
+                                ambulances.put(ambulanceId, ambulance);
+
+                                // Broadcast ambulances updateAmbulance
+                                Intent localIntent = new Intent(BroadcastActions.OTHER_AMBULANCES_UPDATE);
+                                sendBroadcastWithUUID(localIntent);
+
                             }
                         });
 
@@ -2655,46 +2640,40 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
             // Check if the device has the necessary location settings.
             settingsClient.checkLocationSettings(getLocationSettingsRequest())
-                    .addOnSuccessListener(new OnSuccessListener<LocationSettingsResponse>() {
-                        @SuppressLint("MissingPermission")
-                        @Override
-                        public void onSuccess(LocationSettingsResponse locationSettingsResponse) {
+                    .addOnSuccessListener(
+                            locationSettingsResponse -> {
 
-                            Log.i(TAG, "All location settings are satisfied.");
+                                Log.i(TAG, "All location settings are satisfied.");
 
-                            Log.i(TAG, "Consume buffer.");
-                            consumeMQTTBuffer();
+                                Log.i(TAG, "Consume buffer.");
+                                consumeMQTTBuffer();
 
-                            Log.i(TAG, "Starting location updates.");
-                            beginLocationUpdates(uuid);
+                                Log.i(TAG, "Starting location updates.");
+                                beginLocationUpdates(uuid);
 
-                            Log.i(TAG, "Starting call updates.");
-                            beginCallUpdates(uuid);
+                                Log.i(TAG, "Starting call updates.");
+                                beginCallUpdates(uuid);
 
-                        }
-                    })
-                    .addOnFailureListener(new OnFailureListener() {
-                        @Override
-                        public void onFailure(@NonNull Exception e) {
-                            int statusCode = ((ApiException) e).getStatusCode();
-                            String message = getString(R.string.inadequateLocationSettings);
-                            switch (statusCode) {
-                                case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
-                                    message += "Try restarting app.";
-                                    break;
-                                case LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:
-                                    message += "Please fix in Settings.";
-                            }
-                            Log.e(TAG, message);
+                            })
+                    .addOnFailureListener(
+                            e -> {
+                                int statusCode = ((ApiException) e).getStatusCode();
+                                String message = getString(R.string.inadequateLocationSettings);
+                                switch (statusCode) {
+                                    case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
+                                        message += "Try restarting app.";
+                                        break;
+                                    case LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:
+                                        message += "Please fix in Settings.";
+                                }
+                                Log.e(TAG, message);
 
-                            // Broadcast failure and return
-                            Intent localIntent = new Intent(org.emstrack.models.util.BroadcastActions.FAILURE);
-                            localIntent.putExtra(BroadcastExtras.MESSAGE, message);
-                            sendBroadcastWithUUID(localIntent, uuid);
-                            return;
+                                // Broadcast failure and return
+                                Intent localIntent = new Intent(org.emstrack.models.util.BroadcastActions.FAILURE);
+                                localIntent.putExtra(BroadcastExtras.MESSAGE, message);
+                                sendBroadcastWithUUID(localIntent, uuid);
 
-                        }
-                    });
+                            });
 
 
         } else if (ambulanceLocationClientId == null) {
@@ -2710,6 +2689,41 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
             bundle.putString("UPDATE", payload);
             intent.putExtras(bundle);
 
+            // What to do when service completes?
+            new OnServiceComplete(this,
+                    BroadcastActions.AMBULANCE_UPDATE,
+                    org.emstrack.models.util.BroadcastActions.FAILURE,
+                    intent) {
+
+                @Override
+                public void onSuccess(Bundle extras) {
+
+                    Log.i(TAG, "onSuccess");
+
+                    // Try again with right permissions
+                    // TODO: This could potentially lead to a loop, add counter to prevent infinite recursion
+                    startLocationUpdates(uuid, reconnect);
+
+                }
+
+                @Override
+                public void onFailure(Bundle extras) {
+
+                    Log.i(TAG, "onFailure");
+
+                    // Broadcast failure
+                    String message = extras.getString(BroadcastExtras.MESSAGE);
+                    Intent localIntent = new Intent(org.emstrack.models.util.BroadcastActions.FAILURE);
+                    localIntent.putExtra(BroadcastExtras.MESSAGE, message);
+                    sendBroadcastWithUUID(localIntent, uuid);
+
+                }
+
+            }
+                    .setSuccessIdCheck(false) // AMBULANCE_UPDATE will have a different UUID
+                    .start();
+
+/*
             // What to do when service completes?
             new OnServicesComplete(this,
                     new String[] {
@@ -2766,6 +2780,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                 }
 
             };
+*/
 
         } else {
 
@@ -2864,36 +2879,32 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         try {
 
             fusedLocationClient.requestLocationUpdates(getLocationRequest(), locationCallback, null)
-                    .addOnSuccessListener(new OnSuccessListener<Void>() {
-                        @Override
-                        public void onSuccess(Void aVoid) {
+                    .addOnSuccessListener(
+                            aVoid -> {
 
-                            Log.i(TAG, "Starting location updates");
-                            _updatingLocation = true;
+                                Log.i(TAG, "Starting location updates");
+                                _updatingLocation = true;
 
-                            // Broadcast success
-                            Intent localIntent = new Intent(org.emstrack.models.util.BroadcastActions.SUCCESS);
-                            sendBroadcastWithUUID(localIntent, uuid);
+                                // Broadcast success
+                                Intent localIntent = new Intent(org.emstrack.models.util.BroadcastActions.SUCCESS);
+                                sendBroadcastWithUUID(localIntent, uuid);
 
-                            // Broadcast location change
-                            Intent changeIntent = new Intent(BroadcastActions.LOCATION_UPDATE_CHANGE);
-                            sendBroadcastWithUUID(changeIntent, uuid);
+                                // Broadcast location change
+                                Intent changeIntent = new Intent(BroadcastActions.LOCATION_UPDATE_CHANGE);
+                                sendBroadcastWithUUID(changeIntent, uuid);
 
-                        }
-                    })
-                    .addOnFailureListener(new OnFailureListener() {
-                        @Override
-                        public void onFailure(@NonNull Exception e) {
-                            Log.i(TAG, "Failed to start location updates");
-                            e.printStackTrace();
+                            })
+                    .addOnFailureListener(
+                            e -> {
+                                Log.i(TAG, "Failed to start location updates");
+                                e.printStackTrace();
 
-                            // Broadcast failure
-                            Intent localIntent = new Intent(org.emstrack.models.util.BroadcastActions.FAILURE);
-                            localIntent.putExtra(BroadcastExtras.MESSAGE, getString(R.string.failedToStartLocationUpdates));
-                            sendBroadcastWithUUID(localIntent, uuid);
+                                // Broadcast failure
+                                Intent localIntent = new Intent(org.emstrack.models.util.BroadcastActions.FAILURE);
+                                localIntent.putExtra(BroadcastExtras.MESSAGE, getString(R.string.failedToStartLocationUpdates));
+                                sendBroadcastWithUUID(localIntent, uuid);
 
-                        }
-                    });
+                            });
 
         } catch (SecurityException e) {
             Log.i(TAG, "Failed to start location updates");
@@ -2950,26 +2961,22 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
         // remove on fusedLocationclient
         fusedLocationClient.removeLocationUpdates(locationCallback)
-                .addOnSuccessListener(new OnSuccessListener<Void>() {
-                    @Override
-                    public void onSuccess(Void aVoid) {
+                .addOnSuccessListener(
+                        aVoid -> {
 
-                        Log.i(TAG, "Stopping location updates");
-                        _updatingLocation = false;
+                            Log.i(TAG, "Stopping location updates");
+                            _updatingLocation = false;
 
-                        // Broadcast location change
-                        Intent changeIntent = new Intent(BroadcastActions.LOCATION_UPDATE_CHANGE);
-                        sendBroadcastWithUUID(changeIntent, uuid);
+                            // Broadcast location change
+                            Intent changeIntent = new Intent(BroadcastActions.LOCATION_UPDATE_CHANGE);
+                            sendBroadcastWithUUID(changeIntent, uuid);
 
-                    }
-                })
-                .addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        Log.i(TAG, "Failed to stop location updates");
-                        e.printStackTrace();
-                    }
-                });
+                        })
+                .addOnFailureListener(
+                        e -> {
+                            Log.i(TAG, "Failed to stop location updates");
+                            e.printStackTrace();
+                        });
 
     }
 
@@ -3001,101 +3008,101 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         try {
 
             final int ambulanceId = ambulance.getId();
-            profileClient.subscribe(String.format("ambulance/%1$d/call/+/status", ambulanceId),
-                    2, new MqttProfileMessageCallback() {
-                        @Override
-                        public void messageArrived(String topic, MqttMessage message) {
+            profileClient.subscribe(
+                    String.format("ambulance/%1$d/call/+/status", ambulanceId),2,
+                    (topic, message) -> {
 
-                            // Keep subscription to call_current to make sure we receive latest updates
-                            Log.i(TAG, "Retrieving call statuses, currentCallId=" + pendingCalls.getCurrentCallId());
+                        // Keep subscription to call_current to make sure we receive latest updates
+                        Log.i(TAG, "Retrieving call statuses, currentCallId=" + pendingCalls.getCurrentCallId());
 
-                            try {
+                        try {
 
-                                // parse the status
-                                String status = new String(message.getPayload());
+                            // parse the status
+                            String status = new String(message.getPayload());
 
-                                if (status.equals("") || status.length() < 2)
-                                    Log.i(TAG, "Received empty status, skipping update");
+                            if (status.equals("") || status.length() < 2)
+                                Log.i(TAG, "Received empty status, skipping update");
 
-                                else {
+                            else {
 
-                                     status = status.substring(1, status.length() - 1);
+                                 status = status.substring(1, status.length() - 1);
 
-                                    // the call id is the 3rd value
-                                    int callId = Integer.valueOf(topic.split("/")[3]);
+                                // the call id is the 3rd value
+                                int callId = Integer.valueOf(topic.split("/")[3]);
 
-                                    Log.i(TAG, "Received ambulance/" + ambulanceId + "/call/" + callId + "/status='" + status + "'");
+                                Log.i(TAG, "Received ambulance/" + ambulanceId + "/call/" +
+                                        callId + "/status='" + status + "'");
 
-                                    // Is this a new call?
-                                    if (!pendingCalls.contains(callId)) {
+                                // Is this a new call?
+                                if (!pendingCalls.contains(callId)) {
 
-                                        Log.d(TAG, "New call");
+                                    Log.d(TAG, "New call");
 
-                                        // this is a new call, subscribe
+                                    // this is a new call, subscribe
+                                    processOrSubscribeToCall(callId, uuid);
+
+                                } else {
+
+                                    // this is an existing call
+
+                                    Log.d(TAG, "Existing call");
+
+                                    String newStatus;
+                                    if (status.equalsIgnoreCase(AmbulanceCall.statusLabel.get(AmbulanceCall.STATUS_REQUESTED))) {
+
+                                        // if status is "requested", process call
                                         processOrSubscribeToCall(callId, uuid);
+                                        newStatus = AmbulanceCall.STATUS_REQUESTED;
+
+                                    } else if (status.equalsIgnoreCase(AmbulanceCall.statusLabel.get(AmbulanceCall.STATUS_ACCEPTED))) {
+
+                                        // if status is "accepted", set call accepted
+                                        setCallAccepted(callId, uuid);
+                                        newStatus = AmbulanceCall.STATUS_ACCEPTED;
 
                                     } else {
 
-                                        // this is an existing call
+                                        if (status.equalsIgnoreCase(AmbulanceCall.statusLabel.get(AmbulanceCall.STATUS_DECLINED)))
+                                            newStatus = AmbulanceCall.STATUS_DECLINED;
+                                        else if (status.equalsIgnoreCase(AmbulanceCall.statusLabel.get(AmbulanceCall.STATUS_COMPLETED)))
+                                            newStatus = AmbulanceCall.STATUS_COMPLETED;
+                                        else if (status.equalsIgnoreCase(AmbulanceCall.statusLabel.get(AmbulanceCall.STATUS_SUSPENDED)))
+                                            newStatus = AmbulanceCall.STATUS_SUSPENDED;
+                                        else
+                                            throw new Exception("Unknown status '" + status + "'");
 
-                                        Log.d(TAG, "Existing call");
+                                        // if current call
+                                        if (pendingCalls.isCurrentCall(callId)) {
 
-                                        String newStatus;
-                                        if (status.equalsIgnoreCase(AmbulanceCall.statusLabel.get(AmbulanceCall.STATUS_REQUESTED))) {
+                                            // clean up
+                                            cleanUpCall(callId, uuid);
 
-                                            // if status is "requested", process call
-                                            processOrSubscribeToCall(callId, uuid);
-                                            newStatus = AmbulanceCall.STATUS_REQUESTED;
-
-                                        } else if (status.equalsIgnoreCase(AmbulanceCall.statusLabel.get(AmbulanceCall.STATUS_ACCEPTED))) {
-
-                                            // if status is "accepted", set call accepted
-                                            setCallAccepted(callId, uuid);
-                                            newStatus = AmbulanceCall.STATUS_ACCEPTED;
-
-                                        } else {
-
-                                            if (status.equalsIgnoreCase(AmbulanceCall.statusLabel.get(AmbulanceCall.STATUS_DECLINED)))
-                                                newStatus = AmbulanceCall.STATUS_DECLINED;
-                                            else if (status.equalsIgnoreCase(AmbulanceCall.statusLabel.get(AmbulanceCall.STATUS_COMPLETED)))
-                                                newStatus = AmbulanceCall.STATUS_COMPLETED;
-                                            else if (status.equalsIgnoreCase(AmbulanceCall.statusLabel.get(AmbulanceCall.STATUS_SUSPENDED)))
-                                                newStatus = AmbulanceCall.STATUS_SUSPENDED;
-                                            else
-                                                throw new Exception("Unknown status '" + status + "'");
-
-                                            // if current call
-                                            if (pendingCalls.isCurrentCall(callId)) {
-
-                                                // clean up
-                                                cleanUpCall(callId, uuid);
-
-                                                // broadcast CALL_COMPLETED
-                                                Intent callCompletedIntent = new Intent(BroadcastActions.CALL_COMPLETED);
-                                                callCompletedIntent.putExtra("CALL_ID", callId);
-                                                sendBroadcastWithUUID(callCompletedIntent, uuid);
-
-                                            }
+                                            // broadcast CALL_COMPLETED
+                                            Intent callCompletedIntent = new Intent(BroadcastActions.CALL_COMPLETED);
+                                            callCompletedIntent.putExtra("CALL_ID", callId);
+                                            sendBroadcastWithUUID(callCompletedIntent, uuid);
 
                                         }
 
-                                        // Update status, server updates may take a while
-                                        pendingCalls.get(callId).getAmbulanceCall(ambulanceId).setStatus(newStatus);
-
                                     }
+
+                                    // Update status, server updates may take a while
+                                    pendingCalls.get(callId).getAmbulanceCall(ambulanceId).setStatus(newStatus);
 
                                 }
 
-                            } catch (Exception e) {
-
-                                Log.i(TAG, "Could not parse status '" + topic + ":" + message + "'. Exception='" + e.toString() + "'");
-
-                                // Broadcast failure
-                                Intent localIntent = new Intent(org.emstrack.models.util.BroadcastActions.FAILURE);
-                                localIntent.putExtra(BroadcastExtras.MESSAGE, getString(R.string.couldNotParseStatus));
-                                sendBroadcastWithUUID(localIntent, uuid);
-
                             }
+
+                        } catch (Exception e) {
+
+                            Log.i(TAG, "Could not parse status '" + topic + ":" + message
+                                    + "'. Exception='" + e.toString() + "'");
+
+                            // Broadcast failure
+                            Intent localIntent = new Intent(org.emstrack.models.util.BroadcastActions.FAILURE);
+                            localIntent.putExtra(BroadcastExtras.MESSAGE, getString(R.string.couldNotParseStatus));
+                            sendBroadcastWithUUID(localIntent, uuid);
+
                         }
                     });
 
@@ -3130,70 +3137,67 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
             Log.i(TAG, "Subscribing to call/" + callId);
 
-            profileClient.subscribe(String.format("call/%1$s/data", callId),
-                    2, new MqttProfileMessageCallback() {
-                        @Override
-                        public void messageArrived(String topic, MqttMessage message) {
+            profileClient.subscribe(String.format("call/%1$s/data", callId),2,
+                    (topic, message) -> {
 
-                            // Keep subscription to call_current to make sure we receive latest updates
-                            Log.i(TAG, "Retrieving call data");
+                        // Keep subscription to call_current to make sure we receive latest updates
+                        Log.i(TAG, "Retrieving call data");
 
-                            // parse call id data
-                            GsonBuilder gsonBuilder = new GsonBuilder();
-                            gsonBuilder.setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES);
-                            Gson gson = gsonBuilder.create();
+                        // parse call id data
+                        GsonBuilder gsonBuilder = new GsonBuilder();
+                        gsonBuilder.setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES);
+                        Gson gson = gsonBuilder.create();
 
-                            String payload = new String(message.getPayload());
-                            if (payload == null || payload.isEmpty())
-                                // This can happen when clearing a call
-                                // It will also broadcast a "ended" state so call will be finalized then
-                                return;
+                        String payload = new String(message.getPayload());
+                        if (payload == null || payload.isEmpty())
+                            // This can happen when clearing a call
+                            // It will also broadcast a "ended" state so call will be finalized then
+                            return;
 
-                            try {
+                        try {
 
-                                // Parse call data
-                                Call call = gson.fromJson(payload, Call.class);
-                                if (call == null)
-                                    throw new Exception("Got null call");
+                            // Parse call data
+                            Call call = gson.fromJson(payload, Call.class);
+                            if (call == null)
+                                throw new Exception("Got null call");
 
-                                // Sort waypoints
-                                call.sortWaypoints(true);
+                            // Sort waypoints
+                            call.sortWaypoints(true);
 
-                                // Is this an existing call?
-                                if (pendingCalls.contains(call.getId())) {
+                            // Is this an existing call?
+                            if (pendingCalls.contains(call.getId())) {
 
-                                    // Update call information
-                                    updateCallInformation(call, uuid);
+                                // Update call information
+                                updateCallInformation(call, uuid);
 
-                                } else if (call.getStatus() == "E") {
+                            } else if (call.getStatus() == "E") {
 
-                                    // Call has ended and is not longer on the queue, ignore
-                                    Log.d(TAG, "Ignoring call " + call.getId());
+                                // Call has ended and is not longer on the queue, ignore
+                                Log.d(TAG, "Ignoring call " + call.getId());
 
-                                } else {
+                            } else {
 
-                                    // Add to pending calls
-                                    pendingCalls.put(call.getId(), call);
+                                // Add to pending calls
+                                pendingCalls.put(call.getId(), call);
 
-                                    // if no current, process next
-                                    if (!pendingCalls.hasCurrentOrPendingCall())
-                                        processNextCall(uuid);
-
-                                }
-
-
-                            } catch (Exception e) {
-
-                                Log.d(TAG, "Failed to parse call '" + payload + "'. Excpetion='" + e + "'");
-
-                                // Broadcast failure
-                                Intent localIntent = new Intent(org.emstrack.models.util.BroadcastActions.FAILURE);
-                                localIntent.putExtra(BroadcastExtras.MESSAGE, getString(R.string.couldNotParseCallData));
-                                sendBroadcastWithUUID(localIntent, uuid);
+                                // if no current, process next
+                                if (!pendingCalls.hasCurrentOrPendingCall())
+                                    processNextCall(uuid);
 
                             }
 
+
+                        } catch (Exception e) {
+
+                            Log.d(TAG, "Failed to parse call '" + payload + "'. Excpetion='" + e + "'");
+
+                            // Broadcast failure
+                            Intent localIntent = new Intent(org.emstrack.models.util.BroadcastActions.FAILURE);
+                            localIntent.putExtra(BroadcastExtras.MESSAGE, getString(R.string.couldNotParseCallData));
+                            sendBroadcastWithUUID(localIntent, uuid);
+
                         }
+
                     });
 
         } catch (MqttException e) {
@@ -3202,7 +3206,8 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
             // Broadcast failure
             Intent localIntent = new Intent(org.emstrack.models.util.BroadcastActions.FAILURE);
-            localIntent.putExtra(BroadcastExtras.MESSAGE, getString(R.string.couldNotSubscribe, "data for call " + callId));
+            localIntent.putExtra(BroadcastExtras.MESSAGE,
+                    getString(R.string.couldNotSubscribe, "data for call " + callId));
             sendBroadcastWithUUID(localIntent, uuid);
 
         }
@@ -3985,6 +3990,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
     }
 
 
+    @SuppressLint("MissingPermission")
     private void startGeofence(final String uuid, final Geofence geofence) {
 
         Log.d(TAG,String.format("GEOFENCE(%1$s, %2$f)", geofence.getLocation().toString(), geofence.getRadius()));
@@ -4043,118 +4049,102 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
         // Check if the device has the necessary location settings.
         settingsClient.checkLocationSettings(getLocationSettingsRequest())
-                .addOnSuccessListener(new OnSuccessListener<LocationSettingsResponse>() {
-                    @SuppressLint("MissingPermission")
-                    @Override
-                    public void onSuccess(LocationSettingsResponse locationSettingsResponse) {
+                .addOnSuccessListener(
+                        locationSettingsResponse -> {
 
-                        Log.i(TAG, String.format("Adding geofence '%1$s'...", id));
+                            Log.i(TAG, String.format("Adding geofence '%1$s'...", id));
 
-                        fenceClient.addGeofences(getGeofencingRequest(geofence.build(id)),
-                                getGeofencePendingIntent())
-                                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                            fenceClient.addGeofences(getGeofencingRequest(geofence.build(id)),
+                                    getGeofencePendingIntent())
+                                    .addOnSuccessListener(
+                                            aVoid -> {
+                                                // Geofences added
+                                                Log.i(TAG, String.format("Geofence '%1$s' added", id));
 
-                                    @Override
-                                    public void onSuccess(Void aVoid) {
-                                        // Geofences added
-                                        Log.i(TAG, String.format("Geofence '%1$s' added", id));
+                                                // Add to map
+                                                _geofences.put(id, geofence);
 
-                                        // Add to map
-                                        _geofences.put(id, geofence);
+                                                // Broadcast success
+                                                Intent localIntent = new Intent(org.emstrack.models.util.BroadcastActions.SUCCESS);
+                                                sendBroadcastWithUUID(localIntent, uuid);
 
-                                        // Broadcast success
-                                        Intent localIntent = new Intent(org.emstrack.models.util.BroadcastActions.SUCCESS);
-                                        sendBroadcastWithUUID(localIntent, uuid);
+                                            })
+                                    .addOnFailureListener(
+                                            e -> {
 
-                                    }
-                                })
-                                .addOnFailureListener(new OnFailureListener() {
-                                    @Override
-                                    public void onFailure(@NonNull Exception e) {
+                                                // Failed to add geofences
+                                                Log.e(TAG, "FAILED TO ADD GEOFENCES: " + e.toString());
 
-                                        // Failed to add geofences
-                                        Log.e(TAG, "FAILED TO ADD GEOFENCES: " + e.toString());
+                                                // Remove id
+                                                geofence.removeId(id);
 
-                                        // Remove id
-                                        geofence.removeId(id);
+                                                // Broadcast failure and return
+                                                Intent localIntent = new Intent(org.emstrack.models.util.BroadcastActions.FAILURE);
+                                                localIntent.putExtra(BroadcastExtras.MESSAGE, getString(R.string.failedToAddGeofence));
+                                                sendBroadcastWithUUID(localIntent, uuid);
 
-                                        // Broadcast failure and return
-                                        Intent localIntent = new Intent(org.emstrack.models.util.BroadcastActions.FAILURE);
-                                        localIntent.putExtra(BroadcastExtras.MESSAGE, getString(R.string.failedToAddGeofence));
-                                        sendBroadcastWithUUID(localIntent, uuid);
-                                        return;
+                                            });
 
-                                    }
-                                });
+                        })
+                .addOnFailureListener(
+                        e -> {
+                            int statusCode = ((ApiException) e).getStatusCode();
+                            String message = getString(R.string.inadequateLocationSettings);
+                            switch (statusCode) {
+                                case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
+                                    message += "Try restarting app.";
+                                    break;
+                                case LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:
+                                    message += "Please fix in Settings.";
+                            }
+                            Log.e(TAG, message);
 
-                    }
-                })
-                .addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        int statusCode = ((ApiException) e).getStatusCode();
-                        String message = getString(R.string.inadequateLocationSettings);
-                        switch (statusCode) {
-                            case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
-                                message += "Try restarting app.";
-                                break;
-                            case LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:
-                                message += "Please fix in Settings.";
-                        }
-                        Log.e(TAG, message);
+                            // Broadcast failure and return
+                            Intent localIntent = new Intent(org.emstrack.models.util.BroadcastActions.FAILURE);
+                            localIntent.putExtra(BroadcastExtras.MESSAGE, message);
+                            sendBroadcastWithUUID(localIntent, uuid);
 
-                        // Broadcast failure and return
-                        Intent localIntent = new Intent(org.emstrack.models.util.BroadcastActions.FAILURE);
-                        localIntent.putExtra(BroadcastExtras.MESSAGE, message);
-                        sendBroadcastWithUUID(localIntent, uuid);
-                        return;
-
-                    }
-                });
+                        });
     }
 
 
     private void removeAllGeofences(final String uuid) {
 
         fenceClient.removeGeofences(getGeofencePendingIntent())
-                .addOnSuccessListener(new OnSuccessListener<Void>() {
-                    @Override
-                    public void onSuccess(Void aVoid) {
-                        // Geofences removed
-                        Log.i(TAG, "GEOFENCES REMOVED.");
+                .addOnSuccessListener(
+                        aVoid -> {
+                            // Geofences removed
+                            Log.i(TAG, "GEOFENCES REMOVED.");
 
-                        // Clear all geofence ids
-                        for (Iterator<Map.Entry<String, Geofence>> iterator = _geofences.entrySet().iterator();
-                             iterator.hasNext(); ) {
-                            Map.Entry<String, Geofence> entry = iterator.next();
-                            entry.getValue().removeId(entry.getKey());
-                            iterator.remove();
-                        }
+                            // Clear all geofence ids
+                            for (Iterator<Map.Entry<String, Geofence>> iterator = _geofences.entrySet().iterator();
+                                 iterator.hasNext(); ) {
+                                Map.Entry<String, Geofence> entry = iterator.next();
+                                entry.getValue().removeId(entry.getKey());
+                                iterator.remove();
+                            }
 
-                        // This is not necessary, but just in case :)
-                        _geofences.clear();
+                            // This is not necessary, but just in case :)
+                            _geofences.clear();
 
-                        // Broadcast success
-                        Intent localIntent = new Intent(org.emstrack.models.util.BroadcastActions.SUCCESS);
-                        sendBroadcastWithUUID(localIntent, uuid);
+                            // Broadcast success
+                            Intent localIntent = new Intent(org.emstrack.models.util.BroadcastActions.SUCCESS);
+                            sendBroadcastWithUUID(localIntent, uuid);
 
-                    }
-                })
-                .addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
+                        })
+                .addOnFailureListener(
+                        e -> {
 
-                        // Failed to remove geofences
-                        Log.e(TAG, "FAILED TO REMOVE GEOFENCES: " + e.toString());
+                            // Failed to remove geofences
+                            Log.e(TAG, "FAILED TO REMOVE GEOFENCES: " + e.toString());
 
-                        // Broadcast failure and return
-                        Intent localIntent = new Intent(org.emstrack.models.util.BroadcastActions.FAILURE);
-                        localIntent.putExtra(BroadcastExtras.MESSAGE, getString(R.string.failedToRemoveGeofence));
-                        sendBroadcastWithUUID(localIntent, uuid);
-                        return;
+                            // Broadcast failure and return
+                            Intent localIntent = new Intent(org.emstrack.models.util.BroadcastActions.FAILURE);
+                            localIntent.putExtra(BroadcastExtras.MESSAGE, getString(R.string.failedToRemoveGeofence));
+                            sendBroadcastWithUUID(localIntent, uuid);
+                            return;
 
-                    }
-                });
+                        });
 
     }
 
@@ -4165,28 +4155,24 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         if (requestIds.size() > 0)
 
             fenceClient.removeGeofences(requestIds)
-                    .addOnSuccessListener(new OnSuccessListener<Void>() {
-                    @Override
-                    public void onSuccess(Void aVoid) {
+                    .addOnSuccessListener(
+                            aVoid -> {
 
-                        // Geofences removed
-                        Log.i(TAG, "GEOFENCES REMOVED.");
+                                // Geofences removed
+                                Log.i(TAG, "GEOFENCES REMOVED.");
 
-                        // Loop through list of ids and remove them
-                        for (String id : requestIds) {
-                            _geofences.remove(id).removeId(id);
+                                // Loop through list of ids and remove them
+                                for (String id : requestIds) {
+                                    _geofences.remove(id).removeId(id);
 
-                        }
+                                }
 
-                    }
-                    })
-                    .addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        // Failed to remove geofences
-                        Log.e(TAG, "FAILED TO REMOVE GEOFENCES: " + e.toString());
-                    }
-                    });
+                            })
+                    .addOnFailureListener(
+                            e -> {
+                                // Failed to remove geofences
+                                Log.e(TAG, "FAILED TO REMOVE GEOFENCES: " + e.toString());
+                            });
 
     }
 

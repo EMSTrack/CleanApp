@@ -8,6 +8,9 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * A class representing global settings.
+ */
 public class Settings {
 
     public Map<String, String> ambulanceCapability;

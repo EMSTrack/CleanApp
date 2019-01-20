@@ -7,6 +7,9 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * A class representing an ambulance.
+ */
 public class Ambulance {
 
     public static final String STATUS_UNKNOWN = "UK";

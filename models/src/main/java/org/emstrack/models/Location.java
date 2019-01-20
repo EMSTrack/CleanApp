@@ -4,6 +4,9 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * A class representing a location.
+ */
 public class Location extends Address {
 
     public static final String TYPE_BASE = "b";

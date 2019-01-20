@@ -102,8 +102,9 @@ public abstract class OnAPICallComplete<T> {
         return startedFlag;
     }
 
-    public void setNext(OnAPICallComplete next) {
+    public OnAPICallComplete setNext(OnAPICallComplete next) {
         this.next = next;
+        return this;
     }
 
     public OnAPICallComplete setAlert(Alert alert) {
