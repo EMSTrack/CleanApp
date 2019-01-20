@@ -1,10 +1,5 @@
 package org.emstrack.models;
 
-/**
- * Created by Fabian Choi on 5/4/2017.
- * Represents an EquipmentItem from the database
- */
-
 import android.os.Parcel;
 import android.os.Parcelable;
 
@@ -12,11 +7,12 @@ import java.util.Date;
 
 /**
  * A class representing an equipment item.
+ * @author Fabian Choi
+ * @since 5/4/2017
  */
 public class EquipmentItem implements Parcelable {
 
     private int equipmentHolderId;
-    // private String hospitalName;
     private int equipmentId;
     private String equipmentName;
     private Character equipmentType;
@@ -25,7 +21,7 @@ public class EquipmentItem implements Parcelable {
     private int updatedBy;
     private Date updatedOn;
 
-    public EquipmentItem(int equipmentHolderId, // String hospitalName,
+    public EquipmentItem(int equipmentHolderId,
                          int equipmentId, String equipmentName,
                          Character equipmentType,
                          String value, String comment,
@@ -54,16 +50,6 @@ public class EquipmentItem implements Parcelable {
     public void setEquipmentHolderId(int equipmentHolderId) {
         this.equipmentHolderId = equipmentHolderId;
     }
-
-/*
-    public String getHospitalName() {
-        return hospitalName;
-    }
-
-    public void setHospitalName(String hospitalName) {
-        this.hospitalName = hospitalName;
-    }
-*/
 
     public int getEquipmentId() {
         return equipmentId;

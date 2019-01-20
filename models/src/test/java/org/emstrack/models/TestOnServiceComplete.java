@@ -36,7 +36,7 @@ public class TestOnServiceComplete {
     private final String TAG = TestOnServiceComplete.class.getSimpleName();
 
     @Test
-    public void useAppContext() throws Exception {
+    public void useAppContext() {
         // Context of the app under test.
         //Context appContext = InstrumentationRegistry.getTargetContext();
         final Context appContext = ApplicationProvider.getApplicationContext();
@@ -47,7 +47,7 @@ public class TestOnServiceComplete {
     }
 
     @Test
-    public void shouldGetInstance() throws Exception {
+    public void shouldGetInstance() {
         final Context context = ApplicationProvider.getApplicationContext();
         LocalBroadcastManager instance = LocalBroadcastManager.getInstance(context);
         assertNotNull(instance);
@@ -55,7 +55,7 @@ public class TestOnServiceComplete {
     }
 
     @Test
-    public void shouldSendBroadcasts() throws Exception {
+    public void shouldSendBroadcasts() {
         final Context context = ApplicationProvider.getApplicationContext();
         LocalBroadcastManager instance = LocalBroadcastManager.getInstance(context);
         final boolean[] called = {false};

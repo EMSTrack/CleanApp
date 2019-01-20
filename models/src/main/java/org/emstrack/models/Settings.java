@@ -1,15 +1,13 @@
 package org.emstrack.models;
 
-/**
- * Created by mauricio on 2/7/18.
- */
-
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
 /**
  * A class representing global settings.
+ * @author mauricio
+ * @since 2/7/18
  */
 public class Settings {
 

@@ -1,12 +1,9 @@
 package org.emstrack.models;
 
 /**
- * Created by Fabian Choi on 5/4/2017.
- * Represents a EquipmentMetadata from the database
- */
-
-/**
  * A class representing an equipment metadata.
+ * @author Fabian Choi
+ * @since 5/4/2017
  */
 public class EquipmentMetadata {
     private Integer id;

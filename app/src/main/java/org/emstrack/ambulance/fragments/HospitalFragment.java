@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.widget.LinearLayoutManager;
@@ -54,7 +55,7 @@ public class HospitalFragment extends Fragment {
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
         rootView = inflater.inflate(R.layout.fragment_hospital, container, false);
         recyclerView = rootView.findViewById(R.id.recycler_view);
@@ -148,7 +149,7 @@ public class HospitalFragment extends Fragment {
             sortedHospitals.add( entry.getValue() );
 
         // Sort hospitals
-        Collections.sort(sortedHospitals, (a,b) -> { return a.getName().compareTo(b.getName()); });
+        Collections.sort(sortedHospitals, (a,b) -> a.getName().compareTo(b.getName()) );
 
         // Loop over all hospitals
         for (Hospital hospital : sortedHospitals ) {
@@ -156,7 +157,7 @@ public class HospitalFragment extends Fragment {
             // Add to to expandable group
             hospitalExpandableGroup.add(
                     new HospitalExpandableGroup(hospital.getName(),
-                            new ArrayList<EquipmentItem>(), // hospital.getHospitalequipmentSet(),
+                            new ArrayList<>(),
                             hospital));
 
         }
