@@ -46,7 +46,7 @@ public class AboutDialog {
         builder.setView(messageView);
 
         // Create OK button
-        builder.setPositiveButton(R.string.alert_button_positive_text, null);
+        builder.setPositiveButton(R.string.ok, null);
 
         return builder.create();
 

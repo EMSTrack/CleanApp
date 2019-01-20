@@ -27,30 +27,24 @@ public class LogoutDialog {
 
         // Cancel button
         alertDialogBuilder.setNegativeButton(
-                R.string.alert_button_negative_text,
-                new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        /* do nothing */
-                    }
+                R.string.cancel,
+                (dialog, which) -> {
+                    /* do nothing */
                 });
 
         // Create the OK button that logs user out
         alertDialogBuilder.setPositiveButton(
-                R.string.alert_button_positive_text,
-                new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
+                R.string.ok,
+                (dialog, which) -> {
 
-                        Log.i(TAG,"LogoutDialog: OK Button Clicked");
+                    Log.i(TAG,"LogoutDialog: OK Button Clicked");
 
-                        // Start logout activity
-                        Intent loginIntent = new Intent(activity, LoginActivity.class);
-                        loginIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP|Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                        loginIntent.setAction(LoginActivity.LOGOUT);
-                        activity.startActivity(loginIntent);
+                    // Start logout activity
+                    Intent loginIntent = new Intent(activity, LoginActivity.class);
+                    loginIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP|Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                    loginIntent.setAction(LoginActivity.LOGOUT);
+                    activity.startActivity(loginIntent);
 
-                    }
                 });
 
         return alertDialogBuilder.create();

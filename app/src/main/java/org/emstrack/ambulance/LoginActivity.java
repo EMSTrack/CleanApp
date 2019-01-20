@@ -149,7 +149,9 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
             public void onClick(View v) {
 
                 // Toast to warn about check permissions
-                Toast.makeText(LoginActivity.this, "Please be patient. Checking permissions...", Toast.LENGTH_LONG).show();
+                Toast.makeText(LoginActivity.this,
+                        R.string.checkingResources,
+                        Toast.LENGTH_LONG).show();
 
             }
         });
@@ -246,13 +248,15 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         if (AmbulanceForegroundService.canUpdateLocation()) {
 
             // Toast to warn about check permissions
-            Toast.makeText(LoginActivity.this, "Location permissions satisfied.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(LoginActivity.this,
+                    R.string.permissionsSatisfied,
+                    Toast.LENGTH_SHORT).show();
 
         } else {
 
             // Alert to warn about check permissions
             new AlertSnackbar(LoginActivity.this)
-                    .alert("Location permissions not satisfied. Expect limited functionality.");
+                    .alert(getString(R.string.expectLimitedFuncionality));
 
         }
 
@@ -381,14 +385,11 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
             new AlertSnackbar(this)
                     .alert(getString(R.string.permission_rationale),
-                            new View.OnClickListener() {
-                                @Override
-                                public void onClick(View view) {
-                                    // Request permission
-                                    ActivityCompat.requestPermissions(LoginActivity.this,
-                                            new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
-                                            REQUEST_PERMISSIONS_REQUEST_CODE);
-                                }
+                            view -> {
+                                // Request permission
+                                ActivityCompat.requestPermissions(LoginActivity.this,
+                                        new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                                        REQUEST_PERMISSIONS_REQUEST_CODE);
                             });
 
         } else {
@@ -439,19 +440,16 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                 // touches or interactions which have required permissions.
                 new AlertSnackbar(this)
                         .alert(getString(R.string.permission_denied_explanation),
-                                new View.OnClickListener() {
-                                    @Override
-                                    public void onClick(View view) {
-                                        // Build intent that displays the App settings screen.
-                                        Intent intent = new Intent();
-                                        intent.setAction(
-                                                Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
-                                        Uri uri = Uri.fromParts("package",
-                                                BuildConfig.APPLICATION_ID, null);
-                                        intent.setData(uri);
-                                        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                                        startActivity(intent);
-                                    }
+                                view -> {
+                                    // Build intent that displays the App settings screen.
+                                    Intent intent = new Intent();
+                                    intent.setAction(
+                                            Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+                                    Uri uri = Uri.fromParts("package",
+                                            BuildConfig.APPLICATION_ID, null);
+                                    intent.setData(uri);
+                                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                                    startActivity(intent);
                                 });
             }
         }
@@ -496,11 +494,8 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                                 }
                                 break;
                             case LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:
-                                String errorMessage = "GPSLocation settings are inadequate, and cannot be " +
-                                        "fixed here. Fix in Settings.";
-
                                 new AlertSnackbar(LoginActivity.this)
-                                        .alert(errorMessage);
+                                        .alert(getString(R.string.settingsAreInadequate));
 
                                 // disable location updates
                                 AmbulanceForegroundService.setCanUpdateLocation(false);
