@@ -213,7 +213,7 @@
     <string name="callDeclined">Call declined</string>
     <string name="suspendingCall">Suspending call</string>
     <string name="endingCall">Ending call</string>
-    <string name="checkingResources">Please be patient. Checking permissions...</string>
+    <string name="checkingResources">Please be patient. Checking permissions…</string>
     <string name="permissionsSatisfied">Location permissions satisfied.</string>
     <string name="expectLimitedFuncionality">Location permissions not satisfied. Expect limited functionality.</string>
     <string name="settingsAreInadequate">GPSLocation settings are inadequate, and cannot be fixed here. Fix in Settings.</string>
