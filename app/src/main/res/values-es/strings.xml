@@ -222,5 +222,6 @@
     <string name="selectNextWaypoint">Seleccione el siguiente punto de ruta</string>
     <string name="cancel">Cancelar</string>
     <string name="loggingIn">Iniciando sesíon para \'%1$s\'</string>
+    <string name="pleaseSelectAmbulance">Por favor seleccione ambulancia</string>
 
 </resources>
