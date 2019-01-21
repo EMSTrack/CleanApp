@@ -241,6 +241,8 @@
     <string name="endCall">End Call</string>
     <string name="loggingIn">Logging in \'%1$s\'</string>
     <string name="pleaseSelectAmbulance">Please select ambulance</string>
+    <string name="selectHospital">Select hospital:</string>
+    <string name="selectBase">Select base:</string>
     <string-array name="spinner_list_item_array_server">
         <item>@string/server_select</item>
         <item>Tijuana Red Cross:tijuana.emstrack.org:8883</item>
