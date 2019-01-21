@@ -1,9 +1,9 @@
 package org.emstrack.models;
 
-import org.emstrack.models.api.APICallback;
 import org.emstrack.models.api.APIService;
 import org.emstrack.models.api.APIServiceGenerator;
 import org.emstrack.models.api.OnAPICallComplete;
+import org.emstrack.models.util.OnComplete;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
@@ -11,7 +11,6 @@ import org.robolectric.shadows.ShadowLooper;
 
 import java.util.List;
 
-import static junit.framework.TestCase.fail;
 import static org.junit.Assert.assertTrue;
 
 import retrofit2.Response;
@@ -69,18 +68,13 @@ public class TestRetrofit {
 
         // Retrieve token
         APIServiceGenerator.setCredentials(credentials);
-        OnAPICallComplete<Token> api = APIServiceGenerator.buildRetrieveToken(new APICallback<Token>() {
-            @Override
-            public void onSuccess(Token t) {
-                assertTrue(true);
-            }
-
-            @Override
-            public void onFailure(Throwable t) {
-                fail();
-            }
-
-        });
+        OnAPICallComplete<Token> api = APIServiceGenerator.buildRetrieveToken()
+                .setNext(new OnComplete() {
+                    @Override
+                    public void run() {
+                        assertTrue(true);
+                    }
+                });
 
         api.start();
         while (!api.isComplete()) {

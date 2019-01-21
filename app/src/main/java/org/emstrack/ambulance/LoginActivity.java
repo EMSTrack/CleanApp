@@ -76,8 +76,8 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         logout = LOGOUT.equals(action);
 
         // Find username and password from layout
-        usernameField = (TextView) findViewById(R.id.editUserName);
-        passwordField = (TextView) findViewById(R.id.editPassword);
+        usernameField = findViewById(R.id.editUserName);
+        passwordField = findViewById(R.id.editPassword);
 
         // Retrieve list of servers
         serverList = getResources().getStringArray(R.array.spinner_list_item_array_server);
@@ -105,7 +105,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         Log.d(TAG, serverURIs.toString());
 
         // Create server spinner
-        serverField = (Spinner) findViewById(R.id.spinnerServer);
+        serverField = findViewById(R.id.spinnerServer);
         serverNames.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         serverField.setAdapter(serverNames);
 
@@ -127,34 +127,30 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         serverField.setSelection(serverPos);
 
         // Submit button
-        loginSubmitButton = (Button) findViewById(R.id.buttonLogin);
+        loginSubmitButton = findViewById(R.id.buttonLogin);
 
         // allow keyboard to disappear on screen click
-        findViewById(R.id.relativeLayout).setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                InputMethodManager imm = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
-                imm.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), 0);
-                return true;
-            }
-        });
+        findViewById(R.id.relativeLayout).setOnTouchListener(
+                (v, event) -> {
+                    InputMethodManager imm = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
+                    imm.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), 0);
+                    return true;
+                });
 
     }
 
     public void disableLogin() {
 
         // Disable login
-        loginSubmitButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
+        loginSubmitButton.setOnClickListener(
+                v -> {
 
-                // Toast to warn about check permissions
-                Toast.makeText(LoginActivity.this,
-                        R.string.checkingResources,
-                        Toast.LENGTH_LONG).show();
+                    // Toast to warn about check permissions
+                    Toast.makeText(LoginActivity.this,
+                            R.string.checkingResources,
+                            Toast.LENGTH_LONG).show();
 
-            }
-        });
+                });
 
     }
 
@@ -188,7 +184,8 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                     logout = false;
 
                     // Initialize service to make sure it gets bound to service
-                    Intent intent = new Intent(LoginActivity.this, AmbulanceForegroundService.class);
+                    Intent intent = new Intent(LoginActivity.this,
+                            AmbulanceForegroundService.class);
                     intent.putExtra("ADD_STOP_ACTION", true);
                     intent.setAction(AmbulanceForegroundService.Actions.START_SERVICE);
                     startService(intent);
@@ -324,9 +321,11 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
             Log.d(TAG, "Will offer credentials");
 
             // Login at service
-            Intent intent = new Intent(LoginActivity.this, AmbulanceForegroundService.class);
+            Intent intent = new Intent(LoginActivity.this,
+                    AmbulanceForegroundService.class);
             intent.setAction(AmbulanceForegroundService.Actions.LOGIN);
-            intent.putExtra("CREDENTIALS", new String[]{username, password, serverUri, serverApiUri});
+            intent.putExtra("CREDENTIALS",
+                    new String[]{username, password, serverUri, serverApiUri});
 
             // What to do when service completes?
             new OnServiceComplete(LoginActivity.this,
@@ -354,7 +353,6 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                     .setFailureMessage(getResources().getString(R.string.couldNotLoginUser, username))
                     .setAlert(new AlertSnackbar(LoginActivity.this))
                     .start();
-
 
         }
 
@@ -414,7 +412,8 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         if (requestCode == REQUEST_PERMISSIONS_REQUEST_CODE) {
             if (grantResults.length <= 0) {
 
-                // If user interaction was interrupted, the permission request is cancelled and you
+                // If user interaction was interrupted,
+                // the permission request is cancelled and you
                 // receive empty arrays.
                 Log.i(TAG, "User interaction was cancelled.");
 
@@ -462,51 +461,46 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
         // Check if the device has the necessary location settings.
         settingsClient.checkLocationSettings(AmbulanceForegroundService.getLocationSettingsRequest())
-                .addOnSuccessListener(this, new OnSuccessListener<LocationSettingsResponse>() {
-                    @SuppressLint("MissingPermission")
-                    @Override
-                    public void onSuccess(LocationSettingsResponse locationSettingsResponse) {
-                        Log.i(TAG, "All location settings are satisfied.");
+                .addOnSuccessListener(this,
+                        locationSettingsResponse -> {
+                            Log.i(TAG, "All location settings are satisfied.");
 
-                        // enable location updates
-                        AmbulanceForegroundService.setCanUpdateLocation(true);
+                            // enable location updates
+                            AmbulanceForegroundService.setCanUpdateLocation(true);
 
-                        // enable login
-                        enableLogin();
+                            // enable login
+                            enableLogin();
 
-                    }
-                })
-                .addOnFailureListener(this, new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        int statusCode = ((ApiException) e).getStatusCode();
-                        switch (statusCode) {
-                            case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
-                                Log.i(TAG, "Location settings are not satisfied. Attempting to upgrade " +
-                                        "location settings ");
-                                try {
-                                    // Show the dialog by calling startResolutionForResult(), and check the
-                                    // result in onActivityResult().
-                                    ResolvableApiException rae = (ResolvableApiException) e;
-                                    rae.startResolutionForResult(LoginActivity.this, REQUEST_CHECK_SETTINGS);
-                                } catch (IntentSender.SendIntentException sie) {
-                                    Log.i(TAG, "PendingIntent unable to execute request.");
-                                }
-                                break;
-                            case LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:
-                                new AlertSnackbar(LoginActivity.this)
-                                        .alert(getString(R.string.settingsAreInadequate));
+                        })
+                .addOnFailureListener(this,
+                        e -> {
+                            int statusCode = ((ApiException) e).getStatusCode();
+                            switch (statusCode) {
+                                case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
+                                    Log.i(TAG, "Location settings are not satisfied. Attempting to upgrade " +
+                                            "location settings ");
+                                    try {
+                                        // Show the dialog by calling startResolutionForResult(), and check the
+                                        // result in onActivityResult().
+                                        ResolvableApiException rae = (ResolvableApiException) e;
+                                        rae.startResolutionForResult(LoginActivity.this, REQUEST_CHECK_SETTINGS);
+                                    } catch (IntentSender.SendIntentException sie) {
+                                        Log.i(TAG, "PendingIntent unable to execute request.");
+                                    }
+                                    break;
+                                case LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:
+                                    new AlertSnackbar(LoginActivity.this)
+                                            .alert(getString(R.string.settingsAreInadequate));
 
-                                // disable location updates
-                                AmbulanceForegroundService.setCanUpdateLocation(false);
+                                    // disable location updates
+                                    AmbulanceForegroundService.setCanUpdateLocation(false);
 
-                                // enable login
-                                enableLogin();
+                                    // enable login
+                                    enableLogin();
 
-                        }
+                            }
 
-                    }
-                });
+                        });
 
     }
 

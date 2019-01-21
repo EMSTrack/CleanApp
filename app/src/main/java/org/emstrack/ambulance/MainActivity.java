@@ -359,7 +359,7 @@ public class MainActivity extends AppCompatActivity {
 
             // Creates list of hospital names
             ArrayList<String> hospitalList = new ArrayList<>();
-            hospitalList.add("Select hospital:");
+            hospitalList.add(getString(R.string.selectHospital));
             for (HospitalPermission hospitalPermission : hospitalPermissions)
                 hospitalList.add(hospitalPermission.getHospitalName());
 
@@ -370,7 +370,7 @@ public class MainActivity extends AppCompatActivity {
 
             // Creates list of base names
             ArrayList<String> baseList = new ArrayList<>();
-            baseList.add("Select base:");
+            baseList.add(getString(R.string.selectBase));
             // for (HospitalPermission hospitalPermission : hospitalPermissions)
             //    hospitalList.add(hospitalPermission.getHospitalName());
 

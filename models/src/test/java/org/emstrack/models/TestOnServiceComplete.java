@@ -104,7 +104,9 @@ public class TestOnServiceComplete {
 
         };
 
+        assertFalse(service.isStarted());
         service.start();
+        assertTrue(service.isStarted());
         while (!(service.isComplete() || service.isTimedOut())) {
             Thread.sleep(1000);
             ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
@@ -137,7 +139,7 @@ public class TestOnServiceComplete {
                 // Broadcast success
                 Intent localIntent = new Intent(BroadcastActions.SUCCESS);
                 localIntent.putExtra(BroadcastExtras.UUID, getUuid());
-                localIntent.putExtra(BroadcastExtras.MESSAGE, "PASSED!");
+                localIntent.putExtra(org.emstrack.models.util.BroadcastExtras.MESSAGE, "PASSED!");
                 instance.sendBroadcast(localIntent);
 
                 Log.d(TAG, "Sent message");
@@ -154,8 +156,11 @@ public class TestOnServiceComplete {
                 assertTrue(false);
             }
 
-        }.start();
+        };
 
+        assertFalse(service.isStarted());
+        service.start();
+        assertTrue(service.isStarted());
         while (!(service.isComplete() || service.isTimedOut())) {
             Thread.sleep(1000);
             ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
@@ -188,7 +193,7 @@ public class TestOnServiceComplete {
                 // Broadcast failure
                 Intent localIntent = new Intent(BroadcastActions.FAILURE);
                 localIntent.putExtra(BroadcastExtras.UUID, getUuid());
-                localIntent.putExtra(BroadcastExtras.MESSAGE, "FAILED!");
+                localIntent.putExtra(org.emstrack.models.util.BroadcastExtras.MESSAGE, "FAILED!");
                 instance.sendBroadcast(localIntent);
 
             }
@@ -203,8 +208,11 @@ public class TestOnServiceComplete {
                 assertTrue(true);
             }
 
-        }.start();
+        };
 
+        assertFalse(service.isStarted());
+        service.start();
+        assertTrue(service.isStarted());
         while (!(service.isComplete() || service.isTimedOut())) {
             Thread.sleep(1000);
             ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
@@ -237,7 +245,7 @@ public class TestOnServiceComplete {
                 // Broadcast success
                 Intent localIntent = new Intent(BroadcastActions.SUCCESS);
                 localIntent.putExtra(BroadcastExtras.UUID, getUuid() + "NOT");
-                localIntent.putExtra(BroadcastExtras.MESSAGE, "FAILED");
+                localIntent.putExtra(org.emstrack.models.util.BroadcastExtras.MESSAGE, "FAILED");
                 instance.sendBroadcast(localIntent);
 
                 Log.d(TAG, "Sent message");
@@ -254,8 +262,11 @@ public class TestOnServiceComplete {
                 assertTrue(true);
             }
 
-        }.start();
+        };
 
+        assertFalse(service.isStarted());
+        service.start();
+        assertTrue(service.isStarted());
         while (!(service.isComplete() || service.isTimedOut())) {
             Thread.sleep(1000);
             ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
@@ -288,7 +299,7 @@ public class TestOnServiceComplete {
                 // Broadcast success
                 Intent localIntent = new Intent(BroadcastActions.SUCCESS);
                 localIntent.putExtra(BroadcastExtras.UUID, getUuid() + "NOT");
-                localIntent.putExtra(BroadcastExtras.MESSAGE, "FAILED");
+                localIntent.putExtra(org.emstrack.models.util.BroadcastExtras.MESSAGE, "FAILED");
                 instance.sendBroadcast(localIntent);
 
                 Log.d(TAG, "Sent message");
@@ -306,9 +317,11 @@ public class TestOnServiceComplete {
             }
 
         }
-                .setSuccessIdCheck(false)
-                .start();
+                .setSuccessIdCheck(false);
 
+        assertFalse(service.isStarted());
+        service.start();
+        assertTrue(service.isStarted());
         while (!(service.isComplete() || service.isTimedOut())) {
             Thread.sleep(1000);
             ShadowLooper.runUiThreadTasksIncludingDelayedTasks();

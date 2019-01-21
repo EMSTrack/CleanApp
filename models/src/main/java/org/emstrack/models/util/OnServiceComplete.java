@@ -10,6 +10,8 @@ import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
 /**
+ * Safely run and chain services by listening to success and failure actions
+ *
  * <p>
  *     The <code>OnServiceComplete</code> class provides a convenient way to safely run services.
  *     It automatically registers to listen to success and failure messages and has a
@@ -112,7 +114,7 @@ import android.util.Log;
  * @author mauricio
  * @since 3/21/2018
  */
-public abstract class OnServiceComplete extends BroadcastReceiver {
+public abstract class OnServiceComplete extends BroadcastReceiver implements StartableTask<OnServiceComplete> {
 
     private final String TAG = OnServiceComplete.class.getSimpleName();
 
@@ -121,7 +123,7 @@ public abstract class OnServiceComplete extends BroadcastReceiver {
     private final String failureAction;
     private final String uuid;
     private final int timeout;
-    private OnServiceComplete next;
+    private StartableTask next;
     private final Intent intent;
 
     private String failureMessage;
@@ -129,6 +131,7 @@ public abstract class OnServiceComplete extends BroadcastReceiver {
     private boolean successFlag;
     private boolean completeFlag;
     private boolean timedOutFlag;
+    private boolean startedFlag;
     private boolean successIdCheck;
     private boolean failureIdCheck;
 
@@ -138,14 +141,14 @@ public abstract class OnServiceComplete extends BroadcastReceiver {
      * @param failureAction the failure action to listen to
      * @param intent the intent to fire
      * @param timeout timeout in milliseconds
-     * @param next the next service to execute
+     * @param next the next {@link StartableTask} to execute
      */
     public OnServiceComplete(final Context context,
                              final String successAction,
                              final String failureAction,
                              Intent intent,
                              int timeout,
-                             OnServiceComplete next) {
+                             StartableTask next) {
 
         // context and next
         this.context = context;
@@ -165,6 +168,7 @@ public abstract class OnServiceComplete extends BroadcastReceiver {
         // success and complete flags
         this.successFlag = false;
         this.completeFlag = false;
+        this.startedFlag = false;
         this.timedOutFlag = false;
 
         // Register actions for broadcasting
@@ -206,13 +210,13 @@ public abstract class OnServiceComplete extends BroadcastReceiver {
      * @param successAction the success action to listen to
      * @param failureAction the failure action to listen to
      * @param intent the intent to fire
-     * @param next the next service to execute
+     * @param next the next {@link StartableTask} to execute
      */
     public OnServiceComplete(final Context context,
                              final String successAction,
                              final String failureAction,
                              Intent intent,
-                             OnServiceComplete next) {
+                             StartableTask next) {
         this(context, successAction, failureAction, intent, 10000, next);
     }
 
@@ -234,7 +238,10 @@ public abstract class OnServiceComplete extends BroadcastReceiver {
 
     /**
      * Run {@link #run()} and start the intent
+     *
+     * @return this object
      */
+    @Override
     public OnServiceComplete start() {
 
         // Run
@@ -264,7 +271,7 @@ public abstract class OnServiceComplete extends BroadcastReceiver {
                 // Make bundle
                 Bundle bundle = new Bundle();
                 bundle.putString(BroadcastExtras.UUID, uuid);
-                bundle.putString(BroadcastExtras.MESSAGE,
+                bundle.putString(org.emstrack.models.util.BroadcastExtras.MESSAGE,
                         "Timed out without completing service.");
 
                 // Call failure
@@ -274,20 +281,25 @@ public abstract class OnServiceComplete extends BroadcastReceiver {
 
         }, this.timeout);
 
+        // set started
+        this.startedFlag = true;
+
+        // return this
         return this;
     }
 
     /**
-     * Set next <code>OnServiceComplete</code> to execute after a successful action is received
+     * Set next {@link StartableTask} to execute after a successful action is received
      *
      * <p>
-     *     <b>IMPORTANT:</b> The next service is not executed if a failure action is received.
+     *     <b>IMPORTANT:</b> The next {@link StartableTask} is not executed if a failure action is received.
      * </p>
      *
-     * @param next the next service
+     * @param next the next {@link StartableTask}
      * @return this object
      */
-    public OnServiceComplete setNext(OnServiceComplete next) {
+    @Override
+    public OnServiceComplete setNext(StartableTask next) {
         this.next = next;
         return this;
     }
@@ -362,6 +374,16 @@ public abstract class OnServiceComplete extends BroadcastReceiver {
      */
     public boolean isTimedOut() {
         return timedOutFlag;
+    }
+
+    /**
+     * Return whether the service has started
+     *
+     * @return <code>True</code> if started
+     */
+    @Override
+    public boolean isStarted() {
+        return this.startedFlag;
     }
 
     /**
@@ -443,8 +465,8 @@ public abstract class OnServiceComplete extends BroadcastReceiver {
             onSuccess(intent.getExtras());
 
             // has next
-            if (next != null)
-                next.start();
+            if (this.next != null)
+                this.next.start();
 
         } else {
 
@@ -479,7 +501,7 @@ public abstract class OnServiceComplete extends BroadcastReceiver {
         // Alert user
         String message = failureMessage;
         if (extras != null) {
-            String msg = extras.getString(BroadcastExtras.MESSAGE);
+            String msg = extras.getString(org.emstrack.models.util.BroadcastExtras.MESSAGE);
             if (msg != null)
                message +=  '\n' + msg;
 

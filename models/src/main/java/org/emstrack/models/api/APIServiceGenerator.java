@@ -9,12 +9,15 @@ import org.emstrack.models.Token;
 
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
+/**
+ * Convenience class to build retrofit api service calls
+ *
+ * @author mauricio
+ * @since 1/19/2019
+ */
 public class APIServiceGenerator {
 
     private static String token;
@@ -36,10 +39,20 @@ public class APIServiceGenerator {
     private static OkHttpClient.Builder httpClient
             = new OkHttpClient.Builder();
 
+    /**
+     * Retrieve current token
+     *
+     * @return the token
+     */
     public static String getToken() {
         return token;
     }
 
+    /**
+     * Set user credentials
+     *
+     * @param credentials the user credentials
+     */
     public static void setCredentials(Credentials credentials) {
 
         // set credentials
@@ -57,14 +70,16 @@ public class APIServiceGenerator {
         }
 
     }
-    public static void buildRetrieveToken() {
-        buildRetrieveToken(null);
-    }
 
-    public static OnAPICallComplete<Token> buildRetrieveToken(APICallback<Token> callback) {
+    /**
+     * Build {@link OnAPICallComplete<Token>} for retrieving token
+     *
+     * @return the {@link OnAPICallComplete<Token>}
+     */
+    public static OnAPICallComplete<Token> buildRetrieveToken() {
 
         // Get token
-        APIService service = APIServiceGenerator.createService(APIService.class, (String) null);
+        APIService service = APIServiceGenerator.createService(APIService.class, null);
         retrofit2.Call<Token> call = service.getToken(credentials);
         return new OnAPICallComplete<Token>(call) {
 
@@ -72,24 +87,37 @@ public class APIServiceGenerator {
             public void onSuccess(Token token) {
                 // save token
                 APIServiceGenerator.token = token.getToken();
-                if (callback != null)
-                    callback.onSuccess(token);
             }
 
             @Override
-            public void onFailure(Throwable t) {
-                if (callback != null)
-                    callback.onFailure(t);
+            public void onFailure(Throwable t) throws RuntimeException {
+                super.onFailure(t);
+                throw new RuntimeException(t);
             }
 
         };
 
     }
 
+    /**
+     * Create service call
+     *
+     * @param serviceClass the class of the service
+     * @param <S> the type of the service
+     * @return the service
+     */
     public static <S> S createService(Class<S> serviceClass) {
         return createService(serviceClass, APIServiceGenerator.token);
     }
 
+    /**
+     * Create service call
+     *
+     * @param serviceClass the class of the service
+     * @param token the authentication token
+     * @param <S> the type of the service
+     * @return the service
+     */
     public static <S> S createService(Class<S> serviceClass, final String token ) {
         if ( token != null ) {
 

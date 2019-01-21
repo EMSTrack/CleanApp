@@ -14,7 +14,6 @@ import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
@@ -34,24 +33,19 @@ import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.LocationSettingsRequest;
-import com.google.android.gms.location.LocationSettingsResponse;
 import com.google.android.gms.location.LocationSettingsStatusCodes;
 import com.google.android.gms.location.SettingsClient;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 import org.eclipse.paho.android.service.MqttAndroidClient;
 import org.eclipse.paho.client.mqttv3.MqttException;
-import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.emstrack.ambulance.LoginActivity;
 import org.emstrack.ambulance.R;
 import org.emstrack.ambulance.util.Geofence;
 import org.emstrack.ambulance.util.AmbulanceUpdateFilter;
 import org.emstrack.ambulance.util.AmbulanceUpdate;
-import org.emstrack.models.api.APICallback;
 import org.emstrack.models.api.APIService;
 import org.emstrack.models.api.APIServiceGenerator;
 import org.emstrack.models.Ambulance;
@@ -64,13 +58,12 @@ import org.emstrack.models.GPSLocation;
 import org.emstrack.models.Hospital;
 import org.emstrack.models.HospitalPermission;
 import org.emstrack.models.Location;
+import org.emstrack.models.util.OnComplete;
 import org.emstrack.models.util.OnServiceComplete;
-import org.emstrack.models.Token;
 import org.emstrack.models.Waypoint;
 import org.emstrack.mqtt.MishandledTopicException;
 import org.emstrack.mqtt.MqttProfileCallback;
 import org.emstrack.mqtt.MqttProfileClient;
-import org.emstrack.mqtt.MqttProfileMessageCallback;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -188,7 +181,6 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
     }
 
     public class BroadcastExtras {
-        public final static String MESSAGE = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastextras.MESSAGE";
         public final static String GEOFENCE_TRANSITION = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastextras.GEOFENCE_TRANSTION";
     }
 
@@ -683,7 +675,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
                 // Broadcast failure
                 Intent localIntent = new Intent(org.emstrack.models.util.BroadcastActions.FAILURE);
-                localIntent.putExtra(BroadcastExtras.MESSAGE, e.toString());
+                localIntent.putExtra(org.emstrack.models.util.BroadcastExtras.MESSAGE, e.toString());
                 sendBroadcastWithUUID(localIntent, uuid);
 
             }
@@ -1397,7 +1389,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
                     // Broadcast failure
                     Intent localIntent = new Intent(org.emstrack.models.util.BroadcastActions.FAILURE);
-                    localIntent.putExtra(BroadcastExtras.MESSAGE, message);
+                    localIntent.putExtra(org.emstrack.models.util.BroadcastExtras.MESSAGE, message);
                     sendBroadcastWithUUID(localIntent, uuid);
 
                 }
@@ -1410,7 +1402,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
             // Broadcast failure
             Intent localIntent = new Intent(org.emstrack.models.util.BroadcastActions.FAILURE);
-            localIntent.putExtra(BroadcastExtras.MESSAGE, "Could not disconnect: " + e.toString());
+            localIntent.putExtra(org.emstrack.models.util.BroadcastExtras.MESSAGE, "Could not disconnect: " + e.toString());
             sendBroadcastWithUUID(localIntent, uuid);
 
         } catch (Exception e) {
@@ -1419,7 +1411,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
             // Broadcast failure
             Intent localIntent = new Intent(org.emstrack.models.util.BroadcastActions.FAILURE);
-            localIntent.putExtra(BroadcastExtras.MESSAGE, "Could not disconnect: " + e.toString());
+            localIntent.putExtra(org.emstrack.models.util.BroadcastExtras.MESSAGE, "Could not disconnect: " + e.toString());
             sendBroadcastWithUUID(localIntent, uuid);
 
         }
@@ -1881,24 +1873,22 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
                         // Retrieve token
                         APIServiceGenerator.setCredentials(credentials);
-                        APIServiceGenerator.buildRetrieveToken(new APICallback<Token>() {
-                            @Override
-                            public void onSuccess(Token t) {
+                        try {
+                            APIServiceGenerator.buildRetrieveToken()
+                                    .setNext(new OnComplete() {
+                                        @Override
+                                        public void run() {
+                                            // Set token
+                                            _apiToken = APIServiceGenerator.getToken();
 
-                                // Set token
-                                _apiToken = APIServiceGenerator.getToken();
+                                            // Retrieve bases
+                                            retrieveBases(uuid, false);
 
-                                // Retrieve bases
-                                retrieveBases(uuid, false);
-
-                            }
-
-                            @Override
-                            public void onFailure(Throwable t) {
-                                Log.i(TAG, "Failed to retrieve token");
-                            }
-
-                        }).start();
+                                        }
+                                    }).start();
+                        } catch (RuntimeException e) {
+                                Log.i(TAG, "Failed to retrieve token: " + e);
+                        }
 
                         // set callback for handling loss of connection/reconnection
                         getProfileClient(AmbulanceForegroundService.this).setCallback(AmbulanceForegroundService.this);
@@ -1917,7 +1907,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
                         // Broadcast failure
                         Intent localIntent = new Intent(org.emstrack.models.util.BroadcastActions.FAILURE);
-                        localIntent.putExtra(BroadcastExtras.MESSAGE, message);
+                        localIntent.putExtra(org.emstrack.models.util.BroadcastExtras.MESSAGE, message);
                         sendBroadcastWithUUID(localIntent, uuid);
 
                     }
@@ -1971,7 +1961,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
                             // Broadcast failure
                             Intent localIntent = new Intent(org.emstrack.models.util.BroadcastActions.FAILURE);
-                            localIntent.putExtra(BroadcastExtras.MESSAGE, message);
+                            localIntent.putExtra(org.emstrack.models.util.BroadcastExtras.MESSAGE, message);
                             sendBroadcastWithUUID(localIntent, uuid);
 
                         }
@@ -1985,7 +1975,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
                     // Broadcast failure
                     Intent localIntent = new Intent(org.emstrack.models.util.BroadcastActions.FAILURE);
-                    localIntent.putExtra(BroadcastExtras.MESSAGE, message);
+                    localIntent.putExtra(org.emstrack.models.util.BroadcastExtras.MESSAGE, message);
                     sendBroadcastWithUUID(localIntent, uuid);
 
                 }
@@ -2020,7 +2010,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
             // Broadcast failure
             Intent localIntent = new Intent(org.emstrack.models.util.BroadcastActions.FAILURE);
-            localIntent.putExtra(BroadcastExtras.MESSAGE, getString(R.string.invalidAmbulanceId));
+            localIntent.putExtra(org.emstrack.models.util.BroadcastExtras.MESSAGE, getString(R.string.invalidAmbulanceId));
             sendBroadcastWithUUID(localIntent, uuid);
 
             return;
@@ -2056,7 +2046,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
             // Broadcast failure
             Intent localIntent = new Intent(org.emstrack.models.util.BroadcastActions.FAILURE);
-            localIntent.putExtra(BroadcastExtras.MESSAGE, getString(R.string.couldNotSubscribeToAmbulance));
+            localIntent.putExtra(org.emstrack.models.util.BroadcastExtras.MESSAGE, getString(R.string.couldNotSubscribeToAmbulance));
             sendBroadcastWithUUID(localIntent, uuid);
 
         }
@@ -2137,7 +2127,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
                             // Broadcast failure
                             Intent localIntent = new Intent(org.emstrack.models.util.BroadcastActions.FAILURE);
-                            localIntent.putExtra(BroadcastExtras.MESSAGE, getString(R.string.couldNotParseAmbulance));
+                            localIntent.putExtra(org.emstrack.models.util.BroadcastExtras.MESSAGE, getString(R.string.couldNotParseAmbulance));
                             sendBroadcastWithUUID(localIntent, uuid);
 
                         }
@@ -2150,7 +2140,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
             // Broadcast failure
             Intent localIntent = new Intent(org.emstrack.models.util.BroadcastActions.FAILURE);
-            localIntent.putExtra(BroadcastExtras.MESSAGE, getString(R.string.couldNotSubscribeToAmbulance));
+            localIntent.putExtra(org.emstrack.models.util.BroadcastExtras.MESSAGE, getString(R.string.couldNotSubscribeToAmbulance));
             sendBroadcastWithUUID(localIntent, uuid);
 
         }
@@ -2294,7 +2284,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
                 // Broadcast failure
                 Intent localIntent = new Intent(org.emstrack.models.util.BroadcastActions.FAILURE);
-                localIntent.putExtra(BroadcastExtras.MESSAGE, getString(R.string.couldNotSubscribeToHospital));
+                localIntent.putExtra(org.emstrack.models.util.BroadcastExtras.MESSAGE, getString(R.string.couldNotSubscribeToHospital));
                 sendBroadcastWithUUID(localIntent, uuid);
 
             }
@@ -2345,7 +2335,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
             // Broadcast failure
             Intent localIntent = new Intent(org.emstrack.models.util.BroadcastActions.FAILURE);
-            localIntent.putExtra(BroadcastExtras.MESSAGE,
+            localIntent.putExtra(org.emstrack.models.util.BroadcastExtras.MESSAGE,
                     org.emstrack.ambulance.R.string.couldNotRetrieveBases);
             sendBroadcastWithUUID(localIntent, uuid);
 
@@ -2519,7 +2509,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
                 // Broadcast failure
                 Intent localIntent = new Intent(org.emstrack.models.util.BroadcastActions.FAILURE);
-                localIntent.putExtra(BroadcastExtras.MESSAGE, getString(R.string.couldNotSubscribeToAmbulance));
+                localIntent.putExtra(org.emstrack.models.util.BroadcastExtras.MESSAGE, getString(R.string.couldNotSubscribeToAmbulance));
                 sendBroadcastWithUUID(localIntent, uuid);
 
             }
@@ -2609,7 +2599,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
             // Broadcast failure and return
             Intent localIntent = new Intent(org.emstrack.models.util.BroadcastActions.FAILURE);
-            localIntent.putExtra(BroadcastExtras.MESSAGE, getString(R.string.cannotUseLocationServices));
+            localIntent.putExtra(org.emstrack.models.util.BroadcastExtras.MESSAGE, getString(R.string.cannotUseLocationServices));
             sendBroadcastWithUUID(localIntent, uuid);
             return;
 
@@ -2621,7 +2611,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
             // Broadcast failure and return
             Intent localIntent = new Intent(org.emstrack.models.util.BroadcastActions.FAILURE);
-            localIntent.putExtra(BroadcastExtras.MESSAGE, getString(R.string.noAmbulanceSelected));
+            localIntent.putExtra(org.emstrack.models.util.BroadcastExtras.MESSAGE, getString(R.string.noAmbulanceSelected));
             sendBroadcastWithUUID(localIntent, uuid);
             return;
 
@@ -2672,7 +2662,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
                                 // Broadcast failure and return
                                 Intent localIntent = new Intent(org.emstrack.models.util.BroadcastActions.FAILURE);
-                                localIntent.putExtra(BroadcastExtras.MESSAGE, message);
+                                localIntent.putExtra(org.emstrack.models.util.BroadcastExtras.MESSAGE, message);
                                 sendBroadcastWithUUID(localIntent, uuid);
 
                             });
@@ -2714,9 +2704,9 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                     Log.i(TAG, "onFailure");
 
                     // Broadcast failure
-                    String message = extras.getString(BroadcastExtras.MESSAGE);
+                    String message = extras.getString(org.emstrack.models.util.BroadcastExtras.MESSAGE);
                     Intent localIntent = new Intent(org.emstrack.models.util.BroadcastActions.FAILURE);
-                    localIntent.putExtra(BroadcastExtras.MESSAGE, message);
+                    localIntent.putExtra(org.emstrack.models.util.BroadcastExtras.MESSAGE, message);
                     sendBroadcastWithUUID(localIntent, uuid);
 
                 }
@@ -2752,9 +2742,9 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                     Log.i(TAG, "onFailure");
 
                     // Broadcast failure
-                    String message = extras.getString(BroadcastExtras.MESSAGE);
+                    String message = extras.getString(org.emstrack.models.util.BroadcastExtras.MESSAGE);
                     Intent localIntent = new Intent(org.emstrack.models.util.BroadcastActions.FAILURE);
-                    localIntent.putExtra(BroadcastExtras.MESSAGE, message);
+                    localIntent.putExtra(org.emstrack.models.util.BroadcastExtras.MESSAGE, message);
                     sendBroadcastWithUUID(localIntent, uuid);
 
                 }
@@ -2790,7 +2780,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
             // ambulance is not available, report failure
             Intent localIntent = new Intent(org.emstrack.models.util.BroadcastActions.FAILURE);
-            localIntent.putExtra(BroadcastExtras.MESSAGE, getString(R.string.anotherClientReporting));
+            localIntent.putExtra(org.emstrack.models.util.BroadcastExtras.MESSAGE, getString(R.string.anotherClientReporting));
             sendBroadcastWithUUID(localIntent, uuid);
             return;
 
@@ -2903,7 +2893,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
                                 // Broadcast failure
                                 Intent localIntent = new Intent(org.emstrack.models.util.BroadcastActions.FAILURE);
-                                localIntent.putExtra(BroadcastExtras.MESSAGE, getString(R.string.failedToStartLocationUpdates));
+                                localIntent.putExtra(org.emstrack.models.util.BroadcastExtras.MESSAGE, getString(R.string.failedToStartLocationUpdates));
                                 sendBroadcastWithUUID(localIntent, uuid);
 
                             });
@@ -2914,7 +2904,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
             // Broadcast failure
             Intent localIntent = new Intent(org.emstrack.models.util.BroadcastActions.FAILURE);
-            localIntent.putExtra(BroadcastExtras.MESSAGE, getString(R.string.failedToStartLocationUpdates));
+            localIntent.putExtra(org.emstrack.models.util.BroadcastExtras.MESSAGE, getString(R.string.failedToStartLocationUpdates));
             sendBroadcastWithUUID(localIntent, uuid);
 
         }
@@ -2997,7 +2987,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
             // Broadcast failure and return
             Intent localIntent = new Intent(org.emstrack.models.util.BroadcastActions.FAILURE);
-            localIntent.putExtra(BroadcastExtras.MESSAGE, getString(R.string.noAmbulanceSelected));
+            localIntent.putExtra(org.emstrack.models.util.BroadcastExtras.MESSAGE, getString(R.string.noAmbulanceSelected));
             sendBroadcastWithUUID(localIntent, uuid);
             return;
 
@@ -3102,7 +3092,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
                             // Broadcast failure
                             Intent localIntent = new Intent(org.emstrack.models.util.BroadcastActions.FAILURE);
-                            localIntent.putExtra(BroadcastExtras.MESSAGE, getString(R.string.couldNotParseStatus));
+                            localIntent.putExtra(org.emstrack.models.util.BroadcastExtras.MESSAGE, getString(R.string.couldNotParseStatus));
                             sendBroadcastWithUUID(localIntent, uuid);
 
                         }
@@ -3114,7 +3104,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
             // Broadcast failure
             Intent localIntent = new Intent(org.emstrack.models.util.BroadcastActions.FAILURE);
-            localIntent.putExtra(BroadcastExtras.MESSAGE, getString(R.string.couldNotSubscribeToStatuses));
+            localIntent.putExtra(org.emstrack.models.util.BroadcastExtras.MESSAGE, getString(R.string.couldNotSubscribeToStatuses));
             sendBroadcastWithUUID(localIntent, uuid);
         }
 
@@ -3195,7 +3185,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
                             // Broadcast failure
                             Intent localIntent = new Intent(org.emstrack.models.util.BroadcastActions.FAILURE);
-                            localIntent.putExtra(BroadcastExtras.MESSAGE, getString(R.string.couldNotParseCallData));
+                            localIntent.putExtra(org.emstrack.models.util.BroadcastExtras.MESSAGE, getString(R.string.couldNotParseCallData));
                             sendBroadcastWithUUID(localIntent, uuid);
 
                         }
@@ -3208,7 +3198,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
             // Broadcast failure
             Intent localIntent = new Intent(org.emstrack.models.util.BroadcastActions.FAILURE);
-            localIntent.putExtra(BroadcastExtras.MESSAGE,
+            localIntent.putExtra(org.emstrack.models.util.BroadcastExtras.MESSAGE,
                     getString(R.string.couldNotSubscribe, "data for call " + callId));
             sendBroadcastWithUUID(localIntent, uuid);
 
@@ -3244,7 +3234,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
                     /// Broadcast failure
                     Intent localIntent = new Intent(org.emstrack.models.util.BroadcastActions.FAILURE);
-                    localIntent.putExtra(BroadcastExtras.MESSAGE, message);
+                    localIntent.putExtra(org.emstrack.models.util.BroadcastExtras.MESSAGE, message);
                     sendBroadcastWithUUID(localIntent, uuid);
 
                 }
@@ -3437,7 +3427,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
             Log.d(TAG, "Can't finish call: not serving any call.");
 
             Intent localIntent = new Intent(org.emstrack.models.util.BroadcastActions.FAILURE);
-            localIntent.putExtra(BroadcastExtras.MESSAGE, getString(R.string.couldNotFinishCall));
+            localIntent.putExtra(org.emstrack.models.util.BroadcastExtras.MESSAGE, getString(R.string.couldNotFinishCall));
             sendBroadcastWithUUID(localIntent, uuid);
 
             return;
@@ -3463,7 +3453,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
             Log.d(TAG, "Can't decline call: currently serving call/" + pendingCalls.getCurrentCallId());
 
             Intent localIntent = new Intent(org.emstrack.models.util.BroadcastActions.FAILURE);
-            localIntent.putExtra(BroadcastExtras.MESSAGE, getString(R.string.couldNotDeclineCall));
+            localIntent.putExtra(org.emstrack.models.util.BroadcastExtras.MESSAGE, getString(R.string.couldNotDeclineCall));
             sendBroadcastWithUUID(localIntent, uuid);
 
             return;
@@ -3498,7 +3488,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
             Log.d(TAG, "Can't suspend call: not currently serving any call");
 
             Intent localIntent = new Intent(org.emstrack.models.util.BroadcastActions.FAILURE);
-            localIntent.putExtra(BroadcastExtras.MESSAGE, getString(R.string.couldNotSuspendCall));
+            localIntent.putExtra(org.emstrack.models.util.BroadcastExtras.MESSAGE, getString(R.string.couldNotSuspendCall));
             sendBroadcastWithUUID(localIntent, uuid);
 
             return;
@@ -3528,7 +3518,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
             Log.d(TAG, "Will not process next call: currently serving call/" + pendingCalls.getCurrentCallId());
 
             Intent localIntent = new Intent(org.emstrack.models.util.BroadcastActions.FAILURE);
-            localIntent.putExtra(BroadcastExtras.MESSAGE, getString(R.string.willNotProcessNextCall));
+            localIntent.putExtra(org.emstrack.models.util.BroadcastExtras.MESSAGE, getString(R.string.willNotProcessNextCall));
             sendBroadcastWithUUID(localIntent, uuid);
             return;
 
@@ -3549,7 +3539,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
             Log.d(TAG, "Ambulance is null. This should never happen");
 
             Intent localIntent = new Intent(org.emstrack.models.util.BroadcastActions.FAILURE);
-            localIntent.putExtra(BroadcastExtras.MESSAGE, getString(R.string.willNotProcessNextCall));
+            localIntent.putExtra(org.emstrack.models.util.BroadcastExtras.MESSAGE, getString(R.string.willNotProcessNextCall));
             sendBroadcastWithUUID(localIntent, uuid);
             return;
 
@@ -3598,7 +3588,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
             Log.d(TAG, "Ambulance not found while in acceptCall()");
 
             Intent localIntent = new Intent(org.emstrack.models.util.BroadcastActions.FAILURE);
-            localIntent.putExtra(BroadcastExtras.MESSAGE, getString(R.string.couldNotFindAmbulance));
+            localIntent.putExtra(org.emstrack.models.util.BroadcastExtras.MESSAGE, getString(R.string.couldNotFindAmbulance));
             sendBroadcastWithUUID(localIntent, uuid);
         }
 
@@ -3615,7 +3605,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
             Log.d(TAG, message);
 
             Intent localIntent = new Intent(org.emstrack.models.util.BroadcastActions.FAILURE);
-            localIntent.putExtra(BroadcastExtras.MESSAGE, message);
+            localIntent.putExtra(org.emstrack.models.util.BroadcastExtras.MESSAGE, message);
             sendBroadcastWithUUID(localIntent, uuid);
             return;
 
@@ -3638,7 +3628,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
             /// Broadcast failure
             Intent localIntent = new Intent(org.emstrack.models.util.BroadcastActions.FAILURE);
-            localIntent.putExtra(BroadcastExtras.MESSAGE, message);
+            localIntent.putExtra(org.emstrack.models.util.BroadcastExtras.MESSAGE, message);
             sendBroadcastWithUUID(localIntent, uuid);
 
         }
@@ -3888,7 +3878,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
             Log.d(TAG, path);
 
             Intent localIntent = new Intent(org.emstrack.models.util.BroadcastActions.FAILURE);
-            localIntent.putExtra(BroadcastExtras.MESSAGE, getString(R.string.couldNotPublish, path));
+            localIntent.putExtra(org.emstrack.models.util.BroadcastExtras.MESSAGE, getString(R.string.couldNotPublish, path));
             sendBroadcastWithUUID(localIntent, uuid);
         }
     }
@@ -3913,7 +3903,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
             Log.d(TAG, "Ambulance not found while in replyToTransition()");
 
             Intent localIntent = new Intent(org.emstrack.models.util.BroadcastActions.FAILURE);
-            localIntent.putExtra(BroadcastExtras.MESSAGE, getString(R.string.couldNotFindAmbulance));
+            localIntent.putExtra(org.emstrack.models.util.BroadcastExtras.MESSAGE, getString(R.string.couldNotFindAmbulance));
             sendBroadcastWithUUID(localIntent, uuid);
             return;
         }
@@ -3931,7 +3921,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                 Log.d(TAG, "AmbulanceCall not found while in replyToTransition()");
 
                 Intent localIntent = new Intent(org.emstrack.models.util.BroadcastActions.FAILURE);
-                localIntent.putExtra(BroadcastExtras.MESSAGE, getString(R.string.couldNotFindAmbulanceCall));
+                localIntent.putExtra(org.emstrack.models.util.BroadcastExtras.MESSAGE, getString(R.string.couldNotFindAmbulanceCall));
                 sendBroadcastWithUUID(localIntent, uuid);
                 return;
 
@@ -4007,7 +3997,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
             // Broadcast failure and return
             Intent localIntent = new Intent(org.emstrack.models.util.BroadcastActions.FAILURE);
-            localIntent.putExtra(BroadcastExtras.MESSAGE, getString(R.string.failedToAddGeofence));
+            localIntent.putExtra(org.emstrack.models.util.BroadcastExtras.MESSAGE, getString(R.string.failedToAddGeofence));
             sendBroadcastWithUUID(localIntent, uuid);
             return;
 
@@ -4082,7 +4072,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
                                                 // Broadcast failure and return
                                                 Intent localIntent = new Intent(org.emstrack.models.util.BroadcastActions.FAILURE);
-                                                localIntent.putExtra(BroadcastExtras.MESSAGE, getString(R.string.failedToAddGeofence));
+                                                localIntent.putExtra(org.emstrack.models.util.BroadcastExtras.MESSAGE, getString(R.string.failedToAddGeofence));
                                                 sendBroadcastWithUUID(localIntent, uuid);
 
                                             });
@@ -4103,7 +4093,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
                             // Broadcast failure and return
                             Intent localIntent = new Intent(org.emstrack.models.util.BroadcastActions.FAILURE);
-                            localIntent.putExtra(BroadcastExtras.MESSAGE, message);
+                            localIntent.putExtra(org.emstrack.models.util.BroadcastExtras.MESSAGE, message);
                             sendBroadcastWithUUID(localIntent, uuid);
 
                         });
@@ -4142,7 +4132,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
                             // Broadcast failure and return
                             Intent localIntent = new Intent(org.emstrack.models.util.BroadcastActions.FAILURE);
-                            localIntent.putExtra(BroadcastExtras.MESSAGE, getString(R.string.failedToRemoveGeofence));
+                            localIntent.putExtra(org.emstrack.models.util.BroadcastExtras.MESSAGE, getString(R.string.failedToRemoveGeofence));
                             sendBroadcastWithUUID(localIntent, uuid);
                             return;
 
