@@ -2,6 +2,7 @@ package org.emstrack.ambulance;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.res.Configuration;
@@ -21,6 +22,7 @@ import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageButton;
@@ -37,6 +39,7 @@ import org.emstrack.ambulance.fragments.AmbulanceFragment;
 import org.emstrack.ambulance.fragments.HospitalFragment;
 import org.emstrack.ambulance.fragments.MapFragment;
 import org.emstrack.ambulance.services.AmbulanceForegroundService;
+import org.emstrack.models.CallStack;
 import org.emstrack.models.util.BroadcastActions;
 import org.emstrack.models.util.OnServiceComplete;
 import org.emstrack.models.Ambulance;
@@ -87,6 +90,7 @@ public class MainActivity extends AppCompatActivity {
     private Map<String, Integer> callPriorityForegroundColors;
 
     private boolean logoutAfterFinish;
+    private ViewPager viewPager;
 
     public class AmbulanceButtonClickListener implements View.OnClickListener {
 
@@ -182,7 +186,7 @@ public class MainActivity extends AppCompatActivity {
                         return;
 
                     int callId = intent.getIntExtra("CALL_ID", -1);
-                    promptAcceptCallDialog(callId);
+                    promptCallAccept(callId);
 
                 } else if (action.equals(AmbulanceForegroundService.BroadcastActions.PROMPT_CALL_END)) {
 
@@ -205,6 +209,11 @@ public class MainActivity extends AppCompatActivity {
                     // change button color to red
                     int myVectorColor = ContextCompat.getColor(MainActivity.this, R.color.colorRed);
                     trackingIcon.setColorFilter(myVectorColor, PorterDuff.Mode.SRC_IN);
+
+                    if ( viewPager.getCurrentItem() != 0) {
+                        // set current pager got ambulance
+                        viewPager.setCurrentItem(0);
+                    }
 
                 } else if (action.equals(AmbulanceForegroundService.BroadcastActions.CALL_COMPLETED)) {
 
@@ -270,12 +279,8 @@ public class MainActivity extends AppCompatActivity {
 
         // Panic button
         ImageButton panicButton = findViewById(R.id.panicButton);
-        panicButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                panicPopUp();
-            }
-        });
+        panicButton.setOnClickListener(
+                v -> panicPopUp());
 
         // Set a Toolbar to replace the ActionBar.
         toolbar = findViewById(R.id.toolbar);
@@ -297,7 +302,7 @@ public class MainActivity extends AppCompatActivity {
         setupDrawerContent(nvDrawer);
 
         // pager
-        ViewPager viewPager = findViewById(R.id.pager);
+        viewPager = findViewById(R.id.pager);
 
         // Setup Adapter for tabLayout
         FragmentPager adapter = new FragmentPager(getSupportFragmentManager(),
@@ -308,7 +313,7 @@ public class MainActivity extends AppCompatActivity {
         viewPager.setAdapter(adapter);
 
         //set up TabLayout Structure
-        TabLayout tabLayout = (TabLayout) findViewById(R.id.tab_layout_home);
+        TabLayout tabLayout = findViewById(R.id.tab_layout_home);
         tabLayout.setTabGravity(TabLayout.GRAVITY_FILL);
         tabLayout.setupWithViewPager(viewPager);
         tabLayout.getTabAt(0).setIcon(R.drawable.ic_ambulance);
@@ -368,17 +373,6 @@ public class MainActivity extends AppCompatActivity {
                     android.R.layout.simple_spinner_dropdown_item, hospitalList);
             hospitalListAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 
-            // Creates list of base names
-            ArrayList<String> baseList = new ArrayList<>();
-            baseList.add(getString(R.string.selectBase));
-            // for (HospitalPermission hospitalPermission : hospitalPermissions)
-            //    hospitalList.add(hospitalPermission.getHospitalName());
-
-            // Create the adapter
-            baseListAdapter = new ArrayAdapter<>(this,
-                    android.R.layout.simple_spinner_dropdown_item, baseList);
-            baseListAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-
             // Any ambulance currently selected?
             Ambulance ambulance = AmbulanceForegroundService.getCurrentAmbulance();
             if (ambulance != null) {
@@ -423,6 +417,8 @@ public class MainActivity extends AppCompatActivity {
     public void onResume() {
         super.onResume();
 
+        Log.d(TAG, "onResume");
+
         // Update location icon
         if (AmbulanceForegroundService.isUpdatingLocation())
             trackingIcon.setAlpha(enabledAlpha);
@@ -430,11 +426,31 @@ public class MainActivity extends AppCompatActivity {
             trackingIcon.setAlpha(disabledAlpha);
 
         // Online icon
-        onlineIcon = (ImageView) findViewById(R.id.onlineIcon);
+        onlineIcon = findViewById(R.id.onlineIcon);
         if (AmbulanceForegroundService.isOnline())
             onlineIcon.setAlpha(enabledAlpha);
         else
             onlineIcon.setAlpha(disabledAlpha);
+
+        // Is there a requested call that needs to be prompted for?
+        boolean promptNextCall = false;
+        int nextCallId = -1;
+        Ambulance ambulance = AmbulanceForegroundService.getCurrentAmbulance();
+        if (ambulance != null) {
+
+            Call call = AmbulanceForegroundService.getCurrentCall();
+            if (call == null) {
+                Log.d(TAG, "No calls being handled right now.");
+                CallStack pendingCalls = AmbulanceForegroundService.getPendingCalls();
+                call = pendingCalls.getNextCall(ambulance.getId());
+                if (call != null &&
+                        AmbulanceCall.STATUS_REQUESTED.equals(call.getAmbulanceCall(ambulance.getId()).getStatus())) {
+                    // next call is requested, prompt user!
+                    promptNextCall = true;
+                    nextCallId = call.getId();
+                }
+            }
+        }
 
         // Register receiver
         IntentFilter filter = new IntentFilter();
@@ -448,6 +464,10 @@ public class MainActivity extends AppCompatActivity {
         filter.addAction(AmbulanceForegroundService.BroadcastActions.CALL_COMPLETED);
         receiver = new MainActivityBroadcastReceiver();
         getLocalBroadcastManager().registerReceiver(receiver, filter);
+
+        // prompt user?
+        if (promptNextCall)
+            promptCallAccept(nextCallId);
 
     }
 
@@ -605,7 +625,7 @@ public class MainActivity extends AppCompatActivity {
         return LocalBroadcastManager.getInstance(this);
     }
 
-    public void promptAcceptCallDialog(final int callId) {
+    public void promptCallAccept(final int callId) {
 
         Log.i(TAG, "Creating accept dialog");
 
@@ -648,7 +668,7 @@ public class MainActivity extends AppCompatActivity {
             patientsText = getResources().getString(R.string.noPatientAvailable);
 
         // Get number of waypoints
-        int numberOfWaypoints = ambulanceCall == null ? 0 : ambulanceCall.getWaypointSet().size();
+        int numberOfWaypoints = ambulanceCall.getWaypointSet().size();
 
         // Get next incident waypoint
         Waypoint waypoint = ambulanceCall.getNextWaypoint();
@@ -720,6 +740,7 @@ public class MainActivity extends AppCompatActivity {
         // build dialog
         builder.setTitle(R.string.acceptCall)
                 .setView(view)
+                .setCancelable(false)
                 .setPositiveButton(R.string.accept,
                         (dialog, id) -> {
 
@@ -748,6 +769,22 @@ public class MainActivity extends AppCompatActivity {
                             Intent serviceIntent = new Intent(MainActivity.this,
                                     AmbulanceForegroundService.class);
                             serviceIntent.setAction(AmbulanceForegroundService.Actions.CALL_DECLINE);
+                            serviceIntent.putExtra("CALL_ID", callId);
+                            startService(serviceIntent);
+
+                        })
+                .setNeutralButton(R.string.suspend,
+                        (dialog, which) -> {
+
+                            Toast.makeText(MainActivity.this,
+                                    R.string.suspendingCall,
+                                    Toast.LENGTH_SHORT).show();
+
+                            Log.i(TAG, "Suspending call");
+
+                            Intent serviceIntent = new Intent(MainActivity.this,
+                                    AmbulanceForegroundService.class);
+                            serviceIntent.setAction(AmbulanceForegroundService.Actions.CALL_SUSPEND);
                             serviceIntent.putExtra("CALL_ID", callId);
                             startService(serviceIntent);
 
@@ -874,13 +911,61 @@ public class MainActivity extends AppCompatActivity {
         final Spinner hospitalSpinner = view.findViewById(R.id.spinnerHospitals);
         hospitalSpinner.setAdapter(hospitalListAdapter);
 
+        // Creates list of base names
+        ArrayList<String> baseList = new ArrayList<>();
+        baseList.add(getString(R.string.selectBase));
+        List<Location> bases = AmbulanceForegroundService.getBases();
+        if (bases != null) {
+            for (Location base : bases)
+                baseList.add(base.getName());
+        }
+
+        // Create the adapter
+        baseListAdapter = new ArrayAdapter<>(this,
+                android.R.layout.simple_spinner_dropdown_item, baseList);
+        baseListAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+
         // Create base spinner
         final Spinner baseSpinner = view.findViewById(R.id.spinnerBases);
         baseSpinner.setAdapter(baseListAdapter);
 
+        // Set spinner click listeners to make sure only base or hospital are selected
+        hospitalSpinner.setOnItemSelectedListener(
+                new AdapterView.OnItemSelectedListener() {
+                    @Override
+                    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                        if (position > 0 && baseSpinner.getSelectedItemPosition() > 0) {
+                            baseSpinner.setSelection(0);
+                        }
+                    }
+
+                    @Override
+                    public void onNothingSelected(AdapterView<?> parent) {
+
+                    }
+                }
+        );
+
+        baseSpinner.setOnItemSelectedListener(
+                new AdapterView.OnItemSelectedListener() {
+                    @Override
+                    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                        if (position > 0 && hospitalSpinner.getSelectedItemPosition() > 0) {
+                            hospitalSpinner.setSelection(0);
+                        }
+                    }
+
+                    @Override
+                    public void onNothingSelected(AdapterView<?> parent) {
+
+                    }
+                }
+        );
+
         // build dialog
         builder.setTitle(R.string.selectNextWaypoint)
                 .setView(view)
+                .setCancelable(false)
                 .setPositiveButton(R.string.select,
                         (dialog, id) -> {
 
@@ -893,6 +978,12 @@ public class MainActivity extends AppCompatActivity {
                             if (selectedHospital > 0) {
                                 HospitalPermission hospital = hospitalPermissions.get(selectedHospital - 1);
                                 waypoint = "{\"order\":" + maximumOrder + ",\"location\":{\"id\":" + hospital.getHospitalId() + ",\"type\":\"" + Location.TYPE_HOSPITAL + "\"}}";
+                            }
+
+                            int selectedBase = baseSpinner.getSelectedItemPosition();
+                            if (selectedBase > 0) {
+                                Location base = bases.get(selectedBase - 1);
+                                waypoint = "{\"order\":" + maximumOrder + ",\"location\":{\"id\":" + base.getId() + ",\"type\":\"" + Location.TYPE_BASE + "\"}}";
                             }
 
                             // Publish waypoint
@@ -1042,56 +1133,6 @@ public class MainActivity extends AppCompatActivity {
                                                 .setAlert(new AlertSnackbar(MainActivity.this))
                                                 .setSuccessIdCheck(false) // AMBULANCE_UPDATE will have a different UUID
                                                 .start();
-
-/*
-                                        // What to do when service completes?
-                                        new OnServicesComplete(MainActivity.this,
-                                                new String[]{
-                                                        BroadcastActions.SUCCESS,
-                                                        AmbulanceForegroundService.BroadcastActions.AMBULANCE_UPDATE
-                                                },
-                                                new String[]{BroadcastActions.FAILURE},
-                                                intent) {
-
-                                            @Override
-                                            public void onSuccess(Bundle extras) {
-                                                Log.i(TAG, "onSuccess");
-
-                                                // Toast to warn user
-                                                Toast.makeText(MainActivity.this,
-                                                        R.string.succeededForcingLocationUpdates,
-                                                        Toast.LENGTH_LONG).show();
-
-                                                // Start updating locations
-                                                startUpdatingLocation();
-
-                                            }
-
-                                            @Override
-                                            public void onReceive(Context context, Intent intent) {
-
-                                                // Retrieve action
-                                                String action = intent.getAction();
-
-                                                // Intercept success
-                                                if (action.equals(BroadcastActions.SUCCESS))
-                                                    // prevent propagation, still waiting for AMBULANCE_UPDATE
-                                                    return;
-
-                                                // Intercept AMBULANCE_UPDATE
-                                                if (action.equals(AmbulanceForegroundService.BroadcastActions.AMBULANCE_UPDATE))
-                                                    // Inject uuid into AMBULANCE_UPDATE
-                                                    intent.putExtra(BroadcastExtras.UUID, getUuid());
-
-                                                // Call super
-                                                super.onReceive(context, intent);
-                                            }
-
-                                        }
-                                                .setFailureMessage(getString(R.string.couldNotForceLocationUpdate))
-                                                .setAlert(new AlertSnackbar(MainActivity.this));
-*/
-
                                     });
 
                     // Create and show dialog

@@ -3,7 +3,6 @@ package org.emstrack.models;
 import org.emstrack.models.api.APIService;
 import org.emstrack.models.api.APIServiceGenerator;
 import org.emstrack.models.api.OnAPICallComplete;
-import org.emstrack.models.util.OnComplete;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
@@ -67,14 +66,22 @@ public class TestRetrofit {
                 "https://cruzroja.ucsd.edu");
 
         // Retrieve token
-        APIServiceGenerator.setCredentials(credentials);
-        OnAPICallComplete<Token> api = APIServiceGenerator.buildRetrieveToken()
-                .setNext(new OnComplete() {
-                    @Override
-                    public void run() {
-                        assertTrue(true);
-                    }
-                });
+        APIServiceGenerator.setServerUri(credentials.getServerURI());
+        APIService service = APIServiceGenerator.createService(APIService.class);
+        retrofit2.Call<Token> call = service.getToken(credentials);
+        OnAPICallComplete<Token> api = new OnAPICallComplete<Token>(call) {
+
+            @Override
+            public void onSuccess(Token token) {
+                assertTrue(true);
+            }
+
+            @Override
+            public void onFailure(Throwable t) {
+                assertTrue(false);
+            }
+
+        };
 
         api.start();
         while (!api.isComplete()) {

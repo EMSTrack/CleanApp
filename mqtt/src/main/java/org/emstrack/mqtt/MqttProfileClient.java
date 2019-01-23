@@ -351,6 +351,10 @@ public class MqttProfileClient implements MqttCallbackExtended {
                     }
                     Log.d(TAG, "Parsed profile: " + profile);
 
+                    // Sort ambulances and hospitals
+                    profile.sortAmbulances();
+                    profile.sortHospitals();
+
                     // Unsubscribe from profile
                     try {
                         unsubscribe(topic);

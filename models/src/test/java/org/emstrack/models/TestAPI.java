@@ -5,7 +5,6 @@ import android.util.Log;
 import org.emstrack.models.api.APIService;
 import org.emstrack.models.api.APIServiceGenerator;
 import org.emstrack.models.api.OnAPICallComplete;
-import org.emstrack.models.util.OnComplete;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
@@ -170,22 +169,29 @@ public class TestAPI {
     @Test
     public void testAsyncApiCascaded2() throws InterruptedException {
 
-        APIService service = APIServiceGenerator.createService(APIService.class);
-
         String username = "admin";
         String password = "cruzrojaadmin";
         String serverURI = "https://cruzroja.ucsd.edu/";
         Credentials credentials = new Credentials(username, password, serverURI);
 
         // Retrieve token
-        APIServiceGenerator.setCredentials(credentials);
-        OnAPICallComplete<Token> api = APIServiceGenerator.buildRetrieveToken()
-                .setNext(new OnComplete() {
-                    @Override
-                    public void run() {
-                        assertTrue(true);
-                    }
-                });
+        APIServiceGenerator.setServerUri(credentials.getServerURI());
+        APIService service = APIServiceGenerator.createService(APIService.class);
+        retrofit2.Call<Token> call = service.getToken(credentials);
+        OnAPICallComplete<Token> api = new OnAPICallComplete<Token>(call) {
+
+            @Override
+            public void onSuccess(Token token) {
+                APIServiceGenerator.setToken(token.getToken());
+                assertTrue(true);
+            }
+
+            @Override
+            public void onFailure(Throwable t) {
+                assertTrue(false);
+            }
+
+        };
 
         api.start();
         while (!api.isComplete()) {
@@ -197,6 +203,17 @@ public class TestAPI {
 
         // then execute authenticated cascaded api calls
         retrofit2.Call<List<Location>> callLocations = service.getLocations();
+        retrofit2.Call<Profile> callProfile = service.getProfile(username);
+        OnAPICallComplete apiProfile= new OnAPICallComplete<Profile>(callProfile) {
+
+            @Override
+            public void onSuccess(Profile p) {
+                assertNotNull(p);
+                Log.d(TAG, "profile = " + p);
+            }
+
+        };
+
         OnAPICallComplete apiLocations = new OnAPICallComplete<List<Location>>(callLocations) {
 
             @Override
@@ -207,16 +224,7 @@ public class TestAPI {
 
         };
 
-        retrofit2.Call<Profile> callProfile = service.getProfile(username);
-        OnAPICallComplete apiProfile= new OnAPICallComplete<Profile>(callProfile, apiLocations) {
-
-            @Override
-            public void onSuccess(Profile p) {
-                assertNotNull(p);
-                Log.d(TAG, "profile = " + p);
-            }
-
-        };
+        apiProfile.setNext(apiLocations);
 
         apiProfile.start();
         while (!(apiProfile.isComplete() && apiLocations.isComplete())) {

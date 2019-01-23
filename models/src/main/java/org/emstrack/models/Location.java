@@ -1,5 +1,7 @@
 package org.emstrack.models;
 
+import org.emstrack.models.gson.Exclude;
+
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -31,11 +33,14 @@ public class Location extends Address {
         typeLabel = Collections.unmodifiableMap(map);
     }
 
+    @Exclude private int id;
+
     private String name;
     private String type;
 
     public Location(String name, String type, GPSLocation location) {
         super(location);
+        this.id = -1;
         this.name = name;
         this.type = type;
     }
@@ -44,8 +49,27 @@ public class Location extends Address {
                     String state, String zipcode, String country,
                     GPSLocation location) {
         super(number, street, unit, neighborhood, city, state, zipcode, country, location);
+        this.id = -1;
         this.name = name;
         this.type = type;
+    }
+
+    public Location(int id, String name, String type,
+                    String number, String street, String unit, String neighborhood, String city,
+                    String state, String zipcode, String country,
+                    GPSLocation location) {
+        super(number, street, unit, neighborhood, city, state, zipcode, country, location);
+        this.id = id;
+        this.name = name;
+        this.type = type;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public int getId() {
+        return id;
     }
 
     public String getName() {

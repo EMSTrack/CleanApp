@@ -21,8 +21,6 @@ import retrofit2.converter.gson.GsonConverterFactory;
 public class APIServiceGenerator {
 
     private static String token;
-    private static Credentials credentials;
-
     private static String BASE_URL = "https://cruzroja.ucsd.edu/api/";
 
     private static Gson gson = new GsonBuilder()
@@ -49,17 +47,22 @@ public class APIServiceGenerator {
     }
 
     /**
-     * Set user credentials
+     * Set current token
      *
-     * @param credentials the user credentials
+     * @param token the token
      */
-    public static void setCredentials(Credentials credentials) {
+    public static void setToken(String token) {
+        APIServiceGenerator.token = token;
+    }
 
-        // set credentials
-        APIServiceGenerator.credentials = credentials;
+    /**
+     * Set server URI
+     *
+     * @param serverURI the server URI
+     */
+    public static void setServerUri(String serverURI) {
 
         // Update url
-        String serverURI = credentials.getServerURI();
         if (serverURI != null) {
             // add trailing '/' only if needed
             if (serverURI.charAt(serverURI.length() - 1) != '/')
@@ -68,34 +71,6 @@ public class APIServiceGenerator {
             builder.baseUrl(BASE_URL);
             retrofit = builder.build();
         }
-
-    }
-
-    /**
-     * Build {@link OnAPICallComplete<Token>} for retrieving token
-     *
-     * @return the {@link OnAPICallComplete<Token>}
-     */
-    public static OnAPICallComplete<Token> buildRetrieveToken() {
-
-        // Get token
-        APIService service = APIServiceGenerator.createService(APIService.class, null);
-        retrofit2.Call<Token> call = service.getToken(credentials);
-        return new OnAPICallComplete<Token>(call) {
-
-            @Override
-            public void onSuccess(Token token) {
-                // save token
-                APIServiceGenerator.token = token.getToken();
-            }
-
-            @Override
-            public void onFailure(Throwable t) throws RuntimeException {
-                super.onFailure(t);
-                throw new RuntimeException(t);
-            }
-
-        };
 
     }
 

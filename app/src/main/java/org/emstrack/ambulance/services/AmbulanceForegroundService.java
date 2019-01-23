@@ -46,6 +46,7 @@ import org.emstrack.ambulance.R;
 import org.emstrack.ambulance.util.Geofence;
 import org.emstrack.ambulance.util.AmbulanceUpdateFilter;
 import org.emstrack.ambulance.util.AmbulanceUpdate;
+import org.emstrack.models.Token;
 import org.emstrack.models.api.APIService;
 import org.emstrack.models.api.APIServiceGenerator;
 import org.emstrack.models.Ambulance;
@@ -58,7 +59,7 @@ import org.emstrack.models.GPSLocation;
 import org.emstrack.models.Hospital;
 import org.emstrack.models.HospitalPermission;
 import org.emstrack.models.Location;
-import org.emstrack.models.util.OnComplete;
+import org.emstrack.models.api.OnAPICallComplete;
 import org.emstrack.models.util.OnServiceComplete;
 import org.emstrack.models.Waypoint;
 import org.emstrack.mqtt.MishandledTopicException;
@@ -114,7 +115,6 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
     private static String _serverApiUri = "https://cruzroja.ucsd.edu/";
 
     private static MqttProfileClient client;
-    private static String _apiToken;
     private static Ambulance _ambulance;
     private static Map<Integer, Hospital> _hospitals;
     private static List<Location> _bases;
@@ -1872,23 +1872,29 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                         Credentials credentials = new Credentials(username, password, serverApi);
 
                         // Retrieve token
-                        APIServiceGenerator.setCredentials(credentials);
-                        try {
-                            APIServiceGenerator.buildRetrieveToken()
-                                    .setNext(new OnComplete() {
-                                        @Override
-                                        public void run() {
-                                            // Set token
-                                            _apiToken = APIServiceGenerator.getToken();
+                        APIServiceGenerator.setServerUri(credentials.getServerURI());
+                        APIServiceGenerator.setToken(null);
+                        APIService service = APIServiceGenerator.createService(APIService.class);
+                        retrofit2.Call<Token> call = service.getToken(credentials);
+                        new OnAPICallComplete<Token>(call) {
 
-                                            // Retrieve bases
-                                            retrieveBases(uuid, false);
+                            @Override
+                            public void onSuccess(Token token) {
 
-                                        }
-                                    }).start();
-                        } catch (RuntimeException e) {
-                                Log.i(TAG, "Failed to retrieve token: " + e);
-                        }
+                                // save token
+                                APIServiceGenerator.setToken(token.getToken());
+
+                                // Retrieve bases
+                                retrieveBases(uuid, false);
+
+                            }
+
+                            @Override
+                            public void onFailure(Throwable t) {
+                                Log.d(TAG, "Could not retrieve API token.");
+                            }
+
+                        }.start();
 
                         // set callback for handling loss of connection/reconnection
                         getProfileClient(AmbulanceForegroundService.this).setCallback(AmbulanceForegroundService.this);
@@ -2305,51 +2311,32 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         Log.i(TAG, "Retrieving bases...");
 
         // Retrieve bases
-        List<Location> bases = null;
-        try {
+        new OnAPICallComplete<List<Location>>(
+                APIServiceGenerator.createService(APIService.class).getLocationsByType("Base")
+        ) {
 
-            // Service with credentials
-            APIService service = APIServiceGenerator.createService(APIService.class);
+            @Override
+            public void onSuccess(List<Location> locations) {
 
-            // then execute authenticated api call
-            retrofit2.Call<List<Location>> callAsync = service.getLocationsByType("Base");
-            callAsync.enqueue(new Callback<List<Location>>() {
-                @Override
-                public void onResponse(retrofit2.Call<List<Location>> call, Response<List<Location>> response) {
-                    List<Location> bases = response.body();
-                    Log.d(TAG, String.format("%1$d bases retrieved.", bases.size()));
-                    _bases = bases;
-                }
+                Log.d(TAG, String.format("%1$d bases retrieved.", locations.size()));
+                _bases = locations;
 
-                @Override
-                public void onFailure(retrofit2.Call<List<Location>> call, Throwable t) {
+            }
 
-                }
-            });
+            @Override
+            public void onFailure(Throwable t) {
 
+                Log.i(TAG, "Could not retrieve bases, exception: " + t.toString());
 
+                // Broadcast failure
+                Intent localIntent = new Intent(org.emstrack.models.util.BroadcastActions.FAILURE);
+                localIntent.putExtra(org.emstrack.models.util.BroadcastExtras.MESSAGE,
+                        org.emstrack.ambulance.R.string.couldNotRetrieveBases);
+                sendBroadcastWithUUID(localIntent, uuid);
 
-        } catch (Exception e) {
+            }
 
-            Log.i(TAG, "Could not connect to api, exception: " + e.toString() );
-
-            // Broadcast failure
-            Intent localIntent = new Intent(org.emstrack.models.util.BroadcastActions.FAILURE);
-            localIntent.putExtra(org.emstrack.models.util.BroadcastExtras.MESSAGE,
-                    org.emstrack.ambulance.R.string.couldNotRetrieveBases);
-            sendBroadcastWithUUID(localIntent, uuid);
-
-        }
-
-        if (bases != null) {
-
-            Log.i(TAG, "bases = " + bases);
-
-            _bases = bases;
-
-        } else {
-
-        }
+        }.start();
 
     }
 
@@ -3539,7 +3526,8 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
             Log.d(TAG, "Ambulance is null. This should never happen");
 
             Intent localIntent = new Intent(org.emstrack.models.util.BroadcastActions.FAILURE);
-            localIntent.putExtra(org.emstrack.models.util.BroadcastExtras.MESSAGE, getString(R.string.willNotProcessNextCall));
+            localIntent.putExtra(org.emstrack.models.util.BroadcastExtras.MESSAGE,
+                    getString(R.string.willNotProcessNextCall));
             sendBroadcastWithUUID(localIntent, uuid);
             return;
 
@@ -3553,6 +3541,24 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
             // set pending call
             pendingCalls.setPendingCall(true);
+
+            // Login intent
+            Intent notificationIntent = new Intent(AmbulanceForegroundService.this, LoginActivity.class);
+            notificationIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            PendingIntent pendingIntent = PendingIntent.getActivity(AmbulanceForegroundService.this, 0,
+                    notificationIntent, 0);
+
+            // Create notification
+            NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(this, PRIMARY_CHANNEL)
+                    .setSmallIcon(R.mipmap.ic_launcher)
+                    .setContentTitle("EMSTrack")
+                    .setContentText(getString(R.string.newCallRequest))
+                    .setPriority(NotificationCompat.PRIORITY_MAX)
+                    .setAutoCancel(true)
+                    .setContentIntent(pendingIntent);
+
+            NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
+            notificationManager.notify(notificationId.getAndIncrement(), mBuilder.build());
 
             // create intent to prompt user
             Intent callPromptIntent = new Intent(BroadcastActions.PROMPT_CALL_ACCEPT);
