@@ -225,5 +225,6 @@
     <string name="pleaseSelectAmbulance">Por favor seleccione ambulancia</string>
     <string name="selectHospital">Seleccione un hospital:</string>
     <string name="selectBase">Seleccione una base:</string>
+    <string name="newCallRequest">Tienes una nueva llamada en espera.</string>
 
 </resources>

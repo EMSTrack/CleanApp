@@ -2,7 +2,6 @@ package org.emstrack.ambulance.fragments;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
@@ -317,15 +316,12 @@ public class AmbulanceFragment extends Fragment {
         if (ambulance != null)
             updateAmbulance(ambulance);
 
-        // Are there call_current?
+        // Are there any call been currently handled?
         currentCallId = -1;
         Call call = AmbulanceForegroundService.getCurrentCall();
         if (call != null) {
             Log.d(TAG, String.format("Is currently handling call '%1$d'", call.getId()));
             updateCall(ambulance, call);
-        } else {
-            Log.d(TAG, "Is currently not handling any call");
-            callResumeLayout.setVisibility(View.GONE);
         }
 
         // Register receiver
@@ -366,6 +362,9 @@ public class AmbulanceFragment extends Fragment {
                 callInformationLayout.setVisibility(View.VISIBLE);
                 callLayout.setVisibility(View.GONE);
                 currentCallId = -1;
+
+                // update ambulance to show resume panel
+                updateAmbulance(ambulance);
 
                 statusButtonClickListerner.setEnabled(true);
 
@@ -604,8 +603,8 @@ public class AmbulanceFragment extends Fragment {
                                 requestedCallList.get(position - suspendedCallList.size()).first);
 
                         // prompt user
-                        Log.d(TAG,"Will prompt user to resume call");
-                        ((MainActivity) getActivity()).promptAcceptCallDialog(call.getId());
+                        Log.d(TAG,"Will prompt user to accept call");
+                        ((MainActivity) getActivity()).promptCallAccept(call.getId());
 
                     });
 
@@ -615,7 +614,7 @@ public class AmbulanceFragment extends Fragment {
             callResumeLayout.setVisibility(View.GONE);
         }
 
-            // update call distance?
+        // update call distance?
         if (currentCallId > 0) {
 
             AmbulanceCall ambulanceCall = AmbulanceForegroundService.getCurrentAmbulanceCall();
@@ -734,91 +733,6 @@ public class AmbulanceFragment extends Fragment {
 
     }
 
-
-/*
-    @Override
-    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-
-        Log.i(TAG, "Item '" + position + "' selected.");
-
-        // Should only updateAmbulance on server as a result of user interaction
-        // Otherwise this will create a loop with mqtt updating ambulance
-        // TODO: Debug spinner multiple updates
-        // This may not be easy with the updates being called from a service
-
-        Log.i(TAG, "Processing status spinner updateAmbulance.");
-
-        Ambulance ambulance = AmbulanceForegroundService.getCurrentAmbulance();
-        if (ambulance == null) {
-            Log.i(TAG, "Ambulance is null. This should never happen!");
-            return;
-        }
-
-        if ((ambulance != null) && !((MainActivity) getActivity()).canWrite()) {
-
-            // Toast to warn user
-            Toast.makeText(getContext(), R.string.cantModifyAmbulance, Toast.LENGTH_LONG).show();
-
-            // set spinner
-            int oldPosition = ambulanceStatusList.indexOf(ambulanceStatus.retrieveObject(ambulance.getStatus()));
-            setSpinner(oldPosition);
-
-            // Return
-            return;
-
-        }
-
-        // Get status from spinner
-        String status = (String) parent.getItemAtPosition(position);
-
-        // Search for entry in ambulanceStatus map
-        String statusCode = "";
-        for (Map.Entry<String, String> entry : ambulanceStatus.entrySet()) {
-            if (status.equals(entry.getValue())) {
-                statusCode = entry.getKey();
-                break;
-            }
-        }
-
-        // format timestamp
-        DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
-        df.setTimeZone(TimeZone.getTimeZone("UTC"));
-        String timestamp = df.format(new Date());
-
-        // Set updateAmbulance string
-        String updateString = "{\"status\":\"" + statusCode + "\",\"timestamp\":\"" + timestamp + "\"}";
-
-        // Update on server
-        // TODO: Update along with locations because it will be recorded with
-        //       the wrong location on the server
-        Intent intent = new Intent(getContext(), AmbulanceForegroundService.class);
-        intent.setAction(AmbulanceForegroundService.Actions.UPDATE_AMBULANCE);
-        Bundle bundle = new Bundle();
-        bundle.putInt("AMBULANCE_ID", ambulance.getId());
-        bundle.putString("UPDATE", updateString);
-        intent.putExtras(bundle);
-        getActivity().startService(intent);
-
-    }
-*/
-
-/*
-    @Override
-    public void onNothingSelected(AdapterView<?> parent) {
-        Log.i(TAG, "Nothing selected: this should never happen.");
-    }
-*/
-
-    /**
-     * Get LocalBroadcastManager
-     *
-     * @return the LocalBroadcastManager
-     */
-    private LocalBroadcastManager getLocalBroadcastManager() {
-        return LocalBroadcastManager.getInstance(getContext());
-    }
-
-
     public void promptSkipVisitingOrVisited(final String status,
                                             final int waypointId, final int callId, final int ambulanceId,
                                             final String title, final String message, final String doneMessage) {
@@ -861,6 +775,15 @@ public class AmbulanceFragment extends Fragment {
 
         // Create the AlertDialog object and return it
         builder.create().show();
+    }
+
+    /**
+     * Get LocalBroadcastManager
+     *
+     * @return the LocalBroadcastManager
+     */
+    private LocalBroadcastManager getLocalBroadcastManager() {
+        return LocalBroadcastManager.getInstance(getContext());
     }
 
 }

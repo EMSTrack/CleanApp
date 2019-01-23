@@ -1,5 +1,6 @@
 package org.emstrack.models;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -26,6 +27,20 @@ public class Profile {
 
     public void setHospitals(List<HospitalPermission> hospitals) {
         this.hospitals = hospitals;
+    }
+
+    public void sortHospitals() {
+
+        // Sort hospitals
+        Collections.sort(this.hospitals, (a, b) -> a.getHospitalName().compareTo(b.getHospitalName()) );
+
+    }
+
+    public void sortAmbulances() {
+
+        // Sort ambulances
+        Collections.sort(this.ambulances, (a, b) -> a.getAmbulanceIdentifier().compareTo(b.getAmbulanceIdentifier()) );
+
     }
 
     public String toString() {

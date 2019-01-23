@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.FieldNamingPolicy;
 
+import org.emstrack.models.gson.ExcludeAnnotationExclusionStrategy;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
@@ -24,7 +25,7 @@ import java.util.Map;
 public class TestModels {
 
     @Test
-    public void test_profile() throws Exception {
+    public void test_profile() {
 
         List<AmbulancePermission> ambulances = new ArrayList<>();
         ambulances.add(new AmbulancePermission(1,"BUD1234", true, true));
@@ -148,7 +149,7 @@ public class TestModels {
     }
 
     @Test
-    public void test_hospital_equipment_metadata() throws Exception {
+    public void test_hospital_equipment_metadata() {
 
         List<EquipmentMetadata> metadata = new ArrayList<>();
         metadata.add(new EquipmentMetadata(1,"beds", 'I', true));
@@ -183,7 +184,7 @@ public class TestModels {
     }
 
     @Test
-    public void test_hospital_equipment() throws Exception {
+    public void test_hospital_equipment() {
 
         EquipmentItem equipment = new EquipmentItem(1,
                                                             2, "beds",'I',
@@ -238,7 +239,7 @@ public class TestModels {
     }
 
     @Test
-    public void test_settings() throws Exception {
+    public void test_settings() {
 
         Map<String,String> ambulanceStatus = new HashMap<>();
         ambulanceStatus.put("UK", "Unknown");
@@ -368,7 +369,7 @@ public class TestModels {
     }
 
     @Test
-    public void test_ambulance() throws Exception {
+    public void test_ambulance() {
 
         double epsilon = 1e-4;
 
@@ -441,7 +442,7 @@ public class TestModels {
     }
 
     @Test
-    public void test_hospital() throws Exception {
+    public void test_hospital() {
 
         double epsilon = 1e-4;
 
@@ -579,7 +580,7 @@ public class TestModels {
     }
 
     @Test
-    public void test_patient() throws Exception {
+    public void test_patient() {
 
         Patient patient = new Patient(1,"Jose",35);
 
@@ -621,7 +622,7 @@ public class TestModels {
     }
 
     @Test
-    public void test_location() throws Exception {
+    public void test_location() {
 
         Location location = new Location(null,"i",
                 "O","Bonifácio Avilés", null, null,
@@ -656,7 +657,7 @@ public class TestModels {
     }
 
     @Test
-    public void test_waypoint() throws Exception {
+    public void test_waypoint() {
 
         Waypoint waypoint = new Waypoint(0,Waypoint.STATUS_VISITING,
                 new Location(null, Location.TYPE_INCIDENT,"O",
@@ -664,10 +665,13 @@ public class TestModels {
                         "Tijuana","BCN","" ,"MX",
                         new GPSLocation(32.51543632662701,-117.03812250149775)));
         
-        Gson gson = new Gson();
-        
+        Gson gson = new GsonBuilder()
+                .setExclusionStrategies(new ExcludeAnnotationExclusionStrategy())
+                .create();
+
         String to_json = gson.toJson(waypoint);
-        
+        System.out.println("to_json = '" + to_json + "'");
+
         Waypoint from_json = gson.fromJson(to_json, Waypoint.class);
 
         int expectedOrder = waypoint.getOrder();
@@ -713,7 +717,7 @@ public class TestModels {
     }
 
     @Test
-    public void test_ambulance_call() throws Exception {
+    public void test_ambulance_call() {
 
         Waypoint waypoint = new Waypoint(0,Waypoint.STATUS_CREATED,
                 new Location(null, Location.TYPE_INCIDENT,"O",
@@ -810,7 +814,7 @@ public class TestModels {
     }
 
     @Test
-    public void test_call() throws Exception {
+    public void test_call() {
 
         List<Patient> patientSet = new ArrayList<>();
         patientSet.add(new Patient(31, "Maria",0));
