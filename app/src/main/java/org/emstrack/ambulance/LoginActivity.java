@@ -324,7 +324,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
             Intent intent = new Intent(LoginActivity.this,
                     AmbulanceForegroundService.class);
             intent.setAction(AmbulanceForegroundService.Actions.LOGIN);
-            intent.putExtra("CREDENTIALS",
+            intent.putExtra(AmbulanceForegroundService.BroadcastExtras.CREDENTIALS,
                     new String[]{username, password, serverUri, serverApiUri});
 
             // What to do when service completes?
