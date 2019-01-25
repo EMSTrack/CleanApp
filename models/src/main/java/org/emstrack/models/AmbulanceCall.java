@@ -34,7 +34,6 @@ public class AmbulanceCall {
     private int id;
     private int ambulanceId;
     private String status;
-    // private Date createdAt;
     private List<Waypoint> waypointSet;
     private boolean sorted;
     private String comment;
@@ -47,7 +46,6 @@ public class AmbulanceCall {
         this.id = id;
         this.ambulanceId = ambulanceId;
         this.status = status;
-        // this.createdAt = createdAt;
         this.waypointSet = waypointSet;
         this.sorted = false;
         this.comment = comment;
@@ -78,14 +76,6 @@ public class AmbulanceCall {
     public void setStatus(String status) {
         this.status = status;
     }
-
-    // public Date getCreatedAt() {
-    //     return createdAt;
-    // }
-
-    // public void setCreatedAt(Date createdAt) {
-    //     this.createdAt = createdAt;
-    // }
 
     public boolean isSorted() {
         return sorted;
