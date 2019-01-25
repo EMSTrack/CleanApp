@@ -115,7 +115,7 @@ public class AmbulanceFragment extends Fragment {
                         // Toast to warn user
                         Toast.makeText(getContext(), R.string.CallStarted, Toast.LENGTH_LONG).show();
 
-                        int callId = intent.getIntExtra("CALL_ID", -1);
+                        int callId = intent.getIntExtra(AmbulanceForegroundService.BroadcastExtras.CALL_ID, -1);
                         currentCallId = -1;
                         updateCall(AmbulanceForegroundService.getCurrentAmbulance(),
                                 AmbulanceForegroundService.getCurrentCall());
@@ -129,7 +129,7 @@ public class AmbulanceFragment extends Fragment {
                         // Toast to warn user
                         Toast.makeText(getContext(), R.string.CallFinished, Toast.LENGTH_LONG).show();
 
-                        int callId = intent.getIntExtra("CALL_ID", -1);
+                        int callId = intent.getIntExtra(AmbulanceForegroundService.BroadcastExtras.CALL_ID, -1);
                         if (currentCallId == callId)
                             updateCall(AmbulanceForegroundService.getCurrentAmbulance(), null);
 
@@ -559,7 +559,7 @@ public class AmbulanceFragment extends Fragment {
             if (callSummary.get(AmbulanceCall.STATUS_SUSPENDED) > 0) {
                 for (Map.Entry<Integer, Pair<Call,AmbulanceCall>> ambulanceCallEntry : AmbulanceForegroundService
                         .getPendingCalls()
-                        .filterByStatus(ambulance.getId(),
+                        .filter(ambulance.getId(),
                                 AmbulanceCall.STATUS_SUSPENDED)
                         .entrySet()) {
                     Pair<Call,AmbulanceCall> ambulanceCallPair = ambulanceCallEntry.getValue();
@@ -573,7 +573,7 @@ public class AmbulanceFragment extends Fragment {
             if (callSummary.get(AmbulanceCall.STATUS_REQUESTED) > 0) {
                 for (Map.Entry<Integer, Pair<Call,AmbulanceCall>> ambulanceCallEntry : AmbulanceForegroundService
                         .getPendingCalls()
-                        .filterByStatus(ambulance.getId(),
+                        .filter(ambulance.getId(),
                                 AmbulanceCall.STATUS_REQUESTED)
                         .entrySet()) {
                     Pair<Call,AmbulanceCall> ambulanceCall = ambulanceCallEntry.getValue();
@@ -720,8 +720,8 @@ public class AmbulanceFragment extends Fragment {
             Intent intent = new Intent(getContext(), AmbulanceForegroundService.class);
             intent.setAction(AmbulanceForegroundService.Actions.UPDATE_AMBULANCE_STATUS);
             Bundle bundle = new Bundle();
-            bundle.putInt("AMBULANCE_ID", ambulance.getId());
-            bundle.putString("STATUS", statusCode);
+            bundle.putInt(AmbulanceForegroundService.BroadcastExtras.AMBULANCE_ID, ambulance.getId());
+            bundle.putString(AmbulanceForegroundService.BroadcastExtras.AMBULANCE_STATUS, statusCode);
             intent.putExtras(bundle);
             getActivity().startService(intent);
 
@@ -765,9 +765,9 @@ public class AmbulanceFragment extends Fragment {
                                     AmbulanceForegroundService.class);
                             intent.setAction(action);
                             Bundle bundle = new Bundle();
-                            bundle.putInt("WAYPOINT_ID", waypointId);
-                            bundle.putInt("AMBULANCE_ID", ambulanceId);
-                            bundle.putInt("CALL_ID", callId);
+                            bundle.putInt(AmbulanceForegroundService.BroadcastExtras.WAYPOINT_ID, waypointId);
+                            bundle.putInt(AmbulanceForegroundService.BroadcastExtras.AMBULANCE_ID, ambulanceId);
+                            bundle.putInt(AmbulanceForegroundService.BroadcastExtras.CALL_ID, callId);
                             intent.putExtras(bundle);
                             getActivity().startService(intent);
 

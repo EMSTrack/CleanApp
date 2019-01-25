@@ -68,7 +68,7 @@ public class GeofenceBroadcastReceiver extends BroadcastReceiver {
                 // broadcast change on ambulance status when it enters geofence
                 Intent localIntent = new Intent(context, AmbulanceForegroundService.class);
                 localIntent.setAction(AmbulanceForegroundService.Actions.GEOFENCE_ENTER);
-                localIntent.putExtra("TRIGGERED_GEOFENCES", triggeredGeofences);
+                localIntent.putExtra(AmbulanceForegroundService.BroadcastExtras.GEOFENCE_TRIGGERED, triggeredGeofences);
                 context.startService(localIntent);
 
                 Log.i(TAG, "GEOFENCE_TRIGGERED: ENTER");
@@ -77,7 +77,7 @@ public class GeofenceBroadcastReceiver extends BroadcastReceiver {
                 // broadcast change on ambulance status when it exits geofence
                 Intent localIntent = new Intent(context, AmbulanceForegroundService.class);
                 localIntent.setAction(AmbulanceForegroundService.Actions.GEOFENCE_EXIT);
-                localIntent.putExtra("TRIGGERED_GEOFENCES", triggeredGeofences);
+                localIntent.putExtra(AmbulanceForegroundService.BroadcastExtras.GEOFENCE_TRIGGERED, triggeredGeofences);
                 context.startService(localIntent);
 
                 Log.i(TAG, "GEOFENCE_TRIGGERED: EXIT");

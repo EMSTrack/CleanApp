@@ -2,7 +2,6 @@ package org.emstrack.ambulance;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.res.Configuration;
@@ -39,18 +38,18 @@ import org.emstrack.ambulance.fragments.AmbulanceFragment;
 import org.emstrack.ambulance.fragments.HospitalFragment;
 import org.emstrack.ambulance.fragments.MapFragment;
 import org.emstrack.ambulance.services.AmbulanceForegroundService;
-import org.emstrack.models.CallStack;
-import org.emstrack.models.util.BroadcastActions;
-import org.emstrack.models.util.OnServiceComplete;
 import org.emstrack.models.Ambulance;
 import org.emstrack.models.AmbulanceCall;
 import org.emstrack.models.AmbulancePermission;
 import org.emstrack.models.Call;
+import org.emstrack.models.CallStack;
 import org.emstrack.models.HospitalPermission;
 import org.emstrack.models.Location;
 import org.emstrack.models.Patient;
 import org.emstrack.models.Profile;
 import org.emstrack.models.Waypoint;
+import org.emstrack.models.util.BroadcastActions;
+import org.emstrack.models.util.OnServiceComplete;
 import org.emstrack.mqtt.MqttProfileClient;
 
 import java.text.DecimalFormat;
@@ -185,21 +184,21 @@ public class MainActivity extends AppCompatActivity {
                         // Ignore
                         return;
 
-                    int callId = intent.getIntExtra("CALL_ID", -1);
+                    int callId = intent.getIntExtra(AmbulanceForegroundService.BroadcastExtras.CALL_ID, -1);
                     promptCallAccept(callId);
 
                 } else if (action.equals(AmbulanceForegroundService.BroadcastActions.PROMPT_CALL_END)) {
 
                     Log.i(TAG, "PROMPT_CALL_END");
 
-                    int callId = intent.getIntExtra("CALL_ID", -1);
+                    int callId = intent.getIntExtra(AmbulanceForegroundService.BroadcastExtras.CALL_ID, -1);
                     promptEndCallDialog(callId);
 
                 } else if (action.equals(AmbulanceForegroundService.BroadcastActions.PROMPT_NEXT_WAYPOINT)) {
 
                     Log.i(TAG, "PROMPT_NEXT_WAYPOINT");
 
-                    int callId = intent.getIntExtra("CALL_ID", -1);
+                    int callId = intent.getIntExtra(AmbulanceForegroundService.BroadcastExtras.CALL_ID, -1);
                     promptNextWaypointDialog(callId);
 
                 } else if (action.equals(AmbulanceForegroundService.BroadcastActions.CALL_ACCEPTED)) {
@@ -488,7 +487,7 @@ public class MainActivity extends AppCompatActivity {
         // Retrieve ambulance
         Intent ambulanceIntent = new Intent(this, AmbulanceForegroundService.class);
         ambulanceIntent.setAction(AmbulanceForegroundService.Actions.GET_AMBULANCE);
-        ambulanceIntent.putExtra("AMBULANCE_ID", selectedAmbulance.getAmbulanceId());
+        ambulanceIntent.putExtra(AmbulanceForegroundService.BroadcastExtras.AMBULANCE_ID, selectedAmbulance.getAmbulanceId());
 
         // What to do when GET_AMBULANCE service completes?
         new OnServiceComplete(this,
@@ -753,7 +752,7 @@ public class MainActivity extends AppCompatActivity {
                             Intent serviceIntent = new Intent(MainActivity.this,
                                     AmbulanceForegroundService.class);
                             serviceIntent.setAction(AmbulanceForegroundService.Actions.CALL_ACCEPT);
-                            serviceIntent.putExtra("CALL_ID", callId);
+                            serviceIntent.putExtra(AmbulanceForegroundService.BroadcastExtras.CALL_ID, callId);
                             startService(serviceIntent);
 
                         })
@@ -769,7 +768,7 @@ public class MainActivity extends AppCompatActivity {
                             Intent serviceIntent = new Intent(MainActivity.this,
                                     AmbulanceForegroundService.class);
                             serviceIntent.setAction(AmbulanceForegroundService.Actions.CALL_DECLINE);
-                            serviceIntent.putExtra("CALL_ID", callId);
+                            serviceIntent.putExtra(AmbulanceForegroundService.BroadcastExtras.CALL_ID, callId);
                             startService(serviceIntent);
 
                         })
@@ -785,7 +784,7 @@ public class MainActivity extends AppCompatActivity {
                             Intent serviceIntent = new Intent(MainActivity.this,
                                     AmbulanceForegroundService.class);
                             serviceIntent.setAction(AmbulanceForegroundService.Actions.CALL_SUSPEND);
-                            serviceIntent.putExtra("CALL_ID", callId);
+                            serviceIntent.putExtra(AmbulanceForegroundService.BroadcastExtras.CALL_ID, callId);
                             startService(serviceIntent);
 
                         });
@@ -840,7 +839,7 @@ public class MainActivity extends AppCompatActivity {
                             Intent serviceIntent = new Intent(MainActivity.this,
                                     AmbulanceForegroundService.class);
                             serviceIntent.setAction(AmbulanceForegroundService.Actions.CALL_SUSPEND);
-                            serviceIntent.putExtra("CALL_ID", call.getId());
+                            serviceIntent.putExtra(AmbulanceForegroundService.BroadcastExtras.CALL_ID, call.getId());
                             startService(serviceIntent);
 
                         })
@@ -990,11 +989,11 @@ public class MainActivity extends AppCompatActivity {
                             if (waypoint != null) {
 
                                 Intent serviceIntent = new Intent(MainActivity.this, AmbulanceForegroundService.class);
-                                serviceIntent.setAction(AmbulanceForegroundService.Actions.WAYPOINT_CREATE);
-                                serviceIntent.putExtra("UPDATE", waypoint);
-                                serviceIntent.putExtra("WAYPOINT_ID", waypointId);
-                                serviceIntent.putExtra("AMBULANCE_ID", ambulance.getId());
-                                serviceIntent.putExtra("CALL_ID", callId);
+                                serviceIntent.setAction(AmbulanceForegroundService.Actions.WAYPOINT_ADD);
+                                serviceIntent.putExtra(AmbulanceForegroundService.BroadcastExtras.WAYPOINT_UPDATE, waypoint);
+                                serviceIntent.putExtra(AmbulanceForegroundService.BroadcastExtras.WAYPOINT_ID, waypointId);
+                                serviceIntent.putExtra(AmbulanceForegroundService.BroadcastExtras.AMBULANCE_ID, ambulance.getId());
+                                serviceIntent.putExtra(AmbulanceForegroundService.BroadcastExtras.CALL_ID, callId);
                                 startService(serviceIntent);
                             }
 
@@ -1007,7 +1006,7 @@ public class MainActivity extends AppCompatActivity {
                             /*
                             Intent serviceIntent = new Intent(MainActivity.this, AmbulanceForegroundService.class);
                             serviceIntent.setAction(AmbulanceForegroundService.Actions.CALL_DECLINE);
-                            serviceIntent.putExtra("CALL_ID", callId);
+                            serviceIntent.putExtra(AmbulanceForegroundService.BroadcastExtras.CALL_ID, callId);
                             startService(serviceIntent);
                             */
 
@@ -1104,8 +1103,8 @@ public class MainActivity extends AppCompatActivity {
                                         Intent intent1 = new Intent(MainActivity.this, AmbulanceForegroundService.class);
                                         intent1.setAction(AmbulanceForegroundService.Actions.UPDATE_AMBULANCE);
                                         Bundle bundle = new Bundle();
-                                        bundle.putInt("AMBULANCE_ID", ambulance.getId());
-                                        bundle.putString("UPDATE", payload);
+                                        bundle.putInt(AmbulanceForegroundService.BroadcastExtras.AMBULANCE_ID, ambulance.getId());
+                                        bundle.putString(AmbulanceForegroundService.BroadcastExtras.AMBULANCE_UPDATE, payload);
                                         intent1.putExtras(bundle);
 
                                         // What to do when service completes?
