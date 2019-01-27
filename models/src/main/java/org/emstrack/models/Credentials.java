@@ -5,6 +5,9 @@ import com.google.gson.annotations.SerializedName;
 
 /**
  * A class representing user's credentials.
+ *
+ * @author mauricio
+ * @since 01/19/2019
  */
 public class Credentials {
 
@@ -14,40 +17,84 @@ public class Credentials {
     @SerializedName("password")
     @Expose
     private String password;
-    private String serverURI;
+    private String apiServerUri;
+    private String mqttServerUri;
 
     /**
      *
-     * @param username
-     * @param password
+     * @param username the username
+     * @param password the password
+     * @param apiServerUri the api server uri
+     * @param mqttServerUri the mqtt server uri
      */
-    public Credentials(String username, String password, String serverURI) {
+    public Credentials(String username, String password, String apiServerUri, String mqttServerUri) {
         this.username = username;
         this.password = password;
-        this.serverURI = serverURI;
+        this.apiServerUri = apiServerUri;
+        this.mqttServerUri = mqttServerUri;
     }
 
+    /**
+     *
+     * @param password the password
+     */
     public void setPassword(String password) {
         this.password = password;
     }
 
+    /**
+     *
+     * @return the password
+     */
     public String getPassword() {
         return password;
     }
 
+    /**
+     *
+     * @param username the username
+     */
     public void setUsername(String username) {
         this.username = username;
     }
 
+    /**
+     *
+     * @return the username
+     */
     public String getUsername() {
         return username;
     }
 
-    public void setServerURI(String serverURI) {
-        this.serverURI = serverURI;
+    /**
+     *
+     * @param apiServerUri the api server uri
+     */
+    public void setApiServerUri(String apiServerUri) {
+        this.apiServerUri = apiServerUri;
     }
 
-    public String getServerURI() {
-        return serverURI;
+    /**
+     *
+     * @return the api server uri
+     */
+    public String getApiServerUri() {
+        return apiServerUri;
+    }
+
+    /**
+     *
+     * @param mqttServerUri the mqtt server uri
+     */
+    public void setMqttServerUri(String mqttServerUri) {
+        this.mqttServerUri = mqttServerUri;
+    }
+
+    /**
+     *
+     * @return the mqtt server uri
+     */
+    public String getMqttServerUri() {
+        return mqttServerUri;
     }
 }

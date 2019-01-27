@@ -37,6 +37,7 @@ import org.emstrack.ambulance.dialogs.LogoutDialog;
 import org.emstrack.ambulance.fragments.AmbulanceFragment;
 import org.emstrack.ambulance.fragments.HospitalFragment;
 import org.emstrack.ambulance.fragments.MapFragment;
+import org.emstrack.ambulance.models.AmbulanceAppData;
 import org.emstrack.ambulance.services.AmbulanceForegroundService;
 import org.emstrack.models.Ambulance;
 import org.emstrack.models.AmbulanceCall;
@@ -73,10 +74,11 @@ public class MainActivity extends AppCompatActivity {
     private Button ambulanceButton;
 
     private List<AmbulancePermission> ambulancePermissions;
-    private ArrayAdapter<String> ambulanceListAdapter;
     private List<HospitalPermission> hospitalPermissions;
+    private List<Location> bases;
+
+    private ArrayAdapter<String> ambulanceListAdapter;
     private ArrayAdapter<String> hospitalListAdapter;
-    private List<Location> baseList;
     private ArrayAdapter<String> baseListAdapter;
 
     private DrawerLayout mDrawer;
@@ -106,7 +108,7 @@ public class MainActivity extends AppCompatActivity {
                                 Log.d(TAG, "Selected ambulance " + selectedAmbulance.getAmbulanceIdentifier());
 
                                 // Any ambulance currently selected?
-                                Ambulance ambulance = AmbulanceForegroundService.getCurrentAmbulance();
+                                Ambulance ambulance = AmbulanceForegroundService.getAppData().getAmbulance();
 
                                 // Warn if current ambulance
                                 if (ambulance != null) {
@@ -137,7 +139,7 @@ public class MainActivity extends AppCompatActivity {
                             dialog -> {
 
                                 // Any ambulance currently selected?
-                                if (AmbulanceForegroundService.getCurrentAmbulance()== null) {
+                                if (AmbulanceForegroundService.getAppData().getAmbulance()== null) {
 
                                     // User must always choose ambulance
                                     promptMustChooseAmbulance();
@@ -336,62 +338,69 @@ public class MainActivity extends AppCompatActivity {
             trackingIcon.setAlpha(disabledAlpha);
         }
 
-        // Set up ambulance and hospital spinner
-        try {
 
-            ambulancePermissions = new ArrayList<>();
-            hospitalPermissions = new ArrayList<>();
-            MqttProfileClient profileClient = AmbulanceForegroundService.getProfileClient();
-            Profile profile = profileClient.getProfile();
-            if (profile != null) {
-                ambulancePermissions = profile.getAmbulances();
-                hospitalPermissions = profile.getHospitals();
-            }
+        ambulancePermissions = new ArrayList<>();
+        hospitalPermissions = new ArrayList<>();
+        bases = new ArrayList<>();
+        AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
+        Profile profile = appData.getProfile();
+        if (profile != null) {
+            ambulancePermissions = profile.getAmbulances();
+            hospitalPermissions = profile.getHospitals();
+        }
+        bases = appData.getBases();
 
-            // Creates list of ambulance names
-            ArrayList<String> ambulanceList = new ArrayList<>();
-            for (AmbulancePermission ambulancePermission : ambulancePermissions)
-                ambulanceList.add(ambulancePermission.getAmbulanceIdentifier());
+        // Creates list of ambulance names
+        ArrayList<String> ambulanceList = new ArrayList<>();
+        for (AmbulancePermission ambulancePermission : ambulancePermissions)
+            ambulanceList.add(ambulancePermission.getAmbulanceIdentifier());
 
-            // Create the adapter
-            ambulanceListAdapter = new ArrayAdapter<>(this,
-                    android.R.layout.simple_spinner_dropdown_item, ambulanceList);
-            ambulanceListAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        // Create the adapter
+        ambulanceListAdapter = new ArrayAdapter<>(this,
+                android.R.layout.simple_spinner_dropdown_item, ambulanceList);
+        ambulanceListAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 
-            // Set the ambulance button's adapter
-            ambulanceButton.setOnClickListener(new AmbulanceButtonClickListener());
+        // Set the ambulance button's adapter
+        ambulanceButton.setOnClickListener(new AmbulanceButtonClickListener());
 
-            // Creates list of hospital names
-            ArrayList<String> hospitalList = new ArrayList<>();
-            hospitalList.add(getString(R.string.selectHospital));
-            for (HospitalPermission hospitalPermission : hospitalPermissions)
-                hospitalList.add(hospitalPermission.getHospitalName());
+        // Creates list of hospital names
+        ArrayList<String> hospitalList = new ArrayList<>();
+        hospitalList.add(getString(R.string.selectHospital));
+        for (HospitalPermission hospitalPermission : hospitalPermissions)
+            hospitalList.add(hospitalPermission.getHospitalName());
 
-            // Create the adapter
-            hospitalListAdapter = new ArrayAdapter<>(this,
-                    android.R.layout.simple_spinner_dropdown_item, hospitalList);
-            hospitalListAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        // Create the adapter
+        hospitalListAdapter = new ArrayAdapter<>(this,
+                android.R.layout.simple_spinner_dropdown_item, hospitalList);
+        hospitalListAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 
-            // Any ambulance currently selected?
-            Ambulance ambulance = AmbulanceForegroundService.getCurrentAmbulance();
-            if (ambulance != null) {
+        // Creates list of base names
+        ArrayList<String> baseList = new ArrayList<>();
+        baseList.add(getString(R.string.selectBase));
+        for (Location base : bases)
+            baseList.add(base.getName());
 
-                // Set button
-                setAmbulanceButtonText(ambulance.getIdentifier());
+        // Create the adapter
+        baseListAdapter = new ArrayAdapter<>(this,
+                android.R.layout.simple_spinner_dropdown_item, baseList);
+        baseListAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 
-                // Automatically attempting to start streaming
-                Log.i(TAG, "Attempting to start streaming");
-                startUpdatingLocation();
+        // Any ambulance currently selected?
+        Ambulance ambulance = AmbulanceForegroundService.getAppData().getAmbulance();
+        if (ambulance != null) {
 
-            } else {
+            // Set button
+            setAmbulanceButtonText(ambulance.getIdentifier());
 
-                // Invoke ambulance selection
-                ambulanceButton.performClick();
+            // Automatically attempting to start streaming
+            Log.i(TAG, "Attempting to start streaming");
+            startUpdatingLocation();
 
-            }
+        } else {
 
-        } catch (AmbulanceForegroundService.ProfileClientException e ){
-            Log.e(TAG, "Could not retrieve list of ambulances and hospitals from profile.");
+            // Invoke ambulance selection
+            ambulanceButton.performClick();
+
         }
 
     }
@@ -434,7 +443,7 @@ public class MainActivity extends AppCompatActivity {
         // Is there a requested call that needs to be prompted for?
         boolean promptNextCall = false;
         int nextCallId = -1;
-        Ambulance ambulance = AmbulanceForegroundService.getCurrentAmbulance();
+        Ambulance ambulance = AmbulanceForegroundService.getAppData().getAmbulance();
         if (ambulance != null) {
 
             Call call = AmbulanceForegroundService.getCurrentCall();
@@ -516,7 +525,7 @@ public class MainActivity extends AppCompatActivity {
 
     public boolean canWrite() {
 
-        Ambulance ambulance = AmbulanceForegroundService.getCurrentAmbulance();
+        Ambulance ambulance = AmbulanceForegroundService.getAppData().getAmbulance();
 
         // has ambulance?
         if (ambulance == null)
@@ -525,23 +534,14 @@ public class MainActivity extends AppCompatActivity {
         // can write?
         boolean canWrite = false;
 
-        try {
-
-            final MqttProfileClient profileClient = AmbulanceForegroundService.getProfileClient();
-            for (AmbulancePermission permission : profileClient.getProfile().getAmbulances()) {
-                if (permission.getAmbulanceId() == ambulance.getId()) {
-                    if (permission.isCanWrite()) {
-                        canWrite = true;
-                    }
-                    break;
+        AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
+        for (AmbulancePermission permission : appData.getProfile().getAmbulances()) {
+            if (permission.getAmbulanceId() == ambulance.getId()) {
+                if (permission.isCanWrite()) {
+                    canWrite = true;
                 }
+                break;
             }
-
-        } catch (AmbulanceForegroundService.ProfileClientException e) {
-
-            /* no need to do anything */
-            Log.e(TAG, "Failed to retrieveObject ambulance read/write permissions.");
-
         }
 
         return canWrite;
@@ -636,7 +636,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         // Get current ambulance
-        Ambulance ambulance = AmbulanceForegroundService.getCurrentAmbulance();
+        Ambulance ambulance = AmbulanceForegroundService.getAppData().getAmbulance();
         if (ambulance == null) {
             Log.d(TAG, "Can't find ambulance; should never happen");
             return;
@@ -884,7 +884,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         // Get current ambulance
-        final Ambulance ambulance = AmbulanceForegroundService.getCurrentAmbulance();
+        final Ambulance ambulance = AmbulanceForegroundService.getAppData().getAmbulance();
         if (ambulance == null) {
             Log.d(TAG, "Can't find ambulance; should never happen");
             return;
@@ -909,20 +909,6 @@ public class MainActivity extends AppCompatActivity {
         // Create hospital spinner
         final Spinner hospitalSpinner = view.findViewById(R.id.spinnerHospitals);
         hospitalSpinner.setAdapter(hospitalListAdapter);
-
-        // Creates list of base names
-        ArrayList<String> baseList = new ArrayList<>();
-        baseList.add(getString(R.string.selectBase));
-        List<Location> bases = AmbulanceForegroundService.getBases();
-        if (bases != null) {
-            for (Location base : bases)
-                baseList.add(base.getName());
-        }
-
-        // Create the adapter
-        baseListAdapter = new ArrayAdapter<>(this,
-                android.R.layout.simple_spinner_dropdown_item, baseList);
-        baseListAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 
         // Create base spinner
         final Spinner baseSpinner = view.findViewById(R.id.spinnerBases);
@@ -1079,7 +1065,7 @@ public class MainActivity extends AppCompatActivity {
 
                                         Log.i(TAG, "ForceLocationUpdatesDialog: OK Button Clicked");
 
-                                        Ambulance ambulance = AmbulanceForegroundService.getCurrentAmbulance();
+                                        Ambulance ambulance = AmbulanceForegroundService.getAppData().getAmbulance();
                                         if (ambulance == null) {
 
                                             Log.d(TAG, "Could not force updates.");

@@ -21,6 +21,7 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.emstrack.ambulance.models.AmbulanceAppData;
 import org.emstrack.ambulance.services.AmbulanceForegroundService;
 import org.emstrack.ambulance.MainActivity;
 import org.emstrack.ambulance.R;
@@ -29,6 +30,7 @@ import org.emstrack.models.AmbulanceCall;
 import org.emstrack.models.Call;
 import org.emstrack.models.Location;
 import org.emstrack.models.Patient;
+import org.emstrack.models.Settings;
 import org.emstrack.models.Waypoint;
 import org.emstrack.mqtt.MqttProfileClient;
 
@@ -97,14 +99,14 @@ public class AmbulanceFragment extends Fragment {
                     case AmbulanceForegroundService.BroadcastActions.AMBULANCE_UPDATE:
 
                         Log.i(TAG, "AMBULANCE_UPDATE");
-                        updateAmbulance(AmbulanceForegroundService.getCurrentAmbulance());
+                        updateAmbulance(AmbulanceForegroundService.getAppData().getAmbulance());
 
                         break;
                     case AmbulanceForegroundService.BroadcastActions.CALL_UPDATE:
 
                         Log.i(TAG, "CALL_UPDATE");
                         if (currentCallId > 0)
-                            updateCall(AmbulanceForegroundService.getCurrentAmbulance(),
+                            updateCall(AmbulanceForegroundService.getAppData().getAmbulance(),
                                     AmbulanceForegroundService.getCurrentCall());
 
                         break;
@@ -117,7 +119,7 @@ public class AmbulanceFragment extends Fragment {
 
                         int callId = intent.getIntExtra(AmbulanceForegroundService.BroadcastExtras.CALL_ID, -1);
                         currentCallId = -1;
-                        updateCall(AmbulanceForegroundService.getCurrentAmbulance(),
+                        updateCall(AmbulanceForegroundService.getAppData().getAmbulance(),
                                 AmbulanceForegroundService.getCurrentCall());
 
                         break;
@@ -131,7 +133,7 @@ public class AmbulanceFragment extends Fragment {
 
                         int callId = intent.getIntExtra(AmbulanceForegroundService.BroadcastExtras.CALL_ID, -1);
                         if (currentCallId == callId)
-                            updateCall(AmbulanceForegroundService.getCurrentAmbulance(), null);
+                            updateCall(AmbulanceForegroundService.getAppData().getAmbulance(), null);
 
                         break;
                     }
@@ -240,12 +242,12 @@ public class AmbulanceFragment extends Fragment {
         callSkipWaypoinButton = callSkipLayout.findViewById(R.id.callSkipWaypointButton);
         callVisitingWaypointButton = callSkipLayout.findViewById(R.id.callVisitingWaypoingButton);
 
-        try {
+        AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
+        Settings settings = appData.getSettings();
+        if (settings != null) {
 
             // Get settings, status and capabilities
-            final MqttProfileClient profileClient = AmbulanceForegroundService.getProfileClient();
-
-            ambulanceStatus = profileClient.getSettings().getAmbulanceStatus();
+            ambulanceStatus = settings.getAmbulanceStatus();
             ambulanceStatusList = new ArrayList<>(ambulanceStatus.values());
             Collections.sort(ambulanceStatusList);
 
@@ -258,14 +260,14 @@ public class AmbulanceFragment extends Fragment {
                         ambulanceStatusTextColorList.add(getResources().getColor(Ambulance.statusTextColorMap.get(entry.getKey())));
                     }
 
-            ambulanceCapabilities = profileClient.getSettings().getAmbulanceCapability();
+            ambulanceCapabilities = settings.getAmbulanceCapability();
             ambulanceCapabilityList = new ArrayList<>(ambulanceCapabilities.values());
             Collections.sort(ambulanceCapabilityList);
 
-        } catch (AmbulanceForegroundService.ProfileClientException e) {
+        } else {
             
             ambulanceStatusList = new ArrayList<>();
-            
+            ambulanceCapabilityList = new ArrayList<>();
         }
 
         // Other text
@@ -281,7 +283,7 @@ public class AmbulanceFragment extends Fragment {
         statusButton.setOnClickListener(statusButtonClickListerner);
 
         // Update ambulance
-        Ambulance ambulance = AmbulanceForegroundService.getCurrentAmbulance();
+        Ambulance ambulance = AmbulanceForegroundService.getAppData().getAmbulance();
         if (ambulance != null)
             updateAmbulance(ambulance);
         else
@@ -312,7 +314,7 @@ public class AmbulanceFragment extends Fragment {
         callResumeLayout.setVisibility(View.GONE);
 
         // Update ambulance
-        Ambulance ambulance = AmbulanceForegroundService.getCurrentAmbulance();
+        Ambulance ambulance = AmbulanceForegroundService.getAppData().getAmbulance();
         if (ambulance != null)
             updateAmbulance(ambulance);
 
@@ -716,7 +718,7 @@ public class AmbulanceFragment extends Fragment {
             // Update on server
             // TODO: Update along with locations because it will be recorded with
             //       the wrong location on the server
-            Ambulance ambulance = AmbulanceForegroundService.getCurrentAmbulance();
+            Ambulance ambulance = AmbulanceForegroundService.getAppData().getAmbulance();
             Intent intent = new Intent(getContext(), AmbulanceForegroundService.class);
             intent.setAction(AmbulanceForegroundService.Actions.UPDATE_AMBULANCE_STATUS);
             Bundle bundle = new Bundle();

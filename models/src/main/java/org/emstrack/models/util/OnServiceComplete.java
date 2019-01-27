@@ -116,7 +116,7 @@ import android.util.Log;
  */
 public abstract class OnServiceComplete extends BroadcastReceiver implements StartableTask<OnServiceComplete> {
 
-    private final String TAG = OnServiceComplete.class.getSimpleName();
+    protected final String TAG = OnServiceComplete.class.getSimpleName();
 
     private final Context context;
     private final String successAction;

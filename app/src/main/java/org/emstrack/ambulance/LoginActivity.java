@@ -33,6 +33,7 @@ import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 
 import org.emstrack.ambulance.dialogs.AlertSnackbar;
+import org.emstrack.ambulance.models.AmbulanceAppData;
 import org.emstrack.ambulance.services.AmbulanceForegroundService;
 import org.emstrack.models.util.BroadcastActions;
 import org.emstrack.models.util.OnServiceComplete;
@@ -201,34 +202,33 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
         } else {
 
-            try {
+            // Already logged in?
+            AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
+            Profile profile = appData.getProfile();
+            if (profile != null) {
 
-                // Already logged in?
-                final MqttProfileClient profileClient = AmbulanceForegroundService.getProfileClient();
-                Profile profile = profileClient.getProfile();
-                if (profile != null) {
+                // Get user info & remove whitespace
+                final String username = usernameField.getText().toString().trim();
 
-                    // Get user info & remove whitespace
-                    final String username = usernameField.getText().toString().trim();
+                // Create intent
+                Intent intent = new Intent(LoginActivity.this,
+                        MainActivity.class);
 
-                    // Create intent
-                    Intent intent = new Intent(LoginActivity.this,
-                            MainActivity.class);
+                Log.i(TAG, "Starting MainActivity");
 
-                    Log.i(TAG, "Starting MainActivity");
+                // Toast
+                Toast.makeText(LoginActivity.this,
+                        getResources().getString(R.string.loginSuccessMessage, username),
+                        Toast.LENGTH_SHORT).show();
 
-                    // Toast
-                    Toast.makeText(LoginActivity.this,
-                            getResources().getString(R.string.loginSuccessMessage, username),
-                            Toast.LENGTH_SHORT).show();
+                // initiate MainActivity
+                startActivity(intent);
 
-                    // initiate MainActivity
-                    startActivity(intent);
+                return;
+            }
 
-                    return;
-                }
-
-            } catch (AmbulanceForegroundService.ProfileClientException e) {
+/*
+            } else {
 
                 // Initialize service to make sure it gets bound to service
                 Intent intent = new Intent(this, AmbulanceForegroundService.class);
@@ -239,6 +239,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                 // TODO: is this safe to do asynchronously?
 
             }
+*/
 
         }
 

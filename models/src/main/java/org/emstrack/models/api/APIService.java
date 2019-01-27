@@ -1,8 +1,11 @@
 package org.emstrack.models.api;
 
+import org.emstrack.models.Ambulance;
 import org.emstrack.models.Credentials;
+import org.emstrack.models.Hospital;
 import org.emstrack.models.Location;
 import org.emstrack.models.Profile;
+import org.emstrack.models.Settings;
 import org.emstrack.models.Token;
 
 import java.util.List;
@@ -41,6 +44,14 @@ public interface APIService {
     Call<Profile> getProfile(@Path("username") String username);
 
     /**
+     * Retrieve the settings
+     *
+     * @return the api call
+     */
+    @GET("settings/")
+    Call<Settings> getSettings();
+
+    /**
      * Retrieve locations by type
      *
      * @param type the type
@@ -56,5 +67,29 @@ public interface APIService {
      */
     @GET("location/")
     Call<List<Location>> getLocations();
+
+    /**
+     * Retrieve hospitals
+     *
+     * @return the api call
+     */
+    @GET("hospital/")
+    Call<List<Hospital>> getHospitals();
+
+    /**
+     * Retrieve ambulances
+     *
+     * @return the api call
+     */
+    @GET("ambulance/")
+    Call<List<Ambulance>> getAmbulances();
+
+    /**
+     * Retrieve ambulance
+     *
+     * @return the api call
+     */
+    @GET("ambulance/{id}/")
+    Call<Ambulance> getAmbulance(@Path("id") int id);
 
 }

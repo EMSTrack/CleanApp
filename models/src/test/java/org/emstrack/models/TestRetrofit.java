@@ -27,7 +27,7 @@ public class TestRetrofit {
         String username = "admin";
         String password = "cruzrojaadmin";
         String serverURI = "https://cruzroja.ucsd.edu/";
-        Credentials credentials = new Credentials(username, password, serverURI);
+        Credentials credentials = new Credentials(username, password, serverURI, "");
 
         retrofit2.Call<Token> callSync = service.getToken(credentials);
 
@@ -63,10 +63,10 @@ public class TestRetrofit {
         System.out.println("test_retrofit_with_credentials()");
 
         Credentials credentials = new Credentials("admin", "cruzrojaadmin",
-                "https://cruzroja.ucsd.edu");
+                "https://cruzroja.ucsd.edu", "");
 
         // Retrieve token
-        APIServiceGenerator.setServerUri(credentials.getServerURI());
+        APIServiceGenerator.setServerUri(credentials.getApiServerUri());
         APIService service = APIServiceGenerator.createService(APIService.class);
         retrofit2.Call<Token> call = service.getToken(credentials);
         OnAPICallComplete<Token> api = new OnAPICallComplete<Token>(call) {
