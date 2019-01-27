@@ -55,8 +55,6 @@ public class MqttProfileClient implements MqttCallbackExtended {
     private final String connectTopic = "user/%1$s/client/%2$s/status";
 
     private String username;
-    private Profile profile;
-    private Settings settings;
 
     private final MqttAndroidClient mqttClient;
 
@@ -70,20 +68,10 @@ public class MqttProfileClient implements MqttCallbackExtended {
 
     public void setUsername(String username) {
         this.username = username;
-        profile = null;
-        settings = null;
     }
 
     public String getUsername() {
         return username;
-    }
-
-    public Profile getProfile() {
-        return profile;
-    }
-
-    public Settings getSettings() {
-        return settings;
     }
 
     public void close() {
@@ -325,102 +313,18 @@ public class MqttProfileClient implements MqttCallbackExtended {
 
         try {
 
-            // Subscribe to username/{username}/profile
-            subscribe(String.format("user/%1$s/profile", username), 2, new MqttProfileMessageCallback() {
-
-                @Override
-                public void messageArrived(String topic, MqttMessage message) {
-
-                    if (!reconnect && profile != null) {
-                        // Should never happen
-                        callOnFailure(new Exception("Profile already exists!"));
-                        return;
-                    }
-
-                    // Parse profile
-                    GsonBuilder gsonBuilder = new GsonBuilder();
-                    gsonBuilder.setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES);
-                    Gson gson = gsonBuilder.create();
-
-                    profile = gson.fromJson(new String(message.getPayload()), Profile.class);
-
-                    // Error parsing profile
-                    if (profile == null) {
-                        callOnFailure(new Exception("Could not parse profile"));
-                        return;
-                    }
-                    Log.d(TAG, "Parsed profile: " + profile);
-
-                    // Sort ambulances and hospitals
-                    profile.sortAmbulances();
-                    profile.sortHospitals();
-
-                    // Unsubscribe from profile
-                    try {
-                        unsubscribe(topic);
-                    } catch (MqttException e) {
-                        callOnFailure(new Exception("Failed to unsubscribe to '" + topic + "'"));
-                        return;
-                    }
-
-                    try {
-
-                        // Subscribe to error
-                        subscribe(String.format("user/%1$s/client/%2$s/error", username, mqttClient.getClientId()), 1);
-
-                    } catch (MqttException e) {
-                        callOnFailure(new Exception(String.format("Failed to subscribe to 'user/%1$s/client/%2$s/error",
-                                username, mqttClient.getClientId())));
-                        return;
-                    }
-
-                    try {
-
-                        // Subscribe to settings
-                        subscribe("settings", 1, new MqttProfileMessageCallback() {
-
-                            @Override
-                            public void messageArrived(String topic, MqttMessage message) {
-
-                                // Parse settings
-                                GsonBuilder gsonBuilder = new GsonBuilder();
-                                gsonBuilder.setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES);
-                                Gson gson = gsonBuilder.create();
-
-                                settings = gson.fromJson(new String(message.getPayload()), Settings.class);
-
-                                if (settings == null) {
-                                    callOnFailure(new Exception("Could not parse settings"));
-                                    return;
-                                }
-                                Log.d(TAG, "Got settings = " + settings);
-
-                                // Unsubscribe from settings
-                                try {
-                                    unsubscribe(topic);
-                                } catch (MqttException e) {
-                                    callOnFailure(new Exception("Failed to unsubscribe to '" + topic + "'"));
-                                    return;
-                                }
-
-                                // Call on success
-                                callOnSuccess();
-
-                            }
-
-                        });
-
-                    } catch (MqttException e) {
-                        callOnFailure(new Exception("Failed to subscribe to 'settings'"));
-                    }
-
-                }
-
-            });
+            // Subscribe to error
+            subscribe(String.format("user/%1$s/client/%2$s/error", username, mqttClient.getClientId()), 1);
 
         } catch (MqttException e) {
-            callOnFailure(new Exception(String.format("Failed to subscribe to 'user/%1$s/profile'", username)));
+            callOnFailure(new Exception(String.format("Failed to subscribe to 'user/%1$s/client/%2$s/error",
+                    username, mqttClient.getClientId())));
+            return;
         }
+
+
+        // Call on success
+        callOnSuccess();
 
     }
 

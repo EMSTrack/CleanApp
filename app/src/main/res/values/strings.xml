@@ -25,7 +25,7 @@
     <string name="error_empty_username">Please provide a valid user name.</string>
     <string name="error_empty_password">Please provide a valid password.</string>
     <string name="error_invalid_credentials">Please provide valid credentials.</string>
-    <string name="error_connection_failed">Connection failed. Reason: \'%1$s\'</string>
+    <string name="error_connection_failed">Connection failed</string>
     <string name="error_no_hospitals">No hospitals are associated with this account.</string>
     <string name="error_invalid_server">Please select server.</string>
 
@@ -244,6 +244,8 @@
     <string name="selectHospital">Select hospital:</string>
     <string name="selectBase">Select base:</string>
     <string name="newCallRequest">You have a new call request waiting.</string>
+    <string name="couldNotLoginToAmbulance">Could not login to ambulance</string>
+    <string name="couldNotParseHospitalUpdate">Could not parse hospital update</string>
     <string-array name="spinner_list_item_array_server">
         <item>@string/server_select</item>
         <item>Tijuana Red Cross:tijuana.emstrack.org:8883</item>

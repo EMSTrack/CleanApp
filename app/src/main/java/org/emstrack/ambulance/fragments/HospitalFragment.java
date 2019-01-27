@@ -11,24 +11,21 @@ import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.util.SparseArray;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import org.emstrack.ambulance.dialogs.AlertSnackbar;
-import org.emstrack.ambulance.services.AmbulanceForegroundService;
 import org.emstrack.ambulance.R;
 import org.emstrack.ambulance.adapters.HospitalExpandableRecyclerAdapter;
+import org.emstrack.ambulance.models.AmbulanceAppData;
 import org.emstrack.ambulance.models.HospitalExpandableGroup;
-import org.emstrack.models.util.BroadcastActions;
-import org.emstrack.models.util.OnServiceComplete;
-import org.emstrack.models.EquipmentItem;
+import org.emstrack.ambulance.services.AmbulanceForegroundService;
+import org.emstrack.ambulance.util.SparseArrayUtils;
 import org.emstrack.models.Hospital;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 public class HospitalFragment extends Fragment {
 
@@ -47,7 +44,8 @@ public class HospitalFragment extends Fragment {
                 if (action.equals(AmbulanceForegroundService.BroadcastActions.HOSPITALS_UPDATE)) {
 
                     Log.i(TAG, "HOSPITALS_UPDATE");
-                    update(AmbulanceForegroundService.getHospitals());
+                    AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
+                    update(appData.getHospitals());
 
                 }
             }
@@ -60,44 +58,10 @@ public class HospitalFragment extends Fragment {
         rootView = inflater.inflate(R.layout.fragment_hospital, container, false);
         recyclerView = rootView.findViewById(R.id.recycler_view);
 
-        Map<Integer, Hospital> hospitals = AmbulanceForegroundService.getHospitals();
-
-        // Retrieve hospitals?
-        if (hospitals == null) {
-
-            // Retrieve hospitals
-            Intent hospitalsIntent = new Intent(getContext(), AmbulanceForegroundService.class);
-            hospitalsIntent.setAction(AmbulanceForegroundService.Actions.GET_HOSPITALS);
-
-            // What to do when GET_HOSPITALS service completes?
-            new OnServiceComplete(getContext(),
-                    BroadcastActions.SUCCESS,
-                    BroadcastActions.FAILURE,
-                    hospitalsIntent) {
-
-                @Override
-                public void onSuccess(Bundle extras) {
-
-                    Log.i(TAG,"Got all hospitals.");
-
-                    // updateAmbulance hospitals
-                    update(AmbulanceForegroundService.getHospitals());
-
-                }
-            }
-                    .setFailureMessage(getString(R.string.couldNotRetrieveHospitals))
-                    .setAlert(new AlertSnackbar(getActivity()))
-                    .start();
-
-        } else {
-
-            // Already have hospitals
-            update(hospitals);
-
-        }
+        AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
+        update(appData.getHospitals());
 
         return rootView;
-
     }
 
     @Override
@@ -110,8 +74,11 @@ public class HospitalFragment extends Fragment {
         receiver = new HospitalsUpdateBroadcastReceiver();
         getLocalBroadcastManager().registerReceiver(receiver, filter);
 
+        // Get app data
+        AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
+
         // updateAmbulance UI
-        update(AmbulanceForegroundService.getHospitals());
+        update(appData.getHospitals());
 
     }
 
@@ -132,7 +99,7 @@ public class HospitalFragment extends Fragment {
      *
      * @param hospitals list of hospitals
      */
-    public void update(Map<Integer, Hospital> hospitals) {
+    public void update(SparseArray<Hospital> hospitals) {
 
         // fast return if no hospitals
         if (hospitals == null)
@@ -143,16 +110,8 @@ public class HospitalFragment extends Fragment {
         // Create HospitalExpandableGroup
         final List hospitalExpandableGroup = new ArrayList<HospitalExpandableGroup>();
 
-        // Retrieve hospitals
-        ArrayList<Hospital> sortedHospitals = new ArrayList<>();
-        for (Map.Entry<Integer, Hospital> entry : hospitals.entrySet())
-            sortedHospitals.add( entry.getValue() );
-
-        // Sort hospitals
-        Collections.sort(sortedHospitals, (a,b) -> a.getName().compareTo(b.getName()) );
-
         // Loop over all hospitals
-        for (Hospital hospital : sortedHospitals ) {
+        for (Hospital hospital : SparseArrayUtils.iterable(hospitals) ) {
 
             // Add to to expandable group
             hospitalExpandableGroup.add(
@@ -161,22 +120,6 @@ public class HospitalFragment extends Fragment {
                             hospital));
 
         }
-
-        /*
-        // Loop over all hospitals
-        for (Map.Entry<Integer, Hospital> entry : hospitals.entrySet()) {
-
-            // Get hospital
-            Hospital hospital = entry.getValue();
-
-            // Add to to expandable group
-            hospitalExpandableGroup.add(
-                    new HospitalExpandableGroup(hospital.getName(),
-                            new ArrayList<EquipmentItem>(), // hospital.getHospitalequipmentSet(),
-                            hospital));
-
-        }
-        */
 
         // Install fragment
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getContext());

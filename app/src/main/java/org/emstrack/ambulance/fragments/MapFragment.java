@@ -15,6 +15,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
+import android.util.SparseArray;
 import android.view.LayoutInflater;
 import android.view.OrientationEventListener;
 import android.view.Surface;
@@ -35,8 +36,11 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import org.emstrack.ambulance.dialogs.AlertSnackbar;
+import org.emstrack.ambulance.models.AmbulanceAppData;
 import org.emstrack.ambulance.services.AmbulanceForegroundService;
 import org.emstrack.ambulance.R;
+import org.emstrack.ambulance.util.SparseArrayUtils;
+import org.emstrack.models.Settings;
 import org.emstrack.models.util.BroadcastActions;
 import org.emstrack.models.util.OnServiceComplete;
 import org.emstrack.models.Ambulance;
@@ -48,6 +52,7 @@ import org.emstrack.mqtt.MqttProfileClient;
 
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 // TODO: Implement listener to ambulance changes
@@ -327,15 +332,16 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
         waypointMarkers = new HashMap<>();
 
         // Get settings, status and capabilities
-        try {
+        AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
+        Settings settings = appData.getSettings();
+        if (settings != null) {
 
-            final MqttProfileClient profileClient = AmbulanceForegroundService.getProfileClient();
-            ambulanceStatus = profileClient.getSettings().getAmbulanceStatus();
-            defaultLocation = profileClient.getSettings().getDefaults().getLocation();
+            ambulanceStatus = settings.getAmbulanceStatus();
+            defaultLocation = settings.getDefaults().getLocation();
 
-        } catch (AmbulanceForegroundService.ProfileClientException e) {
+        } else {
 
-            ambulanceStatus = new HashMap<String,String>();
+            ambulanceStatus = new HashMap<>();
             defaultLocation = new GPSLocation(0,0);
 
         }
@@ -384,9 +390,10 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
     public void retrieveAmbulances() {
 
         // Get ambulances
-        Map<Integer, Ambulance> ambulances = AmbulanceForegroundService.getOtherAmbulances();
+        AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
+        SparseArray<Ambulance> ambulances = appData.getAmbulances();
 
-        if (ambulances == null) {
+        if (ambulances.size() != appData.getProfile().getAmbulances().size() - 1) {
 
             Log.i(TAG,"No ambulances.");
 
@@ -635,7 +642,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
             // Move camera
             if (ambulanceMarkers.size() == 1) {
 
-                Ambulance ambulance = AmbulanceForegroundService.getCurrentAmbulance();
+                Ambulance ambulance = AmbulanceForegroundService.getAppData().getAmbulance();
                 if (ambulance != null) {
 
                     GPSLocation location = ambulance.getLocation();
@@ -680,27 +687,21 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
         // Assemble marker bounds
         LatLngBounds.Builder builder = new LatLngBounds.Builder();
 
+        // Get app data
+        AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
+
         // Update hospitals
         if (showHospitals) {
 
-            // Get hospitals
-            Map<Integer, Hospital> hospitals = AmbulanceForegroundService.getHospitals();
+            // Loop over all hospitals
+            for (Hospital hospital : SparseArrayUtils.iterable(appData.getHospitals())) {
 
-            if (hospitals != null) {
+                // Add marker for hospital
+                Marker marker = addMarkerForHospital(hospital);
 
-                // Loop over all hospitals
-                for (Map.Entry<Integer, Hospital> entry : hospitals.entrySet()) {
+                // Add to bound builder
+                builder.include(marker.getPosition());
 
-                    // Get hospital
-                    Hospital hospital = entry.getValue();
-
-                    // Add marker for hospital
-                    Marker marker = addMarkerForHospital(hospital);
-
-                    // Add to bound builder
-                    builder.include(marker.getPosition());
-
-                }
             }
 
         }
@@ -709,15 +710,12 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
         if (showAmbulances) {
 
             // Get ambulances
-            Map<Integer, Ambulance> ambulances = AmbulanceForegroundService.getOtherAmbulances();
+            SparseArray<Ambulance> ambulances = AmbulanceForegroundService.getAppData().getAmbulances();
 
             if (ambulances != null) {
 
                 // Loop over all ambulances
-                for (Map.Entry<Integer, Ambulance> entry : ambulances.entrySet()) {
-
-                    // Get ambulance
-                    Ambulance ambulance = entry.getValue();
+                for (Ambulance ambulance : SparseArrayUtils.iterable(ambulances)) {
 
                     // Add marker for ambulance
                     Marker marker = addMarkerForAmbulance(ambulance);
@@ -755,7 +753,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
         // Handle my location?
         if (!useMyLocation) {
 
-            Ambulance ambulance = AmbulanceForegroundService.getCurrentAmbulance();
+            Ambulance ambulance = AmbulanceForegroundService.getAppData().getAmbulance();
             if (ambulance != null) {
 
                 // Add marker for ambulance
@@ -885,7 +883,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
 
     public void centerAmbulances() {
 
-        Ambulance ambulance = AmbulanceForegroundService.getCurrentAmbulance();
+        Ambulance ambulance = AmbulanceForegroundService.getAppData().getAmbulance();
         if (ambulance != null) {
 
             GPSLocation location = ambulance.getLocation();
