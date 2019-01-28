@@ -19,6 +19,7 @@ public class FragmentPager extends FragmentStatePagerAdapter {
     private final CharSequence[] titles;
     Fragment[] fragments;
     int numberOfTabs;
+    boolean showTitle = false;
 
     public FragmentPager(FragmentManager fm,
                          Fragment[] fragments,
@@ -36,7 +37,8 @@ public class FragmentPager extends FragmentStatePagerAdapter {
     public Fragment getItem(int position) { return (position < numberOfTabs ? fragments[position] : null); }
 
     @Override
-    public CharSequence getPageTitle(int position) { return (position < numberOfTabs ? titles[position] : ""); }
+    public CharSequence getPageTitle(int position) { return (showTitle ?
+            (position < numberOfTabs ? titles[position] : "") : null); }
 
     @Override
     public int getCount() {

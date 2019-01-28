@@ -35,6 +35,7 @@ import org.emstrack.ambulance.dialogs.AboutDialog;
 import org.emstrack.ambulance.dialogs.AlertSnackbar;
 import org.emstrack.ambulance.dialogs.LogoutDialog;
 import org.emstrack.ambulance.fragments.AmbulanceFragment;
+import org.emstrack.ambulance.fragments.EquipmentFragment;
 import org.emstrack.ambulance.fragments.HospitalFragment;
 import org.emstrack.ambulance.fragments.MapFragment;
 import org.emstrack.ambulance.models.AmbulanceAppData;
@@ -51,7 +52,6 @@ import org.emstrack.models.Profile;
 import org.emstrack.models.Waypoint;
 import org.emstrack.models.util.BroadcastActions;
 import org.emstrack.models.util.OnServiceComplete;
-import org.emstrack.mqtt.MqttProfileClient;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
@@ -307,19 +307,25 @@ public class MainActivity extends AppCompatActivity {
 
         // Setup Adapter for tabLayout
         FragmentPager adapter = new FragmentPager(getSupportFragmentManager(),
-                new Fragment[]{new AmbulanceFragment(), new MapFragment(), new HospitalFragment()},
+                new Fragment[]{new AmbulanceFragment(),
+                        new MapFragment(),
+                        new HospitalFragment(),
+                        new EquipmentFragment()},
                 new CharSequence[]{getString(R.string.ambulance),
                         getString(R.string.map),
-                        getString(R.string.hospitals)});
+                        getString(R.string.hospitals),
+                        getString(R.string.equipment)});
         viewPager.setAdapter(adapter);
 
         //set up TabLayout Structure
         TabLayout tabLayout = findViewById(R.id.tab_layout_home);
         tabLayout.setTabGravity(TabLayout.GRAVITY_FILL);
         tabLayout.setupWithViewPager(viewPager);
-        tabLayout.getTabAt(0).setIcon(R.drawable.ic_ambulance);
-        tabLayout.getTabAt(1).setIcon(R.drawable.ic_globe);
-        tabLayout.getTabAt(2).setIcon(R.drawable.ic_hospital);
+        //tabLayout.getTabAt(0).setIcon(R.drawable.ic_ambulance);
+        tabLayout.getTabAt(0).setCustomView(createView(R.drawable.ic_ambulance));
+        tabLayout.getTabAt(1).setCustomView(createView(R.drawable.ic_globe));
+        tabLayout.getTabAt(2).setCustomView(createView(R.drawable.ic_hospital));
+        tabLayout.getTabAt(3).setCustomView(createView(R.drawable.ic_briefcase_medical));
 
         // Online icon
         onlineIcon = findViewById(R.id.onlineIcon);
@@ -1267,6 +1273,13 @@ public class MainActivity extends AppCompatActivity {
 
     public Map<String, Integer> getCallPriorityForegroundColors() {
         return callPriorityForegroundColors;
+    }
+
+    public ImageView createView(int resId) {
+        ImageView imageView = new ImageView(this);
+        imageView.setImageResource(resId);
+        imageView.setPadding(0, 20, 0, 20);
+        return imageView;
     }
 
 }
