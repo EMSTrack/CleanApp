@@ -40,6 +40,7 @@ import org.emstrack.ambulance.models.AmbulanceAppData;
 import org.emstrack.ambulance.services.AmbulanceForegroundService;
 import org.emstrack.ambulance.R;
 import org.emstrack.ambulance.util.SparseArrayUtils;
+import org.emstrack.models.Call;
 import org.emstrack.models.Settings;
 import org.emstrack.models.util.BroadcastActions;
 import org.emstrack.models.util.OnServiceComplete;
@@ -732,8 +733,10 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
         if (showWaypoints) {
 
             // Get current call
-            AmbulanceCall ambulanceCall = AmbulanceForegroundService.getCurrentAmbulanceCall();
-            if (ambulanceCall != null) {
+            Call call = appData.getCalls().getCurrentCall();
+            if (call != null) {
+
+                AmbulanceCall ambulanceCall = call.getCurrentAmbulanceCall();
 
                 // Loop over all waypoints
                 for (Waypoint waypoint: ambulanceCall.getWaypointSet()) {

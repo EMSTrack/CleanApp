@@ -359,6 +359,15 @@ public abstract class OnServiceComplete extends BroadcastReceiver implements Sta
     }
 
     /**
+     * Set success flag
+     *
+     * @param successFlag <code>True</code> if successful
+     */
+    public void setSuccess(boolean successFlag) {
+        this.successFlag = successFlag;
+    }
+
+    /**
      * Return whether the service was completed (as opposed to aborted or still pending)
      *
      * @return <code>True</code> if completed
@@ -459,13 +468,13 @@ public abstract class OnServiceComplete extends BroadcastReceiver implements Sta
 
         // Process actions
         this.successFlag = isSuccess;
-        if (isSuccess) {
+        if (this.successFlag) {
 
             // Log.i(TAG, "SUCCESS");
             onSuccess(intent.getExtras());
 
             // has next
-            if (this.next != null)
+            if (this.next != null && this.successFlag)
                 this.next.start();
 
         } else {

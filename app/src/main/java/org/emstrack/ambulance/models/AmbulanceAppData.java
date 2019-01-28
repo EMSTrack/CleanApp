@@ -4,6 +4,7 @@ import android.support.annotation.NonNull;
 import android.util.SparseArray;
 
 import org.emstrack.models.Ambulance;
+import org.emstrack.models.CallStack;
 import org.emstrack.models.Credentials;
 import org.emstrack.models.Hospital;
 import org.emstrack.models.Location;
@@ -31,6 +32,7 @@ public class AmbulanceAppData {
     private SparseArray<Ambulance> ambulances;
     private SparseArray<Hospital> hospitals;
     private List<Location> bases;
+    private CallStack calls;
 
     /**
      *
@@ -39,6 +41,7 @@ public class AmbulanceAppData {
         ambulances = new SparseArray<>();
         hospitals = new SparseArray<>();
         bases = new ArrayList<>();
+        calls = new CallStack();
     }
 
     /**
@@ -208,6 +211,14 @@ public class AmbulanceAppData {
             return -1;
         else
             return this.ambulance.getId();
+    }
+
+    /**
+     *
+     * @return the call stack
+     */
+    public CallStack getCalls() {
+        return calls;
     }
 }
 
