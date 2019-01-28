@@ -2,7 +2,7 @@
 <resources>
 
     <string name="app_name">EMSTrack</string>
-    <string name="app_version" translatable="false">v0_4_3</string>
+    <string name="app_version" translatable="false">v0_4_4</string>
     <string name="client_name" translatable="false">_AndroidClient_</string>
 
     <string name="drawer_open">Open navigation drawer</string>
@@ -247,6 +247,10 @@
     <string name="couldNotLoginToAmbulance">Could not login to ambulance</string>
     <string name="couldNotParseHospitalUpdate">Could not parse hospital update.</string>
     <string name="couldNotRemoveAmbulance">Could not remove ambulance</string>
+    <string name="information">About</string>
+    <string name="equipment">Equipment</string>
+    <string name="couldNotCleanUpCall">Could not clean up call</string>
+    <string name="couldNotStopCallUpdates">Could not stop call updates</string>
     <string-array name="spinner_list_item_array_server">
         <item>@string/server_select</item>
         <item>Tijuana Red Cross:tijuana.emstrack.org:8883</item>

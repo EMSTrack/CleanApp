@@ -5,7 +5,7 @@
         <item
             android:id="@+id/about"
             android:icon="@drawable/ic_info_circle"
-            android:title="@string/about" />
+            android:title="@string/information" />
 
         <item
             android:id="@+id/settings"

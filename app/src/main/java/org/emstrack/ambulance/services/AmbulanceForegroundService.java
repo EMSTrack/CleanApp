@@ -64,6 +64,7 @@ import org.emstrack.models.Waypoint;
 import org.emstrack.models.api.APIService;
 import org.emstrack.models.api.APIServiceGenerator;
 import org.emstrack.models.api.OnAPICallComplete;
+import org.emstrack.models.util.BroadcastActions;
 import org.emstrack.models.util.OnComplete;
 import org.emstrack.models.util.OnServiceComplete;
 import org.emstrack.mqtt.MishandledTopicException;
@@ -246,7 +247,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
         @Override
         public String toString() {
-            return String.format("hasAmbulance = %1$b, hasOtherAmbulances = %2$b, hasHospitals = %3$b, isUpdatingLocation = %5$b",
+            return String.format("hasAmbulance = %1$b, hasOtherAmbulances = %2$b, hasHospitals = %3$b, isUpdatingLocation = %4$b",
                     hasAmbulance, hasOtherAmbulances, hasHospitals, isUpdatingLocation);
         }
 
@@ -548,11 +549,65 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
             Log.i(TAG, "STOP_LOCATION_UPDATES Foreground Intent");
 
-            // stop call updates
-            stopCallUpdates(uuid);
+            new OnServiceComplete(this,
+                    org.emstrack.models.util.BroadcastActions.SUCCESS,
+                    org.emstrack.models.util.BroadcastActions.FAILURE,
+                    null) {
 
-            // stop requesting location updates
-            stopLocationUpdates(uuid);
+                @Override
+                public void run() {
+
+                    // stop call updates
+                    stopCallUpdates(getUuid());
+
+                }
+
+                @Override
+                public void onSuccess(Bundle extras) {
+
+                }
+
+                @Override
+                public void onFailure(Bundle extras) {
+                    super.onFailure(extras);
+
+                    // broadcast failure
+                    broadcastFailure("Failed to stop location updates", uuid);
+
+                }
+
+            }.setNext(new OnServiceComplete(this,
+                    org.emstrack.models.util.BroadcastActions.SUCCESS,
+                    org.emstrack.models.util.BroadcastActions.FAILURE,
+                    null) {
+
+                @Override
+                public void run() {
+
+                    // stop requesting location updates
+                    stopLocationUpdates(uuid);
+
+                }
+
+                @Override
+                public void onSuccess(Bundle extras) {
+
+                    // broadcast success
+                    broadcastSuccess("Successfully stopped location updates", uuid);
+
+                }
+
+                @Override
+                public void onFailure(Bundle extras) {
+                    super.onFailure(extras);
+
+                    // broadcast failure
+                    broadcastFailure("Failed to stop location updates", uuid);
+
+                }
+
+            })
+                    .start();
 
         } else if (action.equals(Actions.UPDATE_AMBULANCE_STATUS)) {
 
@@ -2221,13 +2276,37 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         // Logout and unsubscribe if not a reconnect
         if (!reconnect) {
 
-            // remove call updates
-            stopCallUpdates(null);
-
             // Retrieve client
             final MqttProfileClient profileClient = getProfileClient(this);
 
             new OnServiceComplete(this,
+                    org.emstrack.models.util.BroadcastActions.SUCCESS,
+                    org.emstrack.models.util.BroadcastActions.FAILURE,
+                    null) {
+
+                @Override
+                public void run() {
+
+                    // stop call updates
+                    stopCallUpdates(getUuid());
+
+                }
+
+                @Override
+                public void onSuccess(Bundle extras) {
+
+                }
+
+                @Override
+                public void onFailure(Bundle extras) {
+                    super.onFailure(extras);
+
+                    // broadcast failure
+                    broadcastFailure("Failed to stop location updates", uuid);
+
+                }
+
+            }.setNext(new OnServiceComplete(this,
                     org.emstrack.models.util.BroadcastActions.SUCCESS,
                     org.emstrack.models.util.BroadcastActions.FAILURE,
                     null) {
@@ -2283,11 +2362,11 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                     super.onFailure(extras);
 
                     // broadcast failure
-                    broadcastSuccess(getString(R.string.couldNotRemoveAmbulance), uuid);
+                    broadcastFailure(getString(R.string.couldNotRemoveAmbulance), uuid);
 
                 }
 
-            }
+            })
                     .start();
 
 
@@ -3060,6 +3139,9 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
                                     Log.d(TAG, "Existing call");
 
+                                    // Get ambulance call
+                                    AmbulanceCall ambulanceCall = calls.get(callId).getAmbulanceCall(ambulanceId);
+
                                     String newStatus;
                                     if (status.equalsIgnoreCase(AmbulanceCall.statusLabel.get(AmbulanceCall.STATUS_REQUESTED))) {
 
@@ -3087,20 +3169,49 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                                         // if current call
                                         if (calls.isCurrentCall(callId)) {
 
-                                            // clean up
-                                            cleanUpCall(callId, uuid);
+                                            // Clean up call
+                                            new OnServiceComplete(AmbulanceForegroundService.this,
+                                                    org.emstrack.models.util.BroadcastActions.SUCCESS,
+                                                    org.emstrack.models.util.BroadcastActions.FAILURE,
+                                                    null) {
 
-                                            // broadcast CALL_COMPLETED
-                                            Intent callCompletedIntent = new Intent(BroadcastActions.CALL_COMPLETED);
-                                            callCompletedIntent.putExtra(AmbulanceForegroundService.BroadcastExtras.CALL_ID, callId);
-                                            sendBroadcastWithUUID(callCompletedIntent, uuid);
+                                                @Override
+                                                public void run() {
+
+                                                    // clean up
+                                                    cleanUpCall(callId, getUuid());
+
+                                                }
+
+                                                @Override
+                                                public void onSuccess(Bundle extras) {
+
+                                                    // then broadcast CALL_COMPLETED
+                                                    Intent callCompletedIntent = new Intent(BroadcastActions.CALL_COMPLETED);
+                                                    callCompletedIntent.putExtra(AmbulanceForegroundService.BroadcastExtras.CALL_ID, callId);
+                                                    getLocalBroadcastManager().sendBroadcast(callCompletedIntent);
+
+                                                }
+
+                                                @Override
+                                                public void onFailure(Bundle extras) {
+                                                    super.onFailure(extras);
+
+                                                    // broadcast failure
+                                                    broadcastFailure("Could not clean up call");
+
+                                                }
+
+                                            }
+                                                    .start();
 
                                         }
 
                                     }
 
                                     // Update status, server updates may take a while
-                                    calls.get(callId).getAmbulanceCall(ambulanceId).setStatus(newStatus);
+                                    // This will work even if call is deleted
+                                    ambulanceCall.setStatus(newStatus);
 
                                 }
 
@@ -3138,14 +3249,14 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         if (_calls.contains(callId) && !_calls.hasCurrentOrPendingCall()) {
 
             // Is this an existing call and no call_current are currently being served?
+            processNextCall();
 
-            processNextCall(uuid);
+            // then return
             return;
 
         }
 
         // Subscribe to call to get call information
-
         MqttProfileClient profileClient = getProfileClient(this);
 
         try {
@@ -3169,7 +3280,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                         String payload = new String(message.getPayload());
                         if (payload == null || payload.isEmpty())
                             // This can happen when clearing a call
-                            // It will also broadcast a "ended" state so call will be finalized then
+                            // It will also broadcast an "ended" state so call will be finalized then
                             return;
 
                         try {
@@ -3200,19 +3311,15 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
                                 // if no current, process next
                                 if (!calls.hasCurrentOrPendingCall())
-                                    processNextCall(uuid);
+                                    processNextCall();
 
                             }
 
 
                         } catch (Exception e) {
 
-                            Log.d(TAG, "Failed to parse call '" + payload + "'. Excpetion='" + e + "'");
-
                             // Broadcast failure
-                            Intent localIntent = new Intent(org.emstrack.models.util.BroadcastActions.FAILURE);
-                            localIntent.putExtra(org.emstrack.models.util.BroadcastExtras.MESSAGE, getString(R.string.couldNotParseCallData));
-                            sendBroadcastWithUUID(localIntent, uuid);
+                            broadcastFailure(getString(R.string.couldNotParseCallData));
 
                         }
 
@@ -3295,53 +3402,182 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
     }
 
+
+    private void unsubscribeFromCalls(Ambulance ambulance) {
+
+        // Get call stack
+        CallStack calls = appData.getCalls();
+
+        // get profile client
+        MqttProfileClient profileClient = AmbulanceForegroundService.getProfileClient(this);
+
+        CallStack.CallStackIterator iterator = calls.iterator();
+        while (iterator.hasNext()) {
+
+            Map.Entry<Integer, Call> pair = iterator.next();
+            int callId = pair.getKey();
+
+            // unsubscribe from call
+            Log.i(TAG, "Unsubscribe from call/" + callId + "/data");
+            try {
+                profileClient.unsubscribe("call/" + callId + "/data");
+            } catch (MqttException e) {
+                Log.d(TAG, "Could not unsubscribe from 'call/" + callId + "/data'");
+            }
+
+            // remove from pending call_current
+            iterator.remove();
+
+        }
+
+        Log.i(TAG, "Unsubscribe from call updates");
+        try {
+            profileClient.unsubscribe(String.format("ambulance/%1$d/call/+/status", ambulance.getId()));
+        } catch (MqttException e) {
+            Log.d(TAG, String.format("ambulance/%1$d/call/+/status", ambulance.getId()));
+        }
+
+    }
+
     public void stopCallUpdates(final String uuid) {
 
         // Get calls
         CallStack calls = appData.getCalls();
 
-        // get profile client
-        MqttProfileClient profileClient = AmbulanceForegroundService.getProfileClient(this);
         Ambulance ambulance = getAppData().getAmbulance();
-        if (ambulance != null && profileClient != null) {
+        if (ambulance != null) {
 
             // terminate current call, does not process next
             if (calls.hasCurrentCall())
-                cleanUpCall(calls.getCurrentCallId(), uuid, false);
 
-            CallStack.CallStackIterator iterator = calls.iterator();
-            while (iterator.hasNext()) {
+                // Clean up call
+                new OnServiceComplete(AmbulanceForegroundService.this,
+                        org.emstrack.models.util.BroadcastActions.SUCCESS,
+                        org.emstrack.models.util.BroadcastActions.FAILURE,
+                        null) {
 
-                Map.Entry<Integer, Call> pair = iterator.next();
-                int callId = pair.getKey();
+                    @Override
+                    public void run() {
 
-                // unsubscribe from call
-                Log.i(TAG, "Unsubscribe from call/" + callId + "/data");
-                try {
-                    profileClient.unsubscribe("call/" + callId + "/data");
-                } catch (MqttException e) {
-                    Log.d(TAG, "Could not unsubscribe from 'call/" + callId + "/data'");
+                        // terminate current call, does not process next
+                        cleanUpCall(calls.getCurrentCallId(), getUuid(), false);
+
+                    }
+
+                    @Override
+                    public void onSuccess(Bundle extras) {
+
+                        // unsubscribe
+                        unsubscribeFromCalls(ambulance);
+
+                        // broadcast success
+                        broadcastSuccess("Successfully stopped call updates", uuid);
+
+                    }
+
+                    @Override
+                    public void onFailure(Bundle extras) {
+                        super.onFailure(extras);
+
+                        // broadcast failure
+                        broadcastFailure(getString(R.string.couldNotStopCallUpdates), uuid);
+
+                    }
                 }
+                        .start();
 
-                // remove from pending call_current
-                iterator.remove();
+            else {
+
+                // unsubscribe
+                unsubscribeFromCalls(ambulance);
+
+                // broadcast success
+                broadcastSuccess("Successfully stopped call updates", uuid);
 
             }
-
-            Log.i(TAG, "Unsubscribe from call updates");
-            try {
-                profileClient.unsubscribe(String.format("ambulance/%1$d/call/+/status", ambulance.getId()));
-            } catch (MqttException e) {
-                Log.d(TAG, String.format("ambulance/%1$d/call/+/status", ambulance.getId()));
-            }
-
-
 
         } else {
 
-            Log.i(TAG, "No need to stop call updates");
+            // broadcast success
+            broadcastSuccess("Successfully stopped call updates", uuid);
 
         }
+
+    }
+
+    private void removeCurrentGeofences(int callId, String uuid) {
+
+        Log.i(TAG, "Stopping current geofences");
+
+        // Get calls
+        CallStack calls = appData.getCalls();
+
+        // If current call, stop geofences first
+        if (callId != calls.getCurrentCallId()) {
+
+            // broadcast success
+            broadcastSuccess("Not current call, no geofences to remove", uuid);
+
+            // then return
+            return;
+
+        }
+
+        // get ambulance
+        Ambulance ambulance = getAppData().getAmbulance();
+
+        // get ambulance call
+        AmbulanceCall ambulanceCall = calls.getCurrentCall().getCurrentAmbulanceCall();
+
+        // retrieve waypoints
+        List<String> requestIds = new ArrayList<>();
+        for (Map.Entry<String, Geofence> entry : _geofences.entrySet()) {
+
+            Waypoint waypoint = entry.getValue().getWaypoint();
+            if (ambulanceCall.containsWaypoint(waypoint)) {
+                // Add to list to remove
+                requestIds.add(entry.getKey());
+            }
+        }
+
+        new OnServiceComplete(this,
+                org.emstrack.models.util.BroadcastActions.SUCCESS,
+                org.emstrack.models.util.BroadcastActions.FAILURE,
+                null) {
+
+            @Override
+            public void run() {
+
+                // Stop geofences
+                stopGeofence(getUuid(), requestIds);
+
+            }
+
+            @Override
+            public void onSuccess(Bundle extras) {
+
+                // Set status as available
+                Log.d(TAG, "Set ambulance '" + getAppData().getAmbulance().getId() + "' available");
+                updateAmbulanceStatus(uuid, ambulance.getId(), Ambulance.STATUS_AVAILABLE);
+
+                // Release current call
+                calls.setPendingCall(false);
+
+                // broadcast success
+                broadcastSuccess("Successfully removed current geofences", uuid);
+
+            }
+
+            @Override
+            public void onFailure(Bundle extras) {
+                super.onFailure(extras);
+
+                // broadcast failure
+                broadcastSuccess("Could not remove current geofences", uuid);
+            }
+
+        }
+                .start();
 
     }
 
@@ -3354,103 +3590,100 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         Log.d(TAG, "Cleaning up call '" + callId + "'");
 
         if (callId < 0) {
+
             Log.d(TAG, "CallId < 0, abort!");
+
+            // broadcast failure
+            broadcastFailure(getString(R.string.couldNotCleanUpCall), uuid);
+
+            // then return
             return;
         }
 
         // Get calls
         CallStack calls = appData.getCalls();
 
-        try {
+        // get profile client
+        MqttProfileClient profileClient = AmbulanceForegroundService.getProfileClient(this);
 
-            // If current call, stop geofences first
-            if (callId == calls.getCurrentCallId()) {
+        new OnServiceComplete(this,
+                org.emstrack.models.util.BroadcastActions.SUCCESS,
+                org.emstrack.models.util.BroadcastActions.FAILURE,
+                null) {
 
-                // Get current call
-                Call call = calls.getCurrentCall();
+            @Override
+            public void run() {
 
-                // call is current call
-                Ambulance ambulance = getAppData().getAmbulance();
-                AmbulanceCall ambulanceCall = call.getCurrentAmbulanceCall();
+                removeCurrentGeofences(callId, getUuid());
 
-                // Stop geofences
-                Log.i(TAG, "Stopping geofences");
+            }
 
-                List<String> requestIds = new ArrayList<>();
-                for (Map.Entry<String, Geofence> entry : _geofences.entrySet()) {
+            @Override
+            public void onSuccess(Bundle extras) {
 
-                    Waypoint waypoint = entry.getValue().getWaypoint();
-                    if (ambulanceCall.containsWaypoint(waypoint)) {
-                        // Add to list to remove
-                        requestIds.add(entry.getKey());
+                try {
+
+                    // Should stop listening to call?
+                    // callId could also be 0 if pending
+                    if (callId > 0) {
+
+                        // Get ambulancecall
+                        Ambulance ambulance = getAppData().getAmbulance();
+                        AmbulanceCall ambulanceCall = calls.get(callId).getAmbulanceCall(ambulance.getId());
+
+                        if (ambulanceCall.getStatus().equals(AmbulanceCall.STATUS_COMPLETED)) {
+
+                            Log.i(TAG, "Unsubscribe from call/" + callId + "/data");
+
+                            // unsubscribe from call
+                            try {
+                                profileClient.unsubscribe("call/" + callId + "/data");
+                            } catch (MqttException e) {
+                                Log.d(TAG, "Could not unsubscribe from 'call/" + callId + "/data'");
+                            }
+
+                            // remove call from the queue
+                            calls.remove(callId);
+
+                        }
+
                     }
+
+                    if (calls.hasPendingCall()) {
+
+                        // It was prompting user, most likely declined
+                        Log.d(TAG, "Was prompting user, opening up to new call_current");
+
+                        // open up to new call_current
+                        calls.setPendingCall(false);
+
+                    }
+
+                    if (processNext) {
+
+                        Log.d(TAG, "Processing next call...");
+
+                        // process next call, except if callId
+                        processNextCall(callId);
+
+                    }
+
+                    // broadcast success
+                    broadcastSuccess("Successfully cleaned up call", uuid);
+
+                } catch (Exception t) {
+
+                    Log.d(TAG, "Could not clean up call. Exception='" + t + "'");
+
+                    // broadcast failure
+                    broadcastFailure(getString(R.string.couldNotCleanUpCall), uuid, t);
 
                 }
 
-                // Stop geofences
-                stopGeofence(uuid, requestIds);
-
-                // Set status as available
-                Log.d(TAG, "Set ambulance '" + getAppData().getAmbulance().getId() + "' available");
-                updateAmbulanceStatus(uuid, ambulance.getId(), Ambulance.STATUS_AVAILABLE);
-
-                // Release current call
-                calls.setPendingCall(false);
-
-            } else
-                Log.d(TAG, "Call '" + callId + "' is not current call (" + calls.getCurrentCallId() + ")");
-
-            // Should stop listening to call?
-            if (callId > 0) {
-
-                // Get ambulancecall
-                Ambulance ambulance = getAppData().getAmbulance();
-                AmbulanceCall ambulanceCall = calls.get(callId).getAmbulanceCall(ambulance.getId());
-
-                if (ambulanceCall.getStatus().equals(AmbulanceCall.STATUS_COMPLETED)) {
-
-                    Log.i(TAG, "Unsubscribe from call/" + callId + "/data");
-
-                    // unsubscribe from call
-                    try {
-                        // get profile client
-                        MqttProfileClient profileClient = AmbulanceForegroundService.getProfileClient(this);
-                        profileClient.unsubscribe("call/" + callId + "/data");
-                    } catch (MqttException e) {
-                        Log.d(TAG, "Could not unsubscribe from 'call/" + callId + "/data'");
-                    }
-
-                    // remove call from the queue
-                    calls.remove(callId);
-
-                }
-
             }
-
-            if (calls.hasPendingCall()) {
-
-                // It was prompting user, most likely declined
-                Log.d(TAG, "Was prompting user, opening up to new call_current");
-
-                // open up to new call_current
-                calls.setPendingCall(false);
-
-            }
-
-            if (processNext) {
-
-                Log.d(TAG, "Processing next call...");
-
-                // process next call, expect if callId
-                processNextCall(uuid, callId);
-
-            }
-
-        } catch (Exception e) {
-
-            Log.d(TAG, "Could not clean up call. Exception='" + e + "'");
 
         }
+                .start();
 
     }
 
@@ -3464,10 +3697,10 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
             Log.d(TAG, "Can't finish call: not serving any call.");
 
-            Intent localIntent = new Intent(org.emstrack.models.util.BroadcastActions.FAILURE);
-            localIntent.putExtra(org.emstrack.models.util.BroadcastExtras.MESSAGE, getString(R.string.couldNotFinishCall));
-            sendBroadcastWithUUID(localIntent, uuid);
+            // broadcast failure
+            broadcastFailure(getString(R.string.couldNotFinishCall), uuid);
 
+            // the return
             return;
 
         }
@@ -3550,11 +3783,11 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
     }
 
-    public void processNextCall(String uuid) {
-        processNextCall(uuid, -1);
+    public void processNextCall() {
+        processNextCall(-1);
     }
 
-    public void processNextCall(String uuid, int exceptCallId) {
+    public void processNextCall(int exceptCallId) {
 
         // Get calls
         CallStack calls = appData.getCalls();
@@ -3564,9 +3797,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
             Log.d(TAG, "Will not process next call: currently serving call/" + calls.getCurrentCallId());
 
-            Intent localIntent = new Intent(org.emstrack.models.util.BroadcastActions.FAILURE);
-            localIntent.putExtra(org.emstrack.models.util.BroadcastExtras.MESSAGE, getString(R.string.willNotProcessNextCall));
-            sendBroadcastWithUUID(localIntent, uuid);
+            // then return
             return;
 
         }
@@ -3575,6 +3806,8 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         if (calls.hasPendingCall()) {
 
             Log.d(TAG, "Will not process next call: currently prompting user to accept call.");
+
+            // then return
             return;
 
         }
@@ -3585,10 +3818,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
             Log.d(TAG, "Ambulance is null. This should never happen");
 
-            Intent localIntent = new Intent(org.emstrack.models.util.BroadcastActions.FAILURE);
-            localIntent.putExtra(org.emstrack.models.util.BroadcastExtras.MESSAGE,
-                    getString(R.string.willNotProcessNextCall));
-            sendBroadcastWithUUID(localIntent, uuid);
+            // then return
             return;
 
         }
@@ -3623,7 +3853,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
             // create intent to prompt user
             Intent callPromptIntent = new Intent(BroadcastActions.PROMPT_CALL_ACCEPT);
             callPromptIntent.putExtra(AmbulanceForegroundService.BroadcastExtras.CALL_ID, nextCall.getId());
-            sendBroadcastWithUUID(callPromptIntent, uuid);
+            getLocalBroadcastManager().sendBroadcast(callPromptIntent);
 
         } else {
 
@@ -3653,9 +3883,8 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
             Log.d(TAG, "Ambulance not found while in acceptCall()");
 
-            Intent localIntent = new Intent(org.emstrack.models.util.BroadcastActions.FAILURE);
-            localIntent.putExtra(org.emstrack.models.util.BroadcastExtras.MESSAGE, getString(R.string.couldNotFindAmbulance));
-            sendBroadcastWithUUID(localIntent, uuid);
+            // broadcast failure
+            broadcastFailure( getString(R.string.couldNotFindAmbulance), uuid);
         }
 
     }
@@ -3939,17 +4168,18 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
         try {
 
-            Log.i(TAG, "publishing " + payload + " to " + path);
-
             profileClient.publish(path, payload, 2, false);
+
+            // broadcast success
+            broadcastSuccess("Successfully published to path", uuid);
 
         } catch (MqttException e) {
 
             Log.d(TAG, path);
 
-            Intent localIntent = new Intent(org.emstrack.models.util.BroadcastActions.FAILURE);
-            localIntent.putExtra(org.emstrack.models.util.BroadcastExtras.MESSAGE, getString(R.string.couldNotPublish, path));
-            sendBroadcastWithUUID(localIntent, uuid);
+            // broadcast failure
+            broadcastFailure(getString(R.string.couldNotPublish, path), uuid);
+
         }
     }
 
@@ -4193,21 +4423,14 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                             _geofences.clear();
 
                             // Broadcast success
-                            Intent localIntent = new Intent(org.emstrack.models.util.BroadcastActions.SUCCESS);
-                            sendBroadcastWithUUID(localIntent, uuid);
+                            broadcastSuccess("Succesfully removed geofences", uuid);
 
                         })
                 .addOnFailureListener(
                         e -> {
 
-                            // Failed to remove geofences
-                            Log.e(TAG, "FAILED TO REMOVE GEOFENCES: " + e.toString());
-
                             // Broadcast failure and return
-                            Intent localIntent = new Intent(org.emstrack.models.util.BroadcastActions.FAILURE);
-                            localIntent.putExtra(org.emstrack.models.util.BroadcastExtras.MESSAGE, getString(R.string.failedToRemoveGeofence));
-                            sendBroadcastWithUUID(localIntent, uuid);
-                            return;
+                            broadcastFailure(getString(R.string.failedToRemoveGeofence), uuid, e);
 
                         });
 
@@ -4232,11 +4455,16 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
                                 }
 
+                                // Broadcast success
+                                broadcastSuccess("Succesfully removed geofences", uuid);
+
                             })
                     .addOnFailureListener(
                             e -> {
-                                // Failed to remove geofences
-                                Log.e(TAG, "FAILED TO REMOVE GEOFENCES: " + e.toString());
+
+                                // Broadcast failure and return
+                                broadcastFailure(getString(R.string.failedToRemoveGeofence), uuid, e);
+
                             });
 
     }
@@ -4325,6 +4553,5 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         sendBroadcastWithUUID(localIntent, uuid);
 
     }
-
 
 }
