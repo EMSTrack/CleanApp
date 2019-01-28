@@ -427,6 +427,9 @@ public class MainActivity extends AppCompatActivity {
 
         Log.d(TAG, "onResume");
 
+        // Get app data
+        AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
+
         // Update location icon
         if (AmbulanceForegroundService.isUpdatingLocation())
             trackingIcon.setAlpha(enabledAlpha);
@@ -443,13 +446,13 @@ public class MainActivity extends AppCompatActivity {
         // Is there a requested call that needs to be prompted for?
         boolean promptNextCall = false;
         int nextCallId = -1;
-        Ambulance ambulance = AmbulanceForegroundService.getAppData().getAmbulance();
+        Ambulance ambulance = appData.getAmbulance();
         if (ambulance != null) {
 
-            Call call = AmbulanceForegroundService.getCurrentCall();
+            CallStack pendingCalls = appData.getCalls();
+            Call call = pendingCalls.getCurrentCall();
             if (call == null) {
                 Log.d(TAG, "No calls being handled right now.");
-                CallStack pendingCalls = AmbulanceForegroundService.getPendingCalls();
                 call = pendingCalls.getNextCall(ambulance.getId());
                 if (call != null &&
                         AmbulanceCall.STATUS_REQUESTED.equals(call.getAmbulanceCall(ambulance.getId()).getStatus())) {
@@ -496,7 +499,8 @@ public class MainActivity extends AppCompatActivity {
         // Retrieve ambulance
         Intent ambulanceIntent = new Intent(this, AmbulanceForegroundService.class);
         ambulanceIntent.setAction(AmbulanceForegroundService.Actions.GET_AMBULANCE);
-        ambulanceIntent.putExtra(AmbulanceForegroundService.BroadcastExtras.AMBULANCE_ID, selectedAmbulance.getAmbulanceId());
+        ambulanceIntent.putExtra(AmbulanceForegroundService.BroadcastExtras.AMBULANCE_ID,
+                selectedAmbulance.getAmbulanceId());
 
         // What to do when GET_AMBULANCE service completes?
         new OnServiceComplete(this,
@@ -628,15 +632,21 @@ public class MainActivity extends AppCompatActivity {
 
         Log.i(TAG, "Creating accept dialog");
 
+        // Get app data
+        AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
+
+        // Get calls
+        CallStack calls = appData.getCalls();
+
         // Gather call details
-        Call call = AmbulanceForegroundService.getCall(callId);
+        Call call = calls.get(callId);
         if (call == null) {
             Log.d(TAG, "Invalid call id '" + callId + "'");
             return;
         }
 
         // Get current ambulance
-        Ambulance ambulance = AmbulanceForegroundService.getAppData().getAmbulance();
+        Ambulance ambulance = appData.getAmbulance();
         if (ambulance == null) {
             Log.d(TAG, "Can't find ambulance; should never happen");
             return;
@@ -799,7 +809,7 @@ public class MainActivity extends AppCompatActivity {
         Log.d(TAG, "Creating end call dialog");
 
         // Gather call details
-        final Call call = AmbulanceForegroundService.getCurrentCall();
+        final Call call = AmbulanceForegroundService.getAppData().getCalls().getCurrentCall();
         if (call == null) {
 
             // Not currently handling call
@@ -867,8 +877,11 @@ public class MainActivity extends AppCompatActivity {
 
         Log.i(TAG, "Creating next waypoint dialog");
 
+        // Get app data
+        AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
+
         // Gather call details
-        final Call call = AmbulanceForegroundService.getCurrentCall();
+        final Call call = appData.getCalls().getCurrentCall();
         if (call == null) {
 
             // Not currently handling call
@@ -884,7 +897,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         // Get current ambulance
-        final Ambulance ambulance = AmbulanceForegroundService.getAppData().getAmbulance();
+        final Ambulance ambulance = appData.getAmbulance();
         if (ambulance == null) {
             Log.d(TAG, "Can't find ambulance; should never happen");
             return;
@@ -1176,7 +1189,7 @@ public class MainActivity extends AppCompatActivity {
                             Log.d(TAG, String.format("Switching to ambulance %1$s", newAmbulance.getAmbulanceIdentifier()));
 
                             // stop updating first
-                            stopUpdatingServer();
+                            // stopUpdatingServer();
 
                             // then retrieve new ambulance
                             retrieveAmbulance(newAmbulance);
@@ -1190,7 +1203,7 @@ public class MainActivity extends AppCompatActivity {
 
     public void promptLogout() {
 
-        Call call = AmbulanceForegroundService.getCurrentCall();
+        Call call = AmbulanceForegroundService.getAppData().getCalls().getCurrentCall();
         if (call == null)
 
             // Go straight to dialog

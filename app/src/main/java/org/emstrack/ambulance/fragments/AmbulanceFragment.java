@@ -21,18 +21,18 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import org.emstrack.ambulance.models.AmbulanceAppData;
-import org.emstrack.ambulance.services.AmbulanceForegroundService;
 import org.emstrack.ambulance.MainActivity;
 import org.emstrack.ambulance.R;
+import org.emstrack.ambulance.models.AmbulanceAppData;
+import org.emstrack.ambulance.services.AmbulanceForegroundService;
 import org.emstrack.models.Ambulance;
 import org.emstrack.models.AmbulanceCall;
 import org.emstrack.models.Call;
+import org.emstrack.models.CallStack;
 import org.emstrack.models.Location;
 import org.emstrack.models.Patient;
 import org.emstrack.models.Settings;
 import org.emstrack.models.Waypoint;
-import org.emstrack.mqtt.MqttProfileClient;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
@@ -94,20 +94,26 @@ public class AmbulanceFragment extends Fragment {
         @Override
         public void onReceive(Context context, Intent intent ) {
             if (intent != null) {
+
+                // Get app data
+                AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
+
+                // Get calls
+                CallStack calls = appData.getCalls();
+
                 final String action = intent.getAction();
                 switch (action) {
                     case AmbulanceForegroundService.BroadcastActions.AMBULANCE_UPDATE:
 
                         Log.i(TAG, "AMBULANCE_UPDATE");
-                        updateAmbulance(AmbulanceForegroundService.getAppData().getAmbulance());
+                        updateAmbulance(appData.getAmbulance());
 
                         break;
                     case AmbulanceForegroundService.BroadcastActions.CALL_UPDATE:
 
                         Log.i(TAG, "CALL_UPDATE");
                         if (currentCallId > 0)
-                            updateCall(AmbulanceForegroundService.getAppData().getAmbulance(),
-                                    AmbulanceForegroundService.getCurrentCall());
+                            updateCall(appData.getAmbulance(), calls.getCurrentCall());
 
                         break;
                     case AmbulanceForegroundService.BroadcastActions.CALL_ACCEPTED: {
@@ -119,8 +125,7 @@ public class AmbulanceFragment extends Fragment {
 
                         int callId = intent.getIntExtra(AmbulanceForegroundService.BroadcastExtras.CALL_ID, -1);
                         currentCallId = -1;
-                        updateCall(AmbulanceForegroundService.getAppData().getAmbulance(),
-                                AmbulanceForegroundService.getCurrentCall());
+                        updateCall(appData.getAmbulance(), calls.getCurrentCall());
 
                         break;
                     }
@@ -133,7 +138,7 @@ public class AmbulanceFragment extends Fragment {
 
                         int callId = intent.getIntExtra(AmbulanceForegroundService.BroadcastExtras.CALL_ID, -1);
                         if (currentCallId == callId)
-                            updateCall(AmbulanceForegroundService.getAppData().getAmbulance(), null);
+                            updateCall(appData.getAmbulance(), null);
 
                         break;
                     }
@@ -283,15 +288,15 @@ public class AmbulanceFragment extends Fragment {
         statusButton.setOnClickListener(statusButtonClickListerner);
 
         // Update ambulance
-        Ambulance ambulance = AmbulanceForegroundService.getAppData().getAmbulance();
+        Ambulance ambulance = appData.getAmbulance();
         if (ambulance != null)
             updateAmbulance(ambulance);
         else
             callLayout.setVisibility(View.GONE);
 
-        // Are there call_current?
+        // Is there a current call?
         currentCallId = -1;
-        Call call = AmbulanceForegroundService.getCurrentCall();
+        Call call = appData.getCalls().getCurrentCall();
         if (call != null) {
             Log.d(TAG, String.format("Is currently handling call '%1$d'", call.getId()));
             updateCall(ambulance, call);
@@ -313,14 +318,17 @@ public class AmbulanceFragment extends Fragment {
         callLayout.setVisibility(View.GONE);
         callResumeLayout.setVisibility(View.GONE);
 
+        // Get app data
+        AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
+
         // Update ambulance
-        Ambulance ambulance = AmbulanceForegroundService.getAppData().getAmbulance();
+        Ambulance ambulance = appData.getAmbulance();
         if (ambulance != null)
             updateAmbulance(ambulance);
 
         // Are there any call been currently handled?
         currentCallId = -1;
-        Call call = AmbulanceForegroundService.getCurrentCall();
+        Call call = appData.getCalls().getCurrentCall();
         if (call != null) {
             Log.d(TAG, String.format("Is currently handling call '%1$d'", call.getId()));
             updateCall(ambulance, call);
@@ -538,8 +546,11 @@ public class AmbulanceFragment extends Fragment {
 
         Log.d(TAG,"Summarizing pending call_current");
 
+        // get calls
+        CallStack calls = AmbulanceForegroundService.getAppData().getCalls();
+
         // Set call_current info
-        Map<String, Integer> callSummary = AmbulanceForegroundService.getPendingCalls().summary(ambulance.getId());
+        Map<String, Integer> callSummary = calls.summary(ambulance.getId());
         Log.d(TAG, "Call summary = " + callSummary.toString());
         final String summaryText = String.format(getString(R.string.requestedSuspended),
                 callSummary.get(AmbulanceCall.STATUS_REQUESTED),
@@ -559,8 +570,7 @@ public class AmbulanceFragment extends Fragment {
             // Create lists of suspended call_current
             final ArrayList<Pair<Call,AmbulanceCall>> suspendedCallList = new ArrayList<>();
             if (callSummary.get(AmbulanceCall.STATUS_SUSPENDED) > 0) {
-                for (Map.Entry<Integer, Pair<Call,AmbulanceCall>> ambulanceCallEntry : AmbulanceForegroundService
-                        .getPendingCalls()
+                for (Map.Entry<Integer, Pair<Call,AmbulanceCall>> ambulanceCallEntry : calls
                         .filter(ambulance.getId(),
                                 AmbulanceCall.STATUS_SUSPENDED)
                         .entrySet()) {
@@ -573,8 +583,7 @@ public class AmbulanceFragment extends Fragment {
             // Create lists of requested call_current
             final ArrayList<Pair<Call,AmbulanceCall>> requestedCallList = new ArrayList<>();
             if (callSummary.get(AmbulanceCall.STATUS_REQUESTED) > 0) {
-                for (Map.Entry<Integer, Pair<Call,AmbulanceCall>> ambulanceCallEntry : AmbulanceForegroundService
-                        .getPendingCalls()
+                for (Map.Entry<Integer, Pair<Call,AmbulanceCall>> ambulanceCallEntry : calls
                         .filter(ambulance.getId(),
                                 AmbulanceCall.STATUS_REQUESTED)
                         .entrySet()) {
@@ -619,8 +628,10 @@ public class AmbulanceFragment extends Fragment {
         // update call distance?
         if (currentCallId > 0) {
 
-            AmbulanceCall ambulanceCall = AmbulanceForegroundService.getCurrentAmbulanceCall();
-            if (ambulanceCall != null) {
+            Call call = AmbulanceForegroundService.getAppData().getCalls().getCurrentCall();
+            if (call != null) {
+
+                AmbulanceCall ambulanceCall = call.getCurrentAmbulanceCall();
 
                 Waypoint waypoint = ambulanceCall.getNextWaypoint();
                 if (waypoint != null) {

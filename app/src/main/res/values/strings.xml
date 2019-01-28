@@ -245,7 +245,8 @@
     <string name="selectBase">Select base:</string>
     <string name="newCallRequest">You have a new call request waiting.</string>
     <string name="couldNotLoginToAmbulance">Could not login to ambulance</string>
-    <string name="couldNotParseHospitalUpdate">Could not parse hospital update</string>
+    <string name="couldNotParseHospitalUpdate">Could not parse hospital update.</string>
+    <string name="couldNotRemoveAmbulance">Could not remove ambulance</string>
     <string-array name="spinner_list_item_array_server">
         <item>@string/server_select</item>
         <item>Tijuana Red Cross:tijuana.emstrack.org:8883</item>

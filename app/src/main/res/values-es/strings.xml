@@ -151,7 +151,7 @@
     <string name="couldNotSetCurrentCall">No se pudo establecer la llamada</string>
     <string name="couldNotFinishCall">No se pudo terminar l llamada</string>
     <string name="selectAmbulanceStatus">Seleccione el estado de la ambulancia:</string>
-    <string name="couldNotRetrieveBases">"No se pudo acceder a las bases. "</string>
+    <string name="couldNotRetrieveBases">No se pudo acceder a las bases</string>
     <string name="nextCall">Llamada Siguiente:</string>
     <string name="nextWaypointHasntBeenSetYet">El próximo punto de ruta aún no se ha establecido</string>
     <string name="requestedSuspended">solicitadas (%1$d), suspendidas (%2$d)</string>
@@ -226,5 +226,8 @@
     <string name="selectHospital">Seleccione un hospital:</string>
     <string name="selectBase">Seleccione una base:</string>
     <string name="newCallRequest">Tienes una nueva llamada en espera.</string>
+    <string name="couldNotLoginToAmbulance">No se pudo connectar a la ambulancia</string>
+    <string name="couldNotParseHospitalUpdate">No se pudo traduciz actualizacíon de hospital.</string>
+    <string name="couldNotRemoveAmbulance">No se pudo quitar la ambulancia</string>
 
 </resources>

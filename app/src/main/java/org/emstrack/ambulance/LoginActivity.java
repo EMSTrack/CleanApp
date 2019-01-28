@@ -204,30 +204,32 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
             // Already logged in?
             AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
-            Profile profile = appData.getProfile();
-            if (profile != null) {
+            if (appData != null) {
 
-                // Get user info & remove whitespace
-                final String username = usernameField.getText().toString().trim();
+                Profile profile = appData.getProfile();
+                if (profile != null) {
 
-                // Create intent
-                Intent intent = new Intent(LoginActivity.this,
-                        MainActivity.class);
+                    // Get user info & remove whitespace
+                    final String username = usernameField.getText().toString().trim();
 
-                Log.i(TAG, "Starting MainActivity");
+                    // Create intent
+                    Intent intent = new Intent(LoginActivity.this,
+                            MainActivity.class);
 
-                // Toast
-                Toast.makeText(LoginActivity.this,
-                        getResources().getString(R.string.loginSuccessMessage, username),
-                        Toast.LENGTH_SHORT).show();
+                    Log.i(TAG, "Starting MainActivity");
 
-                // initiate MainActivity
-                startActivity(intent);
+                    // Toast
+                    Toast.makeText(LoginActivity.this,
+                            getResources().getString(R.string.loginSuccessMessage, username),
+                            Toast.LENGTH_SHORT).show();
 
-                return;
-            }
+                    // initiate MainActivity
+                    startActivity(intent);
 
-/*
+                    return;
+
+                }
+
             } else {
 
                 // Initialize service to make sure it gets bound to service
@@ -239,7 +241,6 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                 // TODO: is this safe to do asynchronously?
 
             }
-*/
 
         }
 
