@@ -1,20 +1,19 @@
 package org.emstrack.ambulance;
 
 import android.Manifest;
-import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.net.Uri;
+import android.os.Bundle;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.util.Log;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.ArrayAdapter;
@@ -26,19 +25,17 @@ import android.widget.Toast;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.common.api.ResolvableApiException;
 import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.location.LocationSettingsResponse;
 import com.google.android.gms.location.LocationSettingsStatusCodes;
 import com.google.android.gms.location.SettingsClient;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
 
 import org.emstrack.ambulance.dialogs.AlertSnackbar;
 import org.emstrack.ambulance.models.AmbulanceAppData;
 import org.emstrack.ambulance.services.AmbulanceForegroundService;
-import org.emstrack.models.util.BroadcastActions;
-import org.emstrack.models.util.OnServiceComplete;
+import org.emstrack.models.Credentials;
 import org.emstrack.models.Profile;
-import org.emstrack.mqtt.MqttProfileClient;
+import org.emstrack.models.util.BroadcastActions;
+import org.emstrack.models.util.BroadcastExtras;
+import org.emstrack.models.util.OnServiceComplete;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -61,7 +58,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
     private ArrayAdapter<CharSequence> serverNames;
     private String[] serverList;
-    private List<String> serverURIs;
+    private List<String> serverMqttURIs;
     private List<String> serverAPIURIs;
 
     @Override
@@ -84,26 +81,26 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         serverList = getResources().getStringArray(R.array.spinner_list_item_array_server);
 
         // Populate server list
-        Log.d(TAG, "Populating server list");
+        // Log.d(TAG, "Populating server list");
         serverNames = new ArrayAdapter(this, android.R.layout.simple_spinner_item);
-        serverURIs = new ArrayList<>();
+        serverMqttURIs = new ArrayList<>();
         serverAPIURIs = new ArrayList<>();
         for (String server: serverList) {
             try {
                 String[] splits = server.split(":", 3);
                 serverNames.add(splits[0]);
                 if (!splits[1].isEmpty()) {
-                    serverURIs.add("ssl://" + splits[1] + ":" + splits[2]);
+                    serverMqttURIs.add("ssl://" + splits[1] + ":" + splits[2]);
                     serverAPIURIs.add("https://" + splits[1]);
                 } else {
-                    serverURIs.add("");
+                    serverMqttURIs.add("");
                     serverAPIURIs.add("");
                 }
             } catch (Exception e) {
                 Log.d(TAG, "Malformed server string. Skipping.");
             }
         }
-        Log.d(TAG, serverURIs.toString());
+        // Log.d(TAG, serverMqttURIs.toString());
 
         // Create server spinner
         serverField = findViewById(R.id.spinnerServer);
@@ -116,12 +113,12 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         // Retrieve past credentials
         usernameField.setText(sharedPreferences.getString(AmbulanceForegroundService.PREFERENCES_USERNAME, null));
         passwordField.setText(sharedPreferences.getString(AmbulanceForegroundService.PREFERENCES_PASSWORD, null));
-        String serverUri = sharedPreferences.getString(AmbulanceForegroundService.PREFERENCES_MQTT_SERVER, null);
+        String serverMqttUri = sharedPreferences.getString(AmbulanceForegroundService.PREFERENCES_MQTT_SERVER, null);
 
         // set server item
         int serverPos = 0;
-        if (serverUri != null) {
-            serverPos = serverURIs.indexOf(serverUri);
+        if (serverMqttUri != null) {
+            serverPos = serverMqttURIs.indexOf(serverMqttUri);
         }
         if (serverPos < 0)
             serverPos = 0;
@@ -155,109 +152,175 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
     }
 
+    private void logoutFirst(String uuid) {
+
+        if (!this.logout) {
+
+            Log.d(TAG,"No need to logout.");
+
+            // broadcast success
+            Intent localIntent = new Intent(org.emstrack.models.util.BroadcastActions.SUCCESS);
+            localIntent.putExtra(BroadcastExtras.UUID, uuid);
+            getLocalBroadcastManager().sendBroadcast(localIntent);
+
+            // then return
+            return;
+
+        }
+
+        Log.d(TAG,"Logout first.");
+
+        // Create stop foreground service intent
+        Intent stopIntent = new Intent(this, AmbulanceForegroundService.class);
+        stopIntent.setAction(AmbulanceForegroundService.Actions.STOP_SERVICE);
+
+        // Chain services
+        new OnServiceComplete(this,
+                BroadcastActions.SUCCESS,
+                BroadcastActions.FAILURE,
+                stopIntent) {
+
+            @Override
+            public void onSuccess(Bundle extras) {
+
+                Log.i(TAG, "onSuccess");
+
+                // Set logout to false
+                logout = false;
+
+                // broadcast success
+                Intent localIntent = new Intent(BroadcastActions.SUCCESS);
+                localIntent.putExtra(BroadcastExtras.UUID, uuid);
+                getLocalBroadcastManager().sendBroadcast(localIntent);
+
+            }
+
+            @Override
+            public void onFailure(Bundle extras) {
+                super.onFailure(extras);
+
+                // broadcast failure
+                Intent localIntent = new Intent(BroadcastActions.FAILURE);
+                localIntent.putExtra(BroadcastExtras.UUID, uuid);
+                getLocalBroadcastManager().sendBroadcast(localIntent);
+
+            }
+        }
+                .setFailureMessage(this.getString(R.string.couldNotLogout))
+                .setAlert(new AlertSnackbar(this))
+                .start();
+    }
+
     public void enableLogin() {
 
         Log.d(TAG, "enableLogin");
 
-        // Enable login
+        // Enable login button
         loginSubmitButton.setOnClickListener(this);
 
-        // Logout first?
-        if (logout) {
+        // Create start foreground activity intent
+        Intent startIntent = new Intent(LoginActivity.this,
+                AmbulanceForegroundService.class);
+        startIntent.putExtra("ADD_STOP_ACTION", true);
+        startIntent.setAction(AmbulanceForegroundService.Actions.START_SERVICE);
 
-            Log.d(TAG,"Logout first.");
+        // Logout then login or start service
+        new OnServiceComplete(this,
+                BroadcastActions.SUCCESS,
+                BroadcastActions.FAILURE,
+                null) {
 
-            // Stop foreground activity
-            Intent intent = new Intent(this, AmbulanceForegroundService.class);
-            intent.setAction(AmbulanceForegroundService.Actions.STOP_SERVICE);
+            @Override
+            public void run() {
 
-            // What to do when service completes?
-            new OnServiceComplete(this,
-                    BroadcastActions.SUCCESS,
-                    BroadcastActions.FAILURE,
-                    intent) {
+                // logout first?
+                logoutFirst(getUuid());
 
-                @Override
-                public void onSuccess(Bundle extras) {
-                    Log.i(TAG, "onSuccess");
+            }
 
-                    // Set logout to false
-                    logout = false;
+            @Override
+            public void onSuccess(Bundle extras) {
+
+                // Already logged in?
+                AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
+                if (appData != null && appData.getProfile() != null) {
+
+                    Log.i(TAG, "Already logged in, starting MainActivity.");
+
+                    // Get username
+                    Credentials credentials = appData.getCredentials();
+                    if (credentials != null) {
+
+                        // final String username = usernameField.getText().toString().trim();
+                        final String username = credentials.getUsername();
+
+                        // Create intent
+                        Intent intent = new Intent(LoginActivity.this,
+                                MainActivity.class);
+
+                        // Toast
+                        Toast.makeText(LoginActivity.this,
+                                getResources().getString(R.string.loginSuccessMessage, username),
+                                Toast.LENGTH_SHORT).show();
+
+                        // initiate MainActivity
+                        startActivity(intent);
+
+                    } else {
+
+                        // Toast
+                        Toast.makeText(LoginActivity.this,
+                                getResources().getString(R.string.couldNotLogin),
+                                Toast.LENGTH_SHORT).show();
+
+                    }
+
+                } else{
+
+                    Log.i(TAG, "Could not find profile, starting service");
 
                     // Initialize service to make sure it gets bound to service
                     Intent intent = new Intent(LoginActivity.this,
                             AmbulanceForegroundService.class);
                     intent.putExtra("ADD_STOP_ACTION", true);
                     intent.setAction(AmbulanceForegroundService.Actions.START_SERVICE);
-                    startService(intent);
 
-                    // TODO: is this safe to do asynchronously?
+                    new OnServiceComplete(LoginActivity.this,
+                            BroadcastActions.SUCCESS,
+                            BroadcastActions.FAILURE,
+                            intent) {
+
+                        @Override
+                        public void onSuccess(Bundle extras) {
+
+                            if (AmbulanceForegroundService.canUpdateLocation()) {
+
+                                // Toast to warn about check permissions
+                                Toast.makeText(LoginActivity.this,
+                                        R.string.permissionsSatisfied,
+                                        Toast.LENGTH_SHORT).show();
+
+                            } else {
+
+                                // Alert to warn about check permissions
+                                new AlertSnackbar(LoginActivity.this)
+                                        .alert(getString(R.string.expectLimitedFuncionality));
+
+                            }
+
+                        }
+                    }
+                            .setFailureMessage(LoginActivity.this.getString(R.string.couldNotStartService))
+                            .setAlert(new AlertSnackbar(LoginActivity.this))
+                            .start();
 
                 }
 
             }
-                    .setFailureMessage(this.getString(R.string.couldNotLogout))
-                    .setAlert(new AlertSnackbar(this))
-                    .start();
-
-        } else {
-
-            // Already logged in?
-            AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
-            if (appData != null) {
-
-                Profile profile = appData.getProfile();
-                if (profile != null) {
-
-                    // Get user info & remove whitespace
-                    final String username = usernameField.getText().toString().trim();
-
-                    // Create intent
-                    Intent intent = new Intent(LoginActivity.this,
-                            MainActivity.class);
-
-                    Log.i(TAG, "Starting MainActivity");
-
-                    // Toast
-                    Toast.makeText(LoginActivity.this,
-                            getResources().getString(R.string.loginSuccessMessage, username),
-                            Toast.LENGTH_SHORT).show();
-
-                    // initiate MainActivity
-                    startActivity(intent);
-
-                    return;
-
-                }
-
-            } else {
-
-                // Initialize service to make sure it gets bound to service
-                Intent intent = new Intent(this, AmbulanceForegroundService.class);
-                intent.putExtra("ADD_STOP_ACTION", true);
-                intent.setAction(AmbulanceForegroundService.Actions.START_SERVICE);
-                startService(intent);
-
-                // TODO: is this safe to do asynchronously?
-
-            }
-
         }
-
-        if (AmbulanceForegroundService.canUpdateLocation()) {
-
-            // Toast to warn about check permissions
-            Toast.makeText(LoginActivity.this,
-                    R.string.permissionsSatisfied,
-                    Toast.LENGTH_SHORT).show();
-
-        } else {
-
-            // Alert to warn about check permissions
-            new AlertSnackbar(LoginActivity.this)
-                    .alert(getString(R.string.expectLimitedFuncionality));
-
-        }
+                .setFailureMessage(this.getString(R.string.couldNotLogout))
+                .setAlert(new AlertSnackbar(this))
+                .start();
 
     }
 
@@ -298,7 +361,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         final String username = usernameField.getText().toString().trim();
         final String password = passwordField.getText().toString().trim();
 
-        final String serverUri = serverURIs.get(serverField.getSelectedItemPosition());
+        final String serverUri = serverMqttURIs.get(serverField.getSelectedItemPosition());
         final String serverApiUri = serverAPIURIs.get(serverField.getSelectedItemPosition());
         Log.d(TAG, "Logging into server: " + serverUri);
 
@@ -521,6 +584,15 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                 }
                 break;
         }
+    }
+
+    /**
+     * Get the LocalBroadcastManager
+     *
+     * @return The system LocalBroadcastManager
+     */
+    private LocalBroadcastManager getLocalBroadcastManager() {
+        return LocalBroadcastManager.getInstance(this);
     }
 
 }

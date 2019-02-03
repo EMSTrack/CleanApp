@@ -220,5 +220,6 @@ public class AmbulanceAppData {
     public CallStack getCalls() {
         return calls;
     }
+
 }
 

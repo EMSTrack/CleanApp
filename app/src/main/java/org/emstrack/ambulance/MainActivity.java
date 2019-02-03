@@ -71,7 +71,7 @@ public class MainActivity extends AppCompatActivity {
     private static final float enabledAlpha = 1.0f;
     private static final float disabledAlpha = 0.25f;
 
-    private Button ambulanceButton;
+    private Button ambulanceSelectionButton;
 
     private List<AmbulancePermission> ambulancePermissions;
     private List<HospitalPermission> hospitalPermissions;
@@ -276,7 +276,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         // Ambulance button
-        ambulanceButton = findViewById(R.id.ambulanceButton);
+        ambulanceSelectionButton = findViewById(R.id.ambulanceButton);
 
         // Panic button
         ImageButton panicButton = findViewById(R.id.panicButton);
@@ -336,14 +336,12 @@ public class MainActivity extends AppCompatActivity {
 
         // Tracking icon
         trackingIcon = findViewById(R.id.trackingIcon);
-        // trackingIcon.setOnClickListener(new TrackingClickListener());
 
         if (AmbulanceForegroundService.isUpdatingLocation()) {
             trackingIcon.setAlpha(enabledAlpha);
         } else {
             trackingIcon.setAlpha(disabledAlpha);
         }
-
 
         ambulancePermissions = new ArrayList<>();
         hospitalPermissions = new ArrayList<>();
@@ -367,7 +365,7 @@ public class MainActivity extends AppCompatActivity {
         ambulanceListAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 
         // Set the ambulance button's adapter
-        ambulanceButton.setOnClickListener(new AmbulanceButtonClickListener());
+        ambulanceSelectionButton.setOnClickListener(new AmbulanceButtonClickListener());
 
         // Creates list of hospital names
         ArrayList<String> hospitalList = new ArrayList<>();
@@ -405,7 +403,7 @@ public class MainActivity extends AppCompatActivity {
         } else {
 
             // Invoke ambulance selection
-            ambulanceButton.performClick();
+            ambulanceSelectionButton.performClick();
 
         }
 
@@ -450,10 +448,15 @@ public class MainActivity extends AppCompatActivity {
             onlineIcon.setAlpha(disabledAlpha);
 
         // Is there a requested call that needs to be prompted for?
-        boolean promptNextCall = false;
+        // boolean promptNextCall = false;
+        boolean resumeUpdatingLocations = false;
         int nextCallId = -1;
         Ambulance ambulance = appData.getAmbulance();
         if (ambulance != null) {
+
+            // not updating location, should try
+            if (!AmbulanceForegroundService.isUpdatingLocation())
+                resumeUpdatingLocations = true;
 
             CallStack pendingCalls = appData.getCalls();
             Call call = pendingCalls.getCurrentCall();
@@ -463,7 +466,7 @@ public class MainActivity extends AppCompatActivity {
                 if (call != null &&
                         AmbulanceCall.STATUS_REQUESTED.equals(call.getAmbulanceCall(ambulance.getId()).getStatus())) {
                     // next call is requested, prompt user!
-                    promptNextCall = true;
+                    // promptNextCall = true;
                     nextCallId = call.getId();
                 }
             }
@@ -482,8 +485,14 @@ public class MainActivity extends AppCompatActivity {
         receiver = new MainActivityBroadcastReceiver();
         getLocalBroadcastManager().registerReceiver(receiver, filter);
 
-        // prompt user?
-        if (promptNextCall)
+        if (resumeUpdatingLocations)
+
+            // resume updating locations
+            startUpdatingLocation(nextCallId);
+
+        else if (nextCallId > 0)
+
+            // prompt user?
             promptCallAccept(nextCallId);
 
     }
@@ -565,7 +574,7 @@ public class MainActivity extends AppCompatActivity {
      */
     public void setAmbulanceButtonText(String ambulance) {
         // Set ambulance selection button
-        ambulanceButton.setText(ambulance);
+        ambulanceSelectionButton.setText(ambulance);
     }
 
     // Hamburger Menu setup
@@ -1031,9 +1040,12 @@ public class MainActivity extends AppCompatActivity {
     }
 
     void startUpdatingLocation() {
+        startUpdatingLocation(-1);
+    }
+
+    void startUpdatingLocation(int nextCallId) {
 
         // start updating location
-
         if (canWrite()) {
 
             // Toast to warn user
@@ -1059,6 +1071,9 @@ public class MainActivity extends AppCompatActivity {
                     Toast.makeText(MainActivity.this,
                             R.string.startedStreamingLocation,
                             Toast.LENGTH_SHORT).show();
+
+                    // prompt next call?
+                    promptCallAccept(nextCallId);
 
                 }
 
@@ -1087,15 +1102,18 @@ public class MainActivity extends AppCompatActivity {
                                         Ambulance ambulance = AmbulanceForegroundService.getAppData().getAmbulance();
                                         if (ambulance == null) {
 
-                                            Log.d(TAG, "Could not force updates.");
+                                            Log.d(TAG, "Could not force updates. Ambulance is null.");
 
                                             // Toast to warn user
                                             Toast.makeText(MainActivity.this,
                                                     R.string.couldNotForceUpdates,
                                                     Toast.LENGTH_LONG).show();
 
-                                            return;
+                                            // User must always choose ambulance
+                                            promptMustChooseAmbulance();
 
+                                            // then return
+                                            return;
                                         }
 
                                         // Toast to warn user
@@ -1132,6 +1150,14 @@ public class MainActivity extends AppCompatActivity {
 
                                             }
 
+                                            @Override
+                                            public void onFailure(Bundle extras) {
+                                                super.onFailure(extras);
+
+                                                // User must always choose ambulance
+                                                promptMustChooseAmbulance();
+
+                                            }
                                         }
                                                 .setFailureMessage(getString(R.string.couldNotForceLocationUpdate))
                                                 .setAlert(new AlertSnackbar(MainActivity.this))
@@ -1156,24 +1182,8 @@ public class MainActivity extends AppCompatActivity {
                     R.string.cantModifyAmbulance,
                     Toast.LENGTH_LONG).show();
 
-        }
-
-    }
-
-    void stopUpdatingServer() {
-
-        if (canWrite()) {
-
-            // turn off tracking
-            Intent intent = new Intent(MainActivity.this,
-                    AmbulanceForegroundService.class);
-            intent.setAction(AmbulanceForegroundService.Actions.STOP_LOCATION_UPDATES);
-            startService(intent);
-
-            // Toast to warn user
-            Toast.makeText(MainActivity.this,
-                    R.string.stopedStreamingLocation,
-                    Toast.LENGTH_SHORT).show();
+            // User must always choose ambulance
+            promptMustChooseAmbulance();
 
         }
 
@@ -1194,10 +1204,7 @@ public class MainActivity extends AppCompatActivity {
 
                             Log.d(TAG, String.format("Switching to ambulance %1$s", newAmbulance.getAmbulanceIdentifier()));
 
-                            // stop updating first
-                            // stopUpdatingServer();
-
-                            // then retrieve new ambulance
+                            // retrieve new ambulance
                             retrieveAmbulance(newAmbulance);
 
                         });
@@ -1240,7 +1247,7 @@ public class MainActivity extends AppCompatActivity {
                             Log.i(TAG, "Will choose ambulance");
 
                             // Invoke ambulance selection
-                            ambulanceButton.performClick();
+                            ambulanceSelectionButton.performClick();
 
                         })
                 .setNegativeButton(R.string.logout,

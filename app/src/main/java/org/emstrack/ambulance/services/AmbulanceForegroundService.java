@@ -64,7 +64,6 @@ import org.emstrack.models.Waypoint;
 import org.emstrack.models.api.APIService;
 import org.emstrack.models.api.APIServiceGenerator;
 import org.emstrack.models.api.OnAPICallComplete;
-import org.emstrack.models.util.BroadcastActions;
 import org.emstrack.models.util.OnComplete;
 import org.emstrack.models.util.OnServiceComplete;
 import org.emstrack.mqtt.MishandledTopicException;
@@ -852,12 +851,6 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
     }
 
     /**
-     *
-     * @return <code>true</code> if client is not null
-     */
-    public static boolean hasProfileClient() { return client != null; }
-
-    /**
      * @return the last location
      */
     public static android.location.Location getLastLocation() {
@@ -1309,47 +1302,38 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                 // remove ambulance map
                 removeOtherAmbulances();
 
+            }
+
+            @Override
+            public void onFailure(Bundle extras) {
+                super.onFailure(extras);
+
+                // Broadcast failure
+                broadcastFailure(getString(R.string.couldNotLogout), uuid);
+
+            }
+
+        }.setNext(new OnServiceComplete(this,
+                org.emstrack.models.util.BroadcastActions.SUCCESS,
+                org.emstrack.models.util.BroadcastActions.FAILURE,
+                null) {
+
+            @Override
+            public void run() {
+
                 // stop geofences
-                // TODO: Should we wait for completion?
-                removeAllGeofences(null);
+                removeAllGeofences(getUuid());
 
-                try {
+            }
 
-                    // disconnect mqttclient
-                    profileClient.disconnect(new MqttProfileCallback() {
+            @Override
+            public void onSuccess(Bundle extras) {
 
-                        @Override
-                        public void onReconnect() {
+                // reinitialize AmbulanceAppData
+                appData = new AmbulanceAppData();
 
-                            Log.d(TAG, "onReconnect during disconnect. Should never happen.");
-
-                        }
-
-                        @Override
-                        public void onSuccess() {
-
-                            // Broadcast success
-                            broadcastSuccess("Successfully disconnected from broker.", uuid);
-
-                        }
-
-                        @Override
-                        public void onFailure(Throwable t) {
-
-                            // Broadcast failure
-                            broadcastFailure(getString(R.string.failedToDisconnectFromBroker), uuid, t);
-
-                        }
-
-                    });
-
-                } catch (Exception t) {
-
-                    // Broadcast failure
-                    broadcastFailure(getString(R.string.failedToDisconnectFromBroker), uuid, t);
-
-                }
-
+                // invalidate credentials
+                APIServiceGenerator.setToken(null);
 
             }
 
@@ -1362,7 +1346,74 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
             }
 
-        }
+        }.setNext(new OnServiceComplete(this,
+                org.emstrack.models.util.BroadcastActions.SUCCESS,
+                org.emstrack.models.util.BroadcastActions.FAILURE,
+                null) {
+
+            @Override
+            public void run() {
+
+                try {
+
+                    // disconnect mqttclient
+                    profileClient.disconnect(new MqttProfileCallback() {
+
+                        @Override
+                        public void onReconnect() {
+
+                            Log.d(TAG, "onReconnect during disconnect. Should never happen.");
+
+                            // Broadcast failure
+                            broadcastFailure(getString(R.string.failedToDisconnectFromBroker), getUuid());
+
+                        }
+
+                        @Override
+                        public void onSuccess() {
+
+                            // Broadcast success
+                            broadcastSuccess("Successfully disconnected from broker.", getUuid());
+
+                        }
+
+                        @Override
+                        public void onFailure(Throwable t) {
+
+                            // Broadcast failure
+                            broadcastFailure(getString(R.string.failedToDisconnectFromBroker), getUuid(), t);
+
+                        }
+
+                    });
+
+                } catch (Exception t) {
+
+                    // Broadcast failure
+                    broadcastFailure(getString(R.string.failedToDisconnectFromBroker), getUuid(), t);
+
+                }
+
+            }
+
+            @Override
+            public void onSuccess(Bundle extras) {
+
+                // Broadcast success
+                broadcastSuccess("Successfully disconnected from broker.", uuid);
+
+            }
+
+            @Override
+            public void onFailure(Bundle extras) {
+                super.onFailure(extras);
+
+                // Broadcast failure
+                broadcastFailure(getString(R.string.couldNotLogout), uuid);
+
+            }
+
+        }))
                 .start();
 
     }
@@ -4423,7 +4474,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                             _geofences.clear();
 
                             // Broadcast success
-                            broadcastSuccess("Succesfully removed geofences", uuid);
+                            broadcastSuccess("Successfully removed geofences", uuid);
 
                         })
                 .addOnFailureListener(
