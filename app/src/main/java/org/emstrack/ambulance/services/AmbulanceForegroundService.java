@@ -1083,6 +1083,8 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
         if (ambulanceId == getAppData().getAmbulanceId()) {
 
+            // TODO: Should we send update now or is waiting for location updates ok?
+
             // add status update to ambulanceUpdateFilter
             ambulanceUpdateFilter.update(status, timestamp);
 
@@ -3574,9 +3576,6 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
         }
 
-        // get ambulance
-        Ambulance ambulance = getAppData().getAmbulance();
-
         // get ambulance call
         AmbulanceCall ambulanceCall = calls.getCurrentCall().getCurrentAmbulanceCall();
 
@@ -3606,13 +3605,6 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
             @Override
             public void onSuccess(Bundle extras) {
-
-                // Set status as available
-                Log.d(TAG, "Set ambulance '" + getAppData().getAmbulance().getId() + "' available");
-                updateAmbulanceStatus(uuid, ambulance.getId(), Ambulance.STATUS_AVAILABLE);
-
-                // Release current call
-                calls.setPendingCall(false);
 
                 // broadcast success
                 broadcastSuccess("Successfully removed current geofences", uuid);
@@ -3654,6 +3646,9 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         // Get calls
         CallStack calls = appData.getCalls();
 
+        // get ambulance
+        Ambulance ambulance = getAppData().getAmbulance();
+
         // get profile client
         MqttProfileClient profileClient = AmbulanceForegroundService.getProfileClient(this);
 
@@ -3671,6 +3666,13 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
             @Override
             public void onSuccess(Bundle extras) {
+
+                // Set status as available
+                Log.d(TAG, "Set ambulance '" + getAppData().getAmbulance().getId() + "' available");
+                updateAmbulanceStatus(uuid, ambulance.getId(), Ambulance.STATUS_AVAILABLE);
+
+                // Release current call
+                calls.setPendingCall(false);
 
                 try {
 
@@ -3899,7 +3901,10 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                     .setContentIntent(pendingIntent);
 
             NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
-            notificationManager.notify(notificationId.getAndIncrement(), mBuilder.build());
+            Notification notification = mBuilder.build();
+            notification.defaults |= Notification.DEFAULT_SOUND;
+            notification.defaults |= Notification.DEFAULT_VIBRATE;
+            notificationManager.notify(notificationId.getAndIncrement(), notification);
 
             // create intent to prompt user
             Intent callPromptIntent = new Intent(BroadcastActions.PROMPT_CALL_ACCEPT);
