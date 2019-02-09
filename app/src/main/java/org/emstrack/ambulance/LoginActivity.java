@@ -137,6 +137,36 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+
+        Log.d(TAG, "onResume");
+
+        // Disable login
+        disableLogin();
+
+        // Can updateAmbulance?
+        if (AmbulanceForegroundService.canUpdateLocation()) {
+
+            // Enable login
+            enableLogin();
+
+            // Check and request permissions to retrieve locations if necessary
+        } else if (checkPermissions()) {
+
+            // Otherwise check
+            checkLocationSettings();
+
+        } else {
+
+            // requestPermissions call_current checkLocationSettings if successful
+            requestPermissions();
+
+        }
+
+    }
+
     public void disableLogin() {
 
         // Disable login
@@ -150,65 +180,6 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
                 });
 
-    }
-
-    private void logoutFirst(String uuid) {
-
-        if (!this.logout) {
-
-            Log.d(TAG,"No need to logout.");
-
-            // broadcast success
-            Intent localIntent = new Intent(org.emstrack.models.util.BroadcastActions.SUCCESS);
-            localIntent.putExtra(BroadcastExtras.UUID, uuid);
-            getLocalBroadcastManager().sendBroadcast(localIntent);
-
-            // then return
-            return;
-
-        }
-
-        Log.d(TAG,"Logout first.");
-
-        // Create stop foreground service intent
-        Intent stopIntent = new Intent(this, AmbulanceForegroundService.class);
-        stopIntent.setAction(AmbulanceForegroundService.Actions.STOP_SERVICE);
-
-        // Chain services
-        new OnServiceComplete(this,
-                BroadcastActions.SUCCESS,
-                BroadcastActions.FAILURE,
-                stopIntent) {
-
-            @Override
-            public void onSuccess(Bundle extras) {
-
-                Log.i(TAG, "onSuccess");
-
-                // Set logout to false
-                logout = false;
-
-                // broadcast success
-                Intent localIntent = new Intent(BroadcastActions.SUCCESS);
-                localIntent.putExtra(BroadcastExtras.UUID, uuid);
-                getLocalBroadcastManager().sendBroadcast(localIntent);
-
-            }
-
-            @Override
-            public void onFailure(Bundle extras) {
-                super.onFailure(extras);
-
-                // broadcast failure
-                Intent localIntent = new Intent(BroadcastActions.FAILURE);
-                localIntent.putExtra(BroadcastExtras.UUID, uuid);
-                getLocalBroadcastManager().sendBroadcast(localIntent);
-
-            }
-        }
-                .setFailureMessage(this.getString(R.string.couldNotLogout))
-                .setAlert(new AlertSnackbar(this))
-                .start();
     }
 
     public void enableLogin() {
@@ -324,34 +295,63 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
     }
 
-    @Override
-    public void onResume() {
-        super.onResume();
+    private void logoutFirst(String uuid) {
 
-        Log.d(TAG, "onResume");
+        if (!this.logout) {
 
-        // Disable login
-        disableLogin();
+            Log.d(TAG,"No need to logout.");
 
-        // Can updateAmbulance?
-        if (AmbulanceForegroundService.canUpdateLocation()) {
+            // broadcast success
+            Intent localIntent = new Intent(org.emstrack.models.util.BroadcastActions.SUCCESS);
+            localIntent.putExtra(BroadcastExtras.UUID, uuid);
+            getLocalBroadcastManager().sendBroadcast(localIntent);
 
-            // Enable login
-            enableLogin();
-
-            // Check and request permissions to retrieve locations if necessary
-        } else if (checkPermissions()) {
-
-            // Otherwise check
-            checkLocationSettings();
-
-        } else {
-
-            // requestPermissions call_current checkLocationSettings if successful
-            requestPermissions();
+            // then return
+            return;
 
         }
 
+        Log.d(TAG,"Logout first.");
+
+        // Create stop foreground service intent
+        Intent stopIntent = new Intent(this, AmbulanceForegroundService.class);
+        stopIntent.setAction(AmbulanceForegroundService.Actions.STOP_SERVICE);
+
+        // Chain services
+        new OnServiceComplete(this,
+                BroadcastActions.SUCCESS,
+                BroadcastActions.FAILURE,
+                stopIntent) {
+
+            @Override
+            public void onSuccess(Bundle extras) {
+
+                Log.i(TAG, "onSuccess");
+
+                // Set logout to false
+                logout = false;
+
+                // broadcast success
+                Intent localIntent = new Intent(BroadcastActions.SUCCESS);
+                localIntent.putExtra(BroadcastExtras.UUID, uuid);
+                getLocalBroadcastManager().sendBroadcast(localIntent);
+
+            }
+
+            @Override
+            public void onFailure(Bundle extras) {
+                super.onFailure(extras);
+
+                // broadcast failure
+                Intent localIntent = new Intent(BroadcastActions.FAILURE);
+                localIntent.putExtra(BroadcastExtras.UUID, uuid);
+                getLocalBroadcastManager().sendBroadcast(localIntent);
+
+            }
+        }
+                .setFailureMessage(this.getString(R.string.couldNotLogout))
+                .setAlert(new AlertSnackbar(this))
+                .start();
     }
 
     @Override
