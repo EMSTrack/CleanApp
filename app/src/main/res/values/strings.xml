@@ -2,7 +2,7 @@
 <resources>
 
     <string name="app_name">EMSTrack</string>
-    <string name="app_version" translatable="false">v0.4.4</string>
+    <string name="app_version" translatable="false">0.4.5</string>
     <string name="client_name" translatable="false">_AndroidClient_</string>
 
     <string name="drawer_open">Open navigation drawer</string>
@@ -11,12 +11,12 @@
     <string name="alert_error_title">Error</string>
     <string name="alert_warning_title">Warning</string>
 
-    <string name="alert_ambulance_switch">Stop \'%1$s\' from sending updating first.</string>
+    <string name="alert_ambulance_switch">Stop \'%1$s\' from sending updates first.</string>
 
     <string name="message_please_wait">Please wait…</string>
 
     <string name="logout_confirm">Are you sure that you want to logout?</string>
-    <string name="version_update">You are running an older version of the app. Please update to continue!</string>
+    <string name="appNeedsVersionUpdate">You are running an older version of the app. Please update before continuing!</string>
 
     <string name="login_username_hint">Username</string>
     <string name="login_password_hint">Password</string>

@@ -512,7 +512,10 @@ public abstract class OnServiceComplete extends BroadcastReceiver implements Sta
         if (extras != null) {
             String msg = extras.getString(org.emstrack.models.util.BroadcastExtras.MESSAGE);
             if (msg != null)
-               message +=  '\n' + msg;
+                if (message != null)
+                    message +=  '\n' + msg;
+                else
+                    message =  msg;
 
         }
 

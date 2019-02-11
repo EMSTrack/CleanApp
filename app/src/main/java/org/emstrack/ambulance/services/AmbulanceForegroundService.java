@@ -199,15 +199,16 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
     public class ErrorCodes {
         public final static byte UNDEFINED = -1;
         public final static byte OK = 0;
-        public final static byte ANOTHER_CLIENT_IS_UPDATING_LOCATION = 1;
-        public final static byte CANNOT_USE_LOCATION_SERVICES = 2;
-        public final static byte LOCATION_SETTINGS_ARE_INADEQUATE= 3;
-        public final static byte NO_AMBULANCE_SELECTED = 4;
-        public final static byte AMBULANCE_CANNOT_UPDATE = 5;
-        public final static byte AMBULANCE_INVALID_ID = 6;
-        public final static byte AMBULANCE_CANNOT_LOGIN = 7;
-        public final static byte AMBULANCE_CANNOT_RETRIEVE = 8;
-        public final static byte AMBULANCE_CANNOT_SUBSCRIBE = 9;
+        public final static byte APP_VERSION_BELOW_MINIMUM = 1;
+        public final static byte ANOTHER_CLIENT_IS_UPDATING_LOCATION = 2;
+        public final static byte CANNOT_USE_LOCATION_SERVICES = 3;
+        public final static byte LOCATION_SETTINGS_ARE_INADEQUATE= 4;
+        public final static byte NO_AMBULANCE_SELECTED = 5;
+        public final static byte AMBULANCE_CANNOT_UPDATE = 6;
+        public final static byte AMBULANCE_INVALID_ID = 7;
+        public final static byte AMBULANCE_CANNOT_LOGIN = 8;
+        public final static byte AMBULANCE_CANNOT_RETRIEVE = 9;
+        public final static byte AMBULANCE_CANNOT_SUBSCRIBE = 10;
     }
 
     public class BroadcastActions {
@@ -1887,7 +1888,53 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                                 retrofit2.Call<Settings> settingsCall = service.getSettings();
                                 retrofit2.Call<List<Location>> basesCall = service.getLocationsByType("Base");
                                 retrofit2.Call<Version> versionCall = service.getVersion();
-                                new OnAPICallComplete<Profile>(profileCall) {
+
+                                new OnAPICallComplete<Version>(versionCall) {
+
+                                    @Override
+                                    public void onSuccess(Version version) {
+
+                                        // check for current and minimum version on phone
+                                        String apiVersion = version.getCurrentVersion();
+                                        String apiMinVersion = version.getMinimumVersion();
+
+                                        Log.d(TAG, String.format("Server API Version: %s Server API Min Version: %s",
+                                                apiVersion, apiMinVersion));
+
+                                        String localVersion = getResources().getString(R.string.app_version);
+
+                                        Log.d(TAG, String.format("Device API Version: %s", localVersion));
+
+                                        // Check if version is above minimum supported version
+                                        int versionMinCompare = Version.compare(apiMinVersion, localVersion);
+                                        if (versionMinCompare >= 0) {
+
+                                            // app is at least minimum version
+                                            Log.d(TAG, "App is at least at minimum version");
+
+                                        } else {
+
+                                            // app must be updated
+                                            Log.d(TAG, "Broadcasting version update request");
+                                            broadcastFailure(getString(R.string.appNeedsVersionUpdate), uuid,
+                                                    ErrorCodes.APP_VERSION_BELOW_MINIMUM);
+
+                                        }
+
+                                        // TODO: compare current version number and suggest upgrade
+                                        // int versionCompare = Version.compare(apiVersion, localVersion);
+
+                                    }
+
+                                    @Override
+                                    public void onFailure(Throwable t) {
+
+                                        // Broadcast failure
+                                        broadcastFailure("Could not retrieve version", uuid, t);
+
+                                    }
+
+                                }.setNext(new OnAPICallComplete<Profile>(profileCall) {
 
                                     @Override
                                     public void onSuccess(Profile profile) {
@@ -1955,47 +2002,6 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
                                     }
 
-                                }.setNext(new OnAPICallComplete<Version>(versionCall) {
-                                    @Override
-                                    public void onSuccess(Version version) {
-                                        // check for current and minimum version on phone
-                                        String apiVersion = version.getCurrentVersion();
-                                        String apiMinVersion = version.getMinimumVersion();
-
-                                        Log.d(TAG, String.format("Server API Version: %s Server API Min Version: %s",
-                                                apiVersion, apiMinVersion));
-
-                                        // get version from strings.xml and remove the v in vX.X.X
-                                        String localVersion = getResources().getString(R.string.app_version)
-                                                .substring(1);
-
-                                        Log.d(TAG, String.format("Device API Version: %s", localVersion));
-
-                                        // TODO: compare version numbers
-                                        int versionCompare = compareVersions(apiVersion, localVersion);
-                                        if (versionCompare == 0) {
-                                            // app is latest version
-
-                                        } else {
-                                            int versionMinCompare = compareVersions(apiMinVersion, localVersion);
-                                            if (versionMinCompare >= 0) {
-                                                // app is at least minimum version
-                                                Log.d(TAG, "App is not the latest version, but is at least minimum version");
-                                            } else {
-                                                // app must be updated
-                                                Log.d(TAG, "Broadcasting version update request");
-                                                broadcastFailure("App is not update to date!", uuid);
-                                                Intent localIntent = new Intent(BroadcastActions.VERSION_UPDATE);
-                                                getLocalBroadcastManager().sendBroadcast(localIntent);
-                                            }
-                                        }
-                                    }
-
-                                    @Override
-                                    public void onFailure(Throwable t) {
-                                        // Broadcast failure
-                                        broadcastFailure("Could not access version from api", uuid, t);
-                                    }
                                 }.setNext(new OnServiceComplete(AmbulanceForegroundService.this,
                                         org.emstrack.models.util.BroadcastActions.SUCCESS,
                                         org.emstrack.models.util.BroadcastActions.FAILURE,
@@ -4882,12 +4888,12 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
      */
     public void broadcastFailure(final Bundle extras, final String uuid, byte errorCode) {
 
-        Log.d(TAG, "Broadcast failure, bundle");
+        Log.d(TAG, "Broadcast failure, bundle, errorCode = " + errorCode);
 
         // Broadcast failure
         Intent localIntent = new Intent(org.emstrack.models.util.BroadcastActions.FAILURE);
         Bundle bundle = new Bundle(extras);
-        bundle.putInt(ERROR_CODE, errorCode);
+        bundle.putByte(ERROR_CODE, errorCode);
         localIntent.putExtras(bundle);
         sendBroadcastWithUUID(localIntent, uuid);
 
@@ -4901,7 +4907,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
      */
     public void broadcastFailure(final Bundle extras, final String uuid) {
 
-        broadcastFailure(extras, uuid, ErrorCodes.UNDEFINED);
+        broadcastFailure(extras, uuid, extras.getByte(ERROR_CODE, ErrorCodes.UNDEFINED));
 
     }
 
@@ -4917,8 +4923,10 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
         // Broadcast success
         Intent localIntent = new Intent(org.emstrack.models.util.BroadcastActions.SUCCESS);
-        localIntent.putExtra(org.emstrack.models.util.BroadcastExtras.MESSAGE, message);
-        localIntent.putExtra(ERROR_CODE, ErrorCodes.OK);
+        Bundle bundle = new Bundle();
+        bundle.putString(org.emstrack.models.util.BroadcastExtras.MESSAGE, message);
+        bundle.putByte(ERROR_CODE, ErrorCodes.OK);
+        localIntent.putExtras(bundle);
         sendBroadcastWithUUID(localIntent, uuid);
 
     }
@@ -4936,32 +4944,10 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         // Broadcast success
         Intent localIntent = new Intent(org.emstrack.models.util.BroadcastActions.SUCCESS);
         Bundle bundle = new Bundle(extras);
-        bundle.putInt(ERROR_CODE, ErrorCodes.OK);
+        bundle.putByte(ERROR_CODE, ErrorCodes.OK);
         localIntent.putExtras(bundle);
         sendBroadcastWithUUID(localIntent, uuid);
 
-    }
-
-    // returns -1 if version1 > version2, 1 if version1 < version2, 0 if equal
-    private int compareVersions(String version1, String version2) {
-        String[] v1 = version1.split("\\.");
-        String[] v2 = version2.split("\\.");
-
-        for (int i = 0; i < v1.length || i < v2.length; i++) {
-            int v1Num = 0;
-            int v2Num = 0;
-            if (i < v1.length)
-                v1Num = Integer.parseInt(v1[i]);
-            if (i < v2.length)
-                v2Num = Integer.parseInt(v2[i]);
-
-            if (v1Num < v2Num)
-                return 1;
-            else if (v1Num > v2Num)
-                return -1;
-        }
-
-        return 0;
     }
 
 }

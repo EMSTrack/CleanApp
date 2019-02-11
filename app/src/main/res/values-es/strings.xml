@@ -234,5 +234,6 @@
     <string name="couldNotCleanUpCall">No se pudo terminar la llamada</string>
     <string name="couldNotStopCallUpdates">No se pudo limpiar la llamada</string>
     <string name="couldNotRetrieveCalls">No se pudo recibir llamadas</string>
+    <string name="appNeedsVersionUpdate">Esta versión de la aplicación está desactualizada. Por favor, actualice antes de continuar!</string>
 
 </resources>
