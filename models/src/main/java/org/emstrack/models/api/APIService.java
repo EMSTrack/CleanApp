@@ -7,6 +7,7 @@ import org.emstrack.models.Location;
 import org.emstrack.models.Profile;
 import org.emstrack.models.Settings;
 import org.emstrack.models.Token;
+import org.emstrack.models.Version;
 
 import java.util.List;
 
@@ -108,4 +109,11 @@ public interface APIService {
     @GET("call/{id}/")
     Call<org.emstrack.models.Call> getCall(@Path("id") int id);
 
+    /**
+     * Retrieve api version
+     *
+     * @return the api call
+     */
+    @GET("version/")
+    Call<Version> getVersion();
 }
