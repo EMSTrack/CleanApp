@@ -28,12 +28,11 @@ import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.LocationSettingsStatusCodes;
 import com.google.android.gms.location.SettingsClient;
 
+import org.emstrack.ambulance.dialogs.AlertDialog;
 import org.emstrack.ambulance.dialogs.AlertSnackbar;
-import org.emstrack.ambulance.dialogs.VersionDialog;
 import org.emstrack.ambulance.models.AmbulanceAppData;
 import org.emstrack.ambulance.services.AmbulanceForegroundService;
 import org.emstrack.models.Credentials;
-import org.emstrack.models.Profile;
 import org.emstrack.models.util.BroadcastActions;
 import org.emstrack.models.util.BroadcastExtras;
 import org.emstrack.models.util.OnServiceComplete;
@@ -242,7 +241,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
                         // Toast
                         Toast.makeText(LoginActivity.this,
-                                getResources().getString(R.string.couldNotLogin),
+                                getResources().getString(R.string.couldNotLogin, "unknown"),
                                 Toast.LENGTH_SHORT).show();
 
                     }
@@ -281,6 +280,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                             }
 
                         }
+
                     }
                             .setFailureMessage(LoginActivity.this.getString(R.string.couldNotStartService))
                             .setAlert(new AlertSnackbar(LoginActivity.this))
@@ -366,10 +366,6 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         final String serverApiUri = serverAPIURIs.get(serverField.getSelectedItemPosition());
         Log.d(TAG, "Logging into server: " + serverUri);
 
-        /*String serverName = serverField.getSelectedItem().toString();
-        int serverPos = serverList.getPosition(serverName);
-        final String server = serverURLs.getItem(serverPos).toString();*/
-
         if (username.isEmpty())
             new AlertSnackbar(LoginActivity.this).alert(getResources().getString(R.string.error_empty_username));
 
@@ -416,8 +412,8 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                 }
 
             }
-                    .setFailureMessage(getResources().getString(R.string.couldNotLoginUser, username))
-                    .setAlert(new AlertSnackbar(LoginActivity.this))
+                    .setFailureMessage(null)
+                    .setAlert(new AlertDialog(LoginActivity.this, getResources().getString(R.string.couldNotLoginUser, username)))
                     .start();
 
         }
@@ -596,20 +592,4 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         return LocalBroadcastManager.getInstance(this);
     }
 
-    private void createUpdateAppDialog() {
-        Log.d(TAG, "Generating dialog to prompt user to update app");
-        VersionDialog.newInstance(this).show();
-    }
-
-    @Override
-    public void onPause() {
-        Log.d(TAG, "onPause");
-        super.onPause();
-
-        try {
-            getLocalBroadcastManager().unregisterReceiver(versionUpdateReceiver);
-        } catch (Throwable t) {
-            Log.d(TAG, "Version update receiver not registered", t);
-        }
-    }
 }
