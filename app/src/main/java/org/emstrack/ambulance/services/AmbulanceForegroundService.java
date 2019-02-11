@@ -11,6 +11,7 @@ import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.media.RingtoneManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
@@ -4061,12 +4062,14 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                         .setContentText(getString(R.string.newCallRequest))
                         .setPriority(NotificationCompat.PRIORITY_MAX)
                         .setAutoCancel(true)
-                        .setContentIntent(pendingIntent);
+                        .setContentIntent(pendingIntent)
+                        .setSound(RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION))
+                        .setVibrate(new long[] { 1000, 1000});
 
                 NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
                 Notification notification = mBuilder.build();
-                notification.defaults |= Notification.DEFAULT_SOUND;
-                notification.defaults |= Notification.DEFAULT_VIBRATE;
+                // notification.defaults |= Notification.DEFAULT_SOUND;
+                // notification.defaults |= Notification.DEFAULT_VIBRATE;
                 notificationManager.notify(notificationId.getAndIncrement(), notification);
 
                 // create intent to prompt user
