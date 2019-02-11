@@ -53,7 +53,7 @@ public class Alert  {
     public void alert(String message) {
         
         // Log message
-        Log.i(TAG, message);
+        Log.e(TAG, message);
 
     }
 

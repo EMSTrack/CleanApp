@@ -62,7 +62,7 @@ public class AmbulanceUpdateFilter {
 
         // return if null
         if (currentAmbulanceUpdate.getLocation() == null) {
-            Log.d(TAG, "Null location, skipping...");
+            // Log.d(TAG, "Null location, skipping...");
             return;
         }
 
@@ -104,7 +104,7 @@ public class AmbulanceUpdateFilter {
 
         }
 
-        Log.i(TAG, "velocity = " + velocity + ", distance = " + distance + ", bearing = " + bearing + "(" + update.getBearing() + ")");
+        // Log.i(TAG, "velocity = " + velocity + ", distance = " + distance + ", bearing = " + bearing + "(" + update.getBearing() + ")");
 
     }
 

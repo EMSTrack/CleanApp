@@ -264,7 +264,7 @@ public abstract class OnServiceComplete extends BroadcastReceiver implements Sta
 
             if (!isComplete()) {
 
-                Log.i(TAG, "TIMEOUT");
+                Log.e(TAG, "TIMEOUT");
                 this.successFlag = false;
                 this.timedOutFlag = true;
 
@@ -448,7 +448,7 @@ public abstract class OnServiceComplete extends BroadcastReceiver implements Sta
             checkId = this.failureIdCheck;
         } else {
             // This should never happen
-            Log.i(TAG, "Unknown action '" + action + "'");
+            Log.e(TAG, "Unknown action '" + action + "'");
             return;
         }
 

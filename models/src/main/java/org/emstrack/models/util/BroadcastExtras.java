@@ -12,4 +12,9 @@ public class BroadcastExtras {
      * A unique identifier extra
      */
     public final static String UUID = "org.emstrack.models.util.broadcastextras.UUID";
+
+    /**
+     * An error code
+     */
+    public final static String ERROR_CODE = "org.emstrack.models.util.broadcastextras.ERROR_CODE";
 }

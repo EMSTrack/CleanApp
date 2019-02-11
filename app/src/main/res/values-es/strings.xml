@@ -180,7 +180,7 @@
     <string name="address">Dirección:</string>
     <string name="addressText">Dirección</string>
     <string name="available">Disponible</string>
-    <string name="resumeCalls">Continuar Llamadas</string>
+    <string name="resumeCalls">Retomar Llamada</string>
     <string name="hospitalLabel">Hospital:</string>
     <string name="baseLabel">Base:</string>
     <string name="customLabel">Otros:</string>
@@ -233,5 +233,6 @@
     <string name="equipment">Equipo</string>
     <string name="couldNotCleanUpCall">No se pudo terminar la llamada</string>
     <string name="couldNotStopCallUpdates">No se pudo limpiar la llamada</string>
+    <string name="couldNotRetrieveCalls">No se pudo recibir llamadas</string>
 
 </resources>
