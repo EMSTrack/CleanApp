@@ -60,6 +60,7 @@ import org.emstrack.models.Location;
 import org.emstrack.models.Profile;
 import org.emstrack.models.Settings;
 import org.emstrack.models.Token;
+import org.emstrack.models.Version;
 import org.emstrack.models.Waypoint;
 import org.emstrack.models.api.APIService;
 import org.emstrack.models.api.APIServiceGenerator;
@@ -111,6 +112,8 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
     public final static String PREFERENCES_PASSWORD = "PASSWORD";
     public final static String PREFERENCES_MQTT_SERVER = "MQTT_SERVER";
     public final static String PREFERENCES_API_SERVER = "API_SERVER";
+    public final static String PREFERENCES_VERSION = "VERSION";
+    public final static String PREFERENCES_VERSION_MIN = "VERSION_MIN";
 
     // Server URI
     private static String _serverUri = "ssl://cruzroja.ucsd.edu:8883";
@@ -208,6 +211,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         public final static String CALL_DECLINED = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastaction.CALL_DECLINED";
         public final static String CALL_COMPLETED = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastaction.CALL_COMPLETED";
         public final static String CALL_UPDATE = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastaction.CALL_UPDATE";
+        public final static String VERSION_UPDATE = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastaction.VERSION_UPDATE";
     }
 
     public class AmbulanceForegroundServiceException extends Exception {
@@ -1869,6 +1873,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                                 retrofit2.Call<Profile> profileCall = service.getProfile(username);
                                 retrofit2.Call<Settings> settingsCall = service.getSettings();
                                 retrofit2.Call<List<Location>> basesCall = service.getLocationsByType("Base");
+                                retrofit2.Call<Version> versionCall = service.getVersion();
                                 new OnAPICallComplete<Profile>(profileCall) {
 
                                     @Override
@@ -1936,6 +1941,47 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
                                     }
 
+                                }.setNext(new OnAPICallComplete<Version>(versionCall) {
+                                    @Override
+                                    public void onSuccess(Version version) {
+                                        // check for current and minimum version on phone
+                                        String apiVersion = version.getCurrentVersion();
+                                        String apiMinVersion = version.getMinimumVersion();
+
+                                        Log.d(TAG, String.format("Server API Version: %s Server API Min Version: %s",
+                                                apiVersion, apiMinVersion));
+
+                                        // get version from strings.xml and remove the v in vX.X.X
+                                        String localVersion = getResources().getString(R.string.app_version)
+                                                .substring(1);
+
+                                        Log.d(TAG, String.format("Device API Version: %s", localVersion));
+
+                                        // TODO: compare version numbers
+                                        int versionCompare = compareVersions(apiVersion, localVersion);
+                                        if (versionCompare == 0) {
+                                            // app is latest version
+
+                                        } else {
+                                            int versionMinCompare = compareVersions(apiMinVersion, localVersion);
+                                            if (versionMinCompare >= 0) {
+                                                // app is at least minimum version
+                                                Log.d(TAG, "App is not the latest version, but is at least minimum version");
+                                            } else {
+                                                // app must be updated
+                                                Log.d(TAG, "Broadcasting version update request");
+                                                broadcastFailure("App is not update to date!", uuid);
+                                                Intent localIntent = new Intent(BroadcastActions.VERSION_UPDATE);
+                                                getLocalBroadcastManager().sendBroadcast(localIntent);
+                                            }
+                                        }
+                                    }
+
+                                    @Override
+                                    public void onFailure(Throwable t) {
+                                        // Broadcast failure
+                                        broadcastFailure("Could not access version from api", uuid, t);
+                                    }
                                 }.setNext(new OnServiceComplete(AmbulanceForegroundService.this,
                                         org.emstrack.models.util.BroadcastActions.SUCCESS,
                                         org.emstrack.models.util.BroadcastActions.FAILURE,
@@ -1972,7 +2018,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
                                     }
 
-                                }))))
+                                })))))
                                         .start();
 
                             }
@@ -4608,6 +4654,28 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         Intent localIntent = new Intent(org.emstrack.models.util.BroadcastActions.SUCCESS);
         sendBroadcastWithUUID(localIntent, uuid);
 
+    }
+
+    // returns -1 if version1 > version2, 1 if version1 < version2, 0 if equal
+    private int compareVersions(String version1, String version2) {
+        String[] v1 = version1.split("\\.");
+        String[] v2 = version2.split("\\.");
+
+        for (int i = 0; i < v1.length || i < v2.length; i++) {
+            int v1Num = 0;
+            int v2Num = 0;
+            if (i < v1.length)
+                v1Num = Integer.parseInt(v1[i]);
+            if (i < v2.length)
+                v2Num = Integer.parseInt(v2[i]);
+
+            if (v1Num < v2Num)
+                return 1;
+            else if (v1Num > v2Num)
+                return -1;
+        }
+
+        return 0;
     }
 
 }

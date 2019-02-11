@@ -2,7 +2,10 @@ package org.emstrack.ambulance;
 
 import android.Manifest;
 import android.app.Activity;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.IntentSender;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
@@ -29,6 +32,7 @@ import com.google.android.gms.location.LocationSettingsStatusCodes;
 import com.google.android.gms.location.SettingsClient;
 
 import org.emstrack.ambulance.dialogs.AlertSnackbar;
+import org.emstrack.ambulance.dialogs.VersionDialog;
 import org.emstrack.ambulance.models.AmbulanceAppData;
 import org.emstrack.ambulance.services.AmbulanceForegroundService;
 import org.emstrack.models.Credentials;
@@ -60,6 +64,8 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     private String[] serverList;
     private List<String> serverMqttURIs;
     private List<String> serverAPIURIs;
+
+    private BroadcastReceiver versionUpdateReceiver;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -134,6 +140,18 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                     imm.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), 0);
                     return true;
                 });
+
+        if (versionUpdateReceiver == null) {
+            versionUpdateReceiver = new BroadcastReceiver() {
+                @Override
+                public void onReceive(Context context, Intent intent) {
+                    createUpdateAppDialog();
+                    Log.d(TAG, "App version is not up to date!");
+                }
+            };
+            getLocalBroadcastManager().registerReceiver(versionUpdateReceiver,
+                    new IntentFilter(AmbulanceForegroundService.BroadcastActions.VERSION_UPDATE));
+        }
 
     }
 
@@ -332,6 +350,18 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
         // Disable login
         disableLogin();
+
+        if (versionUpdateReceiver == null) {
+            versionUpdateReceiver = new BroadcastReceiver() {
+                @Override
+                public void onReceive(Context context, Intent intent) {
+                    createUpdateAppDialog();
+                    Log.d(TAG, "App version is not up to date!");
+                }
+            };
+            getLocalBroadcastManager().registerReceiver(versionUpdateReceiver,
+                    new IntentFilter(AmbulanceForegroundService.BroadcastActions.VERSION_UPDATE));
+        }
 
         // Can updateAmbulance?
         if (AmbulanceForegroundService.canUpdateLocation()) {
@@ -595,4 +625,20 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         return LocalBroadcastManager.getInstance(this);
     }
 
+    private void createUpdateAppDialog() {
+        Log.d(TAG, "Generating dialog to prompt user to update app");
+        VersionDialog.newInstance(this).show();
+    }
+
+    @Override
+    public void onPause() {
+        Log.d(TAG, "onPause");
+        super.onPause();
+
+        try {
+            getLocalBroadcastManager().unregisterReceiver(versionUpdateReceiver);
+        } catch (Throwable t) {
+            Log.d(TAG, "Version update receiver not registered", t);
+        }
+    }
 }
