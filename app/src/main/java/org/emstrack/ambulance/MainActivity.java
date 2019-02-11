@@ -107,32 +107,25 @@ public class MainActivity extends AppCompatActivity {
                                 AmbulancePermission selectedAmbulance = ambulancePermissions.get(which);
                                 Log.d(TAG, "Selected ambulance " + selectedAmbulance.getAmbulanceIdentifier());
 
-                                // Any ambulance currently selected?
+                                // If currently handling ambulance
                                 Ambulance ambulance = AmbulanceForegroundService.getAppData().getAmbulance();
-
-                                // Warn if current ambulance
                                 if (ambulance != null) {
 
                                     Log.d(TAG, "Current ambulance " + ambulance.getIdentifier());
                                     Log.d(TAG, "Requesting location updates? " +
                                             (AmbulanceForegroundService.isUpdatingLocation() ? "TRUE" : "FALSE"));
 
-                                    // If same ambulance, just return
-                                    if (ambulance.getId() == selectedAmbulance.getAmbulanceId())
-                                        return;
-
-                                    if (AmbulanceForegroundService.isUpdatingLocation()) {
-
-                                        // confirm first
+                                    // If another ambulance, confirm first
+                                    if (ambulance.getId() != selectedAmbulance.getAmbulanceId())
                                         switchAmbulanceDialog(selectedAmbulance);
-                                        return;
-                                    }
+
+                                } else {
+
+                                    // otherwise go ahead!
+                                    retrieveAmbulance(selectedAmbulance);
+                                    // dialog.dismiss();
 
                                 }
-
-                                // otherwise go ahead!
-                                retrieveAmbulance(selectedAmbulance);
-                                dialog.dismiss();
 
                             })
                     .setOnCancelListener(
@@ -397,8 +390,8 @@ public class MainActivity extends AppCompatActivity {
             setAmbulanceButtonText(ambulance.getIdentifier());
 
             // Automatically attempting to start streaming
-            Log.i(TAG, "Attempting to start streaming");
-            startUpdatingLocation();
+            // Log.i(TAG, "Attempting to start streaming");
+            // startUpdatingLocation();
 
         } else {
 
@@ -448,16 +441,9 @@ public class MainActivity extends AppCompatActivity {
             onlineIcon.setAlpha(disabledAlpha);
 
         // Is there a requested call that needs to be prompted for?
-        // boolean promptNextCall = false;
-        boolean resumeUpdatingLocations = false;
         int nextCallId = -1;
         Ambulance ambulance = appData.getAmbulance();
         if (ambulance != null) {
-
-            // not updating location, should try
-            if (!AmbulanceForegroundService.isUpdatingLocation())
-                resumeUpdatingLocations = true;
-
             CallStack pendingCalls = appData.getCalls();
             Call call = pendingCalls.getCurrentCall();
             if (call == null) {
@@ -485,12 +471,7 @@ public class MainActivity extends AppCompatActivity {
         receiver = new MainActivityBroadcastReceiver();
         getLocalBroadcastManager().registerReceiver(receiver, filter);
 
-        if (resumeUpdatingLocations)
-
-            // resume updating locations
-            startUpdatingLocation(nextCallId);
-
-        else if (nextCallId > 0)
+        if (nextCallId > 0)
 
             // prompt user?
             promptCallAccept(nextCallId);
@@ -530,7 +511,7 @@ public class MainActivity extends AppCompatActivity {
                 setAmbulanceButtonText(selectedAmbulance.getAmbulanceIdentifier());
 
                 // Start updating
-                startUpdatingLocation();
+                // startUpdatingLocation();
 
             }
 

@@ -102,7 +102,7 @@
     <string name="couldNotProcessBuffer">Could not process entire buffer, %1$d messages left.</string>
     <string name="localBufferIsEmpty">Server is online, local buffer is empty.</string>
     <string name="serverIsOffline">Server is offline. Buffering updates.</string>
-    <string name="cannotUseLocationServices">Application cannot use currentAmbulanceUpdate services. Please modify permissions on Settings.</string>
+    <string name="cannotUseLocationServices">Application cannot use location services. Please modify permissions on Settings.</string>
     <string name="noAmbulanceSelected">No ambulance is currently selected.</string>
     <string name="inadequateLocationSettings">Location settings are inadequate, and cannot be fixed here.</string>
     <string name="failedToStartLocationUpdates">Failed to start sending updates.</string>
@@ -197,7 +197,7 @@
     <string name="address">Address:</string>
     <string name="addressText">Address</string>
     <string name="available">Available</string>
-    <string name="resumeCalls">Resume Calls</string>
+    <string name="resumeCalls">Resume Call</string>
     <string name="hospitalLabel">Hospital:</string>
     <string name="baseLabel">Base:</string>
     <string name="customLabel">Custom:</string>
@@ -251,6 +251,7 @@
     <string name="equipment">Equipment</string>
     <string name="couldNotCleanUpCall">Could not clean up call</string>
     <string name="couldNotStopCallUpdates">Could not stop call updates</string>
+    <string name="couldNotRetrieveCalls">Could not retrieve calls</string>
     <string-array name="spinner_list_item_array_server">
         <item>@string/server_select</item>
         <item>Tijuana Red Cross:tijuana.emstrack.org:8883</item>

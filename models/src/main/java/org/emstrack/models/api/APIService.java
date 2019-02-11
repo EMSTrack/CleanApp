@@ -92,4 +92,20 @@ public interface APIService {
     @GET("ambulance/{id}/")
     Call<Ambulance> getAmbulance(@Path("id") int id);
 
+    /**
+     * Retrieve ambulance's calls
+     *
+     * @return the api call
+     */
+    @GET("ambulance/{id}/calls/")
+    Call<List<org.emstrack.models.Call>> getCalls(@Path("id") int id);
+
+    /**
+     * Retrieve call
+     *
+     * @return the api call
+     */
+    @GET("call/{id}/")
+    Call<org.emstrack.models.Call> getCall(@Path("id") int id);
+
 }
