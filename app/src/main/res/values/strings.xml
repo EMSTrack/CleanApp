@@ -2,7 +2,7 @@
 <resources>
 
     <string name="app_name">EMSTrack</string>
-    <string name="app_version" translatable="false">v0_4_4</string>
+    <string name="app_version" translatable="false">v0.4.4</string>
     <string name="client_name" translatable="false">_AndroidClient_</string>
 
     <string name="drawer_open">Open navigation drawer</string>
@@ -16,6 +16,7 @@
     <string name="message_please_wait">Please wait…</string>
 
     <string name="logout_confirm">Are you sure that you want to logout?</string>
+    <string name="version_update">You are running an older version of the app. Please update to continue!</string>
 
     <string name="login_username_hint">Username</string>
     <string name="login_password_hint">Password</string>

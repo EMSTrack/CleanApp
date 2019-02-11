@@ -29,6 +29,7 @@ import com.google.android.gms.location.LocationSettingsStatusCodes;
 import com.google.android.gms.location.SettingsClient;
 
 import org.emstrack.ambulance.dialogs.AlertSnackbar;
+import org.emstrack.ambulance.dialogs.VersionDialog;
 import org.emstrack.ambulance.models.AmbulanceAppData;
 import org.emstrack.ambulance.services.AmbulanceForegroundService;
 import org.emstrack.models.Credentials;
@@ -595,4 +596,20 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         return LocalBroadcastManager.getInstance(this);
     }
 
+    private void createUpdateAppDialog() {
+        Log.d(TAG, "Generating dialog to prompt user to update app");
+        VersionDialog.newInstance(this).show();
+    }
+
+    @Override
+    public void onPause() {
+        Log.d(TAG, "onPause");
+        super.onPause();
+
+        try {
+            getLocalBroadcastManager().unregisterReceiver(versionUpdateReceiver);
+        } catch (Throwable t) {
+            Log.d(TAG, "Version update receiver not registered", t);
+        }
+    }
 }
