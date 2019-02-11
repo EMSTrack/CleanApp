@@ -4063,8 +4063,9 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                         .setPriority(NotificationCompat.PRIORITY_MAX)
                         .setAutoCancel(true)
                         .setContentIntent(pendingIntent)
-                        .setSound(RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION))
-                        .setVibrate(new long[] { 1000, 1000});
+                        .setDefaults(Notification.DEFAULT_ALL);
+                        //.setSound(RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION))
+                        //.setVibrate(new long[] { 1000, 1000, 1000, 1000 });
 
                 NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
                 Notification notification = mBuilder.build();
