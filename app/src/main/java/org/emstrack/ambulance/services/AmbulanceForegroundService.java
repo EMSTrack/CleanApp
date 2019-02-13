@@ -11,6 +11,7 @@ import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.media.AudioAttributes;
 import android.media.RingtoneManager;
 import android.os.Build;
 import android.os.Bundle;
@@ -104,7 +105,10 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
     // Notification channel
     public final static int NOTIFICATION_ID = 101;
     public final static String PRIMARY_CHANNEL = "default";
-    public final static String PRIMARY_CHANNEL_LABEL = "Default channel";
+    public final static String PRIMARY_CHANNEL_LABEL = "Default";
+
+    public final static String CALL_CHANNEL = "calls";
+    public final static String CALL_CHANNEL_LABEL = "Calls";
 
     // Notification id
     private final static AtomicInteger notificationId = new AtomicInteger(NOTIFICATION_ID + 1);
@@ -254,11 +258,26 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         // Create notification channel
         if (Build.VERSION.SDK_INT >= 26) {
 
-            NotificationChannel channel = new NotificationChannel(PRIMARY_CHANNEL,
+            NotificationChannel primaryChannel = new NotificationChannel(PRIMARY_CHANNEL,
                     PRIMARY_CHANNEL_LABEL, NotificationManager.IMPORTANCE_LOW);
-            channel.setLightColor(Color.GREEN);
-            channel.setLockscreenVisibility(Notification.VISIBILITY_PRIVATE);
-            getNotificationManager().createNotificationChannel(channel);
+            primaryChannel.setLightColor(Color.GREEN);
+            primaryChannel.setLockscreenVisibility(Notification.VISIBILITY_PRIVATE);
+            getNotificationManager().createNotificationChannel(primaryChannel);
+
+            AudioAttributes audioAttributes = new AudioAttributes.Builder()
+                    .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                    .setUsage(AudioAttributes.USAGE_ALARM).build();
+
+            NotificationChannel callChannel = new NotificationChannel(CALL_CHANNEL,
+                    CALL_CHANNEL_LABEL, NotificationManager.IMPORTANCE_HIGH);
+            callChannel.setLightColor(Color.RED);
+            callChannel.enableVibration(true);
+            callChannel.setSound(RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM),
+                    audioAttributes);
+            callChannel.setVibrationPattern(new long[]{500, 500, 500, 500});
+            callChannel.enableVibration(true);
+            callChannel.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);
+            getNotificationManager().createNotificationChannel(callChannel);
 
         }
 
@@ -3565,7 +3584,6 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
             } else {
 
                 // Call has been updated
-
                 try {
 
                     // call set or update current call
@@ -3631,12 +3649,20 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                         // process next call
                         processNextCall();
 
+                    } else if (newStatus.equalsIgnoreCase(AmbulanceCall.STATUS_DECLINED) ||
+                            newStatus.equalsIgnoreCase(AmbulanceCall.STATUS_SUSPENDED)) {
+
+                        // broadcast CALL_COMPLETED
+                        Intent callCompletedIntent = new Intent(BroadcastActions.CALL_COMPLETED);
+                        callCompletedIntent.putExtra(AmbulanceForegroundService.BroadcastExtras.CALL_ID, callId);
+                        getLocalBroadcastManager().sendBroadcast(callCompletedIntent);
+
+                        // and process next call
+                        processNextCall();
+
                     }
-
                 }
-
             }
-
         }
 
     }
@@ -4056,26 +4082,24 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                         notificationIntent, 0);
 
                 // Create notification
-                NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(this, PRIMARY_CHANNEL)
-                        .setSmallIcon(R.mipmap.ic_launcher)
-                        .setContentTitle("EMSTrack")
-                        .setContentText(getString(R.string.newCallRequest))
-                        .setPriority(NotificationCompat.PRIORITY_MAX)
-                        .setAutoCancel(true)
-                        .setContentIntent(pendingIntent)
-                        .setDefaults(Notification.DEFAULT_ALL);
-                        //.setSound(RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION))
-                        //.setVibrate(new long[] { 1000, 1000, 1000, 1000 });
+                NotificationCompat.Builder mBuilder =
+                        new NotificationCompat.Builder(this, CALL_CHANNEL)
+                                .setSmallIcon(R.mipmap.ic_launcher)
+                                .setContentTitle("EMSTrack")
+                                .setContentText(getString(R.string.newCallRequest))
+                                .setPriority(NotificationCompat.PRIORITY_MAX)
+                                .setAutoCancel(true)
+                                // .setDefaults(Notification.DEFAULT_ALL)
+                                .setContentIntent(pendingIntent);
 
-                NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
-                Notification notification = mBuilder.build();
-                // notification.defaults |= Notification.DEFAULT_SOUND;
-                // notification.defaults |= Notification.DEFAULT_VIBRATE;
-                notificationManager.notify(notificationId.getAndIncrement(), notification);
+                NotificationManagerCompat notificationManager
+                        = NotificationManagerCompat.from(this);
+                notificationManager.notify(notificationId.getAndIncrement(), mBuilder.build());
 
                 // create intent to prompt user
                 Intent callPromptIntent = new Intent(BroadcastActions.PROMPT_CALL_ACCEPT);
-                callPromptIntent.putExtra(AmbulanceForegroundService.BroadcastExtras.CALL_ID, nextCall.getId());
+                callPromptIntent.putExtra(AmbulanceForegroundService.BroadcastExtras.CALL_ID,
+                        nextCall.getId());
                 getLocalBroadcastManager().sendBroadcast(callPromptIntent);
 
             } else if (status.equals(AmbulanceCall.STATUS_ACCEPTED)) {
