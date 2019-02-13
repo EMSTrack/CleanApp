@@ -111,6 +111,14 @@ public class APIServiceGenerator {
             builder.client(httpClient.build());
             retrofit = builder.build();
 
+        } else {
+
+            // reset interceptors
+
+            httpClient.interceptors().clear();
+            builder.client(httpClient.build());
+            retrofit = builder.build();
+
         }
         return retrofit.create(serviceClass);
     }
