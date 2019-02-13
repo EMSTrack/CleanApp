@@ -137,8 +137,12 @@ public class AmbulanceFragment extends Fragment {
                         Toast.makeText(getContext(), R.string.CallFinished, Toast.LENGTH_LONG).show();
 
                         int callId = intent.getIntExtra(AmbulanceForegroundService.BroadcastExtras.CALL_ID, -1);
+                        Ambulance ambulance = appData.getAmbulance();
                         if (currentCallId == callId)
-                            updateCall(appData.getAmbulance(), null);
+                            updateCall(ambulance, null);
+                        else
+                            /* makes sure that requested and suspended get updated */
+                            updateAmbulance(ambulance);
 
                         break;
                     }
@@ -429,7 +433,7 @@ public class AmbulanceFragment extends Fragment {
             List<Patient> patients = call.getPatientSet();
             if (patients != null && patients.size() > 0) {
                 String text = "";
-                for (Patient patient: patients)  {
+                for (Patient patient : patients) {
                     if (!text.isEmpty())
                         text += ", ";
                     text += patient.getName();
@@ -532,7 +536,9 @@ public class AmbulanceFragment extends Fragment {
 
             }
 
-        }
+        } else
+            // update ambulance to set suspended/requested count correct
+            updateAmbulance(ambulance);
 
     }
 
