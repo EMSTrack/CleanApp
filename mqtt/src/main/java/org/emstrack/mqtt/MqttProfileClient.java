@@ -109,7 +109,7 @@ public class MqttProfileClient implements MqttCallbackExtended {
 
                 // Publish to connect topic
                 final String topic = String.format(connectTopic, username, mqttClient.getClientId());
-                MqttProfileClient.this.publish(topic, "offline", 2, true,
+                MqttProfileClient.this.publish(topic, "offline", 2, false,
                         new MqttDeliveryCallback() {
 
                             // TODO: timeout?
@@ -334,7 +334,7 @@ public class MqttProfileClient implements MqttCallbackExtended {
             // publish online to connectTopic
             MqttProfileClient.this.publish(
                     String.format(connectTopic, username, mqttClient.getClientId()),
-                    "online", 2, true);
+                    "online", 2, false);
 
         } catch (MqttException e) {
             Log.e(TAG,"Could not publish to connect topic");
