@@ -691,27 +691,34 @@ public class MainActivity extends AppCompatActivity {
 
         } else {
 
-            Log.d(TAG,"Will calculate distance");
-
             // Get location
             Location location = waypoint.getLocation();
-
-            // Get current location
-            android.location.Location lastLocation = AmbulanceForegroundService.getLastLocation();
-
-            // Calculate distance to next waypoint
-            float distance = -1;
-            if (lastLocation != null && location != null) {
-                Log.d(TAG, "location = " + lastLocation);
-                distance = lastLocation.distanceTo(location.getLocation().toLocation()) / 1000;
-            }
-            distanceText = getString(R.string.noDistanceAvailable);
-            Log.d(TAG,"Distance = " + distance);
-            if (distance > 0)
-                distanceText = df.format(distance) + " km";
-
             address = waypoint.getLocation().toString();
             waypointType = Location.typeLabel.get(location.getType());
+
+            Log.d(TAG,"Will calculate distance");
+
+            if (AmbulanceForegroundService.hasLastLocation()) {
+
+                // Get current location
+                android.location.Location lastLocation = AmbulanceForegroundService.getLastLocation();
+
+                // Calculate distance to next waypoint
+                float distance = -1;
+                if (lastLocation != null && location != null) {
+                    Log.d(TAG, "location = " + lastLocation);
+                    distance = lastLocation.distanceTo(location.getLocation().toLocation()) / 1000;
+                }
+                distanceText = getString(R.string.noDistanceAvailable);
+                Log.d(TAG, "Distance = " + distance);
+                if (distance > 0)
+                    distanceText = df.format(distance) + " km";
+
+            } else {
+
+                distanceText = "---";
+
+            }
 
         }
 

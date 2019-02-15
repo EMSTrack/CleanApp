@@ -37,7 +37,7 @@ public class TestAPI {
 
         String username = "admin";
         String password = "cruzrojaadmin";
-        String serverURI = "https://cruzroja.ucsd.edu/";
+        String serverURI = "https://cruzroja.ucsd.edu/en/";
         Credentials credentials = new Credentials(username, password, serverURI, "");
 
         retrofit2.Call<Token> callSync = service.getToken(credentials);
