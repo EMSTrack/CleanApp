@@ -32,7 +32,7 @@ public interface APIService {
      * @param credentials the user credentials
      * @return the api call
      */
-    @POST("/auth/token/")
+    @POST("/en/auth/token/")
     Call<Token> getToken(@Body Credentials credentials);
 
     /**

@@ -880,6 +880,14 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
     }
 
     /**
+     *
+     * @return <code>True</code> if has last location
+     */
+    public static boolean hasLastLocation() {
+        return _lastLocation != null;
+    }
+
+    /**
      * @return the last location
      */
     public static android.location.Location getLastLocation() {
