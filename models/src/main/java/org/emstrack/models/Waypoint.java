@@ -23,19 +23,6 @@ public class Waypoint {
     public static final String STATUS_VISITED = "D";
     public static final String STATUS_SKIPPED = "S";
 
-    public static final Map<String, String> statusLabel;
-    static {
-
-        Map<String, String> map = new HashMap<>();
-
-        map.put(STATUS_CREATED, "Created");
-        map.put(STATUS_VISITED, "Visited");
-        map.put(STATUS_VISITING, "Visiting");
-        map.put(STATUS_SKIPPED, "Skipped");
-
-        statusLabel = Collections.unmodifiableMap(map);
-    }
-
     private int id;
     private int ambulanceCallId;
     private int order;

@@ -69,6 +69,7 @@ import org.emstrack.models.api.APIServiceGenerator;
 import org.emstrack.models.api.OnAPICallComplete;
 import org.emstrack.models.util.OnComplete;
 import org.emstrack.models.util.OnServiceComplete;
+import org.emstrack.mqtt.ClientActivity;
 import org.emstrack.mqtt.MishandledTopicException;
 import org.emstrack.mqtt.MqttProfileCallback;
 import org.emstrack.mqtt.MqttProfileClient;
@@ -784,8 +785,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
             int callId = intent.getIntExtra(AmbulanceForegroundService.BroadcastExtras.CALL_ID, -1);
 
             // next steps to publish information to server (steps 3, 4)
-            setAmbulanceCallStatus(callId,
-                    AmbulanceCall.statusLabel.get(AmbulanceCall.STATUS_ACCEPTED), uuid);
+            setAmbulanceCallStatus(callId, AmbulanceCall.STATUS_ACCEPTED, uuid);
 
         } else if (action.equals(Actions.CALL_DECLINE)) {
 
@@ -2245,7 +2245,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                     // Publish ambulance login
                     String topic = String.format("user/%1$s/client/%2$s/ambulance/%3$s/status",
                             profileClient.getUsername(), clientId, ambulanceId);
-                    profileClient.publish(topic, "ambulance login",2,false);
+                    profileClient.publish(topic, ClientActivity.ACTIVITY_AMBULANCE_LOGIN,2,false);
 
                 } catch (MqttException e) {
 
@@ -2436,7 +2436,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                     // Publish ambulance logout
                     String topic = String.format("user/%1$s/client/%2$s/ambulance/%3$s/status",
                             profileClient.getUsername(), profileClient.getClientId(), ambulanceId);
-                    profileClient.publish(topic, "ambulance logout", 2, false);
+                    profileClient.publish(topic, ClientActivity.ACTIVITY_AMBULANCE_LOGOUT, 2, false);
 
                 } catch (MqttException e) {
 
@@ -2654,7 +2654,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
                                 }.start();
 
-                            }
+                            } /* else ignore */
 
                         }
 
@@ -3983,8 +3983,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         }
 
         // publish status
-        setAmbulanceCallStatus(callId,
-                AmbulanceCall.statusLabel.get(status), uuid);
+        setAmbulanceCallStatus(callId, status, uuid);
 
     }
 

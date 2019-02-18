@@ -17,20 +17,6 @@ public class AmbulanceCall {
     public static final String STATUS_SUSPENDED = "S";
     public static final String STATUS_COMPLETED = "C";
 
-    public static final Map<String, String> statusLabel;
-    static {
-
-        Map<String, String> map = new HashMap<>();
-
-        map.put(STATUS_REQUESTED, "Requested");
-        map.put(STATUS_ACCEPTED, "Accepted");
-        map.put(STATUS_DECLINED, "Declined");
-        map.put(STATUS_SUSPENDED, "Suspended");
-        map.put(STATUS_COMPLETED, "Completed");
-
-        statusLabel = Collections.unmodifiableMap(map);
-    }
-
     private int id;
     private int ambulanceId;
     private String status;

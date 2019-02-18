@@ -694,7 +694,7 @@ public class MainActivity extends AppCompatActivity {
             // Get location
             Location location = waypoint.getLocation();
             address = waypoint.getLocation().toString();
-            waypointType = Location.typeLabel.get(location.getType());
+            waypointType = appData.getSettings().getLocationType().get(location.getType());
 
             Log.d(TAG,"Will calculate distance");
 
