@@ -130,7 +130,7 @@
     <string name="couldNotFindAmbulance">No se pudo encontrar ambulancia.</string>
     <string name="couldNotSubscribe">No se pudo suscribir a %1$s.</string>
     <string name="couldNotDeclineCall">No se puede rechazar la llamada. Actualmente atiende otra llamada.</string>
-    <string name="couldNotParseCallData">No se pudieron analizar los datos de llamadas.</string>
+    <string name="couldNotParseCallData">No se pudieron analizar los datos de la llamada.</string>
     <string name="willNotProcessNextCall">No procesará la próxima llamada. Llamada actualmente en servicio.</string>
     <string name="cannotSetCallAccepted">No se puede establecer la llamada como en curso: ya se está atendiendo la llamada</string>
     <string name="selectAmbulance">Seleccione ambulancia:</string>
@@ -172,7 +172,7 @@
     <string name="patients">Pacientes:</string>
     <string name="noPatientInformationAvailable">No hay información disponible para el paciente</string>
     <string name="numberOfWaypoints">"Número de puntos de ruta: "</string>
-    <string name="nextWaypoint">Punto de rota siguiente:</string>
+    <string name="nextWaypoint">Punto de ruta siguiente:</string>
     <string name="type">Tipo:</string>
     <string name="waypointType">Tipo de punto de ruta:</string>
     <string name="distance">Distancia:</string>

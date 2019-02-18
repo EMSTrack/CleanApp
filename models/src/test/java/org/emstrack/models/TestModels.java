@@ -245,22 +245,65 @@ public class TestModels {
         ambulanceStatus.put("UK", "Unknown");
         ambulanceStatus.put("AV", "Available");
 
+        List<String> ambulanceStatusOrder = new ArrayList<>();
+        ambulanceStatusOrder.add("UK");
+        ambulanceStatusOrder.add("AV");
+
         Map<String,String> ambulanceCapability = new HashMap<>();
         ambulanceCapability.put("B", "Basic");
         ambulanceCapability.put("A", "Advanced");
 
-        Map<String,String> equipmentType = new HashMap<>();
-        equipmentType.put("B", "Boolean");
-        equipmentType.put("I", "Integer");
+        List<String> ambulanceCapabilityOrder = new ArrayList<>();
+        ambulanceCapabilityOrder.add("B");
+        ambulanceCapabilityOrder.add("A");
+
+        Map<String,String> callPriority = new HashMap<>();
+        callPriority.put("A", "Urgent");
+        callPriority.put("B", "Not urgent");
+
+        List<String> callPriorityOrder = new ArrayList<>();
+        ambulanceStatusOrder.add("B");
+        ambulanceStatusOrder.add("A");
+
+        Map<String,String> callStatus = new HashMap<>();
+        callStatus.put("S", "Started");
+        callStatus.put("E", "Ended");
+
+        List<String> callStatusOrder = new ArrayList<>();
+        callStatusOrder.add("B");
+        callStatusOrder.add("A");
+
+        Map<String,String> ambulancecallStatus = new HashMap<>();
+        ambulancecallStatus.put("S", "Started");
+        ambulancecallStatus.put("E", "Ended");
 
         Map<String,String> locationType = new HashMap<>();
         locationType.put("B", "Base");
         locationType.put("A", "AED");
         locationType.put("O", "Other");
-        
+
+        List<String> locationTypeOrder = new ArrayList<>();
+        locationTypeOrder.add("B");
+        locationTypeOrder.add("A");
+        locationTypeOrder.add("O");
+
+        Map<String,String> equipmentType = new HashMap<>();
+        equipmentType.put("B", "Boolean");
+        equipmentType.put("I", "Integer");
+
+        Map<String,String> equipmentTypeDefaults = new HashMap<>();
+        equipmentTypeDefaults.put("B", "True");
+        equipmentTypeDefaults.put("I", "0");
+
         Defaults defaults = new Defaults(new GPSLocation(32.5149,-117.0382),"BC","Tijuana","MX");
 
-        Settings settings = new Settings(ambulanceCapability, ambulanceStatus, equipmentType, locationType, defaults);
+        Settings settings = new Settings(ambulanceStatus, ambulanceStatusOrder,
+                ambulanceCapability, ambulanceCapabilityOrder,
+                callPriority, callPriorityOrder,
+                callStatus, callStatusOrder,
+                ambulancecallStatus,
+                locationType, locationTypeOrder,
+                equipmentType, equipmentTypeDefaults, defaults);
 
         GsonBuilder gsonBuilder = new GsonBuilder();
         gsonBuilder.setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES);
@@ -332,7 +375,14 @@ public class TestModels {
         locationType.put("A", "AED");
         locationType.put("O", "Other");
 
-        settings = new Settings(ambulanceCapability, ambulanceStatus, equipmentType, locationType, defaults);
+        // TODO: this does not test everything!
+        settings = new Settings(ambulanceStatus, ambulanceStatusOrder,
+                ambulanceCapability, ambulanceCapabilityOrder,
+                callPriority, callPriorityOrder,
+                callStatus, callStatusOrder,
+                ambulancecallStatus,
+                locationType, locationTypeOrder,
+                equipmentType, equipmentTypeDefaults, defaults);
 
         expectedDefaults = settings.getDefaults();
         answerDefaults = from_json.getDefaults();

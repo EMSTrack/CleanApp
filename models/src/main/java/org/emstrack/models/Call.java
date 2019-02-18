@@ -18,18 +18,6 @@ public class Call {
     public static final String STATUS_STARTED = "S";
     public static final String STATUS_ENDED = "E";
 
-    public static final Map<String, String> statusLabel;
-    static {
-
-        Map<String, String> map = new HashMap<>();
-
-        map.put(STATUS_PENDING, "Pending");
-        map.put(STATUS_STARTED,"Started");
-        map.put(STATUS_ENDED,"Ended");
-
-        statusLabel = Collections.unmodifiableMap(map);
-    }
-
     public class CallException extends Exception {
 
         public CallException(String message) {

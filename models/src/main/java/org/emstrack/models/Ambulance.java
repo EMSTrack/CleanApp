@@ -24,26 +24,6 @@ public class Ambulance {
     public static final String STATUS_WAYPOINT_BOUND = "WB";
     public static final String STATUS_AT_WAYPOINT = "AW";
 
-    public static final Map<String, String> statusLabel;
-    static {
-
-        Map<String, String> map = new HashMap<>();
-
-        map.put(STATUS_UNKNOWN, "Unknown");
-        map.put(STATUS_AVAILABLE, "Available");
-        map.put(STATUS_OUT_OF_SERVICE, "Out of Service");
-        map.put(STATUS_PATIENT_BOUND, "Patient Bound");
-        map.put(STATUS_AT_PATIENT, "At Patient");
-        map.put(STATUS_HOSPITAL_BOUND, "Hospital Bound");
-        map.put(STATUS_AT_HOSPITAL, "At Hospital");
-        map.put(STATUS_BASE_BOUND, "Base Bound");
-        map.put(STATUS_AT_BASE, "At Base");
-        map.put(STATUS_WAYPOINT_BOUND, "Waypoint Bound");
-        map.put(STATUS_AT_WAYPOINT, "At Waypoint");
-
-        statusLabel = Collections.unmodifiableMap(map);
-    }
-
     public static final Map<String, Integer> statusBackgroundColorMap;
     public static final Map<String, Integer> statusTextColorMap;
     static {

@@ -257,21 +257,31 @@ public class AmbulanceFragment extends Fragment {
 
             // Get settings, status and capabilities
             ambulanceStatus = settings.getAmbulanceStatus();
-            ambulanceStatusList = new ArrayList<>(ambulanceStatus.values());
-            Collections.sort(ambulanceStatusList);
+            ambulanceStatusList = new ArrayList<>();
+            for (String status : settings.getAmbulanceStatusOrder())
+                ambulanceStatusList.add(ambulanceStatus.get(status));
+            // Collections.sort(ambulanceStatusList);
 
             ambulanceStatusBackgroundColorList = new ArrayList<>();
             ambulanceStatusTextColorList = new ArrayList<>();
             for (String value : ambulanceStatusList)
                 for (Map.Entry<String,String> entry : ambulanceStatus.entrySet())
                     if (value.equals(entry.getValue())) {
-                        ambulanceStatusBackgroundColorList.add(getResources().getColor(Ambulance.statusBackgroundColorMap.get(entry.getKey())));
-                        ambulanceStatusTextColorList.add(getResources().getColor(Ambulance.statusTextColorMap.get(entry.getKey())));
+                        ambulanceStatusBackgroundColorList
+                                .add(getResources()
+                                        .getColor(Ambulance
+                                                .statusBackgroundColorMap.get(entry.getKey())));
+                        ambulanceStatusTextColorList
+                                .add(getResources()
+                                        .getColor(Ambulance
+                                                .statusTextColorMap.get(entry.getKey())));
                     }
 
             ambulanceCapabilities = settings.getAmbulanceCapability();
-            ambulanceCapabilityList = new ArrayList<>(ambulanceCapabilities.values());
-            Collections.sort(ambulanceCapabilityList);
+            ambulanceCapabilityList = new ArrayList<>();
+            for (String status : settings.getAmbulanceCapabilityOrder())
+                ambulanceCapabilityList.add(ambulanceCapabilities.get(status));
+            // Collections.sort(ambulanceCapabilityList);
 
         } else {
             
@@ -422,8 +432,14 @@ public class AmbulanceFragment extends Fragment {
                 Log.d(TAG, "Call does not have a current ambulance!");
 
             callPriorityButton.setText(call.getPriority());
-            callPriorityButton.setBackgroundColor(((MainActivity) getActivity()).getCallPriorityBackgroundColors().get(call.getPriority()));
-            callPriorityButton.setTextColor(((MainActivity) getActivity()).getCallPriorityForegroundColors().get(call.getPriority()));
+            callPriorityButton.setBackgroundColor(
+                    ((MainActivity) getActivity())
+                            .getCallPriorityBackgroundColors()
+                            .get(call.getPriority()));
+            callPriorityButton.setTextColor(
+                    ((MainActivity) getActivity())
+                            .getCallPriorityForegroundColors()
+                            .get(call.getPriority()));
 
             ((TextView) view.findViewById(R.id.callPriorityLabel)).setText(R.string.currentCall);
 
@@ -445,7 +461,8 @@ public class AmbulanceFragment extends Fragment {
             } else
                 callPatientsTextView.setText(R.string.noPatientAvailable);
 
-            int numberOfWaypoints = ambulanceCall == null ? 0 : ambulanceCall.getWaypointSet().size();
+            int numberOfWaypoints =
+                    (ambulanceCall == null ? 0 : ambulanceCall.getWaypointSet().size());
             callNumberWayointsView.setText(String.valueOf(numberOfWaypoints));
 
             final Waypoint waypoint =
@@ -461,7 +478,11 @@ public class AmbulanceFragment extends Fragment {
                 Location location = waypoint.getLocation();
 
                 // Update waypoint type
-                callNextWaypointTypeTextView.setText(Location.typeLabel.get(location.getType()));
+                AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
+                callNextWaypointTypeTextView.setText(
+                        appData.getSettings()
+                                .getLocationType()
+                                .get(location.getType()));
 
                 // Update address
                 callAddressTextView.setText(location.toString());
@@ -556,7 +577,10 @@ public class AmbulanceFragment extends Fragment {
         CallStack calls = AmbulanceForegroundService.getAppData().getCalls();
 
         // Set call_current info
-        Map<String, Integer> callSummary = calls.summary(ambulance.getId());
+        AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
+        Map<String, Integer> callSummary
+                = calls.summary(appData.getSettings().getAmbulancecallStatus().keySet(),
+                                ambulance.getId());
         Log.d(TAG, "Call summary = " + callSummary.toString());
         final String summaryText = String.format(getString(R.string.requestedSuspended),
                 callSummary.get(AmbulanceCall.STATUS_REQUESTED),

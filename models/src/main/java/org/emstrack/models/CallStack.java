@@ -4,7 +4,9 @@ import android.util.Pair;
 
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * A stack for {@link Call}s.
@@ -296,14 +298,14 @@ public class CallStack implements Iterable {
      *     of calls with that status as value.
      * </p>
      *
+     * @param statusLabels a list with the labels to summarize
      * @return the stack summary
      */
-    public Map<String,Integer> summary() {
+    public Map<String,Integer> summary(Set<String> statusLabels) {
         // Initialize count
         Map<String, Integer> map = new HashMap<>();
-        Iterator<String> iterStatus = Call.statusLabel.keySet().iterator();
-        while (iterStatus.hasNext())
-            map.put(iterStatus.next(), 0);
+        for (String label : statusLabels)
+            map.put(label, 0);
 
         // Loop through call stack
         CallStackIterator iterator = iterator();
@@ -323,16 +325,16 @@ public class CallStack implements Iterable {
      *     The stack summary is a map with the ambulance call statuses as key and the number
      *     of calls with that status as value.
      * </p>
-
+     *
+     * @param statusLabels a list with the labels to summarize
      * @param ambulanceId the ambulance id
      * @return the stack summary
      */
-    public Map<String,Integer> summary(int ambulanceId) {
+    public Map<String,Integer> summary(Set<String> statusLabels, int ambulanceId) {
         // Initialize count
         Map<String, Integer> map = new HashMap<>();
-        Iterator<String> iterStatus = AmbulanceCall.statusLabel.keySet().iterator();
-        while (iterStatus.hasNext())
-            map.put(iterStatus.next(), 0);
+        for (String label : statusLabels)
+            map.put(label, 0);
 
         // Loop through call stack
         CallStackIterator iterator = iterator();

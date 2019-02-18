@@ -1,11 +1,13 @@
 package org.emstrack.models.api;
 
+import android.os.Build;
+import android.support.v4.os.LocaleListCompat;
+
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
-import org.emstrack.models.Credentials;
-import org.emstrack.models.Token;
+import java.util.Locale;
 
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -108,6 +110,15 @@ public class APIServiceGenerator {
                         .build();
                 return chain.proceed(request);
             });
+            httpClient.addInterceptor(
+                    chain -> {
+                        Request original = chain.request();
+                        Request request = original.newBuilder()
+                                .header("Accept-Language", APIServiceGenerator.getLanguage() )
+                                .build();
+                        return chain.proceed(request);
+                    });
+
             builder.client(httpClient.build());
             retrofit = builder.build();
 
@@ -121,6 +132,14 @@ public class APIServiceGenerator {
 
         }
         return retrofit.create(serviceClass);
+    }
+
+    private static String getLanguage() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            return LocaleListCompat.getDefault().toLanguageTags();
+        } else {
+            return Locale.getDefault().getLanguage();
+        }
     }
 
 }
