@@ -26,9 +26,9 @@
     <string name="equipment_boolean_image">Caja</string>
     <string name="equipment_bolean_button_positive_text">Actualizar</string>
     <string name="equipment_bolean_button_negative_text">Cancelar</string>
-    <string name="equipment_boolean_message">¿Está disponible este recurso?</string>
+    <string name="equipment_boolean_message">¿Está disponible este equipo?</string>
     <string name="equipment_boolean_true">Disponible</string>
-    <string name="equipment_boolean_false">Indisponible</string>
+    <string name="equipment_boolean_false">No disponible</string>
 
     <string name="equipment_integer_text">Número</string>
     <string name="equipment_integer_button_positive_text">Actualizar</string>
@@ -42,19 +42,17 @@
 
     <string name="action_settings">Configuraciones</string>
 
-    <string name="location_settings_inadequate_warning">The currentAmbulanceUpdate settings on the device are not
-        adequate to run this sample. Fix in Settings.</string>
+    <string name="location_settings_inadequate_warning">La configuración del móvil no es adecuada para ejecutar esta muestra. Arreglo en Configuraciones.</string>
 
-    <string name="permission_rationale">Location permission is needed for core functionality</string>
-    <string name="permission_denied_explanation">Permission was denied, but is needed for core
-        functionality.</string>
+    <string name="permission_rationale">Se necesita permiso de ubicación para la funcionalidad principal.</string>
+    <string name="permission_denied_explanation">El permiso fue denegado, pero es necesario para la funcionalidad principal.</string>
 
     <string name="settings">Configuraciones</string>
     <string name="dispatch">Despacho</string>
     <string name="hospital">Hospital</string>
     <string name="gps">GPS</string>
 
-    <string name="unknown">unknown</string>
+    <string name="unknown">desconocido</string>
 
     <string name="gps_startTrackingSwitchText">Comenzar a seguir:</string>
     <string name="gpsLocationLabel">Ubicación:</string>
@@ -130,7 +128,7 @@
     <string name="couldNotFindAmbulance">No se pudo encontrar ambulancia.</string>
     <string name="couldNotSubscribe">No se pudo suscribir a %1$s.</string>
     <string name="couldNotDeclineCall">No se puede rechazar la llamada. Actualmente atiende otra llamada.</string>
-    <string name="couldNotParseCallData">No se pudieron analizar los datos de la llamada.</string>
+    <string name="couldNotParseCallData">No se pudo analizar los datos de la llamada.</string>
     <string name="willNotProcessNextCall">No procesará la próxima llamada. Llamada actualmente en servicio.</string>
     <string name="cannotSetCallAccepted">No se puede establecer la llamada como en curso: ya se está atendiendo la llamada</string>
     <string name="selectAmbulance">Seleccione ambulancia:</string>
@@ -216,7 +214,7 @@
     <string name="toContinue">Continuar</string>
     <string name="switchAmbulance">Cambiar de ambulancia</string>
     <string name="switchToAmbulance">" ¿Quieres cambiarte a la ambulancia %1$s?"</string>
-    <string name="panicMessage">Messaje</string>
+    <string name="panicMessage">Mensaje</string>
     <string name="panicTitle">Pánico!</string>
     <string name="acceptCall">¿Aceptar llamada?</string>
     <string name="selectNextWaypoint">Seleccione el siguiente punto de ruta</string>
@@ -227,12 +225,12 @@
     <string name="selectBase">Seleccione una base:</string>
     <string name="newCallRequest">Tienes una nueva llamada en espera.</string>
     <string name="couldNotLoginToAmbulance">No se pudo connectar a la ambulancia</string>
-    <string name="couldNotParseHospitalUpdate">No se pudo traduciz actualizacíon de hospital.</string>
+    <string name="couldNotParseHospitalUpdate">No se pudo analizar los datos del hospital.</string>
     <string name="couldNotRemoveAmbulance">No se pudo quitar la ambulancia</string>
     <string name="information">Informaciones</string>
     <string name="equipment">Equipo</string>
     <string name="couldNotCleanUpCall">No se pudo terminar la llamada</string>
-    <string name="couldNotStopCallUpdates">No se pudo limpiar la llamada</string>
+    <string name="couldNotStopCallUpdates">No se pudo terminar la llamada</string>
     <string name="couldNotRetrieveCalls">No se pudo recibir llamadas</string>
     <string name="appNeedsVersionUpdate">Esta versión de la aplicación está desactualizada. Por favor, actualice antes de continuar!</string>
 
