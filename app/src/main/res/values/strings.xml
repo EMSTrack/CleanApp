@@ -94,7 +94,7 @@
     <string name="cantModifyAmbulance">You do not have permission to modify this ambulance.</string>
     <string name="anotherClientIsStreamingLocations">Another client is currently streaming updates.</string>
     <string name="startedStreamingLocation">Started streaming updates.</string>
-    <string name="forceLocationUpdates">Could not start sending updates to server. This probably means another user is logged in on the same ambulance. Would you like to force sending updates? This will disconnect the other user from the current ambulance.</string>
+    <string name="couldNotStartLocationUpdates">Could not start sending updates to server. This probably means another user is logged in on the same ambulance.</string>
     <string name="forcingLocationUpdates">Forcing updates…</string>
     <string name="anotherClientRequestedLocations">Another client requested to stream updates.</string>
     <string name="requestingToStreamLocation">Requesting to stream updates.</string>
@@ -252,6 +252,8 @@
     <string name="couldNotCleanUpCall">Could not clean up call</string>
     <string name="couldNotStopCallUpdates">Could not stop call updates</string>
     <string name="couldNotRetrieveCalls">Could not retrieve calls</string>
+    <string name="pleaseChooseAnotherAmbulance">Please choose another ambulance or logout.</string>
+    <string name="couldNotStopUpdatingLocations">Could not stop updating locations.</string>
     <string-array name="spinner_list_item_array_server">
         <item>@string/server_select</item>
         <item>Tijuana Red Cross:tijuana.emstrack.org:8883</item>

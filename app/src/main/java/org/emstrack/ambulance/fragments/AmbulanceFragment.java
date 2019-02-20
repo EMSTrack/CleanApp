@@ -36,7 +36,6 @@ import org.emstrack.models.Waypoint;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 

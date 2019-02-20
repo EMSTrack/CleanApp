@@ -30,6 +30,7 @@ public class AlertDialog extends Alert {
         this.builder = new android.app.AlertDialog.Builder(activity);
 
         this.builder.setTitle(title);
+        this.builder.setCancelable(false);
 
     }
 

@@ -413,7 +413,8 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
             }
                     .setFailureMessage(null)
-                    .setAlert(new AlertDialog(LoginActivity.this, getResources().getString(R.string.couldNotLoginUser, username)))
+                    .setAlert(new AlertDialog(LoginActivity.this,
+                            getResources().getString(R.string.couldNotLoginUser, username)))
                     .start();
 
         }
