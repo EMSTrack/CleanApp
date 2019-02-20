@@ -86,7 +86,7 @@
     <string name="cantModifyAmbulance">No tienes permiso para modificar esta ambulancia.</string>
     <string name="anotherClientIsStreamingLocations">Otro cliente está actualmente transmitiendo actualizaciones.</string>
     <string name="startedStreamingLocation">Comenzó a transmitir actualizaciones.</string>
-    <string name="forceLocationUpdates">No se pudo iniciar el envío de actualizaciones al servidor. Esto probablemente significa que otro usuario ha iniciado sesión en la misma ambulancia. ¿Te gustaría forzar el envío de actualizaciones? Esto desconectará al otro usuario de la ambulancia actual.</string>
+    <string name="couldNotStartLocationUpdates">No se pudo iniciar el envío de actualizaciones al servidor. Esto probablemente significa que otro usuario ha iniciado sesión en la misma ambulancia.</string>
     <string name="forcingLocationUpdates">Obligando actualizaciones…</string>
     <string name="anotherClientRequestedLocations">Otro cliente solicitó transmitir actualizaciones.</string>
     <string name="requestingToStreamLocation">Solicitando para transmitir actualizaciones.</string>
@@ -233,5 +233,7 @@
     <string name="couldNotStopCallUpdates">No se pudo terminar la llamada</string>
     <string name="couldNotRetrieveCalls">No se pudo recibir llamadas</string>
     <string name="appNeedsVersionUpdate">Esta versión de la aplicación está desactualizada. Por favor, actualice antes de continuar!</string>
+    <string name="pleaseChooseAnotherAmbulance">Por favor, elija otra ambulancia o cierre la sesión.</string>
+    <string name="couldNotStopUpdatingLocations">No se pudo dejar de actualizar ubicaciones.</string>
 
 </resources>

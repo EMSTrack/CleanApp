@@ -2,6 +2,7 @@ package org.emstrack.ambulance;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.res.Configuration;
@@ -115,9 +116,16 @@ public class MainActivity extends AppCompatActivity {
                                     Log.d(TAG, "Requesting location updates? " +
                                             (AmbulanceForegroundService.isUpdatingLocation() ? "TRUE" : "FALSE"));
 
-                                    // If another ambulance, confirm first
                                     if (ambulance.getId() != selectedAmbulance.getAmbulanceId())
+                                        // If another ambulance, confirm first
                                         switchAmbulanceDialog(selectedAmbulance);
+
+                                    else if (!AmbulanceForegroundService.isUpdatingLocation())
+                                        // else, if current ambulance is not updating location,
+                                        // retrieve again
+                                        retrieveAmbulance(selectedAmbulance);
+
+                                    // otherwise do nothing
 
                                 } else {
 
@@ -132,7 +140,8 @@ public class MainActivity extends AppCompatActivity {
                             dialog -> {
 
                                 // Any ambulance currently selected?
-                                if (AmbulanceForegroundService.getAppData().getAmbulance()== null) {
+                                if (AmbulanceForegroundService.getAppData().getAmbulance()== null
+                                        || !AmbulanceForegroundService.isUpdatingLocation() ) {
 
                                     // User must always choose ambulance
                                     promptMustChooseAmbulance();
@@ -153,76 +162,98 @@ public class MainActivity extends AppCompatActivity {
             if (intent != null) {
 
                 final String action = intent.getAction();
-                if (action.equals(AmbulanceForegroundService.BroadcastActions.LOCATION_UPDATE_CHANGE)) {
+                switch (action) {
+                    case AmbulanceForegroundService.BroadcastActions.LOCATION_UPDATE_CHANGE:
 
-                    Log.i(TAG, "LOCATION_UPDATE_CHANGE");
+                        Log.i(TAG, "LOCATION_UPDATE_CHANGE");
 
-                    if (AmbulanceForegroundService.isUpdatingLocation())
-                        trackingIcon.setAlpha(enabledAlpha);
-                    else
-                        trackingIcon.setAlpha(disabledAlpha);
+                        if (AmbulanceForegroundService.isUpdatingLocation())
+                            trackingIcon.setAlpha(enabledAlpha);
+                        else {
+                            trackingIcon.setAlpha(disabledAlpha);
 
-                } else if (action.equals(AmbulanceForegroundService.BroadcastActions.CONNECTIVITY_CHANGE)) {
+                            // Alert then prompt for new ambulance
+                            new org.emstrack.ambulance.dialogs.AlertDialog(MainActivity.this,
+                                    getResources()
+                                            .getString(R.string.anotherClientIsStreamingLocations))
+                                    .alert(getString(R.string.pleaseChooseAnotherAmbulance),
+                                            (dialog, which) -> {
 
-                    Log.i(TAG, "CONNECTIVITY_CHANGE");
+                                                // Invoke ambulance selection
+                                                ambulanceSelectionButton.performClick();
 
-                    if (AmbulanceForegroundService.isOnline())
-                        onlineIcon.setAlpha(enabledAlpha);
-                    else
-                        onlineIcon.setAlpha(disabledAlpha);
+                                            });
 
-                } else if (action.equals(AmbulanceForegroundService.BroadcastActions.PROMPT_CALL_ACCEPT)) {
+                        }
 
-                    Log.i(TAG, "PROMPT_CALL_ACCEPT");
+                        break;
+                    case AmbulanceForegroundService.BroadcastActions.CONNECTIVITY_CHANGE:
 
-                    if (logoutAfterFinish)
-                        // Ignore
-                        return;
+                        Log.i(TAG, "CONNECTIVITY_CHANGE");
 
-                    int callId = intent.getIntExtra(AmbulanceForegroundService.BroadcastExtras.CALL_ID, -1);
-                    promptCallAccept(callId);
+                        if (AmbulanceForegroundService.isOnline())
+                            onlineIcon.setAlpha(enabledAlpha);
+                        else
+                            onlineIcon.setAlpha(disabledAlpha);
 
-                } else if (action.equals(AmbulanceForegroundService.BroadcastActions.PROMPT_CALL_END)) {
+                        break;
+                    case AmbulanceForegroundService.BroadcastActions.PROMPT_CALL_ACCEPT:
 
-                    Log.i(TAG, "PROMPT_CALL_END");
+                        Log.i(TAG, "PROMPT_CALL_ACCEPT");
 
-                    int callId = intent.getIntExtra(AmbulanceForegroundService.BroadcastExtras.CALL_ID, -1);
-                    promptEndCallDialog(callId);
+                        if (logoutAfterFinish)
+                            // Ignore
+                            return;
 
-                } else if (action.equals(AmbulanceForegroundService.BroadcastActions.PROMPT_NEXT_WAYPOINT)) {
+                        int callId = intent.getIntExtra(AmbulanceForegroundService.BroadcastExtras.CALL_ID, -1);
+                        promptCallAccept(callId);
 
-                    Log.i(TAG, "PROMPT_NEXT_WAYPOINT");
+                        break;
+                    case AmbulanceForegroundService.BroadcastActions.PROMPT_CALL_END:
 
-                    int callId = intent.getIntExtra(AmbulanceForegroundService.BroadcastExtras.CALL_ID, -1);
-                    promptNextWaypointDialog(callId);
+                        Log.i(TAG, "PROMPT_CALL_END");
 
-                } else if (action.equals(AmbulanceForegroundService.BroadcastActions.CALL_ACCEPTED)) {
+                        callId = intent.getIntExtra(AmbulanceForegroundService.BroadcastExtras.CALL_ID, -1);
+                        promptEndCallDialog(callId);
 
-                    Log.i(TAG, "CALL_ACCEPTED");
+                        break;
+                    case AmbulanceForegroundService.BroadcastActions.PROMPT_NEXT_WAYPOINT:
 
-                    // change button color to red
-                    int myVectorColor = ContextCompat.getColor(MainActivity.this, R.color.colorRed);
-                    trackingIcon.setColorFilter(myVectorColor, PorterDuff.Mode.SRC_IN);
+                        Log.i(TAG, "PROMPT_NEXT_WAYPOINT");
 
-                    if ( viewPager.getCurrentItem() != 0) {
-                        // set current pager got ambulance
-                        viewPager.setCurrentItem(0);
-                    }
+                        callId = intent.getIntExtra(AmbulanceForegroundService.BroadcastExtras.CALL_ID, -1);
+                        promptNextWaypointDialog(callId);
 
-                } else if (action.equals(AmbulanceForegroundService.BroadcastActions.CALL_COMPLETED)) {
+                        break;
+                    case AmbulanceForegroundService.BroadcastActions.CALL_ACCEPTED:
 
-                    Log.i(TAG, "CALL_COMPLETED");
+                        Log.i(TAG, "CALL_ACCEPTED");
 
-                    // change button color to black
-                    int myVectorColor = ContextCompat.getColor(MainActivity.this, R.color.colorBlack);
-                    trackingIcon.setColorFilter(myVectorColor, PorterDuff.Mode.SRC_IN);
+                        // change button color to red
+                        int myVectorColor = ContextCompat.getColor(MainActivity.this, R.color.colorRed);
+                        trackingIcon.setColorFilter(myVectorColor, PorterDuff.Mode.SRC_IN);
 
-                    // Logout?
-                    if (logoutAfterFinish) {
-                        logoutAfterFinish = false;
-                        LogoutDialog.newInstance(MainActivity.this).show();
-                    }
+                        if (viewPager.getCurrentItem() != 0) {
+                            // set current pager got ambulance
+                            viewPager.setCurrentItem(0);
+                        }
 
+                        break;
+                    case AmbulanceForegroundService.BroadcastActions.CALL_COMPLETED:
+
+                        Log.i(TAG, "CALL_COMPLETED");
+
+                        // change button color to black
+                        myVectorColor = ContextCompat.getColor(MainActivity.this, R.color.colorBlack);
+                        trackingIcon.setColorFilter(myVectorColor, PorterDuff.Mode.SRC_IN);
+
+                        // Logout?
+                        if (logoutAfterFinish) {
+                            logoutAfterFinish = false;
+                            LogoutDialog.newInstance(MainActivity.this).show();
+                        }
+
+                        break;
                 }
             }
         }
@@ -515,10 +546,20 @@ public class MainActivity extends AppCompatActivity {
 
             }
 
+            @Override
+            public void onFailure(Bundle extras) {
+                super.onFailure(extras);
+
+                // prompt for another ambulance
+                ambulanceSelectionButton.callOnClick();
+
+            }
+
         }
                 .setFailureMessage(getResources().getString(R.string.couldNotRetrieveAmbulance,
                         selectedAmbulance.getAmbulanceIdentifier()))
-                .setAlert(new AlertSnackbar(this))
+                .setAlert(new org.emstrack.ambulance.dialogs.AlertDialog(this,
+                        getResources().getString(R.string.couldNotStartLocationUpdates)))
                 .start();
 
     }
@@ -1024,156 +1065,6 @@ public class MainActivity extends AppCompatActivity {
 
         // Create the AlertDialog object and display it
         builder.create().show();
-
-    }
-
-    void startUpdatingLocation() {
-        startUpdatingLocation(-1);
-    }
-
-    void startUpdatingLocation(int nextCallId) {
-
-        // start updating location
-        if (canWrite()) {
-
-            // Toast to warn user
-            Toast.makeText(MainActivity.this,
-                    R.string.requestToStreamLocation,
-                    Toast.LENGTH_SHORT).show();
-
-
-            // start updating location
-            Intent intent = new Intent(MainActivity.this,
-                    AmbulanceForegroundService.class);
-            intent.setAction(AmbulanceForegroundService.Actions.START_LOCATION_UPDATES);
-
-            new OnServiceComplete(MainActivity.this,
-                    BroadcastActions.SUCCESS,
-                    BroadcastActions.FAILURE,
-                    intent) {
-
-                @Override
-                public void onSuccess(Bundle extras) {
-
-                    // Toast to warn user
-                    Toast.makeText(MainActivity.this,
-                            R.string.startedStreamingLocation,
-                            Toast.LENGTH_SHORT).show();
-
-                    // prompt next call?
-                    promptCallAccept(nextCallId);
-
-                }
-
-                @Override
-                public void onFailure(Bundle extras) {
-
-                    // Otherwise ask user if wants to force
-                    AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(MainActivity.this);
-                    alertDialogBuilder.setTitle(R.string.alert_warning_title)
-                            .setCancelable(false)
-                            .setMessage(R.string.forceLocationUpdates)
-                            .setNegativeButton(
-                                    R.string.cancel,
-                                    (dialog, which) -> {
-
-                                        // User must always choose ambulance
-                                        promptMustChooseAmbulance();
-
-                                    })
-                            .setPositiveButton(
-                                    R.string.ok,
-                                    (dialog, which) -> {
-
-                                        Log.i(TAG, "ForceLocationUpdatesDialog: OK Button Clicked");
-
-                                        Ambulance ambulance = AmbulanceForegroundService.getAppData().getAmbulance();
-                                        if (ambulance == null) {
-
-                                            Log.d(TAG, "Could not force updates. Ambulance is null.");
-
-                                            // Toast to warn user
-                                            Toast.makeText(MainActivity.this,
-                                                    R.string.couldNotForceUpdates,
-                                                    Toast.LENGTH_LONG).show();
-
-                                            // User must always choose ambulance
-                                            promptMustChooseAmbulance();
-
-                                            // then return
-                                            return;
-                                        }
-
-                                        // Toast to warn user
-                                        Toast.makeText(MainActivity.this,
-                                                R.string.forcingLocationUpdates,
-                                                Toast.LENGTH_LONG).show();
-
-                                        // Reset location_client
-                                        String payload = "{\"location_client_id\":\"\"}";
-                                        Intent intent1 = new Intent(MainActivity.this, AmbulanceForegroundService.class);
-                                        intent1.setAction(AmbulanceForegroundService.Actions.UPDATE_AMBULANCE);
-                                        Bundle bundle = new Bundle();
-                                        bundle.putInt(AmbulanceForegroundService.BroadcastExtras.AMBULANCE_ID, ambulance.getId());
-                                        bundle.putString(AmbulanceForegroundService.BroadcastExtras.AMBULANCE_UPDATE, payload);
-                                        intent1.putExtras(bundle);
-
-                                        // What to do when service completes?
-                                        new OnServiceComplete(MainActivity.this,
-                                                AmbulanceForegroundService.BroadcastActions.AMBULANCE_UPDATE,
-                                                BroadcastActions.FAILURE,
-                                                intent1) {
-
-                                            @Override
-                                            public void onSuccess(Bundle extras1) {
-                                                Log.i(TAG, "onSuccess");
-
-                                                // Toast to warn user
-                                                Toast.makeText(MainActivity.this,
-                                                        R.string.succeededForcingLocationUpdates,
-                                                        Toast.LENGTH_LONG).show();
-
-                                                // Start updating locations
-                                                startUpdatingLocation();
-
-                                            }
-
-                                            @Override
-                                            public void onFailure(Bundle extras) {
-                                                super.onFailure(extras);
-
-                                                // User must always choose ambulance
-                                                promptMustChooseAmbulance();
-
-                                            }
-                                        }
-                                                .setFailureMessage(getString(R.string.couldNotForceLocationUpdate))
-                                                .setAlert(new AlertSnackbar(MainActivity.this))
-                                                .setSuccessIdCheck(false) // AMBULANCE_UPDATE will have a different UUID
-                                                .start();
-                                    });
-
-                    // Create and show dialog
-                    alertDialogBuilder.create().show();
-
-                }
-
-            }
-                    .setFailureMessage(getResources().getString(R.string.anotherClientIsStreamingLocations))
-                    .setAlert(new AlertSnackbar(MainActivity.this))
-                    .start();
-
-        } else {
-
-            // Toast to warn user
-            Toast.makeText(MainActivity.this,
-                    R.string.cantModifyAmbulance,
-                    Toast.LENGTH_LONG).show();
-
-            // User must always choose ambulance
-            promptMustChooseAmbulance();
-
-        }
 
     }
 
