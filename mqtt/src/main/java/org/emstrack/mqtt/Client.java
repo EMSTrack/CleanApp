@@ -15,6 +15,7 @@ public class Client {
     public static final String STATUS_ONLINE = "O";
     public static final String STATUS_OFFLINE = "F";
     public static final String STATUS_DISCONNECTED = "D";
+    public static final String STATUS_RECONNECTED = "R";
 
     public static final Map<String, String> statusLabel;
     static {
@@ -24,6 +25,7 @@ public class Client {
         map.put(STATUS_ONLINE, "Online");
         map.put(STATUS_OFFLINE, "Offline");
         map.put(STATUS_DISCONNECTED, "Disconnected");
+        map.put(STATUS_RECONNECTED, "Reconnected");
 
         statusLabel = Collections.unmodifiableMap(map);
     }
