@@ -321,12 +321,15 @@ public class MqttProfileClient implements MqttCallbackExtended {
     @Override
     public void connectComplete(final boolean reconnect, String serverURI) {
 
-        // TODO: Handle reconnection properly
+        String status;
         if (reconnect) {
             Log.d(TAG, "Reconnected to broker, calling reconnect.");
             callOnReconnect();
-        } else
+            status = Client.STATUS_RECONNECTED;
+        } else {
             Log.d(TAG, "Connected to broker");
+            status = Client.STATUS_ONLINE;
+        }
 
         // Publish online
         try {
@@ -334,7 +337,7 @@ public class MqttProfileClient implements MqttCallbackExtended {
             // publish online to connectTopic
             MqttProfileClient.this.publish(
                     String.format(connectTopic, username, mqttClient.getClientId()),
-                    Client.STATUS_ONLINE, 2, false);
+                    status, 2, false);
 
         } catch (MqttException e) {
             Log.e(TAG,"Could not publish to connect topic");
