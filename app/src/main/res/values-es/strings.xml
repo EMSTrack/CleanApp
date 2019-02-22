@@ -92,7 +92,7 @@
     <string name="requestingToStreamLocation">Solicitando para transmitir actualizaciones.</string>
     <string name="couldNotProcessBuffer">No se pudo procesar el búfer completo, quedaron %1$d mensajes.</string>
     <string name="localBufferIsEmpty">El servidor está en línea, el búfer local está vacío.</string>
-    <string name="serverIsOffline">El servidor está fuera de línea. Las actualizaciones se están guardando.</string>
+    <string name="serverIsOfflineBufferingUpdate">El servidor está fuera de línea. Las actualizaciones se están guardando.</string>
     <string name="cannotUseLocationServices">La aplicación no puede utilizar los servicios de ubicación. Por favor, modifique los permisos en la configuración.</string>
     <string name="noAmbulanceSelected">No hay ambulancia seleccionada actualmente.</string>
     <string name="inadequateLocationSettings">La configuración de la ubicación es inadecuada y no se puede arreglar aquí.</string>
@@ -235,5 +235,12 @@
     <string name="appNeedsVersionUpdate">Esta versión de la aplicación está desactualizada. Por favor, actualice antes de continuar!</string>
     <string name="pleaseChooseAnotherAmbulance">Por favor, elija otra ambulancia o cierre la sesión.</string>
     <string name="couldNotStopUpdatingLocations">No se pudo dejar de actualizar ubicaciones.</string>
+    <string name="lastLocationUpdate">Última actualización de ubicación en %1$s</string>
+    <string name="lastServerUpdate">Última actualización del servidor en %1$s</string>
+    <string name="serverIsOnline">El servidor esta conectado</string>
+    <string name="serverIsOffline">El servidor esta disconectado</string>
+    <string name="messagesOnBuffer">%1$d mensajes almacenados</string>
+    <string name="oneMessageOnBuffer">1 mensaje almacenado</string>
+    <string name="defaultDateFormat">d MMM HH:mm:ss z</string>
 
 </resources>
