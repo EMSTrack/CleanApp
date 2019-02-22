@@ -363,7 +363,6 @@ public class MqttProfileClient implements MqttCallbackExtended {
     @Override
     public void connectionLost(Throwable cause) {
 
-        // TODO: Handle reconnection properly
         Log.d(TAG, "Connection to broker lost.");
 
         // Connection lost is a failure

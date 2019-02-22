@@ -101,7 +101,7 @@
     <string name="EMSTrack" translatable="false">EMSTrack</string>
     <string name="couldNotProcessBuffer">Could not process entire buffer, %1$d messages left.</string>
     <string name="localBufferIsEmpty">Server is online, local buffer is empty.</string>
-    <string name="serverIsOffline">Server is offline. Buffering updates.</string>
+    <string name="serverIsOfflineBufferingUpdate">Server is offline. Buffering updates.</string>
     <string name="cannotUseLocationServices">Application cannot use location services. Please modify permissions on Settings.</string>
     <string name="noAmbulanceSelected">No ambulance is currently selected.</string>
     <string name="inadequateLocationSettings">Location settings are inadequate, and cannot be fixed here.</string>
@@ -254,6 +254,13 @@
     <string name="couldNotRetrieveCalls">Could not retrieve calls</string>
     <string name="pleaseChooseAnotherAmbulance">Please choose another ambulance or logout.</string>
     <string name="couldNotStopUpdatingLocations">Could not stop updating locations.</string>
+    <string name="lastLocationUpdate">Last location update at %1$s</string>
+    <string name="lastServerUpdate">Last server update at %1$s</string>
+    <string name="serverIsOnline">Server is online</string>
+    <string name="serverIsOffline">Server is offline</string>
+    <string name="messagesOnBuffer">%1$d messages on buffer</string>
+    <string name="oneMessageOnBuffer">1 message on buffer</string>
+    <string name="defaultDateFormat">d MMM HH:mm:ss z</string>
     <string-array name="spinner_list_item_array_server">
         <item>@string/server_select</item>
         <item>Tijuana Red Cross:tijuana.emstrack.org:8883</item>
