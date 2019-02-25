@@ -7,10 +7,14 @@ import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
+import org.emstrack.models.gson.ExcludeAnnotationExclusionStrategy;
+
 import java.util.Locale;
+import java.util.logging.Level;
 
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
+import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
@@ -27,6 +31,7 @@ public class APIServiceGenerator {
 
     private static Gson gson = new GsonBuilder()
             .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
+            .setExclusionStrategies(new ExcludeAnnotationExclusionStrategy())
             .create();
 
     private static Retrofit.Builder builder
@@ -101,8 +106,10 @@ public class APIServiceGenerator {
             // save token
             APIServiceGenerator.token = token;
 
-            // add interceptor to inject Authorization header
+            // clear interceptors
             httpClient.interceptors().clear();
+
+            // add interceptor to inject Authorization header
             httpClient.addInterceptor( chain -> {
                 Request original = chain.request();
                 Request request = original.newBuilder()
@@ -110,6 +117,8 @@ public class APIServiceGenerator {
                         .build();
                 return chain.proceed(request);
             });
+
+            // add interceptor to inject accepted languages
             httpClient.addInterceptor(
                     chain -> {
                         Request original = chain.request();
@@ -118,6 +127,11 @@ public class APIServiceGenerator {
                                 .build();
                         return chain.proceed(request);
                     });
+
+            HttpLoggingInterceptor logging = new HttpLoggingInterceptor();
+            //logging.setLevel(HttpLoggingInterceptor.Level.BODY);
+            logging.setLevel(HttpLoggingInterceptor.Level.BASIC);
+            httpClient.addInterceptor(logging);
 
             builder.client(httpClient.build());
             retrofit = builder.build();

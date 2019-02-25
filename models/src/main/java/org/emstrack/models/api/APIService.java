@@ -1,6 +1,7 @@
 package org.emstrack.models.api;
 
 import org.emstrack.models.Ambulance;
+import org.emstrack.models.Client;
 import org.emstrack.models.Credentials;
 import org.emstrack.models.Hospital;
 import org.emstrack.models.Location;
@@ -116,4 +117,13 @@ public interface APIService {
      */
     @GET("version/")
     Call<Version> getVersion();
+
+    /**
+     * Set client
+     *
+     * @return the api call
+     */
+    @POST("/en/api/client/")
+    Call<Client> setClient(@Body Client client);
+
 }

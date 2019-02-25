@@ -18,20 +18,28 @@ public class AlertDialog extends Alert {
     private static String TAG = AlertDialog.class.getSimpleName();
 
     private final android.app.AlertDialog.Builder builder;
+    private final DialogInterface.OnClickListener onClickListener;
 
     public AlertDialog(String TAG) {
         this.TAG = TAG;
         this.builder = null;
+        this.onClickListener = null;
     }
 
-    public AlertDialog(Activity activity, String title) {
+    public AlertDialog(Activity activity, String title,
+                       DialogInterface.OnClickListener onClickListener) {
 
         // create builder
         this.builder = new android.app.AlertDialog.Builder(activity);
 
         this.builder.setTitle(title);
         this.builder.setCancelable(false);
+        this.onClickListener = onClickListener;
 
+    }
+
+    public AlertDialog(Activity activity, String title) {
+        this(activity, title, (dialog, which) -> { /* do nothing */ });
     }
 
     public void setTag(String TAG) {
@@ -39,7 +47,7 @@ public class AlertDialog extends Alert {
     }
 
     public void alert(String message) {
-        alert(message, (dialog, which) -> { /* do nothing */ });
+        alert(message, this.onClickListener);
     }
 
     public void alert(String message,
