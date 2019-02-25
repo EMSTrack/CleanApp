@@ -13,8 +13,8 @@ public class Version {
     public static int compare(String v1, String v2) {
 
         // split version numbers
-        String[] v1digits = v1.split("\\.");
-        String[] v2digits = v2.split("\\.");
+        String[] v1digits = v1.split("_");
+        String[] v2digits = v2.split("_");
 
         int m = Math.max(v1digits.length, v2digits.length);
         for (int i = 0; i < m; i++) {

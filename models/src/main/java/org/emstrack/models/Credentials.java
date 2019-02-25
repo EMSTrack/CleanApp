@@ -3,6 +3,8 @@ package org.emstrack.models;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
+import org.emstrack.models.gson.Exclude;
+
 /**
  * A class representing user's credentials.
  *
@@ -17,7 +19,9 @@ public class Credentials {
     @SerializedName("password")
     @Expose
     private String password;
+    @Exclude
     private String apiServerUri;
+    @Exclude
     private String mqttServerUri;
 
     /**

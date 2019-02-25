@@ -546,20 +546,12 @@ public class MainActivity extends AppCompatActivity {
 
             }
 
-            @Override
-            public void onFailure(Bundle extras) {
-                super.onFailure(extras);
-
-                // prompt for another ambulance
-                ambulanceSelectionButton.callOnClick();
-
-            }
-
         }
                 .setFailureMessage(getResources().getString(R.string.couldNotRetrieveAmbulance,
                         selectedAmbulance.getAmbulanceIdentifier()))
                 .setAlert(new org.emstrack.ambulance.dialogs.AlertDialog(this,
-                        getResources().getString(R.string.couldNotStartLocationUpdates)))
+                        getResources().getString(R.string.couldNotStartLocationUpdates),
+                        (dialog, which) -> ambulanceSelectionButton.callOnClick()))
                 .start();
 
     }
