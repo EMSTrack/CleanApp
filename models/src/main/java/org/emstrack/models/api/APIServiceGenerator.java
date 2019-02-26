@@ -129,8 +129,8 @@ public class APIServiceGenerator {
                     });
 
             HttpLoggingInterceptor logging = new HttpLoggingInterceptor();
-            //logging.setLevel(HttpLoggingInterceptor.Level.BODY);
-            logging.setLevel(HttpLoggingInterceptor.Level.BASIC);
+            logging.setLevel(HttpLoggingInterceptor.Level.BODY);
+            //logging.setLevel(HttpLoggingInterceptor.Level.BASIC);
             httpClient.addInterceptor(logging);
 
             builder.client(httpClient.build());

@@ -891,7 +891,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
      * @return the last location
      */
     public static android.location.Location getLastLocation() {
-        return _lastLocation.getLocation();
+        return _lastLocation != null ? _lastLocation.getLocation() : null;
     }
 
     /**
@@ -2255,8 +2255,6 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
                 // Remove other ambulances
                 removeOtherAmbulances();
-
-                // login to ambulance should come here
 
             }
 
