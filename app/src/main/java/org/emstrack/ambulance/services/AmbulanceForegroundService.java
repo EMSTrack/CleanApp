@@ -2361,7 +2361,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
             public void onSuccess(Bundle extras) {
 
                 // If status is unknown
-                if (ambulance.getStatus().equals(Ambulance.STATUS_UNKNOWN)) {
+                if (appData.getAmbulance().getStatus().equals(Ambulance.STATUS_UNKNOWN)) {
 
                     // Update to available
                     updateAmbulanceStatus(ambulanceId, Ambulance.STATUS_AVAILABLE);
