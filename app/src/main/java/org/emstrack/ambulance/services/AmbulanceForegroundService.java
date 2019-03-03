@@ -2360,6 +2360,14 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
             @Override
             public void onSuccess(Bundle extras) {
 
+                // If status is unknown
+                if (ambulance.getStatus().equals(Ambulance.STATUS_UNKNOWN)) {
+
+                    // Update to available
+                    updateAmbulanceStatus(ambulanceId, Ambulance.STATUS_AVAILABLE);
+
+                }
+
                 // Broadcast ambulance update
                 Intent localIntent = new Intent(BroadcastActions.AMBULANCE_UPDATE);
                 sendBroadcastWithUUID(localIntent);
