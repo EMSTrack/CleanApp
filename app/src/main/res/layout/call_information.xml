@@ -94,13 +94,13 @@
             android:id="@+id/toMapsButton"
             android:layout_width="30dp"
             android:layout_height="30dp"
-            android:layout_alignParentRight="true"
-            android:layout_marginRight="10dp"
+            android:layout_alignParentEnd="true"
             android:adjustViewBounds="true"
             android:background="@drawable/button_states"
             android:scaleType="fitCenter"
             android:visibility="gone"
-            app:srcCompat="@drawable/ic_globe" />
+            app:srcCompat="@drawable/ic_map"
+            android:contentDescription="@string/link_to_google_maps" />
 
         <TextView
             android:id="@+id/callWaypointTypeLabel"

@@ -242,5 +242,9 @@
     <string name="messagesOnBuffer">%1$d mensajes almacenados</string>
     <string name="oneMessageOnBuffer">1 mensaje almacenado</string>
     <string name="defaultDateFormat">d MMM HH:mm:ss z</string>
+    <string name="link_to_google_maps">Llevar a Google Maps</string>
+    <string name="directions">Direcciones</string>
+    <string name="couldNotOpenGoogleMaps">No se pudo abrir Google Maps.</string>
+    <string name="wouldYouLikeToGoogleMaps">" ¿Te gustaría obtener direcciones en Google Maps?"</string>
 
 </resources>
