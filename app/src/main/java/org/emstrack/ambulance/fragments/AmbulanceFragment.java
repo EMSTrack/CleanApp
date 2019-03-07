@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.LocalBroadcastManager;
@@ -15,6 +16,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.Spinner;
@@ -65,6 +67,7 @@ public class AmbulanceFragment extends Fragment {
     private Button callAddWaypointButton;
     private TextView callNextWaypointTypeTextView;
     private TextView callNumberWayointsView;
+    private ImageButton toMapsButton;
 
     private RelativeLayout callInformationLayout;
     private TextView callInformationText;
@@ -485,6 +488,21 @@ public class AmbulanceFragment extends Fragment {
 
                 // Update address
                 callAddressTextView.setText(location.toString());
+
+
+                //create intent for google maps here
+                // to launch google turn by turn navigation
+                // google.navigation:q=a+street+address
+                // google.navigation:q=latitude,longitude
+                Uri gmmIntentUri = Uri.parse("google.navigation:q=" + location.toSearchQuery());
+                Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
+                mapIntent.setPackage("com.google.android.apps.maps");
+
+
+                //checks if google maps or any other map app is installed
+                toMapsButton.setOnClickListener(
+                        v -> {if (mapIntent.resolveActivity(getActivity().getPackageManager()) != null) startActivity(mapIntent);}
+                );
 
                 // Update call distance to next waypoint
                 callDistanceTextView.setText(updateCallDistance(location));
