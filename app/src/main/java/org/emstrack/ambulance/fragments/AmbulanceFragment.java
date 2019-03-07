@@ -498,11 +498,13 @@ public class AmbulanceFragment extends Fragment {
                 Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
                 mapIntent.setPackage("com.google.android.apps.maps");
 
-
                 //checks if google maps or any other map app is installed
-                toMapsButton.setOnClickListener(
-                        v -> {if (mapIntent.resolveActivity(getActivity().getPackageManager()) != null) startActivity(mapIntent);}
-                );
+                if(mapIntent.resolveActivity(getActivity().getPackageManager()) != null) {
+                    toMapsButton.setOnClickListener(
+                       v -> startActivity(mapIntent));
+                }else {
+                    //add alert to tell user to install google maps
+                }
 
                 // Update call distance to next waypoint
                 callDistanceTextView.setText(updateCallDistance(location));
