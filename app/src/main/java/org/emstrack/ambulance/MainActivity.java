@@ -369,7 +369,6 @@ public class MainActivity extends AppCompatActivity {
 
         ambulancePermissions = new ArrayList<>();
         hospitalPermissions = new ArrayList<>();
-        bases = new ArrayList<>();
         AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
         Profile profile = appData.getProfile();
         if (profile != null) {
@@ -726,7 +725,7 @@ public class MainActivity extends AppCompatActivity {
 
             // Get location
             Location location = waypoint.getLocation();
-            address = waypoint.getLocation().toString();
+            address = waypoint.getLocation().toAddress();
             waypointType = appData.getSettings().getLocationType().get(location.getType());
 
             Log.d(TAG,"Will calculate distance");
@@ -1017,6 +1016,7 @@ public class MainActivity extends AppCompatActivity {
                             int selectedBase = baseSpinner.getSelectedItemPosition();
                             if (selectedBase > 0) {
                                 Location base = bases.get(selectedBase - 1);
+                                Log.d( TAG, "base = " + base);
                                 waypoint = "{\"order\":" + maximumOrder + ",\"location\":{\"id\":" + base.getId() + ",\"type\":\"" + Location.TYPE_BASE + "\"}}";
                             }
 
