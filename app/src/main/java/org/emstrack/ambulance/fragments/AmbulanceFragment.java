@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.LocalBroadcastManager;
@@ -15,6 +16,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.Spinner;
@@ -34,6 +36,7 @@ import org.emstrack.models.Patient;
 import org.emstrack.models.Settings;
 import org.emstrack.models.Waypoint;
 
+import java.net.URLEncoder;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
@@ -65,6 +68,7 @@ public class AmbulanceFragment extends Fragment {
     private Button callAddWaypointButton;
     private TextView callNextWaypointTypeTextView;
     private TextView callNumberWayointsView;
+    private ImageButton toMapsButton;
 
     private RelativeLayout callInformationLayout;
     private TextView callInformationText;
@@ -235,6 +239,9 @@ public class AmbulanceFragment extends Fragment {
 
         callEndButton = callLayout.findViewById(R.id.callEndButton);
         callAddWaypointButton = callLayout.findViewById(R.id.callAddWaypointButton);
+
+        toMapsButton = callLayout.findViewById(R.id.toMapsButton);
+        toMapsButton.setVisibility(View.VISIBLE);
 
         // setup callNextWaypointLayout
         callNextWaypointLayout = callLayout.findViewById(R.id.callNextWaypointLayout);
@@ -485,6 +492,43 @@ public class AmbulanceFragment extends Fragment {
 
                 // Update address
                 callAddressTextView.setText(location.toString());
+
+
+                //create intent for google maps here
+                // to launch google turn by turn navigation
+                // google.navigation:q=a+street+address
+                // google.navigation:q=latitude,longitude
+                try {
+
+                    String query = URLEncoder.encode(location.toString(), "utf-8");
+
+                    Uri gmmIntentUri = Uri.parse("google.navigation:q=" + query);
+                    Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
+                    mapIntent.setPackage("com.google.android.apps.maps");
+
+                    toMapsButton.setOnClickListener(v -> {
+
+                        //checks if google maps or any other map app is installed
+                        if ( mapIntent.resolveActivity(getActivity().getPackageManager()) != null) {
+
+                            startActivity(mapIntent);
+
+                        } else {
+
+                            // Alert then prompt for new ambulance
+                            new org.emstrack.ambulance.dialogs.AlertDialog(getActivity(),
+                                    getResources().getString(R.string.anotherClientIsStreamingLocations))
+                                    .alert(getString(R.string.pleaseChooseAnotherAmbulance));
+
+                        }
+
+                    });
+
+
+
+                } catch (java.io.UnsupportedEncodingException e) {
+                    Log.d( TAG, "Could not parse location into url for map intent" );
+                }
 
                 // Update call distance to next waypoint
                 callDistanceTextView.setText(updateCallDistance(location));
