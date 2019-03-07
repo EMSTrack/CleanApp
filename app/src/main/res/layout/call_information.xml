@@ -99,6 +99,7 @@
             android:adjustViewBounds="true"
             android:background="@drawable/button_states"
             android:scaleType="fitCenter"
+            android:visibility="gone"
             app:srcCompat="@drawable/ic_globe" />
 
         <TextView

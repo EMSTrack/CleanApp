@@ -21,14 +21,14 @@ public class Address {
     /**
      * An address without a GPS location.
      *
-     * @param number the address number
-     * @param street the address street
-     * @param unit the address unit
+     * @param number       the address number
+     * @param street       the address street
+     * @param unit         the address unit
      * @param neighborhood the address neighborhood
-     * @param city the address city
-     * @param state the address state (3 characters max)
-     * @param zipcode the address zipcode
-     * @param country the address country code (2 characters max)
+     * @param city         the address city
+     * @param state        the address state (3 characters max)
+     * @param zipcode      the address zipcode
+     * @param country      the address country code (2 characters max)
      */
     public Address(String number,
                    String street,
@@ -39,9 +39,9 @@ public class Address {
                    String zipcode,
                    String country) {
         this.number = number;
-        this.street= street;
+        this.street = street;
         this.unit = unit;
-        this.neighborhood= neighborhood;
+        this.neighborhood = neighborhood;
         this.city = city;
         this.state = state;
         this.zipcode = zipcode;
@@ -51,15 +51,15 @@ public class Address {
     /**
      * An address with a GPS location.
      *
-     * @param number the address number
-     * @param street the address street
-     * @param unit the address unit
+     * @param number       the address number
+     * @param street       the address street
+     * @param unit         the address unit
      * @param neighborhood the address neighborhood
-     * @param city the address city
-     * @param state the address state (3 characters max)
-     * @param zipcode the address zipcode
-     * @param country the address country code (2 characters max)
-     * @param location the address GPS location
+     * @param city         the address city
+     * @param state        the address state (3 characters max)
+     * @param zipcode      the address zipcode
+     * @param country      the address country code (2 characters max)
+     * @param location     the address GPS location
      */
     public Address(String number,
                    String street,
@@ -71,9 +71,9 @@ public class Address {
                    String country,
                    GPSLocation location) {
         this.number = number;
-        this.street= street;
+        this.street = street;
         this.unit = unit;
-        this.neighborhood= neighborhood;
+        this.neighborhood = neighborhood;
         this.city = city;
         this.state = state;
         this.zipcode = zipcode;
@@ -88,9 +88,9 @@ public class Address {
      */
     public Address(GPSLocation location) {
         this.number = "";
-        this.street= "";
+        this.street = "";
         this.unit = "";
-        this.neighborhood= "";
+        this.neighborhood = "";
         this.city = "";
         this.state = "";
         this.zipcode = "";
@@ -248,30 +248,4 @@ public class Address {
         return retValue;
     }
 
-    /**
-     * Method to support google map routing, searches, and future use of google
-     * services
-     *
-     * @return will return a street address search query
-     */
-    public String toSearchQuery() {
-
-        String retValue = "";
-
-        retValue += this.number + "+" + this.street;
-        if (this.unit != null && !this.unit.isEmpty())
-            retValue += "+" + this.unit;
-        if (this.neighborhood != null && !this.neighborhood.isEmpty())
-            retValue += ",+" + this.neighborhood;
-        if (this.city != null && !this.city.isEmpty())
-            retValue += ",+" + this.city;
-        if (this.state != null && !this.state.isEmpty())
-            retValue += ",+" + this.state;
-        if (this.zipcode != null && !this.zipcode.isEmpty())
-            retValue += "+" + this.zipcode;
-        if (this.country != null && !this.country.isEmpty())
-            retValue += ",+" + this.country;
-
-        return retValue;
-    }
 }
