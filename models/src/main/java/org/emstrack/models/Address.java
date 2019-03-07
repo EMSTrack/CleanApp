@@ -21,14 +21,14 @@ public class Address {
     /**
      * An address without a GPS location.
      *
-     * @param number the address number
-     * @param street the address street
-     * @param unit the address unit
+     * @param number       the address number
+     * @param street       the address street
+     * @param unit         the address unit
      * @param neighborhood the address neighborhood
-     * @param city the address city
-     * @param state the address state (3 characters max)
-     * @param zipcode the address zipcode
-     * @param country the address country code (2 characters max)
+     * @param city         the address city
+     * @param state        the address state (3 characters max)
+     * @param zipcode      the address zipcode
+     * @param country      the address country code (2 characters max)
      */
     public Address(String number,
                    String street,
@@ -39,9 +39,9 @@ public class Address {
                    String zipcode,
                    String country) {
         this.number = number;
-        this.street= street;
+        this.street = street;
         this.unit = unit;
-        this.neighborhood= neighborhood;
+        this.neighborhood = neighborhood;
         this.city = city;
         this.state = state;
         this.zipcode = zipcode;
@@ -51,15 +51,15 @@ public class Address {
     /**
      * An address with a GPS location.
      *
-     * @param number the address number
-     * @param street the address street
-     * @param unit the address unit
+     * @param number       the address number
+     * @param street       the address street
+     * @param unit         the address unit
      * @param neighborhood the address neighborhood
-     * @param city the address city
-     * @param state the address state (3 characters max)
-     * @param zipcode the address zipcode
-     * @param country the address country code (2 characters max)
-     * @param location the address GPS location
+     * @param city         the address city
+     * @param state        the address state (3 characters max)
+     * @param zipcode      the address zipcode
+     * @param country      the address country code (2 characters max)
+     * @param location     the address GPS location
      */
     public Address(String number,
                    String street,
@@ -71,9 +71,9 @@ public class Address {
                    String country,
                    GPSLocation location) {
         this.number = number;
-        this.street= street;
+        this.street = street;
         this.unit = unit;
-        this.neighborhood= neighborhood;
+        this.neighborhood = neighborhood;
         this.city = city;
         this.state = state;
         this.zipcode = zipcode;
@@ -88,9 +88,9 @@ public class Address {
      */
     public Address(GPSLocation location) {
         this.number = "";
-        this.street= "";
+        this.street = "";
         this.unit = "";
-        this.neighborhood= "";
+        this.neighborhood = "";
         this.city = "";
         this.state = "";
         this.zipcode = "";
