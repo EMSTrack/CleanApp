@@ -28,6 +28,7 @@ import org.emstrack.ambulance.MainActivity;
 import org.emstrack.ambulance.R;
 import org.emstrack.ambulance.models.AmbulanceAppData;
 import org.emstrack.ambulance.services.AmbulanceForegroundService;
+import org.emstrack.models.Address;
 import org.emstrack.models.Ambulance;
 import org.emstrack.models.AmbulanceCall;
 import org.emstrack.models.Call;
@@ -492,7 +493,7 @@ public class AmbulanceFragment extends Fragment {
                                 .get(location.getType()));
 
                 // Update address
-                callAddressTextView.setText(location.toString());
+                callAddressTextView.setText(location.toAddress());
 
 
                 //create intent for google maps here
@@ -501,7 +502,7 @@ public class AmbulanceFragment extends Fragment {
                 // google.navigation:q=latitude,longitude
                 try {
 
-                    String query = URLEncoder.encode(location.toString(), "utf-8");
+                    String query = URLEncoder.encode(location.toAddress(), "utf-8");
 
                     Uri gmmIntentUri = Uri.parse("google.navigation:q=" + query);
                     Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);

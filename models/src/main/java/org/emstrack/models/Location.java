@@ -18,7 +18,8 @@ public class Location extends Address {
     public static final String TYPE_WAYPOINT = "w";
     public static final String TYPE_OTHER = "o";
 
-    @Exclude private int id;
+    // @Exclude
+    private int id;
 
     private String name;
     private String type;
@@ -71,6 +72,23 @@ public class Location extends Address {
 
     public void setType(String type) {
         this.type = type;
+    }
+
+    /**
+     *
+     * @return the location as string
+     */
+    @Override
+    public String toString() {
+        return String.format("{id:'%1$d', name:'%2$s', type:'%3$s', value:'%4$s'}", this.id, this.name, this.type, super.toString());
+    }
+
+    /**
+     *
+     * @return the location address as string
+     */
+    public String toAddress() {
+        return super.toString();
     }
 
 }
