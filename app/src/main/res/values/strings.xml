@@ -261,6 +261,10 @@
     <string name="messagesOnBuffer">%1$d messages on buffer</string>
     <string name="oneMessageOnBuffer">1 message on buffer</string>
     <string name="defaultDateFormat">d MMM HH:mm:ss z</string>
+    <string name="link_to_google_maps">Link to Google Maps</string>
+    <string name="directions">Directions</string>
+    <string name="couldNotOpenGoogleMaps">Could not open Google Maps.</string>
+    <string name="wouldYouLikeToGoogleMaps">Would you like to get directions on Google Maps?</string>
     <string-array name="spinner_list_item_array_server">
         <item>@string/server_select</item>
         <item>Tijuana Red Cross:tijuana.emstrack.org:8883</item>

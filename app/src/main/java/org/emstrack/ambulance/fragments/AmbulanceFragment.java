@@ -2,6 +2,7 @@ package org.emstrack.ambulance.fragments;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.Uri;
@@ -511,14 +512,24 @@ public class AmbulanceFragment extends Fragment {
                         //checks if google maps or any other map app is installed
                         if ( mapIntent.resolveActivity(getActivity().getPackageManager()) != null) {
 
-                            startActivity(mapIntent);
+                            // Alert before opening in google maps
+                            new AlertDialog.Builder(
+                                    getActivity())
+                                    .setTitle(getString(R.string.directions))
+                                    .setMessage(R.string.wouldYouLikeToGoogleMaps)
+                                    .setPositiveButton( android.R.string.ok,
+                                            (dialog, which) -> startActivity( mapIntent ))
+                                    .setNegativeButton( android.R.string.cancel,
+                                            (dialog, which) -> { /* do nothing */ } )
+                                    .create()
+                                    .show();
 
                         } else {
 
-                            // Alert then prompt for new ambulance
+                            // Alert that it could not open google maps
                             new org.emstrack.ambulance.dialogs.AlertDialog(getActivity(),
-                                    getResources().getString(R.string.anotherClientIsStreamingLocations))
-                                    .alert(getString(R.string.pleaseChooseAnotherAmbulance));
+                                    getString(R.string.directions))
+                                    .alert(getString(R.string.couldNotOpenGoogleMaps));
 
                         }
 
