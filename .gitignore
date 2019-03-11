@@ -41,6 +41,7 @@ captures/
 .idea
 *.iml
 app/.DS_Store
+app/release
 gradle/.DS_Store
 .DS_Store
 
