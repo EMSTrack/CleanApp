@@ -3,6 +3,7 @@ package org.emstrack.models.api;
 import org.emstrack.models.Ambulance;
 import org.emstrack.models.Client;
 import org.emstrack.models.Credentials;
+import org.emstrack.models.EquipmentItem;
 import org.emstrack.models.Hospital;
 import org.emstrack.models.Location;
 import org.emstrack.models.Profile;
@@ -126,4 +127,9 @@ public interface APIService {
     @POST("/en/api/client/")
     Call<Client> setClient(@Body Client client);
 
+    /**
+     * Retrieve equipment list
+     */
+    @GET("equipment/{equipmentholder_id}/item/")
+    Call<List<EquipmentItem>> getEquipmentList(@Path("equipmentholder_id") int id);
 }

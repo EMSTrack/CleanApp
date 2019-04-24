@@ -57,6 +57,7 @@ import org.emstrack.models.Call;
 import org.emstrack.models.CallStack;
 import org.emstrack.models.Client;
 import org.emstrack.models.Credentials;
+import org.emstrack.models.EquipmentItem;
 import org.emstrack.models.GPSLocation;
 import org.emstrack.models.Hospital;
 import org.emstrack.models.Location;
@@ -3018,6 +3019,43 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         Intent localIntent = new Intent(org.emstrack.models.util.BroadcastActions.SUCCESS);
         sendBroadcastWithUUID(localIntent, uuid);
 
+    }
+
+    /**
+     * Retrieve list of equpiment
+     */
+    public void retrieveEquipmentList(int ambulanceId, final String uuid) {
+        Log.d(TAG, "Retrieving equipment list...");
+
+        // Retrieve client
+        final MqttProfileClient profileClient = getProfileClient(this);
+
+        // Retrieve hospitals data
+        APIService service = APIServiceGenerator.createService(APIService.class);
+        retrofit2.Call<List<EquipmentItem>> equipmentCall = service.getEquipmentList(ambulanceId);
+        new OnAPICallComplete<List<EquipmentItem>>(equipmentCall) {
+
+            @Override
+            public void onSuccess(List<EquipmentItem> equipmentItemList) {
+
+                Log.d(TAG, "Got equipment list");
+
+                for (EquipmentItem item : equipmentItemList) {
+                    Log.d(TAG, String.format("Name: %s, Id: %d", item.getEquipmentName(), item.getEquipmentId()));
+                }
+
+            }
+
+            @Override
+            public void onFailure(Throwable t) {
+                super.onFailure(t);
+
+                // Broadcast failure
+                // broadcastFailure(getString(R.string.couldNotRetrieveAmbulances), uuid, t);
+
+            }
+
+        }.start();
     }
 
     /**
