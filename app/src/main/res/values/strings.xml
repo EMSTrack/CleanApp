@@ -265,6 +265,7 @@
     <string name="directions">Directions</string>
     <string name="couldNotOpenGoogleMaps">Could not open Google Maps.</string>
     <string name="wouldYouLikeToGoogleMaps">Would you like to get directions on Google Maps?</string>
+    <string name="couldNotRetrieveEquipmentList">Could not retrieve equipment list</string>
     <string-array name="spinner_list_item_array_server">
         <item>@string/server_select</item>
         <item>Tijuana Red Cross:tijuana.emstrack.org:8883</item>

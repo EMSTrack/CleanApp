@@ -187,6 +187,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         public final static String WAYPOINT_EXIT = "org.emstrack.ambulance.ambulanceforegroundservice.action.WAYPOINT_EXIT";
         public final static String WAYPOINT_SKIP = "org.emstrack.ambulance.ambulanceforegroundservice.action.WAYPOINT_SKIP";
         public final static String WAYPOINT_ADD = "org.emstrack.ambulance.ambulanceforegroundservice.action.WAYPOINT_ADD";
+        public final static String GET_EQUIPMENT = "org.emstrack.ambulance.ambulanceforegroundservice.action.GET_EQUIPMENT";
     }
 
     public class BroadcastExtras {
@@ -664,7 +665,17 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
             }
 
-        } else if (action.equals(Actions.UPDATE_NOTIFICATION)) {
+        } else if (action.equals(Actions.GET_EQUIPMENT)) {
+
+            Log.i(TAG, "GET_EQUIPMENT Foreground Intent");
+
+            Bundle bundle = intent.getExtras();
+
+            // Retrieve ambulanceId
+            int ambulanceId = bundle.getInt(AmbulanceForegroundService.BroadcastExtras.AMBULANCE_ID);
+            retrieveEquipmentList(ambulanceId, uuid);
+
+        }else if (action.equals(Actions.UPDATE_NOTIFICATION)) {
 
             Log.i(TAG, "UPDATE_NOTIFICATION Foreground Intent");
 
@@ -3030,7 +3041,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         // Retrieve client
         final MqttProfileClient profileClient = getProfileClient(this);
 
-        // Retrieve hospitals data
+        // Retrieve equpiment list data
         APIService service = APIServiceGenerator.createService(APIService.class);
         retrofit2.Call<List<EquipmentItem>> equipmentCall = service.getEquipmentList(ambulanceId);
         new OnAPICallComplete<List<EquipmentItem>>(equipmentCall) {
@@ -3051,7 +3062,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                 super.onFailure(t);
 
                 // Broadcast failure
-                // broadcastFailure(getString(R.string.couldNotRetrieveAmbulances), uuid, t);
+                broadcastFailure(getString(R.string.couldNotRetrieveEquipmentList), uuid, t);
 
             }
 

@@ -120,10 +120,12 @@ public class MainActivity extends AppCompatActivity {
                                         // If another ambulance, confirm first
                                         switchAmbulanceDialog(selectedAmbulance);
 
-                                    else if (!AmbulanceForegroundService.isUpdatingLocation())
+                                    else if (!AmbulanceForegroundService.isUpdatingLocation()) {
                                         // else, if current ambulance is not updating location,
                                         // retrieve again
                                         retrieveAmbulance(selectedAmbulance);
+                                        retrieveEquipmentList(selectedAmbulance);
+                                    }
 
                                     // otherwise do nothing
 
@@ -131,6 +133,7 @@ public class MainActivity extends AppCompatActivity {
 
                                     // otherwise go ahead!
                                     retrieveAmbulance(selectedAmbulance);
+                                    retrieveEquipmentList(selectedAmbulance);
                                     // dialog.dismiss();
 
                                 }
@@ -553,6 +556,32 @@ public class MainActivity extends AppCompatActivity {
                         (dialog, which) -> ambulanceSelectionButton.callOnClick()))
                 .start();
 
+    }
+
+    public void retrieveEquipmentList(final AmbulancePermission selectedAmbulance) {
+        // retrieve equipment
+        Intent equipmentIntent = new Intent(this, AmbulanceForegroundService.class);
+        equipmentIntent.setAction(AmbulanceForegroundService.Actions.GET_EQUIPMENT);
+        equipmentIntent.putExtra(AmbulanceForegroundService.BroadcastExtras.AMBULANCE_ID,
+                selectedAmbulance.getAmbulanceId());
+
+        // What to do when GET_EQUIPMENT service completes?
+        new OnServiceComplete(this,
+                BroadcastActions.SUCCESS,
+                BroadcastActions.FAILURE,
+                equipmentIntent) {
+
+            @Override
+            public void onSuccess(Bundle extras) {
+
+                // need to take equipment list and stuff it into recycler view
+
+
+            }
+
+        }
+                .setFailureMessage(getResources().getString(R.string.couldNotRetrieveEquipmentList))
+                .start();
     }
 
     public boolean canWrite() {
@@ -1077,6 +1106,9 @@ public class MainActivity extends AppCompatActivity {
 
                             // retrieve new ambulance
                             retrieveAmbulance(newAmbulance);
+
+                            // retrieve new equipment list
+                            retrieveEquipmentList(newAmbulance);
 
                         });
 
