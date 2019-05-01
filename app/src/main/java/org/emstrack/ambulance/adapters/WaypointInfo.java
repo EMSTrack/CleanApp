@@ -4,8 +4,7 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;  //not sure if we will use images
-import android.widget.TextView;
+import android.widget.Button;
 import java.util.ArrayList;
 
 import org.emstrack.models.Waypoint;
@@ -13,7 +12,7 @@ import org.emstrack.models.Waypoint;
 public class WaypointInfo extends RecyclerView.Adapter<WaypointInfo.MyViewHolder>{
 
     private LayoutInflater inflater;
-    private ArrayList<Waypoint> waypointArrayList;
+    private ArrayList <Waypoint> waypointArrayList;
 
     public WaypointInfo(Context ctx, ArrayList<Waypoint> waypointArrayList) {
         inflater = LayoutInflater.from(ctx);
@@ -30,8 +29,7 @@ public class WaypointInfo extends RecyclerView.Adapter<WaypointInfo.MyViewHolder
 
     @Override
     public void onBindViewHolder(WaypointInfo.MyViewHolder holder, int position) {
-        holder.time.setText(waypointArrayList.get(position).getLocation().getName());
-        //TODO set relevant waypoint information here
+        holder.addr.setText(waypointArrayList.get(position).getLocation().toAddress());
     }
 
     @Override
@@ -40,12 +38,11 @@ public class WaypointInfo extends RecyclerView.Adapter<WaypointInfo.MyViewHolder
     }
 
     class MyViewHolder extends RecyclerView.ViewHolder {
-        TextView time;
-        //TODO replace variables with waypoint information
+        Button addr;
 
         public MyViewHolder(View itemView) {
             super(itemView);
-            time = (TextView) itemView.findViewById(R.id.tv);
+            addr = (Button) itemView.findViewById(R.id.tv);
         }
     }
 }
