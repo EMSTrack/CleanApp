@@ -23,6 +23,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 
+import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.LinearLayoutManager;
+
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -35,6 +38,7 @@ import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
+import org.emstrack.ambulance.adapters.WaypointInfo;
 import org.emstrack.ambulance.dialogs.AlertSnackbar;
 import org.emstrack.ambulance.models.AmbulanceAppData;
 import org.emstrack.ambulance.services.AmbulanceForegroundService;
@@ -53,7 +57,7 @@ import org.emstrack.mqtt.MqttProfileClient;
 
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
+import java.util.ArrayList;
 import java.util.Map;
 
 // TODO: Implement listener to ambulance changes
@@ -67,6 +71,11 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
     private Map<Integer, Marker> ambulanceMarkers;
     private Map<Integer, Marker> hospitalMarkers;
     private Map<Integer, Marker> waypointMarkers;
+
+    //button recycle view objects
+    private RecyclerView recyclerView;
+    private ArrayList<Waypoint> waypointArrayList;
+    private WaypointInfo adapter;
 
     private ImageView showLocationButton;
     private boolean centerAmbulances = false;
@@ -160,6 +169,13 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
 
         rootView = inflater.inflate(R.layout.fragment_map, container, false);
 
+        // create waypoint recycle view
+        recyclerView = (RecyclerView) rootView.findViewById(R.id.recycler);
+        waypointArrayList = new ArrayList<>();//TODO create method that makes an array of waypoints
+        adapter = new WaypointInfo(getContext(), waypointArrayList);
+        recyclerView.setAdapter(adapter);
+        recyclerView.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL,false));
+
         // Retrieve location button
         showLocationButton = rootView.findViewById(R.id.showLocationButton);
         showLocationButton.setOnLongClickListener(new View.OnLongClickListener() {
@@ -189,9 +205,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
 
                     // center ambulances
                     centerAmbulances();
-
                 }
-
             }
         });
 
