@@ -20,6 +20,7 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.util.SparseArray;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
@@ -41,11 +42,13 @@ import org.emstrack.ambulance.fragments.HospitalFragment;
 import org.emstrack.ambulance.fragments.MapFragment;
 import org.emstrack.ambulance.models.AmbulanceAppData;
 import org.emstrack.ambulance.services.AmbulanceForegroundService;
+import org.emstrack.ambulance.util.SparseArrayUtils;
 import org.emstrack.models.Ambulance;
 import org.emstrack.models.AmbulanceCall;
 import org.emstrack.models.AmbulancePermission;
 import org.emstrack.models.Call;
 import org.emstrack.models.CallStack;
+import org.emstrack.models.EquipmentItem;
 import org.emstrack.models.HospitalPermission;
 import org.emstrack.models.Location;
 import org.emstrack.models.Patient;
@@ -559,6 +562,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void retrieveEquipmentList(final AmbulancePermission selectedAmbulance) {
+        Log.d(TAG, "Retrieving Equipment list in MainActivity");
         // retrieve equipment
         Intent equipmentIntent = new Intent(this, AmbulanceForegroundService.class);
         equipmentIntent.setAction(AmbulanceForegroundService.Actions.GET_EQUIPMENT);
@@ -574,8 +578,16 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onSuccess(Bundle extras) {
 
-                // need to take equipment list and stuff it into recycler view
+                /*
+                AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
+                SparseArray<EquipmentItem> equipmentList = appData.getEquipment();
 
+                Log.d(TAG, "Grabbing equipment list from AmbulanceForegroundService");
+                for (EquipmentItem equipment : SparseArrayUtils.iterable(equipmentList)) {
+                    Log.d(TAG, String.format("Name: %s, Id: %d", equipment.getEquipmentName(),
+                            equipment.getEquipmentId()));
+                }
+                */
 
             }
 

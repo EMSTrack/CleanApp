@@ -6,6 +6,7 @@ import android.util.SparseArray;
 import org.emstrack.models.Ambulance;
 import org.emstrack.models.CallStack;
 import org.emstrack.models.Credentials;
+import org.emstrack.models.EquipmentItem;
 import org.emstrack.models.Hospital;
 import org.emstrack.models.Location;
 import org.emstrack.models.Profile;
@@ -31,6 +32,7 @@ public class AmbulanceAppData {
     private Ambulance ambulance;
     private SparseArray<Ambulance> ambulances;
     private SparseArray<Hospital> hospitals;
+    private SparseArray<EquipmentItem> equipment;
     private List<Location> bases;
     private CallStack calls;
 
@@ -40,6 +42,7 @@ public class AmbulanceAppData {
     public AmbulanceAppData() {
         ambulances = new SparseArray<>();
         hospitals = new SparseArray<>();
+        equipment = new SparseArray<>();
         bases = new ArrayList<>();
         calls = new CallStack();
     }
@@ -200,6 +203,25 @@ public class AmbulanceAppData {
      */
     public void setAmbulance(Ambulance ambulance) {
         this.ambulance = ambulance;
+    }
+
+    /**
+     *
+     * @param equipment the SparseArray of equipment
+     */
+    public void setEquipment(SparseArray<EquipmentItem> equipment) {
+        this.equipment = equipment;
+    }
+
+    public void setEquipment(List<EquipmentItem> equipment) {
+        this.equipment = new SparseArray<>();
+        for (EquipmentItem item : equipment) {
+            this.equipment.put(item.getEquipmentId(), item);
+        }
+    }
+
+    public SparseArray<EquipmentItem> getEquipment() {
+        return equipment;
     }
 
     /**

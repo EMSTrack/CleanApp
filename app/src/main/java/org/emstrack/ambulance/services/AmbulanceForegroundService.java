@@ -241,6 +241,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         public final static String CALL_UPDATE = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastaction.CALL_UPDATE";
         public final static String VERSION_UPDATE = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastaction.VERSION_UPDATE";
         public final static String CANNOT_UPDATE_LOCATION = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastaction.CANNOT_UPDATE_LOCATION";
+        public final static String EQUIPMENT_UPDATE = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastaction.EQUIPMENT_UPDATE";
     }
 
     public class AmbulanceForegroundServiceException extends Exception {
@@ -3041,7 +3042,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         // Retrieve client
         final MqttProfileClient profileClient = getProfileClient(this);
 
-        // Retrieve equpiment list data
+        // Retrieve equipment list data
         APIService service = APIServiceGenerator.createService(APIService.class);
         retrofit2.Call<List<EquipmentItem>> equipmentCall = service.getEquipmentList(ambulanceId);
         new OnAPICallComplete<List<EquipmentItem>>(equipmentCall) {
@@ -3054,6 +3055,8 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                 for (EquipmentItem item : equipmentItemList) {
                     Log.d(TAG, String.format("Name: %s, Id: %d", item.getEquipmentName(), item.getEquipmentId()));
                 }
+
+                appData.setEquipment(equipmentItemList);
 
             }
 
