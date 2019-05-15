@@ -74,7 +74,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
 
     //button recycle view objects
     private RecyclerView recyclerView;
-    private ArrayList<Waypoint> waypointArrayList;
+    private ArrayList<Waypoint> waypointList;
     private WaypointInfo adapter;
 
     private ImageView showLocationButton;
@@ -169,10 +169,20 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
 
         rootView = inflater.inflate(R.layout.fragment_map, container, false);
 
-        // create waypoint recycle view
+        // The following code creates a recycler view of buttons for handling waypoints
         recyclerView = (RecyclerView) rootView.findViewById(R.id.recycler);
-        waypointArrayList = new ArrayList<>();//TODO create method that makes an array of waypoints
-        adapter = new WaypointInfo(getContext(), waypointArrayList);
+        AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
+        Call call = appData.getCalls().getCurrentCall();
+        AmbulanceCall ambulanceCall = call.getCurrentAmbulanceCall();
+        int numWaypoints = (ambulanceCall == null ? 0 : ambulanceCall.getWaypointSet().size());
+        waypointList = new ArrayList<>();
+        if ( numWaypoints != 0 ) {
+            // add waypoint buttons
+            for (int i = 0; i < numWaypoints; i++) {
+                waypointList.add(ambulanceCall.getNextWaypoint());
+            }
+        }
+        adapter = new WaypointInfo(getContext(), waypointList);
         recyclerView.setAdapter(adapter);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL,false));
 
