@@ -58,4 +58,17 @@
         android:padding="5dp"
         app:srcCompat="@drawable/ic_map_marker" />
 
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/recycler"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="15dp"
+        android:padding="10dp" />
+
+    <include
+        layout="@layout/waypoint_buttons"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="610dp" />
+
 </RelativeLayout>
