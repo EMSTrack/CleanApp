@@ -172,6 +172,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
         // The following code creates a recycler view of buttons for handling waypoints
         recyclerView = (RecyclerView) rootView.findViewById(R.id.recycler);
         AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
+        // call can be null
         Call call = appData.getCalls().getCurrentCall();
         AmbulanceCall ambulanceCall = call.getCurrentAmbulanceCall();
         int numWaypoints = (ambulanceCall == null ? 0 : ambulanceCall.getWaypointSet().size());
@@ -357,7 +358,6 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
         waypointMarkers = new HashMap<>();
 
         // Get settings, status and capabilities
-        AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
         Settings settings = appData.getSettings();
         if (settings != null) {
 

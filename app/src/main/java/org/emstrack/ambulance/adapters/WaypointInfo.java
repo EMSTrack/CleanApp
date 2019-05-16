@@ -7,6 +7,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import java.util.ArrayList;
 
+import org.emstrack.ambulance.R;
 import org.emstrack.models.Waypoint;
 
 public class WaypointInfo extends RecyclerView.Adapter<WaypointInfo.MyViewHolder>{
@@ -21,7 +22,7 @@ public class WaypointInfo extends RecyclerView.Adapter<WaypointInfo.MyViewHolder
 
     @Override
     public WaypointInfo.MyViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View view = inflater.inflate(R.layout.recycler_item, parent, false);
+        View view = inflater.inflate(R.layout.waypoint_buttons, parent, false);
         MyViewHolder holder = new MyViewHolder(view);
 
         return holder;
@@ -42,7 +43,7 @@ public class WaypointInfo extends RecyclerView.Adapter<WaypointInfo.MyViewHolder
 
         public MyViewHolder(View itemView) {
             super(itemView);
-            addr = (Button) itemView.findViewById(R.id.tv);
+            addr = (Button) itemView.findViewById(R.id.address);
         }
     }
 }
