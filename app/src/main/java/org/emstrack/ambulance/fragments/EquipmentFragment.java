@@ -8,7 +8,6 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.LocalBroadcastManager;
-import android.support.v7.widget.LinearLayoutCompat;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -23,6 +22,9 @@ import org.emstrack.ambulance.models.AmbulanceAppData;
 import org.emstrack.ambulance.services.AmbulanceForegroundService;
 import org.emstrack.ambulance.util.SparseArrayUtils;
 import org.emstrack.models.EquipmentItem;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class EquipmentFragment extends Fragment {
 
@@ -96,15 +98,22 @@ public class EquipmentFragment extends Fragment {
      */
     public void update(SparseArray<EquipmentItem> equipment) {
 
-        // fast return if no equipment
         if (equipment == null)
             return;
 
         Log.i(TAG, "Updating equipment UI");
 
+        List<EquipmentItem> equipmentList = new ArrayList<EquipmentItem>();
+
+        // loop over equipment list
+        for (EquipmentItem item : SparseArrayUtils.iterable(equipment)) {
+            // add to equipment list
+            equipmentList.add(item);
+        }
+
         // install fragment
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getContext());
-        EquipmentListRecyclerAdapter adapter = new EquipmentListRecyclerAdapter(getContext(), equipment);
+        EquipmentListRecyclerAdapter adapter = new EquipmentListRecyclerAdapter(getContext(), equipmentList);
         recyclerView.setLayoutManager(linearLayoutManager);
         recyclerView.setAdapter(adapter);
     }

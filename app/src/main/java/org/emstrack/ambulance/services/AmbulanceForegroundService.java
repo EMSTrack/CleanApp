@@ -1372,6 +1372,9 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                 // remove ambulance map
                 removeOtherAmbulances();
 
+                // remove equipment
+                removeEquipmentList();
+
             }
 
             @Override
@@ -3039,8 +3042,8 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
     public void retrieveEquipmentList(int ambulanceId, final String uuid) {
         Log.d(TAG, "Retrieving equipment list...");
 
-        // Retrieve client
-        final MqttProfileClient profileClient = getProfileClient(this);
+        // Remove current equipment
+        removeEquipmentList();
 
         // Retrieve equipment list data
         APIService service = APIServiceGenerator.createService(APIService.class);
@@ -3070,6 +3073,22 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
             }
 
         }.start();
+    }
+
+    /**
+     * Remove current equipment list
+     */
+    public void removeEquipmentList() {
+
+        SparseArray<EquipmentItem> equipment = appData.getEquipment();
+        if (equipment.size() == 0) {
+            Log.i(TAG, "No equipment to remove.");
+            return;
+        }
+
+        // Remove hospitals
+        appData.setEquipment(new SparseArray<>());
+
     }
 
     /**
