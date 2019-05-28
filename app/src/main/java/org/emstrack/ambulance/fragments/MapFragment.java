@@ -122,7 +122,34 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
 
         @Override
         public void onReceive(Context context, Intent intent ) {
+
             if (intent != null) {
+
+                AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
+
+                // get root
+                rootView = inflater.inflate(R.layout.fragment_map, container, false);
+
+                // get calls
+                Call call = appData.getCalls().getCurrentCall();
+                if( call != null) {
+
+                    AmbulanceCall ambulanceCall = call.getCurrentAmbulanceCall();
+                    int numWaypoints = (ambulanceCall == null ? 0 : ambulanceCall.getWaypointSet().size());
+
+                    if ( numWaypoints != 0 ) {
+                        // add waypoint buttons
+                        waypointList = new ArrayList<>();
+
+                        for (int i = 0; i < numWaypoints; i++)
+                            waypointList.add(ambulanceCall.getNextWaypoint());
+
+                            adapter = new WaypointInfo(getContext(), waypointList);
+
+                            recyclerView.setAdapter(adapter);
+                            recyclerView.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL,false));
+                    }
+                }
 
                 final String action = intent.getAction();
                 assert action != null;
@@ -167,25 +194,11 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
 
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
-        rootView = inflater.inflate(R.layout.fragment_map, container, false);
-
-        // The following code creates a recycler view of buttons for handling waypoints
+        // initialize recyler view
         recyclerView = (RecyclerView) rootView.findViewById(R.id.recycler);
-        AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
-        // call can be null
-        Call call = appData.getCalls().getCurrentCall();
-        AmbulanceCall ambulanceCall = call.getCurrentAmbulanceCall();
-        int numWaypoints = (ambulanceCall == null ? 0 : ambulanceCall.getWaypointSet().size());
-        waypointList = new ArrayList<>();
-        if ( numWaypoints != 0 ) {
-            // add waypoint buttons
-            for (int i = 0; i < numWaypoints; i++) {
-                waypointList.add(ambulanceCall.getNextWaypoint());
-            }
-        }
-        adapter = new WaypointInfo(getContext(), waypointList);
-        recyclerView.setAdapter(adapter);
-        recyclerView.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL,false));
+
+        // TODO put a dummy edit buttons
+        // TODO implment 3 dot thing
 
         // Retrieve location button
         showLocationButton = rootView.findViewById(R.id.showLocationButton);
@@ -569,7 +582,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
             showWaypointsButton.setBackgroundColor(getResources().getColor(R.color.mapButtonOn));
         else
             showWaypointsButton.setBackgroundColor(getResources().getColor(R.color.mapButtonOff));
-        
+
         if (centerAmbulances)
             showLocationButton.setBackgroundColor(getResources().getColor(R.color.mapButtonOn));
         else
@@ -635,12 +648,12 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
             retrieveAmbulances();
 
         } else {
-            
+
             // Update markers and center map
             centerMap(updateMarkers());
-            
+
         }
-                
+
     }
 
     public void centerMap(LatLngBounds bounds) {
@@ -730,7 +743,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
             }
 
         }
-        
+
         // Update ambulances
         if (showAmbulances) {
 
@@ -772,7 +785,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
                         builder.include(marker.getPosition());
 
                 }
-                
+
             }
 
         }
