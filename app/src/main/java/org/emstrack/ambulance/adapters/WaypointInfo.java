@@ -6,6 +6,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import java.util.ArrayList;
+import java.util.List;
 
 import org.emstrack.ambulance.R;
 import org.emstrack.models.Waypoint;
@@ -13,11 +14,11 @@ import org.emstrack.models.Waypoint;
 public class WaypointInfo extends RecyclerView.Adapter<WaypointInfo.MyViewHolder>{
 
     private LayoutInflater inflater;
-    private ArrayList <Waypoint> waypointArrayList;
+    private List<Waypoint> waypointList;
 
-    public WaypointInfo(Context ctx, ArrayList<Waypoint> waypointArrayList) {
+    public WaypointInfo(Context ctx, List<Waypoint> waypointList) {
         inflater = LayoutInflater.from(ctx);
-        this.waypointArrayList = waypointArrayList;
+        this.waypointList = waypointList;
     }
 
     @Override
@@ -30,12 +31,13 @@ public class WaypointInfo extends RecyclerView.Adapter<WaypointInfo.MyViewHolder
 
     @Override
     public void onBindViewHolder(WaypointInfo.MyViewHolder holder, int position) {
-        holder.addr.setText(waypointArrayList.get(position).getLocation().toAddress());
+        holder.addr.setText(waypointList.get(position).getLocation().toAddress());
+
     }
 
     @Override
     public int getItemCount() {
-        return waypointArrayList.size();
+        return waypointList.size();
     }
 
     class MyViewHolder extends RecyclerView.ViewHolder {

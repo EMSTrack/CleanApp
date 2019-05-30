@@ -58,6 +58,7 @@ import org.emstrack.mqtt.MqttProfileClient;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 // TODO: Implement listener to ambulance changes
@@ -127,27 +128,20 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
 
                 AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
 
-                // get root
-                rootView = inflater.inflate(R.layout.fragment_map, container, false);
-
                 // get calls
                 Call call = appData.getCalls().getCurrentCall();
                 if( call != null) {
 
                     AmbulanceCall ambulanceCall = call.getCurrentAmbulanceCall();
-                    int numWaypoints = (ambulanceCall == null ? 0 : ambulanceCall.getWaypointSet().size());
+                    List<Waypoint> waypoints = ambulanceCall.getWaypointSet();
 
-                    if ( numWaypoints != 0 ) {
-                        // add waypoint buttons
-                        waypointList = new ArrayList<>();
 
-                        for (int i = 0; i < numWaypoints; i++)
-                            waypointList.add(ambulanceCall.getNextWaypoint());
 
-                            adapter = new WaypointInfo(getContext(), waypointList);
-
-                            recyclerView.setAdapter(adapter);
-                            recyclerView.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL,false));
+                    if ( waypoints.size() > 0 ) {
+                        // add waypoint button
+                        adapter = new WaypointInfo(getContext(), waypoints);
+                        recyclerView.setAdapter(adapter);
+                        recyclerView.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL,false));
                     }
                 }
 
@@ -194,11 +188,15 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
 
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
+        // get root
+        rootView = inflater.inflate(R.layout.fragment_map, container, false);
         // initialize recyler view
         recyclerView = (RecyclerView) rootView.findViewById(R.id.recycler);
 
         // TODO put a dummy edit buttons
         // TODO implment 3 dot thing
+
+        AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
 
         // Retrieve location button
         showLocationButton = rootView.findViewById(R.id.showLocationButton);
