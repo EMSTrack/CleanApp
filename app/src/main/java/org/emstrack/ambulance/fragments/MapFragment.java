@@ -142,6 +142,8 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
                         adapter = new WaypointInfoAdapter(getContext(), waypoints);
                         recyclerView.setAdapter(adapter);
                         recyclerView.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL,false));
+                        //scroll to last waypoint not visited
+                        recyclerView.scrollToPosition(waypoints.lastIndexOf(ambulanceCall.getNextWaypoint()));
                     }
                 }
 
@@ -192,9 +194,6 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
         rootView = inflater.inflate(R.layout.fragment_map, container, false);
         // initialize recyler view
         recyclerView = (RecyclerView) rootView.findViewById(R.id.recycler);
-
-        // TODO put a dummy edit buttons
-        // TODO implment 3 dot thing
 
         AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
 
