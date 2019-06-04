@@ -34,16 +34,19 @@ public class WaypointInfoAdapter extends RecyclerView.Adapter<WaypointInfoAdapte
     public void onBindViewHolder(WaypointInfoAdapter.MyViewHolder holder, int position) {
         holder.addr.setText(waypointList.get(position).getLocation().toAddress());
 
+        int dodgerblue = 0xFF1E90FF;
+        int mediumseagreen = 0xFF3CB371;
+        int darkorange = 0xFFFF8C00;
         // set color of button based on visiting status
         if( waypointList.get(position).isVisiting() ){
             //blue
-            holder.addr.setBackgroundColor(Color.BLUE);
+            holder.addr.setBackgroundColor(dodgerblue);
         } else if ( waypointList.get(position).isSkipped() ) {
-            //yellow
-            holder.addr.setBackgroundColor(Color.YELLOW);
+            //orange
+            holder.addr.setBackgroundColor(darkorange);
         } else if ( waypointList.get(position).isVisited() ) {
             //green
-            holder.addr.setBackgroundColor(Color.GREEN);
+            holder.addr.setBackgroundColor(mediumseagreen);
         }
     }
 
