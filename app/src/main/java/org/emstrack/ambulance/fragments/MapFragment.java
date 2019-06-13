@@ -14,6 +14,9 @@ import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.LocalBroadcastManager;
+import android.support.v7.app.AlertDialog;
+import android.support.v7.widget.LinearSnapHelper;
+import android.support.v7.widget.SnapHelper;
 import android.util.Log;
 import android.util.SparseArray;
 import android.view.LayoutInflater;
@@ -26,6 +29,7 @@ import android.widget.ImageView;
 
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.LinearLayoutManager;
+import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -39,6 +43,7 @@ import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
+import org.emstrack.ambulance.MainActivity;
 import org.emstrack.ambulance.adapters.WaypointInfoAdapter;
 import org.emstrack.ambulance.dialogs.AlertSnackbar;
 import org.emstrack.ambulance.models.AmbulanceAppData;
@@ -78,7 +83,11 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
     private ArrayList<Waypoint> waypointList;
     private WaypointInfoAdapter adapter;
 
+    private int curWaypointIndex = 0;
+
     private Button addWaypointBtn;
+    private Button skipWaypointBtn;
+    private Button visitWaypointBtn;
 
     private ImageView showLocationButton;
     private boolean centerAmbulances = false;
@@ -133,6 +142,14 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
                 // get calls
                 Call call = appData.getCalls().getCurrentCall();
                 if( call != null) {
+                    //show add waypoint button
+                    addWaypointBtn.setVisibility(View.VISIBLE);
+                    addWaypointBtn.setOnClickListener(
+                            v -> {
+                                // Prompt add new waypoint
+                                    ((MainActivity) getActivity()).promptNextWaypointDialog(call.getId());
+                            }
+                    );
 
                     AmbulanceCall ambulanceCall = call.getCurrentAmbulanceCall();
                     List<Waypoint> waypoints = ambulanceCall.getWaypointSet();
@@ -142,8 +159,54 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
                         adapter = new WaypointInfoAdapter(getContext(), waypoints);
                         recyclerView.setAdapter(adapter);
                         recyclerView.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL,false));
-                        //scroll to last waypoint not visited
-                        recyclerView.scrollToPosition(waypoints.lastIndexOf(ambulanceCall.getNextWaypoint()));
+                        recyclerView.setVisibility(View.VISIBLE);
+
+                        //scroll to current waypoint not visited
+                        Waypoint curWaypoint = ambulanceCall.getNextWaypoint();
+                        curWaypointIndex = waypoints.lastIndexOf(curWaypoint);
+                        recyclerView.scrollToPosition(curWaypointIndex);
+
+                        //show skip waypoint button
+                        skipWaypointBtn.setVisibility(View.VISIBLE);
+                        skipWaypointBtn.setOnClickListener(
+                                v -> promptSkipVisitingOrVisited(Waypoint.STATUS_SKIPPED,
+                                        curWaypoint.getId(), call.getId(), ambulanceCall.getAmbulanceId(),
+                                        getString(R.string.pleaseConfirm),
+                                        getString(R.string.skipCurrentWaypoint),
+                                        getString(R.string.skippingWaypoint))
+                        );
+
+                        //show visiting waypoint button
+                        visitWaypointBtn.setVisibility(View.VISIBLE);
+                        visitWaypointBtn.setOnClickListener(
+                                v -> {
+
+                                    if (curWaypoint.isCreated()) {
+                                        promptSkipVisitingOrVisited(Waypoint.STATUS_VISITING,
+                                                curWaypoint.getId(), call.getId(), ambulanceCall.getAmbulanceId(),
+                                                getString(R.string.pleaseConfirm),
+                                                getString(R.string.visitCurrentWaypoint),
+                                                getString(R.string.visitingWaypoint));
+                                        //change text on button
+                                        visitWaypointBtn.setText("Visited");
+                                    } else {
+
+                                        promptSkipVisitingOrVisited(Waypoint.STATUS_VISITED,
+                                                curWaypoint.getId(), call.getId(), ambulanceCall.getAmbulanceId(),
+                                                getString(R.string.pleaseConfirm),
+                                                getString(R.string.visitedCurrentWaypoint),
+                                                getString(R.string.visitedWaypoint));
+                                        //reset text on button
+                                        visitWaypointBtn.setText("Visiting");
+                                    }
+                                }
+                        );
+                    } else {
+                        //hide all buttons
+                        recyclerView.setVisibility(View.GONE);
+                        addWaypointBtn.setVisibility(View.GONE);
+                        skipWaypointBtn.setVisibility(View.GONE);
+                        visitWaypointBtn.setVisibility(View.GONE);
                     }
                 }
 
@@ -195,17 +258,32 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
         // initialize recyler view
         recyclerView = (RecyclerView) rootView.findViewById(R.id.recycler);
 
+        // makes recycle view snappy
+        SnapHelper helper = new LinearSnapHelper();
+        helper.attachToRecyclerView(recyclerView);
+
+
         AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
 
         // retrieve add waypoint button
-        addWaypointBtn = rootView.findViewById(R.id.addWaypointBtn);
-        addWaypointBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                // TODO: Build dialog class that will have a waypoints and show it here
-            }
-        });
+        addWaypointBtn = rootView.findViewById(R.id.editWaypointBtn);
 
+        // retrieve skip waypoint button
+        skipWaypointBtn = rootView.findViewById(R.id.skipBtn);
+
+        // retrieve visit waypoint button
+        visitWaypointBtn = rootView.findViewById(R.id.visitingBtn);
+
+        addWaypointBtn.setVisibility(View.GONE);
+        skipWaypointBtn.setVisibility(View.GONE);
+        visitWaypointBtn.setVisibility(View.GONE);
+
+        //TODO: when scroll out of current waypoint make buttons disappear
+        /*recyclerView.addOnScrollListener(
+                v->{
+
+                });
+        */
 
         // Retrieve location button
         showLocationButton = rootView.findViewById(R.id.showLocationButton);
@@ -973,6 +1051,50 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
      */
     private LocalBroadcastManager getLocalBroadcastManager() {
         return LocalBroadcastManager.getInstance(getContext());
+    }
+
+    public void promptSkipVisitingOrVisited(final String status,
+                                            final int waypointId, final int callId, final int ambulanceId,
+                                            final String title, final String message, final String doneMessage) {
+
+        Log.d(TAG, "Creating promptSkipVisitingOrVisited dialog");
+
+        // Use the Builder class for convenient dialog construction
+        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+        builder.setTitle(title)
+                .setMessage(message)
+                .setNegativeButton(R.string.no,
+                        (dialog, id) -> Log.i(TAG, "Continuing..."))
+                .setPositiveButton(R.string.yes,
+                        (dialog, id) -> {
+
+                            Log.i(TAG, String.format("Will mark as '%1$s'", status));
+
+                            Toast.makeText(getContext(), doneMessage, Toast.LENGTH_SHORT).show();
+
+                            String action;
+                            if (status == Waypoint.STATUS_SKIPPED)
+                                action = AmbulanceForegroundService.Actions.WAYPOINT_SKIP;
+                            else if (status == Waypoint.STATUS_VISITING)
+                                action = AmbulanceForegroundService.Actions.WAYPOINT_ENTER;
+                            else // if (status == Waypoint.STATUS_VISITED)
+                                action = AmbulanceForegroundService.Actions.WAYPOINT_EXIT;
+
+                            // update waypoint status on server
+                            Intent intent = new Intent(getContext(),
+                                    AmbulanceForegroundService.class);
+                            intent.setAction(action);
+                            Bundle bundle = new Bundle();
+                            bundle.putInt(AmbulanceForegroundService.BroadcastExtras.WAYPOINT_ID, waypointId);
+                            bundle.putInt(AmbulanceForegroundService.BroadcastExtras.AMBULANCE_ID, ambulanceId);
+                            bundle.putInt(AmbulanceForegroundService.BroadcastExtras.CALL_ID, callId);
+                            intent.putExtras(bundle);
+                            getActivity().startService(intent);
+
+                        });
+
+        // Create the AlertDialog object and return it
+        builder.create().show();
     }
 
 }

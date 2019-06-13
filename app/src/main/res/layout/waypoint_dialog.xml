@@ -3,7 +3,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <include layout="@layout/call_information"
+    <include layout="@layout/waypoint_information"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="15dp"/>

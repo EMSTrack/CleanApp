@@ -1,6 +1,13 @@
 package org.emstrack.ambulance.adapters;
+
+/**
+ * Created By: Andrew N. Sanchez
+ * Created On: May 30, 2019
+ *
+ * WaypointInfoAdapter
+ */
+
 import android.content.Context;
-import android.graphics.Color;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -37,26 +44,20 @@ public class WaypointInfoAdapter extends RecyclerView.Adapter<WaypointInfoAdapte
         int gold = 0xFFFFD700;
         int mediumseagreen = 0xFF3CB371;
         int darkorange = 0xFFFF8C00;
+        Waypoint waypoint = waypointList.get(position);
 
         // set color of button based on visiting status
-        if( waypointList.get(position).isVisiting() ){
+        if( waypoint.isVisiting() ){
             //blue
             holder.addr.setBackgroundColor(gold);
-        } else if ( waypointList.get(position).isSkipped() ) {
+        } else if ( waypoint.isSkipped() ) {
             //orange
             holder.addr.setBackgroundColor(darkorange);
-        } else if ( waypointList.get(position).isVisited() ) {
+        } else if ( waypoint.isVisited() ) {
             //green
             holder.addr.setBackgroundColor(mediumseagreen);
         }
 
-        // set on click listener to bring up dialog
-        holder.addr.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-
-            }
-        });
     }
 
     @Override
