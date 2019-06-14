@@ -17,6 +17,7 @@ import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.LinearSnapHelper;
 import android.support.v7.widget.SnapHelper;
+import android.text.Layout;
 import android.util.Log;
 import android.util.SparseArray;
 import android.view.LayoutInflater;
@@ -25,6 +26,7 @@ import android.view.Surface;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 
 import android.support.v7.widget.RecyclerView;
@@ -51,6 +53,7 @@ import org.emstrack.ambulance.services.AmbulanceForegroundService;
 import org.emstrack.ambulance.R;
 import org.emstrack.ambulance.util.SparseArrayUtils;
 import org.emstrack.models.Call;
+import org.emstrack.models.CallStack;
 import org.emstrack.models.Settings;
 import org.emstrack.models.util.BroadcastActions;
 import org.emstrack.models.util.OnServiceComplete;
@@ -85,9 +88,12 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
 
     private int curWaypointIndex = 0;
 
-    private Button addWaypointBtn;
-    private Button skipWaypointBtn;
-    private Button visitWaypointBtn;
+    private View waypointNavigator;
+
+    private ImageButton addWaypointBtn;
+    private ImageButton skipWaypointBtn;
+    private ImageButton visitWaypointBtn;
+    private ImageButton endCallBtn;
 
     private ImageView showLocationButton;
     private boolean centerAmbulances = false;
@@ -130,44 +136,40 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
             return Surface.ROTATION_270;
     };
 
-    public class AmbulancesUpdateBroadcastReceiver extends BroadcastReceiver {
+    class OnScrollListener extends RecyclerView.OnScrollListener {
 
-        @Override
-        public void onReceive(Context context, Intent intent ) {
+            @Override
+            public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
+                super.onScrollStateChanged(recyclerView, newState);
 
-            if (intent != null) {
+                if (newState == RecyclerView.SCROLL_STATE_IDLE) {
 
-                AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
+                    // update position
+                    int position = ((LinearLayoutManager) recyclerView.getLayoutManager()).findFirstVisibleItemPosition();
 
-                // get calls
-                Call call = appData.getCalls().getCurrentCall();
-                if( call != null) {
-                    //show add waypoint button
-                    addWaypointBtn.setVisibility(View.VISIBLE);
-                    addWaypointBtn.setOnClickListener(
-                            v -> {
-                                // Prompt add new waypoint
-                                    ((MainActivity) getActivity()).promptNextWaypointDialog(call.getId());
-                            }
-                    );
+                    // Get app data
+                    AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
+
+                    // Get calls
+                    Call call = appData.getCalls().getCurrentCall();
 
                     AmbulanceCall ambulanceCall = call.getCurrentAmbulanceCall();
                     List<Waypoint> waypoints = ambulanceCall.getWaypointSet();
 
-                    if ( waypoints.size() > 0 ) {
-                        // add waypoint button
-                        adapter = new WaypointInfoAdapter(getContext(), waypoints);
-                        recyclerView.setAdapter(adapter);
-                        recyclerView.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL,false));
-                        recyclerView.setVisibility(View.VISIBLE);
+                    // get current way on recycler view
+                    Waypoint curWaypoint = waypoints.get(position);
 
-                        //scroll to current waypoint not visited
-                        Waypoint curWaypoint = ambulanceCall.getNextWaypoint();
-                        curWaypointIndex = waypoints.lastIndexOf(curWaypoint);
-                        recyclerView.scrollToPosition(curWaypointIndex);
+                    //scroll to current waypoint not visited
+                    Waypoint nextWaypoint = ambulanceCall.getNextWaypoint();
+
+                    if (curWaypoint == nextWaypoint) {
+
+                        // current waypoint is the next one
+
+                        // change icon
+                        skipWaypointBtn.setImageResource(R.drawable.ic_forward);
 
                         //show skip waypoint button
-                        skipWaypointBtn.setVisibility(View.VISIBLE);
                         skipWaypointBtn.setOnClickListener(
                                 v -> promptSkipVisitingOrVisited(Waypoint.STATUS_SKIPPED,
                                         curWaypoint.getId(), call.getId(), ambulanceCall.getAmbulanceId(),
@@ -176,8 +178,14 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
                                         getString(R.string.skippingWaypoint))
                         );
 
+                        // change icon
+                        if (curWaypoint.isCreated()) {
+                            visitWaypointBtn.setImageResource(R.drawable.ic_check);
+                        } else {
+                            visitWaypointBtn.setImageResource(R.drawable.ic_shipping_fast);
+                        }
+
                         //show visiting waypoint button
-                        visitWaypointBtn.setVisibility(View.VISIBLE);
                         visitWaypointBtn.setOnClickListener(
                                 v -> {
 
@@ -187,8 +195,6 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
                                                 getString(R.string.pleaseConfirm),
                                                 getString(R.string.visitCurrentWaypoint),
                                                 getString(R.string.visitingWaypoint));
-                                        //change text on button
-                                        visitWaypointBtn.setText("Visited");
                                     } else {
 
                                         promptSkipVisitingOrVisited(Waypoint.STATUS_VISITED,
@@ -196,19 +202,76 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
                                                 getString(R.string.pleaseConfirm),
                                                 getString(R.string.visitedCurrentWaypoint),
                                                 getString(R.string.visitedWaypoint));
-                                        //reset text on button
-                                        visitWaypointBtn.setText("Visiting");
                                     }
                                 }
                         );
+
                     } else {
-                        //hide all buttons
-                        recyclerView.setVisibility(View.GONE);
-                        addWaypointBtn.setVisibility(View.GONE);
-                        skipWaypointBtn.setVisibility(View.GONE);
-                        visitWaypointBtn.setVisibility(View.GONE);
+
+                        // current waypoint is the not the next one
+
+                        // change icon
+                        visitWaypointBtn.setImageResource(R.drawable.ic_home);
+                        skipWaypointBtn.setImageResource(R.drawable.ic_minus);
+
+                        //show skip waypoint button
+                        skipWaypointBtn.setOnClickListener(null);
+
+                        //show visiting waypoint button
+                        visitWaypointBtn.setOnClickListener(null);
+
                     }
+
                 }
+
+            }
+
+        }
+
+
+    private void createWaypointButtons(Call call) {
+
+        waypointNavigator.setVisibility(View.VISIBLE);
+
+        //show add waypoint button
+        addWaypointBtn.setOnClickListener(
+                v -> {
+                    // Prompt add new waypoint
+                    ((MainActivity) getActivity()).promptNextWaypointDialog(call.getId());
+                }
+        );
+
+        AmbulanceCall ambulanceCall = call.getCurrentAmbulanceCall();
+        List<Waypoint> waypoints = ambulanceCall.getWaypointSet();
+
+        if ( waypoints.size() > 0 ) {
+
+            // add waypoint button
+            adapter = new WaypointInfoAdapter(getContext(), waypoints);
+            recyclerView.setAdapter(adapter);
+            recyclerView.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL,false));
+
+            //scroll to current waypoint not visited
+            Waypoint curWaypoint = ambulanceCall.getNextWaypoint();
+            curWaypointIndex = waypoints.lastIndexOf(curWaypoint);
+            recyclerView.scrollToPosition(curWaypointIndex);
+
+        }
+
+    }
+
+    public class AmbulancesUpdateBroadcastReceiver extends BroadcastReceiver {
+
+        @Override
+        public void onReceive(Context context, Intent intent ) {
+
+            if (intent != null) {
+
+                // Get app data
+                AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
+
+                // Get calls
+                CallStack calls = appData.getCalls();
 
                 final String action = intent.getAction();
                 assert action != null;
@@ -231,9 +294,32 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
                     // updateAmbulance markers without centering
                     updateMarkers();
 
+                } else if (action.equals(AmbulanceForegroundService.BroadcastActions.CALL_ACCEPTED)) {
+
+                    Log.i(TAG, "CALL_ACCEPTED");
+
+                    Call currentCall = calls.getCurrentCall();
+                    if( currentCall != null) {
+
+                        // create waypoint buttons
+                        createWaypointButtons(currentCall);
+
+                    }
+
+                    // updateAmbulance markers without centering
+                    updateMarkers();
+
                 } else if (action.equals(AmbulanceForegroundService.BroadcastActions.CALL_UPDATE)) {
 
                     Log.i(TAG, "CALL_UPDATE");
+
+                    Call currentCall = calls.getCurrentCall();
+                    if( currentCall != null) {
+
+                        // create waypoint buttons
+                        createWaypointButtons(currentCall);
+
+                    }
 
                     // updateAmbulance markers without centering
                     updateMarkers();
@@ -241,6 +327,9 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
                 } else if (action.equals(AmbulanceForegroundService.BroadcastActions.CALL_COMPLETED)) {
 
                     Log.i(TAG, "CALL_COMPLETED");
+
+                    // hide waypoint buttons
+                    waypointNavigator.setVisibility(View.GONE);
 
                     // updateAmbulance markers without centering
                     updateMarkers();
@@ -255,35 +344,35 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
 
         // get root
         rootView = inflater.inflate(R.layout.fragment_map, container, false);
+
+        AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
+
+        // retrieve navigator
+        waypointNavigator = rootView.findViewById(R.id.mapWaypointNavigator);
+
         // initialize recyler view
-        recyclerView = (RecyclerView) rootView.findViewById(R.id.recycler);
+        recyclerView = waypointNavigator.findViewById(R.id.recycler);
 
         // makes recycle view snappy
         SnapHelper helper = new LinearSnapHelper();
         helper.attachToRecyclerView(recyclerView);
 
-
-        AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
-
         // retrieve add waypoint button
-        addWaypointBtn = rootView.findViewById(R.id.editWaypointBtn);
+        addWaypointBtn = waypointNavigator.findViewById(R.id.editWaypointBtn);
 
         // retrieve skip waypoint button
-        skipWaypointBtn = rootView.findViewById(R.id.skipBtn);
+        skipWaypointBtn = waypointNavigator.findViewById(R.id.skipBtn);
 
         // retrieve visit waypoint button
-        visitWaypointBtn = rootView.findViewById(R.id.visitingBtn);
+        visitWaypointBtn = waypointNavigator.findViewById(R.id.visitingBtn);
 
-        addWaypointBtn.setVisibility(View.GONE);
-        skipWaypointBtn.setVisibility(View.GONE);
-        visitWaypointBtn.setVisibility(View.GONE);
+        // retrieve visit waypoint button
+        endCallBtn = waypointNavigator.findViewById(R.id.stopCallBtn);
 
-        //TODO: when scroll out of current waypoint make buttons disappear
-        /*recyclerView.addOnScrollListener(
-                v->{
+        waypointNavigator.setVisibility(View.GONE);
 
-                });
-        */
+        // add it to the recycler view
+        recyclerView.addOnScrollListener( new OnScrollListener() );
 
         // Retrieve location button
         showLocationButton = rootView.findViewById(R.id.showLocationButton);
@@ -648,6 +737,8 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
         IntentFilter filter = new IntentFilter();
         filter.addAction(AmbulanceForegroundService.BroadcastActions.OTHER_AMBULANCES_UPDATE);
         filter.addAction(AmbulanceForegroundService.BroadcastActions.AMBULANCE_UPDATE);
+        filter.addAction(AmbulanceForegroundService.BroadcastActions.CALL_ACCEPTED);
+        filter.addAction(AmbulanceForegroundService.BroadcastActions.CALL_COMPLETED);
         filter.addAction(AmbulanceForegroundService.BroadcastActions.CALL_UPDATE);
         receiver = new AmbulancesUpdateBroadcastReceiver();
         getLocalBroadcastManager().registerReceiver(receiver, filter);

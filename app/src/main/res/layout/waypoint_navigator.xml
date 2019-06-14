@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:background="@color/colorWhite"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_alignParentBottom="true"
+        android:layout_centerInParent="true"
+        android:weightSum="4"
+        android:paddingHorizontal="9dp"
+        android:layout_marginVertical="10dp"
+        >
+
+        <ImageButton
+            android:id="@+id/editWaypointBtn"
+            android:layout_height="50dp"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:backgroundTint="@color/bootstrapSuccess"
+            android:tint="@color/bootstrapLight"
+            app:srcCompat="@drawable/ic_plus"/>
+
+        <ImageButton
+            android:id="@+id/skipBtn"
+            android:layout_height="50dp"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:backgroundTint="@color/bootstrapDark"
+            android:tint="@color/bootstrapLight"
+            app:srcCompat="@drawable/ic_forward"/>
+
+        <ImageButton
+            android:id="@+id/visitingBtn"
+            android:layout_height="50dp"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:backgroundTint="@color/bootstrapYellow"
+            android:tint="@color/bootstrapDark"
+            app:srcCompat="@drawable/ic_check"/>
+
+        <ImageButton
+            android:id="@+id/stopCallBtn"
+            android:layout_height="50dp"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:backgroundTint="@color/bootstrapDanger"
+            android:tint="@color/bootstrapLight"
+            app:srcCompat="@drawable/ic_minus_circle"/>
+
+    </LinearLayout>
+
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/recycler"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="10dp"/>
+
+</LinearLayout>

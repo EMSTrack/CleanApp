@@ -1,97 +1,76 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent">
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    >
 
-    <fragment
-        android:id="@+id/map"
-        android:name="com.google.android.gms.maps.SupportMapFragment"
+    <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent"
+        android:layout_weight="1">
 
-    <ImageView
-        android:id="@+id/showLocationButton"
-        android:layout_width="40dp"
-        android:layout_height="36dp"
-        android:layout_alignParentRight="true"
-        android:layout_gravity="center_horizontal"
-        android:layout_marginRight="12dp"
-        android:layout_marginTop="20dp"
-        android:background="@color/mapButtonOff"
-        android:padding="5dp"
-        app:srcCompat="@drawable/ic_location_arrow" />
+        <fragment
+            android:id="@+id/map"
+            android:name="com.google.android.gms.maps.SupportMapFragment"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
 
-    <ImageView
-        android:id="@+id/showAmbulancesButton"
-        android:layout_width="40dp"
-        android:layout_height="36dp"
-        android:layout_alignParentRight="true"
-        android:layout_gravity="center_horizontal"
-        android:layout_marginRight="12dp"
-        android:layout_marginTop="60dp"
-        android:background="@color/mapButtonOff"
-        android:padding="5dp"
-        app:srcCompat="@drawable/ic_ambulance" />
+        <ImageView
+            android:id="@+id/showLocationButton"
+            android:layout_width="40dp"
+            android:layout_height="36dp"
+            android:layout_alignParentRight="true"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginRight="12dp"
+            android:layout_marginTop="20dp"
+            android:background="@color/mapButtonOff"
+            android:padding="5dp"
+            app:srcCompat="@drawable/ic_location_arrow" />
 
-    <ImageView
-        android:id="@+id/showHospitalsButton"
-        android:layout_width="40dp"
-        android:layout_height="36dp"
-        android:layout_alignParentRight="true"
-        android:layout_gravity="center_horizontal"
-        android:layout_marginRight="12dp"
-        android:layout_marginTop="100dp"
-        android:background="@color/mapButtonOff"
-        android:padding="5dp"
-        app:srcCompat="@drawable/ic_hospital" />
+        <ImageView
+            android:id="@+id/showAmbulancesButton"
+            android:layout_width="40dp"
+            android:layout_height="36dp"
+            android:layout_alignParentRight="true"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginRight="12dp"
+            android:layout_marginTop="60dp"
+            android:background="@color/mapButtonOff"
+            android:padding="5dp"
+            app:srcCompat="@drawable/ic_ambulance" />
 
-    <ImageView
-        android:id="@+id/showWaypointsButton"
-        android:layout_width="40dp"
-        android:layout_height="36dp"
-        android:layout_alignParentRight="true"
-        android:layout_gravity="center_horizontal"
-        android:layout_marginRight="12dp"
-        android:layout_marginTop="140dp"
-        android:background="@color/mapButtonOff"
-        android:padding="5dp"
-        app:srcCompat="@drawable/ic_map_marker" />
+        <ImageView
+            android:id="@+id/showHospitalsButton"
+            android:layout_width="40dp"
+            android:layout_height="36dp"
+            android:layout_alignParentRight="true"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginRight="12dp"
+            android:layout_marginTop="100dp"
+            android:background="@color/mapButtonOff"
+            android:padding="5dp"
+            app:srcCompat="@drawable/ic_hospital" />
 
-    <Button
-        android:id="@+id/editWaypointBtn"
-        android:layout_width="128dp"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="85dp"
-        android:layout_alignParentBottom="true"
-        android:layout_centerInParent="true"
-        android:text="Add Waypoint"/>
-    <Button
-        android:id="@+id/skipBtn"
-        android:layout_width="100dp"
-        android:layout_height="wrap_content"
-        android:layout_alignParentLeft="true"
-        android:text="Skip"
-        android:layout_marginStart="20dp"
-        android:layout_alignParentBottom="true"
-        android:layout_marginBottom="85dp"/>
+        <ImageView
+            android:id="@+id/showWaypointsButton"
+            android:layout_width="40dp"
+            android:layout_height="36dp"
+            android:layout_alignParentRight="true"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginRight="12dp"
+            android:layout_marginTop="140dp"
+            android:background="@color/mapButtonOff"
+            android:padding="5dp"
+            app:srcCompat="@drawable/ic_map_marker" />
 
-    <Button
-        android:id="@+id/visitingBtn"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentRight="true"
-        android:text="Visiting"
-        android:layout_marginEnd="20dp"
-        android:layout_alignParentBottom="true"
-        android:layout_marginBottom="85dp"/>
+    </RelativeLayout>
 
-    <android.support.v7.widget.RecyclerView
-        android:id="@+id/recycler"
+    <include layout="@layout/waypoint_navigator"
+        android:id="@+id/mapWaypointNavigator"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_marginBottom="20dp"
-        android:layout_marginHorizontal="20dp"/>
+        android:layout_height="wrap_content"/>
 
-</RelativeLayout>
+</LinearLayout>

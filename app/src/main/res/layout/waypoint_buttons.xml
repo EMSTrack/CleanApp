@@ -6,10 +6,11 @@
     <Button
         android:id="@+id/address"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:padding="10dp"
+        android:layout_height="65dp"
+        android:paddingRight="10dp"
+        android:paddingLeft="10dp"
         android:textColor="@color/colorWhite"
         android:background="@color/bootstrapDanger"
         android:layout_marginHorizontal="10dp"
-        android:text="Waypoint" />
+        android:text="Here's a two line Waypoint that is very long so that it will wrap" />
 </RelativeLayout>
