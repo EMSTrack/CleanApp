@@ -2,7 +2,6 @@ package org.emstrack.ambulance;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.res.Configuration;
@@ -33,7 +32,6 @@ import android.widget.Toast;
 
 import org.emstrack.ambulance.adapters.FragmentPager;
 import org.emstrack.ambulance.dialogs.AboutDialog;
-import org.emstrack.ambulance.dialogs.AlertSnackbar;
 import org.emstrack.ambulance.dialogs.LogoutDialog;
 import org.emstrack.ambulance.fragments.AmbulanceFragment;
 import org.emstrack.ambulance.fragments.EquipmentFragment;
@@ -49,7 +47,9 @@ import org.emstrack.models.CallStack;
 import org.emstrack.models.HospitalPermission;
 import org.emstrack.models.Location;
 import org.emstrack.models.Patient;
+import org.emstrack.models.PriorityCode;
 import org.emstrack.models.Profile;
+import org.emstrack.models.RadioCode;
 import org.emstrack.models.Waypoint;
 import org.emstrack.models.util.BroadcastActions;
 import org.emstrack.models.util.OnServiceComplete;
@@ -77,10 +77,12 @@ public class MainActivity extends AppCompatActivity {
     private List<AmbulancePermission> ambulancePermissions;
     private List<HospitalPermission> hospitalPermissions;
     private List<Location> bases;
+    private List<Location> others;
 
     private ArrayAdapter<String> ambulanceListAdapter;
     private ArrayAdapter<String> hospitalListAdapter;
     private ArrayAdapter<String> baseListAdapter;
+    private ArrayAdapter<String> othersListAdapter;
 
     private DrawerLayout mDrawer;
     private ActionBarDrawerToggle drawerToggle;
@@ -376,6 +378,7 @@ public class MainActivity extends AppCompatActivity {
             hospitalPermissions = profile.getHospitals();
         }
         bases = appData.getBases();
+        others = appData.getOtherLocations();
 
         // Creates list of ambulance names
         ArrayList<String> ambulanceList = new ArrayList<>();
@@ -411,6 +414,17 @@ public class MainActivity extends AppCompatActivity {
         baseListAdapter = new ArrayAdapter<>(this,
                 android.R.layout.simple_spinner_dropdown_item, baseList);
         baseListAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+
+        // Creates list of other location names
+        ArrayList<String> othersList = new ArrayList<>();
+        othersList.add(getString(R.string.selectOthers));
+        for (Location other : others)
+            othersList.add(other.getName());
+
+        // Create the adapter
+        othersListAdapter = new ArrayAdapter<>(this,
+                android.R.layout.simple_spinner_dropdown_item, othersList);
+        othersListAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 
         // Any ambulance currently selected?
         Ambulance ambulance = AmbulanceForegroundService.getAppData().getAmbulance();
@@ -757,14 +771,35 @@ public class MainActivity extends AppCompatActivity {
         // Create call view
         View view = getLayoutInflater().inflate(R.layout.call_dialog, null);
 
-        Button callPriorityButton = view.findViewById(R.id.callPriorityButton);
-        callPriorityButton.setText(call.getPriority());
-        callPriorityButton.setBackgroundColor(callPriorityBackgroundColors.get(call.getPriority()));
-        callPriorityButton.setTextColor(callPriorityForegroundColors.get(call.getPriority()));
-
         ((TextView) view.findViewById(R.id.callPriorityLabel)).setText(R.string.nextCall);
 
+        // Set priority
+        TextView callPriorityTextView = view.findViewById(R.id.callPriorityTextView);
+        callPriorityTextView.setText(call.getPriority());
+        callPriorityTextView.setBackgroundColor(callPriorityBackgroundColors.get(call.getPriority()));
+        callPriorityTextView.setTextColor(callPriorityForegroundColors.get(call.getPriority()));
+
+        int priorityCodeInt = call.getPriorityCode();
+        if (priorityCodeInt < 0) {
+            ((TextView) view.findViewById(R.id.callPriorityPrefix)).setText("");
+            ((TextView) view.findViewById(R.id.callPrioritySuffix)).setText("");
+        } else {
+            PriorityCode priorityCode = appData.getPriorityCodes().get(priorityCodeInt);
+            ((TextView) view.findViewById(R.id.callPriorityPrefix)).setText(priorityCode.getPrefix() + "-");
+            ((TextView) view.findViewById(R.id.callPrioritySuffix)).setText("-" + priorityCode.getSuffix());
+        }
+
+        // Set radio code
+        int radioCodeInt = call.getRadioCode();
+        if (radioCodeInt < 0) {
+            ((TextView) view.findViewById(R.id.callRadioCodeText)).setText(R.string.unavailable);
+        } else {
+            RadioCode radioCode = appData.getRadioCodes().get(radioCodeInt);
+            ((TextView) view.findViewById(R.id.callRadioCodeText)).setText(radioCode.getId() + ": " + radioCode.getLabel());
+        }
+
         ((TextView) view.findViewById(R.id.callDetailsText)).setText(call.getDetails());
+
         ((TextView) view.findViewById(R.id.callPatientsText)).setText(patientsText);
         ((TextView) view.findViewById(R.id.callNumberWaypointsText)).setText(String.valueOf(numberOfWaypoints));
 
@@ -962,6 +997,10 @@ public class MainActivity extends AppCompatActivity {
         final Spinner baseSpinner = view.findViewById(R.id.spinnerBases);
         baseSpinner.setAdapter(baseListAdapter);
 
+        // Create base spinner
+        final Spinner othersSpinner = view.findViewById(R.id.spinnerOthers);
+        othersSpinner.setAdapter(othersListAdapter);
+
         // Set spinner click listeners to make sure only base or hospital are selected
         hospitalSpinner.setOnItemSelectedListener(
                 new AdapterView.OnItemSelectedListener() {
@@ -969,6 +1008,9 @@ public class MainActivity extends AppCompatActivity {
                     public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                         if (position > 0 && baseSpinner.getSelectedItemPosition() > 0) {
                             baseSpinner.setSelection(0);
+                        }
+                        if (position > 0 && othersSpinner.getSelectedItemPosition() > 0) {
+                            othersSpinner.setSelection(0);
                         }
                     }
 
@@ -985,6 +1027,28 @@ public class MainActivity extends AppCompatActivity {
                     public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                         if (position > 0 && hospitalSpinner.getSelectedItemPosition() > 0) {
                             hospitalSpinner.setSelection(0);
+                        }
+                        if (position > 0 && othersSpinner.getSelectedItemPosition() > 0) {
+                            othersSpinner.setSelection(0);
+                        }
+                    }
+
+                    @Override
+                    public void onNothingSelected(AdapterView<?> parent) {
+
+                    }
+                }
+        );
+
+        othersSpinner.setOnItemSelectedListener(
+                new AdapterView.OnItemSelectedListener() {
+                    @Override
+                    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                        if (position > 0 && hospitalSpinner.getSelectedItemPosition() > 0) {
+                            hospitalSpinner.setSelection(0);
+                        }
+                        if (position > 0 && baseSpinner.getSelectedItemPosition() > 0) {
+                            baseSpinner.setSelection(0);
                         }
                     }
 

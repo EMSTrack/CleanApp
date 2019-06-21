@@ -2,7 +2,6 @@ package org.emstrack.ambulance.fragments;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.Uri;
@@ -28,13 +27,14 @@ import org.emstrack.ambulance.MainActivity;
 import org.emstrack.ambulance.R;
 import org.emstrack.ambulance.models.AmbulanceAppData;
 import org.emstrack.ambulance.services.AmbulanceForegroundService;
-import org.emstrack.models.Address;
 import org.emstrack.models.Ambulance;
 import org.emstrack.models.AmbulanceCall;
 import org.emstrack.models.Call;
 import org.emstrack.models.CallStack;
 import org.emstrack.models.Location;
 import org.emstrack.models.Patient;
+import org.emstrack.models.PriorityCode;
+import org.emstrack.models.RadioCode;
 import org.emstrack.models.Settings;
 import org.emstrack.models.Waypoint;
 
@@ -62,7 +62,10 @@ public class AmbulanceFragment extends Fragment {
 
     private LinearLayout callLayout;
     private TextView callDescriptionTextView;
-    private Button callPriorityButton;
+    private TextView callRadioCodeTextView;
+    private TextView callPriorityPrefixTextView;
+    private TextView callPriorityTextView;
+    private TextView callPrioritySuffixTextView;
     private TextView callAddressTextView;
     private Button callEndButton;
     private TextView callPatientsTextView;
@@ -234,7 +237,10 @@ public class AmbulanceFragment extends Fragment {
         callLayout = view.findViewById(R.id.callLayout);
 
         // Retrieve callLayout parts
-        callPriorityButton = callLayout.findViewById(R.id.callPriorityButton);
+        callPriorityTextView = callLayout.findViewById(R.id.callPriorityTextView);
+        callPriorityPrefixTextView = callLayout.findViewById(R.id.callPriorityPrefix);
+        callPrioritySuffixTextView = callLayout.findViewById(R.id.callPrioritySuffix);
+        callRadioCodeTextView = callLayout.findViewById(R.id.callRadioCodeText);
         callDescriptionTextView = callLayout.findViewById(R.id.callDetailsText);
         callPatientsTextView = callLayout.findViewById(R.id.callPatientsText);
         callNumberWayointsView = callLayout.findViewById(R.id.callNumberWaypointsText);
@@ -439,18 +445,42 @@ public class AmbulanceFragment extends Fragment {
             if (ambulanceCall == null)
                 Log.d(TAG, "Call does not have a current ambulance!");
 
-            callPriorityButton.setText(call.getPriority());
-            callPriorityButton.setBackgroundColor(
+            ((TextView) view.findViewById(R.id.callPriorityLabel)).setText(R.string.currentCall);
+
+            // Get app data
+            AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
+
+            // set priority
+            callPriorityTextView.setText(call.getPriority());
+            callPriorityTextView.setBackgroundColor(
                     ((MainActivity) getActivity())
                             .getCallPriorityBackgroundColors()
                             .get(call.getPriority()));
-            callPriorityButton.setTextColor(
+            callPriorityTextView.setTextColor(
                     ((MainActivity) getActivity())
                             .getCallPriorityForegroundColors()
                             .get(call.getPriority()));
 
-            ((TextView) view.findViewById(R.id.callPriorityLabel)).setText(R.string.currentCall);
+            int priorityCodeInt = call.getPriorityCode();
+            if (priorityCodeInt < 0) {
+                callPriorityPrefixTextView.setText("");
+                callPrioritySuffixTextView.setText("");
+            } else {
+                PriorityCode priorityCode = appData.getPriorityCodes().get(priorityCodeInt);
+                callPriorityPrefixTextView.setText(priorityCode.getPrefix() + "-");
+                callPrioritySuffixTextView.setText("-" + priorityCode.getSuffix());
+            }
 
+            // Set radio code
+            int radioCodeInt = call.getRadioCode();
+            if (radioCodeInt < 0) {
+                callRadioCodeTextView.setText(R.string.unavailable);
+            } else {
+                RadioCode radioCode = appData.getRadioCodes().get(radioCodeInt);
+                callRadioCodeTextView.setText(radioCode.getId() + ": " + radioCode.getLabel());
+            }
+
+            // set details
             callDescriptionTextView.setText(call.getDetails());
 
             // patients
@@ -486,7 +516,6 @@ public class AmbulanceFragment extends Fragment {
                 Location location = waypoint.getLocation();
 
                 // Update waypoint type
-                AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
                 callNextWaypointTypeTextView.setText(
                         appData.getSettings()
                                 .getLocationType()
