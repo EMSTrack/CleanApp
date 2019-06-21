@@ -246,5 +246,10 @@
     <string name="directions">Direcciones</string>
     <string name="couldNotOpenGoogleMaps">No se pudo abrir Google Maps.</string>
     <string name="wouldYouLikeToGoogleMaps">" ¿Te gustaría obtener direcciones en Google Maps?"</string>
+    <string name="other">Otras:</string>
+    <string name="selectOthers">Seleccione una otra localización:</string>
+    <string name="radio_code">Código de Radio</string>
+    <string name="radio_code_label">Código de Radio:</string>
+    <string name="unavailable">Indisponible</string>
 
 </resources>
