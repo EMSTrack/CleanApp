@@ -6,7 +6,10 @@ import org.emstrack.models.Credentials;
 import org.emstrack.models.EquipmentItem;
 import org.emstrack.models.Hospital;
 import org.emstrack.models.Location;
+import org.emstrack.models.PriorityClassification;
+import org.emstrack.models.PriorityCode;
 import org.emstrack.models.Profile;
+import org.emstrack.models.RadioCode;
 import org.emstrack.models.Settings;
 import org.emstrack.models.Token;
 import org.emstrack.models.Version;
@@ -118,6 +121,30 @@ public interface APIService {
      */
     @GET("version/")
     Call<Version> getVersion();
+
+    /**
+     * Retrieve radio codes
+     *
+     * @return the api call
+     */
+    @GET("radio/")
+    Call<List<RadioCode>> getRadioCodes();
+
+    /**
+     * Retrieve priority codes
+     *
+     * @return the api call
+     */
+    @GET("priority/")
+    Call<List<PriorityCode>> getPriorityCodes();
+
+    /**
+     * Retrieve radio codes
+     *
+     * @return the api call
+     */
+    @GET("priority/classification")
+    Call<List<PriorityClassification>> getPriorityClassification();
 
     /**
      * Set client

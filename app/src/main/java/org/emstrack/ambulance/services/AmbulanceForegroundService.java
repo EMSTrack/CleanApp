@@ -61,7 +61,10 @@ import org.emstrack.models.EquipmentItem;
 import org.emstrack.models.GPSLocation;
 import org.emstrack.models.Hospital;
 import org.emstrack.models.Location;
+import org.emstrack.models.PriorityClassification;
+import org.emstrack.models.PriorityCode;
 import org.emstrack.models.Profile;
+import org.emstrack.models.RadioCode;
 import org.emstrack.models.Settings;
 import org.emstrack.models.Token;
 import org.emstrack.models.Version;
@@ -1942,8 +1945,13 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                                 APIService service = APIServiceGenerator.createService(APIService.class);
                                 retrofit2.Call<Profile> profileCall = service.getProfile(username);
                                 retrofit2.Call<Settings> settingsCall = service.getSettings();
-                                retrofit2.Call<List<Location>> basesCall = service.getLocationsByType("Base");
+                                retrofit2.Call<List<Location>> basesCall = service.getLocationsByType("b");
+                                retrofit2.Call<List<Location>> othersCall = service.getLocationsByType("o");
                                 retrofit2.Call<Version> versionCall = service.getVersion();
+                                retrofit2.Call<List<RadioCode>> radioCodesCall = service.getRadioCodes();
+                                retrofit2.Call<List<PriorityCode>> priorityCodesCall = service.getPriorityCodes();
+                                retrofit2.Call<List<PriorityClassification>> priorityClassificationsCall = service.getPriorityClassification();
+
 
                                 new OnAPICallComplete<Version>(versionCall) {
 
@@ -2058,6 +2066,93 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
                                     }
 
+                                }.setNext(new OnAPICallComplete<List<Location>>(othersCall) {
+
+                                    @Override
+                                    public void onSuccess(List<Location> locations) {
+
+                                        Log.d(TAG, String.format("Got %1$d other locations", locations.size()));
+
+                                        // sort bases
+                                        Collections.sort(locations, (a, b) -> a.getName().compareTo(b.getName()) );
+
+                                        // save bases
+                                        appData.setOtherLocations(locations);
+
+                                    }
+
+                                    @Override
+                                    public void onFailure(Throwable t) {
+                                        super.onFailure(t);
+
+                                        // Broadcast failure
+                                        broadcastFailure("Could not retrieve other locations", uuid, t);
+
+                                    }
+
+                                }.setNext(new OnAPICallComplete<List<PriorityCode>>(priorityCodesCall) {
+
+                                    @Override
+                                    public void onSuccess(List<PriorityCode> codes) {
+
+                                        Log.d(TAG, String.format("Got %1$d priority codes", codes.size()));
+
+                                        // save bases
+                                        appData.setPriorityCodes(codes);
+
+                                    }
+
+                                    @Override
+                                    public void onFailure(Throwable t) {
+                                        super.onFailure(t);
+
+                                        // Broadcast failure
+                                        broadcastFailure("Could not retrieve priority codes", uuid, t);
+
+                                    }
+
+                                }.setNext(new OnAPICallComplete<List<PriorityClassification>>(priorityClassificationsCall) {
+
+                                    @Override
+                                    public void onSuccess(List<PriorityClassification> classifications) {
+
+                                        Log.d(TAG, String.format("Got %1$d priority classifications", classifications.size()));
+
+                                        // save bases
+                                        appData.setPriorityClassifications(classifications);
+
+                                    }
+
+                                    @Override
+                                    public void onFailure(Throwable t) {
+                                        super.onFailure(t);
+
+                                        // Broadcast failure
+                                        broadcastFailure("Could not retrieve priority classifications", uuid, t);
+
+                                    }
+
+                                }.setNext(new OnAPICallComplete<List<RadioCode>>(radioCodesCall) {
+
+                                    @Override
+                                    public void onSuccess(List<RadioCode> codes) {
+
+                                        Log.d(TAG, String.format("Got %1$d radio codes", codes.size()));
+
+                                        // save bases
+                                        appData.setRadioCodes(codes);
+
+                                    }
+
+                                    @Override
+                                    public void onFailure(Throwable t) {
+                                        super.onFailure(t);
+
+                                        // Broadcast failure
+                                        broadcastFailure("Could not retrieve radio codes", uuid, t);
+
+                                    }
+
                                 }.setNext(new OnServiceComplete(AmbulanceForegroundService.this,
                                         org.emstrack.models.util.BroadcastActions.SUCCESS,
                                         org.emstrack.models.util.BroadcastActions.FAILURE,
@@ -2095,7 +2190,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
                                     }
 
-                                })))))
+                                })))))))))
                                         .start();
 
                             }

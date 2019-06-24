@@ -6,31 +6,74 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_marginHorizontal="10dp">
 
-    <Button
-        android:id="@+id/callPriorityButton"
-        android:layout_width="40dp"
+    <TextView
+        android:id="@+id/callPrioritySuffix"
+        android:layout_width="wrap_content"
         android:layout_height="40dp"
+        android:paddingTop="0dp"
+        android:paddingBottom="4dp"
         android:layout_alignParentRight="true"
+        android:text="-suffix"
+        android:textSize="18sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/callPriorityTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingTop="0dp"
+        android:paddingBottom="4dp"
+        android:paddingHorizontal="6dp"
+        android:layout_toLeftOf="@id/callPrioritySuffix"
         android:text="B"
-        android:textSize="16sp"
+        android:background="@color/bootstrapPrimary"
+        android:textSize="18sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/callPriorityPrefix"
+        android:layout_width="wrap_content"
+        android:layout_height="40dp"
+        android:paddingTop="0dp"
+        android:paddingBottom="4dp"
+        android:layout_toLeftOf="@id/callPriorityTextView"
+        android:text="prefix-"
+        android:textSize="18sp"
         android:textStyle="bold" />
 
     <TextView
         android:id="@+id/callPriorityLabel"
         android:layout_width="fill_parent"
         android:layout_height="40dp"
-        android:layout_toLeftOf="@id/callPriorityButton"
+        android:layout_toLeftOf="@id/callPriorityPrefix"
         android:gravity="top"
         android:text="@string/currentCall"
         android:textSize="18sp"
         android:textStyle="bold" />
 
     <TextView
+        android:id="@+id/callRadioCodeLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/radio_code_label"
+        android:layout_below="@id/callPriorityLabel"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/callRadioCodeText"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_toRightOf="@id/callDetailsLabel"
+        android:layout_below="@id/callPriorityLabel"
+        android:gravity="right"
+        android:text="@string/radio_code" />
+
+    <TextView
         android:id="@+id/callDetailsLabel"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/details"
-        android:layout_below="@id/callPriorityButton"
+        android:layout_below="@id/callRadioCodeLabel"
         android:textStyle="bold" />
 
     <TextView
@@ -38,7 +81,7 @@
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:layout_toRightOf="@id/callDetailsLabel"
-        android:layout_below="@id/callPriorityButton"
+        android:layout_below="@id/callRadioCodeLabel"
         android:gravity="right"
         android:text="@string/detailsText" />
 
