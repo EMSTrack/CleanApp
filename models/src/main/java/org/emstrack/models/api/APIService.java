@@ -159,4 +159,10 @@ public interface APIService {
      */
     @GET("equipment/{equipmentholder_id}/item/")
     Call<List<EquipmentItem>> getEquipmentList(@Path("equipmentholder_id") int id);
+
+    /**
+     * Retrieve equipment item
+     */
+    @GET("equipment/{equipmentholder_id}/item/{equipment_id}/")
+    Call<EquipmentItem> getEquipmentItem(@Path("equipmentholder_id") int holderId, @Path("equipment_id") int equipmentId);
 }

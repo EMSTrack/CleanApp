@@ -74,7 +74,6 @@ import org.emstrack.models.api.APIServiceGenerator;
 import org.emstrack.models.api.OnAPICallComplete;
 import org.emstrack.models.util.OnComplete;
 import org.emstrack.models.util.OnServiceComplete;
-import org.emstrack.mqtt.ClientActivity;
 import org.emstrack.mqtt.MishandledTopicException;
 import org.emstrack.mqtt.MqttProfileCallback;
 import org.emstrack.mqtt.MqttProfileClient;
@@ -190,7 +189,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         public final static String WAYPOINT_EXIT = "org.emstrack.ambulance.ambulanceforegroundservice.action.WAYPOINT_EXIT";
         public final static String WAYPOINT_SKIP = "org.emstrack.ambulance.ambulanceforegroundservice.action.WAYPOINT_SKIP";
         public final static String WAYPOINT_ADD = "org.emstrack.ambulance.ambulanceforegroundservice.action.WAYPOINT_ADD";
-        public final static String GET_EQUIPMENT = "org.emstrack.ambulance.ambulanceforegroundservice.action.GET_EQUIPMENT";
+        public final static String GET_EQUIPMENT_ITEM = "org.emstrack.ambulance.ambulanceforegroundservice.action.GET_EQUIPMENT_ITEM";
     }
 
     public class BroadcastExtras {
@@ -211,6 +210,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         public final static String GEOFENCE_RADIUS = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastextras.GEOFENCE_RADIUS";
         public final static String GEOFENCE_REQUESTID = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastextras.GEOFENCE_REQUESTID";
         public final static String GEOFENCE_TRIGGERED = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastextras.GEOFENCE_TRIGGERED";
+        public final static String EQUIPMENT_ID = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastextras.EQUIPMENT_ID";
     }
 
     public class ErrorCodes {
@@ -244,7 +244,8 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         public final static String CALL_UPDATE = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastaction.CALL_UPDATE";
         public final static String VERSION_UPDATE = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastaction.VERSION_UPDATE";
         public final static String CANNOT_UPDATE_LOCATION = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastaction.CANNOT_UPDATE_LOCATION";
-        public final static String EQUIPMENT_UPDATE = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastaction.EQUIPMENT_UPDATE";
+        public final static String EQUIPMENT_LIST_UPDATE = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastaction.EQUIPMENT_LIST_UPDATE";
+        public final static String EQUIPMENT_ITEM_UPDATE = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastaction.EQUIPMENT_ITEM_UPDATE";
     }
 
     public class AmbulanceForegroundServiceException extends Exception {
@@ -669,17 +670,19 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
             }
 
-        } else if (action.equals(Actions.GET_EQUIPMENT)) {
+        } else if (action.equals(Actions.GET_EQUIPMENT_ITEM)) {
 
-            Log.i(TAG, "GET_EQUIPMENT Foreground Intent");
+            Log.i(TAG, "GET_EQUIPMENT_ITEM Foreground Intent");
 
             Bundle bundle = intent.getExtras();
 
-            // Retrieve ambulanceId
-            int ambulanceId = bundle.getInt(AmbulanceForegroundService.BroadcastExtras.AMBULANCE_ID);
-            retrieveEquipmentList(ambulanceId, uuid);
+            int ambulanceId = bundle.getInt(BroadcastExtras.AMBULANCE_ID, -1);
+            int itemId = bundle.getInt(BroadcastExtras.EQUIPMENT_ID, -1);
+            Log.d(TAG, "GET EQUIPMENT_ID = " + itemId);
 
-        }else if (action.equals(Actions.UPDATE_NOTIFICATION)) {
+            retrieveEquipment(ambulanceId, itemId, uuid);
+
+        } else if (action.equals(Actions.UPDATE_NOTIFICATION)) {
 
             Log.i(TAG, "UPDATE_NOTIFICATION Foreground Intent");
 
@@ -2341,6 +2344,9 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         APIService service = APIServiceGenerator.createService(APIService.class);
         retrofit2.Call<Ambulance> ambulanceCall = service.getAmbulance(ambulanceId);
 
+        // retrieve equipment list data API call
+        retrofit2.Call<List<EquipmentItem>> equipmentCall = service.getEquipmentList(ambulanceId);
+
         // login to ambulance API call
         Client client = new Client(profileClient.getClientId(), Client.STATUS_ONLINE,
                 ambulanceId, null);
@@ -2358,6 +2364,9 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
                 // remove current ambulance
                 removeAmbulance(getUuid());
+
+                // remove current equipment list
+                removeEquipmentList();
 
             }
 
@@ -2435,6 +2444,34 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
             }
 
+        }.setNext(new OnAPICallComplete<List<EquipmentItem>>(equipmentCall) {
+
+            @Override
+            public void onSuccess(List<EquipmentItem> equipmentItemList) {
+
+                Log.d(TAG, "Got equipment list");
+
+                for (EquipmentItem item : equipmentItemList) {
+                    Log.d(TAG, String.format("Name: %s, Id: %d", item.getEquipmentName(), item.getEquipmentId()));
+                }
+
+                appData.setEquipmentList(equipmentItemList);
+
+                // update equipment list fragment
+                Intent localIntent = new Intent(BroadcastActions.EQUIPMENT_LIST_UPDATE);
+                sendBroadcastWithUUID(localIntent);
+
+            }
+
+            @Override
+            public void onFailure(Throwable t) {
+                super.onFailure(t);
+
+                // Broadcast failure
+                broadcastFailure(getString(R.string.couldNotRetrieveEquipmentList), uuid, t);
+
+            }
+
         }.setNext(new OnServiceComplete(this,
                 org.emstrack.models.util.BroadcastActions.SUCCESS,
                 org.emstrack.models.util.BroadcastActions.FAILURE,
@@ -2496,7 +2533,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
             }
 
-        }))))
+        })))))
                 .start();
 
     }
@@ -3132,42 +3169,83 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
     }
 
     /**
-     * Retrieve list of equpiment
+     * Retrieve equipment item with itemId
      */
-    public void retrieveEquipmentList(int ambulanceId, final String uuid) {
-        Log.d(TAG, "Retrieving equipment list...");
+    public void retrieveEquipment(int ambulanceId, int itemId, final String uuid) {
 
-        // Remove current equipment
-        removeEquipmentList();
+        Log.d(TAG, "Retrieving equipment with id: " + itemId);
 
-        // Retrieve equipment list data
         APIService service = APIServiceGenerator.createService(APIService.class);
-        retrofit2.Call<List<EquipmentItem>> equipmentCall = service.getEquipmentList(ambulanceId);
-        new OnAPICallComplete<List<EquipmentItem>>(equipmentCall) {
 
-            @Override
-            public void onSuccess(List<EquipmentItem> equipmentItemList) {
+        // retrieve entire equipment list
+        if (itemId == -1) {
 
-                Log.d(TAG, "Got equipment list");
+            // remove current equipment
+            removeEquipmentList();
 
-                for (EquipmentItem item : equipmentItemList) {
-                    Log.d(TAG, String.format("Name: %s, Id: %d", item.getEquipmentName(), item.getEquipmentId()));
+            // Retrieve equipment item data
+            retrofit2.Call<List<EquipmentItem>> equipmentCall = service.getEquipmentList(ambulanceId);
+            new OnAPICallComplete<List<EquipmentItem>>(equipmentCall) {
+
+                @Override
+                public void onSuccess(List<EquipmentItem> equipmentItemList) {
+
+                    Log.d(TAG, "Got equipment list");
+
+                    for (EquipmentItem item : equipmentItemList) {
+                        Log.d(TAG, String.format("Name: %s, Id: %d", item.getEquipmentName(), item.getEquipmentId()));
+                    }
+
+                    appData.setEquipmentList(equipmentItemList);
+
+                    // update equipment list fragment
+                    Intent localIntent = new Intent(BroadcastActions.EQUIPMENT_LIST_UPDATE);
+                    sendBroadcastWithUUID(localIntent);
+
                 }
 
-                appData.setEquipment(equipmentItemList);
+                @Override
+                public void onFailure(Throwable t) {
+                    super.onFailure(t);
 
-            }
+                    // Broadcast failure
+                    broadcastFailure(getString(R.string.couldNotRetrieveEquipmentList), uuid, t);
 
-            @Override
-            public void onFailure(Throwable t) {
-                super.onFailure(t);
+                }
 
-                // Broadcast failure
-                broadcastFailure(getString(R.string.couldNotRetrieveEquipmentList), uuid, t);
+            }.start();
 
-            }
+        } else {
+            // grab specific equipment item
+            retrofit2.Call<EquipmentItem> equipmentItemCall = service.getEquipmentItem(ambulanceId, itemId);
+            new OnAPICallComplete<EquipmentItem>(equipmentItemCall) {
 
-        }.start();
+                @Override
+                public void onSuccess(EquipmentItem equipmentItem) {
+
+                    Log.d(TAG, "Got equipment item");
+
+                    appData.setEquipmentItem(equipmentItem);
+
+                    // update equipment list fragment
+                    Intent localIntent = new Intent(BroadcastActions.EQUIPMENT_ITEM_UPDATE);
+                    localIntent.putExtra(BroadcastExtras.EQUIPMENT_ID, itemId);
+                    sendBroadcastWithUUID(localIntent);
+
+                }
+
+                @Override
+                public void onFailure(Throwable t) {
+                    super.onFailure(t);
+
+                    // Broadcast failure
+                    broadcastFailure(getString(R.string.couldNotRetrieveEquipmentItem), uuid, t);
+
+                }
+
+            }.start();
+
+        }
     }
 
     /**
@@ -3175,14 +3253,14 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
      */
     public void removeEquipmentList() {
 
-        SparseArray<EquipmentItem> equipment = appData.getEquipment();
+        SparseArray<EquipmentItem> equipment = appData.getEquipmentList();
         if (equipment.size() == 0) {
             Log.i(TAG, "No equipment to remove.");
             return;
         }
 
         // Remove hospitals
-        appData.setEquipment(new SparseArray<>());
+        appData.setEquipmentList(new SparseArray<>());
 
     }
 

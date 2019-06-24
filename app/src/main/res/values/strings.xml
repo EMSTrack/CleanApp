@@ -33,7 +33,7 @@
     <string name="equipment_boolean_image">Checkbox</string>
     <string name="equipment_bolean_button_positive_text">Update</string>
     <string name="equipment_bolean_button_negative_text">Cancel</string>
-    <string name="equipment_boolean_message">Is this equipment available?</string>
+    <string name="equipment_boolean_message">Is this equipmentList available?</string>
     <string name="equipment_boolean_true">Available</string>
     <string name="equipment_boolean_false">Not available</string>
 
@@ -248,7 +248,7 @@
     <string name="couldNotParseHospitalUpdate">Could not parse hospital update.</string>
     <string name="couldNotRemoveAmbulance">Could not remove ambulance</string>
     <string name="information">About</string>
-    <string name="equipment">Equipment</string>
+    <string name="equipmentList">Equipment</string>
     <string name="couldNotCleanUpCall">Could not clean up call</string>
     <string name="couldNotStopCallUpdates">Could not stop call updates</string>
     <string name="couldNotRetrieveCalls">Could not retrieve calls</string>
@@ -271,6 +271,7 @@
     <string name="radio_code_label">Radio Code:</string>
     <string name="unavailable">Unavailable</string>
     <string name="couldNotRetrieveEquipmentList">Could not retrieve equipment list</string>
+    <string name="couldNotRetrieveEquipmentItem">Could not retrieve equipment item</string>
     <string-array name="spinner_list_item_array_server">
         <item>@string/server_select</item>
         <item>Tijuana Red Cross:tijuana.emstrack.org:8883</item>

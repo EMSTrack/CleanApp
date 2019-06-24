@@ -29,7 +29,7 @@ public class AmbulanceAppData {
     private Ambulance ambulance;
     private SparseArray<Ambulance> ambulances;
     private SparseArray<Hospital> hospitals;
-    private SparseArray<EquipmentItem> equipment;
+    private SparseArray<EquipmentItem> equipmentList;
     private List<Location> bases;
     private List<Location> others;
     private CallStack calls;
@@ -44,7 +44,7 @@ public class AmbulanceAppData {
     public AmbulanceAppData() {
         ambulances = new SparseArray<>();
         hospitals = new SparseArray<>();
-        equipment = new SparseArray<>();
+        equipmentList = new SparseArray<>();
         bases = new ArrayList<>();
         others = new ArrayList<>();
         calls = new CallStack();
@@ -287,21 +287,33 @@ public class AmbulanceAppData {
 
     /**
      *
-     * @param equipment the SparseArray of equipment
+     * @param equipmentList the SparseArray of equipmentList
      */
-    public void setEquipment(SparseArray<EquipmentItem> equipment) {
-        this.equipment = equipment;
+    public void setEquipmentList(SparseArray<EquipmentItem> equipmentList) {
+        this.equipmentList = equipmentList;
     }
 
-    public void setEquipment(List<EquipmentItem> equipment) {
-        this.equipment = new SparseArray<>();
-        for (EquipmentItem item : equipment) {
-            this.equipment.put(item.getEquipmentId(), item);
+    public void setEquipmentList(List<EquipmentItem> equipmentList) {
+        this.equipmentList = new SparseArray<>();
+        for (EquipmentItem item : equipmentList) {
+            this.equipmentList.put(item.getEquipmentId(), item);
         }
     }
 
-    public SparseArray<EquipmentItem> getEquipment() {
-        return equipment;
+    public SparseArray<EquipmentItem> getEquipmentList() {
+        return equipmentList;
+    }
+
+    /**
+     *
+     * @param equipmentItem the equipment item being updated or added
+     */
+    public void setEquipmentItem(EquipmentItem equipmentItem) {
+        this.equipmentList.put(equipmentItem.getEquipmentId(), equipmentItem);
+    }
+
+    public EquipmentItem getEquipmentItem(int itemId) {
+        return equipmentList.get(itemId);
     }
 
     /**

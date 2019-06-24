@@ -228,7 +228,7 @@
     <string name="couldNotParseHospitalUpdate">No se pudo analizar los datos del hospital.</string>
     <string name="couldNotRemoveAmbulance">No se pudo quitar la ambulancia</string>
     <string name="information">Informaciones</string>
-    <string name="equipment">Equipo</string>
+    <string name="equipmentList">Equipo</string>
     <string name="couldNotCleanUpCall">No se pudo terminar la llamada</string>
     <string name="couldNotStopCallUpdates">No se pudo terminar la llamada</string>
     <string name="couldNotRetrieveCalls">No se pudo recibir llamadas</string>

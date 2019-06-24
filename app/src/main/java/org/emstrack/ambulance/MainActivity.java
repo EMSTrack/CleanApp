@@ -129,7 +129,6 @@ public class MainActivity extends AppCompatActivity {
                                         // else, if current ambulance is not updating location,
                                         // retrieve again
                                         retrieveAmbulance(selectedAmbulance);
-                                        retrieveEquipmentList(selectedAmbulance);
                                     }
 
                                     // otherwise do nothing
@@ -138,7 +137,6 @@ public class MainActivity extends AppCompatActivity {
 
                                     // otherwise go ahead!
                                     retrieveAmbulance(selectedAmbulance);
-                                    retrieveEquipmentList(selectedAmbulance);
                                     // dialog.dismiss();
 
                                 }
@@ -346,7 +344,7 @@ public class MainActivity extends AppCompatActivity {
                 new CharSequence[]{getString(R.string.ambulance),
                         getString(R.string.map),
                         getString(R.string.hospitals),
-                        getString(R.string.equipment)});
+                        getString(R.string.equipmentList)});
         viewPager.setAdapter(adapter);
 
         //set up TabLayout Structure
@@ -573,41 +571,6 @@ public class MainActivity extends AppCompatActivity {
                         (dialog, which) -> ambulanceSelectionButton.callOnClick()))
                 .start();
 
-    }
-
-    public void retrieveEquipmentList(final AmbulancePermission selectedAmbulance) {
-        Log.d(TAG, "Retrieving Equipment list in MainActivity");
-        // retrieve equipment
-        Intent equipmentIntent = new Intent(this, AmbulanceForegroundService.class);
-        equipmentIntent.setAction(AmbulanceForegroundService.Actions.GET_EQUIPMENT);
-        equipmentIntent.putExtra(AmbulanceForegroundService.BroadcastExtras.AMBULANCE_ID,
-                selectedAmbulance.getAmbulanceId());
-
-        // What to do when GET_EQUIPMENT service completes?
-        new OnServiceComplete(this,
-                BroadcastActions.SUCCESS,
-                BroadcastActions.FAILURE,
-                equipmentIntent) {
-
-            @Override
-            public void onSuccess(Bundle extras) {
-
-                /*
-                AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
-                SparseArray<EquipmentItem> equipmentList = appData.getEquipment();
-
-                Log.d(TAG, "Grabbing equipment list from AmbulanceForegroundService");
-                for (EquipmentItem equipment : SparseArrayUtils.iterable(equipmentList)) {
-                    Log.d(TAG, String.format("Name: %s, Id: %d", equipment.getEquipmentName(),
-                            equipment.getEquipmentId()));
-                }
-                */
-
-            }
-
-        }
-                .setFailureMessage(getResources().getString(R.string.couldNotRetrieveEquipmentList))
-                .start();
     }
 
     public boolean canWrite() {
@@ -1182,9 +1145,6 @@ public class MainActivity extends AppCompatActivity {
 
                             // retrieve new ambulance
                             retrieveAmbulance(newAmbulance);
-
-                            // retrieve new equipment list
-                            retrieveEquipmentList(newAmbulance);
 
                         });
 
