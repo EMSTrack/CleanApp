@@ -146,6 +146,7 @@ public class EquipmentFragment extends Fragment {
         if (itemPos == -1) {
             // item not in list
             equipmentList.add(equipmentItem);
+            itemPos = equipmentList.size() - 1;
         }
 
         adapter.notifyItemChanged(itemPos);
