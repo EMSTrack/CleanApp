@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginHorizontal="10dp">
+
+    <ImageView
+        android:id="@+id/hospital_thumbnail"
+        android:layout_width="25dp"
+        android:layout_height="25dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginLeft="4dp"
+        android:scaleType="fitCenter"
+        android:src="@drawable/ic_map_marker"/>
+
+    <TextView
+        android:id="@+id/address_line1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="20dp"
+        android:layout_marginLeft="35dp"
+        android:text="9880 Campus Point Drive"/>
+
+    <TextView
+        android:id="@+id/address_line2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="20dp"
+        android:layout_marginLeft="35dp"
+        android:layout_marginTop="25dp"
+        android:text="University City, CA 92121, US"/>
+
+    <Button
+        android:id="@+id/callPriorityButton"
+        android:layout_width="70dp"
+        android:layout_height="70dp"
+        android:layout_alignParentRight="true"
+        android:text="B"
+        android:textSize="35sp"
+        android:textStyle="bold"
+        android:layout_marginTop="68dp"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="4dp"
+        android:layout_marginTop="60dp">
+
+        <TextView
+            android:id="@+id/type_label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="20dp"
+            android:textStyle="bold"
+            android:text="Type:"/>
+
+        <TextView
+            android:id="@+id/type"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="10dp"
+            android:textSize="20dp"
+            android:text="Incident"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="4dp"
+        android:layout_marginTop="85dp">
+
+        <TextView
+            android:id="@+id/distance_label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="20dp"
+            android:textStyle="bold"
+            android:text="Distance:"/>
+
+        <TextView
+            android:id="@+id/distance"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="10dp"
+            android:textSize="20dp"
+            android:text="1.984 km"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="4dp"
+        android:layout_marginTop="110dp">
+
+        <TextView
+            android:id="@+id/waypointNum_label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="20dp"
+            android:textStyle="bold"
+            android:text="Waypoint#:"/>
+
+        <TextView
+            android:id="@+id/waypointNum"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="10dp"
+            android:textSize="20dp"
+            android:text="1"/>
+    </LinearLayout>
+
+    <View
+        android:layout_width="fill_parent"
+        android:layout_height="2dip"
+        android:layout_marginTop="145dp"
+        android:background="#FF000000" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="4dp"
+        android:layout_marginTop="150dp">
+
+        <TextView
+            android:id="@+id/patient_label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="20dp"
+            android:textStyle="bold"
+            android:text="Patient:"/>
+
+        <TextView
+            android:id="@+id/patient"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="10dp"
+            android:textSize="20dp"
+            android:text="Leon"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="4dp"
+        android:layout_marginTop="175dp">
+
+        <TextView
+            android:id="@+id/details_label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="20dp"
+            android:textStyle="bold"
+            android:text="Details:"/>
+
+        <TextView
+            android:id="@+id/details"
+            android:layout_width="wrap_content"
+            android:layout_height="120dp"
+            android:layout_marginLeft="10dp"
+            android:textSize="20dp"
+            android:text="This is an example incident"/>
+    </LinearLayout>
+
+    <Button
+        android:id="@+id/skipBtn"
+        android:layout_width="120dp"
+        android:layout_height="70dp"
+        android:layout_alignParentLeft="true"
+        android:text="Skip"
+        android:textSize="20dp"
+        android:background="@color/bootstrapYellow"
+        android:textColor="@color/bootstrapLight"
+        android:layout_marginTop="350dp"/>
+    <Button
+        android:id="@+id/endBtn"
+        android:layout_width="120dp"
+        android:layout_height="70dp"
+        android:text="End"
+        android:textSize="20dp"
+        android:layout_marginTop="350dp"
+        android:background="@color/bootstrapDanger"
+        android:textColor="@color/bootstrapLight"
+        android:layout_centerHorizontal="true"/>
+
+    <Button
+        android:id="@+id/visitingBtn"
+        android:layout_width="120dp"
+        android:layout_height="70dp"
+        android:layout_alignParentRight="true"
+        android:text="Visited"
+        android:textSize="20dp"
+        android:background="@color/bootstrapSuccess"
+        android:textColor="@color/bootstrapLight"
+        android:layout_marginTop="350dp"/>
+
+</RelativeLayout>
+
