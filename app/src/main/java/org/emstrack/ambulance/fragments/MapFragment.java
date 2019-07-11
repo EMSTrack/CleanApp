@@ -69,7 +69,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-// TODO: Implement listener to ambulance changes
 
 public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleMap.OnCameraIdleListener {
 
@@ -81,12 +80,9 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
     private Map<Integer, Marker> hospitalMarkers;
     private Map<Integer, Marker> waypointMarkers;
 
-    //button recycle view objects
+    // button recycle view objects
     private RecyclerView recyclerView;
-    private ArrayList<Waypoint> waypointList;
     private WaypointInfoAdapter adapter;
-
-    private int curWaypointIndex = 0;
 
     private View waypointNavigator;
 
@@ -210,36 +206,50 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
 
                         // current waypoint is the not the next one
 
-                        // change icon
+                        // change icon to remove waypoint and home icon
                         visitWaypointBtn.setImageResource(R.drawable.ic_home);
                         skipWaypointBtn.setImageResource(R.drawable.ic_minus);
 
-                        //show skip waypoint button
+                        // TODO add function to remove waypoint button
                         skipWaypointBtn.setOnClickListener(null);
 
-                        //show visiting waypoint button
-                        visitWaypointBtn.setOnClickListener(null);
-
+                        // add function to home button
+                        visitWaypointBtn.setOnClickListener(
+                                v -> {
+                                    //scroll to current waypoint not visited
+                                    int index = waypoints.lastIndexOf(ambulanceCall.getNextWaypoint());
+                                    recyclerView.scrollToPosition(index);
+                                }
+                        );
                     }
 
                 }
 
             }
 
-        }
+    }
 
 
     private void createWaypointButtons(Call call) {
 
         waypointNavigator.setVisibility(View.VISIBLE);
 
-        //show add waypoint button
+        // give function to add waypoint button
         addWaypointBtn.setOnClickListener(
                 v -> {
                     // Prompt add new waypoint
                     ((MainActivity) getActivity()).promptNextWaypointDialog(call.getId());
                 }
         );
+
+        // give function to end call button
+        endCallBtn.setOnClickListener(
+                v -> {
+                    // prompt end call dialog
+                    ((MainActivity) getActivity()).promptEndCallDialog(call.getId());
+                }
+        );
+
 
         AmbulanceCall ambulanceCall = call.getCurrentAmbulanceCall();
         List<Waypoint> waypoints = ambulanceCall.getWaypointSet();
@@ -253,7 +263,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
 
             //scroll to current waypoint not visited
             Waypoint curWaypoint = ambulanceCall.getNextWaypoint();
-            curWaypointIndex = waypoints.lastIndexOf(curWaypoint);
+            int curWaypointIndex = waypoints.lastIndexOf(curWaypoint);
             recyclerView.scrollToPosition(curWaypointIndex);
 
         }
