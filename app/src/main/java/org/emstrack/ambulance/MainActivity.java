@@ -59,6 +59,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import android.os.Handler;
+import android.os.CountDownTimer;
+
 
 /**
  * This is the main activity -- the default screen
@@ -304,7 +307,7 @@ public class MainActivity extends AppCompatActivity {
 
         // Panic button
         ImageButton panicButton = findViewById(R.id.panicButton);
-        panicButton.setOnClickListener(
+        panicButton.setOnLongClickListener(
                 v -> panicPopUp());
 
         // Set a Toolbar to replace the ActionBar.
@@ -630,7 +633,9 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    public void panicPopUp() {
+    public boolean panicPopUp() {
+        final long TOTAL_TIME = 3000; // miliseconds
+
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setCancelable(true);
@@ -644,7 +649,41 @@ public class MainActivity extends AppCompatActivity {
                 });
 
         AlertDialog dialog = builder.create();
+        /*new Handler().postDelayed(new Runnable() {
+            public void run() {
+                // do action here
+            }
+        }, TOTAL_TIME);*/
         dialog.show();
+        final Handler handler  = new Handler();
+        final Runnable runnable = new Runnable() {
+            @Override
+            public void run() {
+                if (dialog.isShowing()) {
+                    dialog.dismiss();
+                }
+            }
+        };
+
+        dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
+            @Override
+            public void onDismiss(DialogInterface dialog) {
+                handler.removeCallbacks(runnable);
+            }
+        });
+
+        handler.postDelayed(runnable, 3000);
+        new CountDownTimer(3000, 1000) {
+            @Override
+            public void onTick(long l) {
+                dialog.setMessage("Seconds remaining: "+((l/1000)+1));
+            }
+            @Override
+            public void onFinish() {
+                dialog.setMessage("");
+            }
+        }.start();
+        return true;
     }
 
     /**
