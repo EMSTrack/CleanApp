@@ -59,6 +59,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import android.os.Handler;
+import android.os.CountDownTimer;
+
 
 /**
  * This is the main activity -- the default screen
@@ -306,7 +309,7 @@ public class MainActivity extends AppCompatActivity {
 
         // Panic button
         ImageButton panicButton = findViewById(R.id.panicButton);
-        panicButton.setOnClickListener(
+        panicButton.setOnLongClickListener(
                 v -> panicPopUp());
 
         // Set a Toolbar to replace the ActionBar.
@@ -644,7 +647,9 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    public void panicPopUp() {
+    public boolean panicPopUp() {
+        final long DIALOG_DISMISS_TIME = 3000; // miliseconds
+
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setCancelable(true);
@@ -658,7 +663,29 @@ public class MainActivity extends AppCompatActivity {
                 });
 
         AlertDialog dialog = builder.create();
+
+        //timer to dismiss dialog after DIALOG_DISMISS_TIME ms
+        final CountDownTimer timer = new CountDownTimer(DIALOG_DISMISS_TIME, 1000) {
+            @Override
+            public void onTick(long l) {
+                dialog.setMessage("Seconds remaining: "+((l/1000)+1));
+            }
+            @Override
+            public void onFinish() {
+                dialog.dismiss();
+            }
+        };
+        //if dismissed before timer's up, cancel timer
+        dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
+            @Override
+            public void onDismiss(DialogInterface dialog) {
+                timer.cancel();
+
+            }
+        });
         dialog.show();
+        timer.start();
+        return true;
     }
 
     /**
