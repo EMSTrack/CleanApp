@@ -634,7 +634,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public boolean panicPopUp() {
-        final long TOTAL_TIME = 3000; // miliseconds
+        final long DIALOG_DISMISS_TIME = 3000; // miliseconds
 
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -649,40 +649,28 @@ public class MainActivity extends AppCompatActivity {
                 });
 
         AlertDialog dialog = builder.create();
-        /*new Handler().postDelayed(new Runnable() {
-            public void run() {
-                // do action here
-            }
-        }, TOTAL_TIME);*/
-        dialog.show();
-        final Handler handler  = new Handler();
-        final Runnable runnable = new Runnable() {
-            @Override
-            public void run() {
-                if (dialog.isShowing()) {
-                    dialog.dismiss();
-                }
-            }
-        };
 
-        dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
-            @Override
-            public void onDismiss(DialogInterface dialog) {
-                handler.removeCallbacks(runnable);
-            }
-        });
-
-        handler.postDelayed(runnable, 3000);
-        new CountDownTimer(3000, 1000) {
+        //timer to dismiss dialog after DIALOG_DISMISS_TIME ms
+        final CountDownTimer timer = new CountDownTimer(DIALOG_DISMISS_TIME, 1000) {
             @Override
             public void onTick(long l) {
                 dialog.setMessage("Seconds remaining: "+((l/1000)+1));
             }
             @Override
             public void onFinish() {
-                dialog.setMessage("");
+                dialog.dismiss();
             }
-        }.start();
+        };
+        //if dismissed before timer's up, cancel timer
+        dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
+            @Override
+            public void onDismiss(DialogInterface dialog) {
+                timer.cancel();
+
+            }
+        });
+        dialog.show();
+        timer.start();
         return true;
     }
 
