@@ -2,6 +2,7 @@ package org.emstrack.ambulance;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.res.Configuration;
@@ -662,28 +663,22 @@ public class MainActivity extends AppCompatActivity {
                 (dialog, which) -> {
                 });
 
-        AlertDialog dialog = builder.create();
+        AlertDialog alertDialog = builder.create();
 
         //timer to dismiss dialog after DIALOG_DISMISS_TIME ms
         final CountDownTimer timer = new CountDownTimer(DIALOG_DISMISS_TIME, 1000) {
             @Override
             public void onTick(long l) {
-                dialog.setMessage("Seconds remaining: "+((l/1000)+1));
+                alertDialog.setMessage("Seconds remaining: "+((l/1000)+1));
             }
             @Override
             public void onFinish() {
-                dialog.dismiss();
+                alertDialog.dismiss();
             }
         };
         //if dismissed before timer's up, cancel timer
-        dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
-            @Override
-            public void onDismiss(DialogInterface dialog) {
-                timer.cancel();
-
-            }
-        });
-        dialog.show();
+        alertDialog.setOnDismissListener(dialog -> timer.cancel());
+        alertDialog.show();
         timer.start();
         return true;
     }
