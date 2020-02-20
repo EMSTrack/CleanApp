@@ -27,7 +27,7 @@ public class EquipmentViewHolder extends GroupViewHolder {
     public EquipmentViewHolder(View itemView) {
         super(itemView);
 
-        equipmentNameTextView = (TextView) itemView.findViewById(R.id.equipment_name);
+        equipmentNameTextView = (TextView) itemView.findViewById(R.id.equipment_item);
         equipmentThumbnailImageView = (ImageView) itemView.findViewById(R.id.equipment_thumbnail);
     }
 
