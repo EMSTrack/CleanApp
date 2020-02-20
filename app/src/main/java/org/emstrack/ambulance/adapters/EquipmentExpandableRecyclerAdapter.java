@@ -21,23 +21,25 @@ import java.util.List;
  */
 
 public class EquipmentExpandableRecyclerAdapter
-        extends ExpandableRecyclerViewAdapter<HospitalViewHolder, HospitalEquipmentViewHolder> {
+        extends ExpandableRecyclerViewAdapter<EquipmentViewHolder, EquipmentViewHolder> {
 
-    private static final String TAG = HospitalExpandableRecyclerAdapter.class.getSimpleName();
+    private static final String TAG = EquipmentExpandableRecyclerAdapter.class.getSimpleName();
 
     public EquipmentExpandableRecyclerAdapter(List<? extends ExpandableGroup> groups) {
         super(groups);
     }
 
+    //TODO make layout/equipment_item.xml file
     @Override
-    public HospitalViewHolder onCreateGroupViewHolder(ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.hospital_item, parent, false);
+    public EquipmentViewHolder onCreateGroupViewHolder(ViewGroup parent, int viewType) {
+        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.equipment_item, parent, false);
         return new HospitalViewHolder(view);
     }
 
+    //TODO decide if we need an equipment child display
     @Override
     public HospitalEquipmentViewHolder onCreateChildViewHolder(ViewGroup child, int viewType) {
-        View view = LayoutInflater.from(child.getContext()).inflate(R.layout.hospital_equipment_item, child, false);
+        View view = LayoutInflater.from(child.getContext()).inflate(R.layout.equipment_item_details, child, false);
         return new HospitalEquipmentViewHolder(view);
     }
 
