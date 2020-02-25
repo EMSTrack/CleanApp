@@ -44,13 +44,17 @@ public class EquipmentFragment extends Fragment {
         public void onReceive(Context context, Intent intent ) {
             if (intent != null) {
                 final String action = intent.getAction();
+                /*
                 if (action.equals(AmbulanceForegroundService.BroadcastActions.EQUIPMENT_UPDATE)) {
 
                     Log.i(TAG, "EQUIPMENT_UPDATE");
                     AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
-                    update(appData.getEquipment());
+                    update(appData.getHospitals());
+
 
                 }
+
+                 */
             }
         }
     }
@@ -63,7 +67,7 @@ public class EquipmentFragment extends Fragment {
 
         //TODO set up getEquipment
         AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
-        update(appData.getEquipment());
+        //update(appData.getEquipment());
 
         return rootView;
     }
@@ -83,7 +87,7 @@ public class EquipmentFragment extends Fragment {
         AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
 
         // updateAmbulance UI
-        update(appData.getEquipment());
+        //update(appData.getEquipment());
     }
 
     @Override
