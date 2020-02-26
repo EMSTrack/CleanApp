@@ -24,6 +24,7 @@ import org.emstrack.ambulance.models.EquipmentExpandableGroup;
 import org.emstrack.ambulance.services.AmbulanceForegroundService;
 import org.emstrack.ambulance.util.SparseArrayUtils;
 import org.emstrack.models.EquipmentItem;
+import org.emstrack.models.Hospital;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -44,17 +45,17 @@ public class EquipmentFragment extends Fragment {
         public void onReceive(Context context, Intent intent ) {
             if (intent != null) {
                 final String action = intent.getAction();
-                /*
-                if (action.equals(AmbulanceForegroundService.BroadcastActions.EQUIPMENT_UPDATE)) {
 
-                    Log.i(TAG, "EQUIPMENT_UPDATE");
+                if (action.equals(AmbulanceForegroundService.BroadcastActions.HOSPITALS_UPDATE)) {
+
+                    Log.i(TAG, "HOSPITALS_UPDATE");
                     AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
                     update(appData.getHospitals());
 
 
                 }
 
-                 */
+
             }
         }
     }
@@ -67,7 +68,7 @@ public class EquipmentFragment extends Fragment {
 
         //TODO set up getEquipment
         AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
-        //update(appData.getEquipment());
+        update(appData.getHospitals());
 
         return rootView;
     }
@@ -87,7 +88,7 @@ public class EquipmentFragment extends Fragment {
         AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
 
         // updateAmbulance UI
-        //update(appData.getEquipment());
+        update(appData.getHospitals());
     }
 
     @Override
@@ -101,16 +102,16 @@ public class EquipmentFragment extends Fragment {
         }
     }
 
-    //TODO function: update(), create EquipmentExpandableGroup
+    //TODO function: change Hospital to EquipmentItem
     /**
      * Update equipment list
      *
-     * @param equipment list of equipment
+     * @param hospital list of ...
      */
-    public void update(SparseArray<EquipmentItem> equipment) {
+    public void update(SparseArray<Hospital> hospitals) {
 
         // fast return if no hospitals
-        if (equipment == null)
+        if (hospitals == null)
             return;
 
         Log.i(TAG,"Updating equipment UI.");
@@ -119,12 +120,14 @@ public class EquipmentFragment extends Fragment {
         final List equipmentExpandableGroup = new ArrayList<EquipmentExpandableGroup>();
 
         // Loop over all equipment
-        for (EquipmentItem equipmentItem : SparseArrayUtils.iterable(equipment) ) {
+        for (Hospital hospital : SparseArrayUtils.iterable(hospitals) ) {
 
             // Add to to expandable group
             //TODO not sure if we should create an EquipmentExpandableGroup for each equipment
             equipmentExpandableGroup.add(
-                    new EquipmentExpandableGroup(new ArrayList<>()));
+                    new EquipmentExpandableGroup(hospital.getName(),
+                            new ArrayList<>(),
+                            hospital));
 
         }
 

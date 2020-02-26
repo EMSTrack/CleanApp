@@ -11,6 +11,7 @@ import org.emstrack.ambulance.R;
 import org.emstrack.ambulance.models.EquipmentExpandableGroup;
 import org.emstrack.ambulance.models.HospitalExpandableGroup;
 import org.emstrack.ambulance.views.EquipmentViewHolder;
+import org.emstrack.ambulance.views.HospitalEquipmentViewHolder;
 import org.emstrack.ambulance.views.HospitalViewHolder;
 import org.emstrack.models.EquipmentItem;
 import org.emstrack.models.Hospital;
@@ -22,7 +23,7 @@ import java.util.List;
  */
 
 public class EquipmentExpandableRecyclerAdapter
-        extends ExpandableRecyclerViewAdapter<EquipmentViewHolder, EquipmentViewHolder> {
+        extends ExpandableRecyclerViewAdapter<EquipmentViewHolder, HospitalEquipmentViewHolder> {
 
     private static final String TAG = EquipmentExpandableRecyclerAdapter.class.getSimpleName();
 
@@ -37,31 +38,31 @@ public class EquipmentExpandableRecyclerAdapter
     }
 
 
-    @Override
-    public EquipmentViewHolder onCreateChildViewHolder(ViewGroup child, int viewType) {
-        //View view = LayoutInflater.from(child.getContext()).inflate(R.layout.equipment_item_details, child, false);
-        //return new EquipmentViewHolder(view);
+    @Override // TODO: change hospital_equipment_item
+    public HospitalEquipmentViewHolder onCreateChildViewHolder(ViewGroup child, int viewType) {
+        View view = LayoutInflater.from(child.getContext()).inflate(R.layout.hospital_equipment_item, child, false);
+        return new HospitalEquipmentViewHolder(view);
     }
 
 
     @Override
-    public void onBindChildViewHolder(EquipmentViewHolder holder, int flatPosition,
+    public void onBindChildViewHolder(HospitalEquipmentViewHolder holder, int flatPosition,
                                       ExpandableGroup group, int childIndex) {
         EquipmentItem hospitalEquipment = ((HospitalExpandableGroup) group).getItems().get(childIndex);
         // Log.d(TAG, "Binding equipment '" + hospitalEquipment + "'");
 
-        //holder.setHospitalEquipment(hospitalEquipment);
+        holder.setHospitalEquipment(hospitalEquipment);
     }
 
 
 
-    @Override
+    @Override //TODO: change hospital line
     public void onBindGroupViewHolder(EquipmentViewHolder holder, int flatPosition,
                                       ExpandableGroup group) {
-        //EquipmentItem equipment = ((EquipmentExpandableGroup) group).getEquipment();
+        EquipmentItem equipment = ((EquipmentExpandableGroup) group).getEquipment();
         // Log.d(TAG, "Binding hospital '" + hospital.getName() + "'");
 
-        //holder.setEquipment(equipment);
+        holder.setEquipment(equipment);
     }
 
 

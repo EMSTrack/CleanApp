@@ -13,7 +13,16 @@ import java.util.List;
 
 public class EquipmentExpandableGroup extends ExpandableGroup<EquipmentItem> {
 
-    public EquipmentExpandableGroup(List<EquipmentItem> items) {
-        super(items);
+    private Hospital hospital;
+    private EquipmentItem equipment;
+
+    public EquipmentExpandableGroup(String title, List<EquipmentItem> items, Hospital hospital) {
+        super(title, items);
+        this.hospital = hospital;
+        this.equipment = items.get(0);
+    }
+
+    public EquipmentItem getEquipment() {
+        return equipment;
     }
 }
