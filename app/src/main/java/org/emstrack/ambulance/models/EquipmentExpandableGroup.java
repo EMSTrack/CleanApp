@@ -19,7 +19,7 @@ public class EquipmentExpandableGroup extends ExpandableGroup<EquipmentItem> {
     public EquipmentExpandableGroup(String title, List<EquipmentItem> items, Hospital hospital) {
         super(title, items);
         this.hospital = hospital;
-        this.equipment = items.get(0);
+        //this.equipment = null;
     }
 
     public EquipmentItem getEquipment() {

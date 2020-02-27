@@ -59,10 +59,10 @@ public class EquipmentExpandableRecyclerAdapter
     @Override //TODO: change hospital line
     public void onBindGroupViewHolder(EquipmentViewHolder holder, int flatPosition,
                                       ExpandableGroup group) {
-        EquipmentItem equipment = ((EquipmentExpandableGroup) group).getEquipment();
+        //EquipmentItem equipment = ((EquipmentExpandableGroup) group).getEquipment();
         // Log.d(TAG, "Binding hospital '" + hospital.getName() + "'");
 
-        holder.setEquipment(equipment);
+        //holder.setEquipment(equipment);
     }
 
 
