@@ -8,7 +8,7 @@ import org.emstrack.models.EquipmentItem;
 import java.util.List;
 
 /**
- * Created by James on 2/17/2020.
+ * Created by James on 2/17/2020. TODO: fix the instantation
  */
 
 public class EquipmentExpandableGroup extends ExpandableGroup<EquipmentItem> {
