@@ -81,7 +81,7 @@ public class MainActivity extends AppCompatActivity {
     private List<AmbulancePermission> ambulancePermissions;
     private List<HospitalPermission> hospitalPermissions;
     private List<Location> bases;
-    private List<Location> others;
+    private List<Location> otherLocations;
 
     private ArrayAdapter<String> ambulanceListAdapter;
     private ArrayAdapter<String> hospitalListAdapter;
@@ -382,7 +382,7 @@ public class MainActivity extends AppCompatActivity {
             hospitalPermissions = profile.getHospitals();
         }
         bases = appData.getBases();
-        others = appData.getOtherLocations();
+        otherLocations = appData.getOtherLocations();
 
         // Creates list of ambulance names
         ArrayList<String> ambulanceList = new ArrayList<>();
@@ -422,7 +422,7 @@ public class MainActivity extends AppCompatActivity {
         // Creates list of other location names
         ArrayList<String> othersList = new ArrayList<>();
         othersList.add(getString(R.string.selectOthers));
-        for (Location other : others)
+        for (Location other : otherLocations)
             othersList.add(other.getName());
 
         // Create the adapter
@@ -1104,6 +1104,13 @@ public class MainActivity extends AppCompatActivity {
                                 Location base = bases.get(selectedBase - 1);
                                 Log.d( TAG, "base = " + base);
                                 waypoint = "{\"order\":" + maximumOrder + ",\"location\":{\"id\":" + base.getId() + ",\"type\":\"" + Location.TYPE_BASE + "\"}}";
+                            }
+
+                            int selectedOthers = othersSpinner.getSelectedItemPosition();
+                            if (selectedOthers > 0) {
+                                Location others = otherLocations.get(selectedOthers - 1);
+                                Log.d( TAG, "other = " + others);
+                                waypoint = "{\"order\":" + maximumOrder + ",\"location\":{\"id\":" + others.getId() + ",\"type\":\"" + Location.TYPE_OTHER + "\"}}";
                             }
 
                             // Publish waypoint
