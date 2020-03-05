@@ -2533,7 +2533,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                 try {
 
                     // Unsubscribe from ambulance data
-                    profileClient.unsubscribe("ambulance/" + ambulanceId + "/data");
+                    profileClient.unsubscribe(String.format("ambulance/%1$d/data", ambulanceId));
 
                 } catch (MqttException exception) {
 
@@ -2684,7 +2684,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         final MqttProfileClient profileClient = getProfileClient(this);
 
         // Subscribe to ambulance
-        profileClient.subscribe("ambulance/" + ambulanceId + "/data", 1,
+        profileClient.subscribe(String.format("ambulance/%1$d/data", ambulanceId), 1,
                 (topic, message) -> {
 
                     try {
@@ -2721,8 +2721,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         // Retrieve client
         final MqttProfileClient profileClient = getProfileClient(this);
 
-        profileClient.subscribe(
-                String.format("ambulance/%1$d/call/+/status", ambulanceId),2,
+        profileClient.subscribe(String.format("ambulance/%1$d/call/+/status", ambulanceId), 2,
                 (topic, message) -> {
 
                     // Get calls
@@ -2803,7 +2802,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         // Retrieve client
         final MqttProfileClient profileClient = getProfileClient(this);
 
-        profileClient.subscribe(String.format("call/%1$s/data", callId),2,
+        profileClient.subscribe(String.format("call/%1$s/data", callId), 2,
                 (topic, message) -> {
 
                     // Keep subscription to call_current to make sure we receive latest updates
@@ -2845,7 +2844,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         final MqttProfileClient profileClient = getProfileClient(this);
 
         // Subscribe to hospital
-        profileClient.subscribe("hospital/" + hospitalId + "/data",1,
+        profileClient.subscribe(String.format("hospital/%1$d/data", hospitalId), 1,
                 (topic, message) -> {
 
                     try {
@@ -2971,7 +2970,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
             try {
 
                 // Unsubscribe to hospital data
-                profileClient.unsubscribe("hospital/" + hospital.getId() + "/data");
+                profileClient.unsubscribe(String.format("hospital/%1$d/data", hospital.getId()));
 
             } catch (MqttException exception) {
                 Log.d(TAG, "Could not unsubscribe to 'hospital/" + hospital.getId() + "/data'");
@@ -3088,7 +3087,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
             try {
 
                 // Unsubscribe to ambulance data
-                profileClient.unsubscribe("ambulance/" + ambulance.getId() + "/data");
+                profileClient.unsubscribe(String.format("ambulance/%1$d/data", ambulance.getId()));
 
             } catch (MqttException exception) {
                 Log.d(TAG, "Could not unsubscribe to 'ambulance/" + ambulance.getId() + "/data'");
@@ -3780,7 +3779,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
             // unsubscribe from call
             Log.i(TAG, "Unsubscribe from call/" + callId + "/data");
             try {
-                profileClient.unsubscribe("call/" + callId + "/data");
+                profileClient.unsubscribe(String.format("call/%1$d/data",  callId));
             } catch (MqttException e) {
                 Log.d(TAG, "Could not unsubscribe from 'call/" + callId + "/data'");
             }
@@ -4004,7 +4003,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
                             // unsubscribe from call
                             try {
-                                profileClient.unsubscribe("call/" + callId + "/data");
+                                profileClient.unsubscribe(String.format("call/%1$d/data", callId));
                             } catch (MqttException e) {
                                 Log.d(TAG, "Could not unsubscribe from 'call/" + callId + "/data'");
                             }
@@ -4393,6 +4392,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
                     break;
                 case Location.TYPE_WAYPOINT:
+                case Location.TYPE_OTHER:
 
                     // step 7: publish waypoint bound to server
                     updateAmbulanceStatus(ambulanceCall.getAmbulanceId(),
@@ -4485,6 +4485,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
                 break;
             case Location.TYPE_WAYPOINT:
+            case Location.TYPE_OTHER:
 
                 // publish waypoint bound to server
                 updateAmbulanceStatus(ambulanceCall.getAmbulanceId(), Ambulance.STATUS_AT_WAYPOINT);
