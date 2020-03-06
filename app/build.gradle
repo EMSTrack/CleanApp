@@ -1,14 +1,14 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 27
+    compileSdkVersion 29
     // buildToolsVersion '27.0.3'
     defaultConfig {
         applicationId 'org.emstrack.ambulance'
         minSdkVersion 17
-        targetSdkVersion 27
-        versionCode 3
-        versionName "0.6.0"
+        targetSdkVersion 29
+        versionCode 4
+        versionName "0.6.1"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         resValue "string", "google_maps_key",
                 (project.findProperty("GOOGLE_MAPS_API_KEY") ?: "")
