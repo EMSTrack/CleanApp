@@ -24,6 +24,13 @@ public class TestRetrofit {
 
         APIService service = APIServiceGenerator.createService(APIService.class);
 
+        // retrieve servers
+        retrofit2.Call<List<String>> callServers = service.getServers();
+        Response<List<String>> serversResponse = callServers.execute();
+        List<String> servers = serversResponse.body();
+        assertTrue(servers.size() > 0);
+        System.out.println("servers = " + servers);
+
         String username = "admin";
         String password = "cruzrojaadmin";
         String serverURI = "https://cruzroja.ucsd.edu/";
