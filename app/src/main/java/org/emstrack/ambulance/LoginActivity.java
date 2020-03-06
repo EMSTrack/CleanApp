@@ -33,12 +33,17 @@ import org.emstrack.ambulance.dialogs.AlertSnackbar;
 import org.emstrack.ambulance.models.AmbulanceAppData;
 import org.emstrack.ambulance.services.AmbulanceForegroundService;
 import org.emstrack.models.Credentials;
+import org.emstrack.models.api.APIService;
+import org.emstrack.models.api.APIServiceGenerator;
 import org.emstrack.models.util.BroadcastActions;
 import org.emstrack.models.util.BroadcastExtras;
 import org.emstrack.models.util.OnServiceComplete;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+
+import retrofit2.Response;
 
 public class LoginActivity extends AppCompatActivity implements View.OnClickListener {
 
@@ -57,7 +62,6 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     private boolean logout;
 
     private ArrayAdapter<CharSequence> serverNames;
-    private String[] serverList;
     private List<String> serverMqttURIs;
     private List<String> serverAPIURIs;
 
@@ -78,29 +82,16 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         passwordField = findViewById(R.id.editPassword);
 
         // Retrieve list of servers
-        serverList = getResources().getStringArray(R.array.spinner_list_item_array_server);
 
-        // Populate server list
         // Log.d(TAG, "Populating server list");
         serverNames = new ArrayAdapter(this, android.R.layout.simple_spinner_item);
         serverMqttURIs = new ArrayList<>();
         serverAPIURIs = new ArrayList<>();
-        for (String server: serverList) {
-            try {
-                String[] splits = server.split(":", 3);
-                serverNames.add(splits[0]);
-                if (!splits[1].isEmpty()) {
-                    serverMqttURIs.add("ssl://" + splits[1] + ":" + splits[2]);
-                    serverAPIURIs.add("https://" + splits[1]);
-                } else {
-                    serverMqttURIs.add("");
-                    serverAPIURIs.add("");
-                }
-            } catch (Exception e) {
-                Log.d(TAG, "Malformed server string. Skipping.");
-            }
-        }
-        // Log.d(TAG, serverMqttURIs.toString());
+
+        // add select server message
+        serverNames.add(this.getString(R.string.server_select));
+        serverMqttURIs.add("");
+        serverAPIURIs.add("");
 
         // Create server spinner
         serverField = findViewById(R.id.spinnerServer);
@@ -113,16 +104,6 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         // Retrieve past credentials
         usernameField.setText(sharedPreferences.getString(AmbulanceForegroundService.PREFERENCES_USERNAME, null));
         passwordField.setText(sharedPreferences.getString(AmbulanceForegroundService.PREFERENCES_PASSWORD, null));
-        String serverMqttUri = sharedPreferences.getString(AmbulanceForegroundService.PREFERENCES_MQTT_SERVER, null);
-
-        // set server item
-        int serverPos = 0;
-        if (serverMqttUri != null) {
-            serverPos = serverMqttURIs.indexOf(serverMqttUri);
-        }
-        if (serverPos < 0)
-            serverPos = 0;
-        serverField.setSelection(serverPos);
 
         // Submit button
         loginSubmitButton = findViewById(R.id.buttonLogin);
@@ -186,14 +167,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
         Log.d(TAG, "enableLogin");
 
-        // Enable login button
-        loginSubmitButton.setOnClickListener(this);
-
-        // Create start foreground activity intent
-        Intent startIntent = new Intent(LoginActivity.this,
-                AmbulanceForegroundService.class);
-        startIntent.putExtra("ADD_STOP_ACTION", true);
-        startIntent.setAction(AmbulanceForegroundService.Actions.START_SERVICE);
+        LoginActivity self = this;
 
         // Logout then login or start service
         new OnServiceComplete(this,
@@ -256,6 +230,11 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                     intent.putExtra("ADD_STOP_ACTION", true);
                     intent.setAction(AmbulanceForegroundService.Actions.START_SERVICE);
 
+                    // Initialize service to make sure it gets bound to service
+                    Intent serverIntent = new Intent(LoginActivity.this,
+                            AmbulanceForegroundService.class);
+                    serverIntent.setAction(AmbulanceForegroundService.Actions.GET_SERVERS);
+
                     new OnServiceComplete(LoginActivity.this,
                             BroadcastActions.SUCCESS,
                             BroadcastActions.FAILURE,
@@ -282,6 +261,77 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                         }
 
                     }
+                            .setNext(new OnServiceComplete(LoginActivity.this,
+                                    BroadcastActions.SUCCESS,
+                                    BroadcastActions.FAILURE,
+                                    serverIntent) {
+
+                                @Override
+                                public void onSuccess(Bundle extras) {
+
+                                    Log.d(TAG, "Will set servers dropdown");
+
+                                    // Retrieve list of servers
+                                    AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
+                                    List<String> serverList = appData.getServersList();
+                                    Log.d(TAG, "Servers = " + serverList);
+
+                                    // Populate server list
+                                    // Log.d(TAG, "Populating server list");
+                                    serverNames = new ArrayAdapter(self, android.R.layout.simple_spinner_item);
+                                    serverMqttURIs = new ArrayList<>();
+                                    serverAPIURIs = new ArrayList<>();
+
+                                    // add select server message
+                                    serverNames.add(self.getString(R.string.server_select));
+                                    serverMqttURIs.add("");
+                                    serverAPIURIs.add("");
+
+                                    for (String server: serverList) {
+                                        try {
+                                            String[] splits = server.split(":", 3);
+                                            serverNames.add(splits[0]);
+                                            if (!splits[1].isEmpty()) {
+                                                serverMqttURIs.add("ssl://" + splits[1] + ":" + splits[2]);
+                                                serverAPIURIs.add("https://" + splits[1]);
+                                            } else {
+                                                serverMqttURIs.add("");
+                                                serverAPIURIs.add("");
+                                            }
+                                        } catch (Exception e) {
+                                            Log.d(TAG, "Malformed server string. Skipping.");
+                                        }
+                                    }
+                                    // Log.d(TAG, serverMqttURIs.toString());
+
+                                    // Create server spinner
+                                    serverField = findViewById(R.id.spinnerServer);
+                                    serverNames.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                                    serverField.setAdapter(serverNames);
+
+                                    // Retrieving credentials
+                                    sharedPreferences = getSharedPreferences(AmbulanceForegroundService.PREFERENCES_NAME, MODE_PRIVATE);
+
+                                    // Retrieve past credentials
+                                    String serverMqttUri = sharedPreferences.getString(AmbulanceForegroundService.PREFERENCES_MQTT_SERVER, null);
+
+                                    // set server item
+                                    int serverPos = 0;
+                                    if (serverMqttUri != null) {
+                                        serverPos = serverMqttURIs.indexOf(serverMqttUri);
+                                    }
+                                    if (serverPos < 0)
+                                        serverPos = 0;
+                                    serverField.setSelection(serverPos);
+
+                                    Log.d(TAG, "Will enable login button");
+
+                                    // Enable login button
+                                    loginSubmitButton.setOnClickListener(self);
+
+                                }
+
+                            })
                             .setFailureMessage(LoginActivity.this.getString(R.string.couldNotStartService))
                             .setAlert(new AlertSnackbar(LoginActivity.this))
                             .start();
@@ -353,6 +403,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                 .setFailureMessage(this.getString(R.string.couldNotLogout))
                 .setAlert(new AlertSnackbar(this))
                 .start();
+
     }
 
     @Override

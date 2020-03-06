@@ -251,5 +251,6 @@
     <string name="radio_code">Código de Radio</string>
     <string name="radio_code_label">Código de Radio:</string>
     <string name="unavailable">Indisponible</string>
+    <string name="couldNotRetrieveServers">No se pudieron obtener los servidores</string>
 
 </resources>

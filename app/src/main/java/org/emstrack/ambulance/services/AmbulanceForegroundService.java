@@ -167,6 +167,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
     public class Actions {
         public final static String START_SERVICE = "org.emstrack.ambulance.ambulanceforegroundservice.action.START_SERVICE";
         public final static String LOGIN = "org.emstrack.ambulance.ambulanceforegroundservice.action.LOGIN";
+        public final static String GET_SERVERS = "org.emstrack.ambulance.ambulanceforegroundservice.action.GET_SERVERS";
         public final static String GET_AMBULANCE = "org.emstrack.ambulance.ambulanceforegroundservice.action.GET_AMBULANCE";
         public final static String GET_AMBULANCES= "org.emstrack.ambulance.ambulanceforegroundservice.action.GET_AMBULANCES";
         public final static String STOP_AMBULANCES= "org.emstrack.ambulance.ambulanceforegroundservice.action.STOP_AMBULANCES";
@@ -224,6 +225,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         public final static byte AMBULANCE_CANNOT_LOGIN = 8;
         public final static byte AMBULANCE_CANNOT_RETRIEVE = 9;
         public final static byte AMBULANCE_CANNOT_SUBSCRIBE = 10;
+        public static final byte CANNOT_RETRIEVE_SERVERS = 11;
     }
 
     public class BroadcastActions {
@@ -553,6 +555,13 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
             // logout
             logout(uuid);
+
+        } else if (action.equals(Actions.GET_SERVERS)) {
+
+            Log.i(TAG, "GET_SERVERS Foreground Intent");
+
+            // get servers
+            retrieveServers(uuid);
 
         } else if (action.equals(Actions.GET_AMBULANCE)) {
 
@@ -2277,6 +2286,45 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
             }
 
+        }
+                .start();
+
+    }
+
+    /**
+     * Retrieve servers
+     *
+     */
+    public void retrieveServers(final String uuid) {
+
+        Log.d(TAG, "retrieveServers");
+
+        // Retrieve servers data API call
+        APIService service = APIServiceGenerator.createService(APIService.class);
+        retrofit2.Call<List<String>> getServersCall = service.getServers();
+
+        new OnAPICallComplete<List<String>>(getServersCall) {
+
+            @Override
+            public void onSuccess(List<String> serversList) {
+
+                /* Log.d(TAG, "Successfully retrieved servers list"); */
+                getAppData().setServersList(serversList);
+
+                // Broadcast success
+                broadcastSuccess("Successfully retrieved servers list", uuid);
+
+            }
+
+            @Override
+            public void onFailure(Throwable t) {
+                super.onFailure(t);
+
+                // Broadcast failure
+                broadcastFailure(getString(R.string.couldNotRetrieveServers), uuid,
+                        t, ErrorCodes.CANNOT_RETRIEVE_SERVERS);
+
+            }
         }
                 .start();
 

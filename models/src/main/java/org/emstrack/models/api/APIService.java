@@ -153,4 +153,12 @@ public interface APIService {
     @POST("/en/api/client/")
     Call<Client> setClient(@Body Client client);
 
+    /**
+     * Get servers
+     *
+     * @return the list of available servers
+     */
+    @GET("https://emstrack.org/servers.json")
+    Call<List<String>> getServers();
+
 }

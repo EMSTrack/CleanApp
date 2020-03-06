@@ -35,6 +35,7 @@ public class AmbulanceAppData {
     private SparseArray<RadioCode> radioCodes;
     private SparseArray<PriorityCode> priorityCodes;
     private SparseArray<PriorityClassification> priorityClassifications;
+    private List<String> serversList;
 
     /**
      *
@@ -49,6 +50,7 @@ public class AmbulanceAppData {
         radioCodes = new SparseArray<>();
         priorityCodes = new SparseArray<>();
         priorityClassifications = new SparseArray<>();
+        serversList = new ArrayList<>();
     }
 
     /**
@@ -82,6 +84,18 @@ public class AmbulanceAppData {
     public void setCredentials(Credentials credentials) {
         this.credentials = credentials;
     }
+
+    /**
+     *
+     * @return the servers lists
+     */
+    public List<String> getServersList() { return serversList; }
+
+    /**
+     *
+     * @return the servers lists
+     */
+    public void setServersList(List<String> serversList) { this.serversList = serversList; }
 
     /**
      *
