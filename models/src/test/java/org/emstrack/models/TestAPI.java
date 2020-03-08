@@ -1,5 +1,6 @@
 package org.emstrack.models;
 
+import android.os.Build;
 import android.util.Log;
 
 import org.emstrack.models.api.APIService;
@@ -8,6 +9,7 @@ import org.emstrack.models.api.OnAPICallComplete;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
+import org.robolectric.annotation.Config;
 import org.robolectric.shadows.ShadowLog;
 import org.robolectric.shadows.ShadowLooper;
 
@@ -19,6 +21,7 @@ import static junit.framework.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 @RunWith(RobolectricTestRunner.class)
+@Config(sdk= Build.VERSION_CODES.P)
 public class TestAPI {
 
     static {

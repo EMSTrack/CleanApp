@@ -1,7 +1,7 @@
 package org.emstrack.models.api;
 
 import android.os.Build;
-import android.support.v4.os.LocaleListCompat;
+import androidx.core.os.LocaleListCompat;
 
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
@@ -10,7 +10,6 @@ import com.google.gson.GsonBuilder;
 import org.emstrack.models.gson.ExcludeAnnotationExclusionStrategy;
 
 import java.util.Locale;
-import java.util.logging.Level;
 
 import okhttp3.OkHttpClient;
 import okhttp3.Request;

@@ -1,19 +1,14 @@
 package org.emstrack.ambulance.dialogs;
 
 import android.app.Activity;
-import android.content.DialogInterface;
-import android.content.Intent;
-import android.os.Build;
-import android.support.v7.app.AlertDialog;
-import android.util.Log;
+
+import androidx.appcompat.app.AlertDialog;
+
 import android.view.View;
 import android.widget.TextView;
 
 import org.emstrack.ambulance.BuildConfig;
-import org.emstrack.ambulance.LoginActivity;
 import org.emstrack.ambulance.R;
-import org.emstrack.ambulance.services.AmbulanceForegroundService;
-import org.emstrack.models.Ambulance;
 
 import java.util.Date;
 
