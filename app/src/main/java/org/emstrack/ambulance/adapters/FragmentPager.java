@@ -1,14 +1,8 @@
 package org.emstrack.ambulance.adapters;
 
-import android.content.res.Configuration;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentStatePagerAdapter;
-import android.view.ViewGroup;
-
-import org.emstrack.ambulance.fragments.AmbulanceFragment;
-import org.emstrack.ambulance.fragments.MapFragment;
-import org.emstrack.ambulance.fragments.HospitalFragment;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentStatePagerAdapter;
 
 /**
  * Created by mauricio on 2/21/18.

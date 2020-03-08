@@ -1,9 +1,11 @@
 package org.emstrack.models;
 
 import android.content.Context;
-import android.support.test.InstrumentationRegistry;
-import android.support.test.annotation.UiThreadTest;
-import android.support.test.runner.AndroidJUnit4;
+
+import androidx.test.core.app.ApplicationProvider;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
+
+import android.test.UiThreadTest;
 import android.util.Log;
 
 import org.emstrack.models.api.APIService;
@@ -28,7 +30,8 @@ public class ModelInstrumentedTest {
     @Test
     public void useAppContext() throws Exception {
         // Context of the app under test.
-        Context appContext = InstrumentationRegistry.getTargetContext();
+        // Context appContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
+        Context appContext = ApplicationProvider.getApplicationContext();
 
         assertEquals("org.emstrack.models.test", appContext.getPackageName());
 

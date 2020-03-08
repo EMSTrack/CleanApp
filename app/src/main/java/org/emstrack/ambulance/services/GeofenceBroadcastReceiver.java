@@ -3,17 +3,11 @@ package org.emstrack.ambulance.services;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.support.v4.content.LocalBroadcastManager;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import android.util.Log;
 
 import com.google.android.gms.location.Geofence;
 import com.google.android.gms.location.GeofencingEvent;
-
-import org.eclipse.paho.client.mqttv3.MqttException;
-import org.emstrack.ambulance.R;
-import org.emstrack.ambulance.fragments.AmbulanceFragment;
-import org.emstrack.models.Ambulance;
-import org.emstrack.mqtt.MqttProfileClient;
 
 import java.util.ArrayList;
 import java.util.List;
