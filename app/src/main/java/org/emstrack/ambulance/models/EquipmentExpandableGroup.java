@@ -8,7 +8,9 @@ import org.emstrack.models.EquipmentItem;
 import java.util.List;
 
 /**
- * Created by James on 2/17/2020. TODO: fix the instantation
+ * Created by James on 2/17/2020. This file is called from EquipmentFragment
+ * TODO: fix the instance variables and the instantiation, depending on
+ *      what information you want to store for each equipment item
  */
 
 public class EquipmentExpandableGroup extends ExpandableGroup<EquipmentItem> {

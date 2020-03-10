@@ -19,7 +19,9 @@ import org.emstrack.models.Hospital;
 import java.util.List;
 
 /**
- * Created by James on 2/17/2020. TODO: fix overridden functions
+ * Created by James on 2/17/2020. This file is called from EquipmentFragment
+ * TODO: fix these functions so that EquipmentFragment works, this file might not
+ *      be needed if you choose not to use an adapter in EquipmentFragment
  */
 
 public class EquipmentExpandableRecyclerAdapter
@@ -56,7 +58,7 @@ public class EquipmentExpandableRecyclerAdapter
 
 
 
-    @Override //TODO: change hospital line
+    @Override //TODO: change hospital line to equipment
     public void onBindGroupViewHolder(EquipmentViewHolder holder, int flatPosition,
                                       ExpandableGroup group) {
         //EquipmentItem equipment = ((EquipmentExpandableGroup) group).getEquipment();

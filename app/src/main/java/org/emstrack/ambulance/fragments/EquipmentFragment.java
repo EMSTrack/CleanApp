@@ -29,6 +29,11 @@ import org.emstrack.models.Hospital;
 import java.util.ArrayList;
 import java.util.List;
 
+/** Edited by James on 3/8/2020.
+ *  TODO: Uncomment the commented code and update it so that it works for
+ *          equipment instead of hospitals (they were copied over from the
+ *          HospitalFragment file so they don't work, due to not having
+ *          the corresponding files set up correctly yet) */
 public class EquipmentFragment extends Fragment {
 
     private static final String TAG = EquipmentFragment.class.getSimpleName();
@@ -43,7 +48,13 @@ public class EquipmentFragment extends Fragment {
 
         @Override
         public void onReceive(Context context, Intent intent ) {
+            /* TODO: create an EQUIPMENT_UPDATE so we can broadcast the equipment
+             *         info like how HOSPITALS_UPDATE is set up here
+             */
+            /*
             if (intent != null) {
+                //this is left over from HospitalFragment, it's not needed
+
                 final String action = intent.getAction();
 
                 if (action.equals(AmbulanceForegroundService.BroadcastActions.HOSPITALS_UPDATE)) {
@@ -56,7 +67,7 @@ public class EquipmentFragment extends Fragment {
                 }
 
 
-            }
+            }*/
         }
     }
 
@@ -66,9 +77,9 @@ public class EquipmentFragment extends Fragment {
         rootView = inflater.inflate(R.layout.fragment_equipment, container, false);
         recyclerView = rootView.findViewById(R.id.recycler_view);
 
-        //TODO set up getEquipment
-        AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
-        update(appData.getHospitals());
+        //TODO set up getEquipment()
+        //AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
+        //update(appData.getHospitals());
 
         return rootView;
     }
@@ -77,7 +88,8 @@ public class EquipmentFragment extends Fragment {
     public void onResume() {
         super.onResume();
 
-        //TODO set up EquipmentUpdateBroadcastReceiver and getEquipment
+        //TODO set up EquipmentUpdateBroadcastReceiver() and getEquipment()
+        /*
         // Register receiver
         IntentFilter filter = new IntentFilter();
         filter.addAction(AmbulanceForegroundService.BroadcastActions.HOSPITALS_UPDATE);
@@ -89,6 +101,7 @@ public class EquipmentFragment extends Fragment {
 
         // updateAmbulance UI
         update(appData.getHospitals());
+        */
     }
 
     @Override
@@ -102,7 +115,7 @@ public class EquipmentFragment extends Fragment {
         }
     }
 
-    //TODO function: change Hospital to EquipmentItem
+    //TODO function: change Hospital to EquipmentItem for all of this code
     /**
      * Update equipment list
      *
@@ -115,7 +128,7 @@ public class EquipmentFragment extends Fragment {
             return;
 
         Log.i(TAG,"Updating equipment UI.");
-
+        /*
         // Create EquipmentExpandableGroup
         final List equipmentExpandableGroup = new ArrayList<EquipmentExpandableGroup>();
 
@@ -123,20 +136,23 @@ public class EquipmentFragment extends Fragment {
         for (Hospital hospital : SparseArrayUtils.iterable(hospitals) ) {
 
             // Add to to expandable group
-            //TODO not sure if we should create an EquipmentExpandableGroup for each equipment
+            //TODO: not sure if we should create an EquipmentExpandableGroup for each equipment
             equipmentExpandableGroup.add(
                     new EquipmentExpandableGroup(hospital.getName(),
                             new ArrayList<>(),
                             hospital));
 
         }
-
+        //TODO: I changed this from HospitalExpandableRecyclerAdapter to
+        //  EquipmentExpandableRecyclerAdapter, since I created that file already (check it out)
         // Install fragment
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getContext());
         EquipmentExpandableRecyclerAdapter adapter =
                 new EquipmentExpandableRecyclerAdapter(equipmentExpandableGroup);
         recyclerView.setLayoutManager(linearLayoutManager);
         recyclerView.setAdapter(adapter);
+
+         */
 
     }
 

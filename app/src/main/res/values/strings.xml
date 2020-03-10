@@ -280,4 +280,27 @@
         <item>O:@color/bootstrapSecondary:@color/bootstrapLight</item>
     </string-array>
 
+    <!-- Below code was added by Parker on 3/8/2020 -->
+    <string name="equipment1">\u0020 Oxygen Apparatus</string>
+    <string name="equipment2">\u0020 AED</string>
+    <string name="equipment3">\u0020 Bandage</string>
+
+    <string-array name="equipinfo1">
+        <item>Quantity: 5</item>
+        <item>Type: Utilities</item>
+        <item>Description: N/A</item>
+    </string-array>
+
+    <string-array name="equipinfo2">
+        <item>Quantity: 3</item>
+        <item>Type: Utilities</item>
+        <item>Description: N/A</item>
+    </string-array>
+
+    <string-array name="equipinfo3">
+        <item>Quantity: 0</item>
+        <item>Type: Materials</item>
+        <item>Description: N/A</item>
+    </string-array>
+
 </resources>
