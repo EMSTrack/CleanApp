@@ -20,6 +20,9 @@ import java.util.List;
 
 /**
  * Created by James on 2/17/2020. This file is called from EquipmentFragment
+ * It allows for the app to know what to display for Equipment (there is a parent item,
+ * which is the main item showed on each Card, and there is a child item, which is
+ * shown when the parent is clicked on and the Card is expanded)
  * TODO: fix these functions so that EquipmentFragment works, this file might not
  *      be needed if you choose not to use an adapter in EquipmentFragment
  */

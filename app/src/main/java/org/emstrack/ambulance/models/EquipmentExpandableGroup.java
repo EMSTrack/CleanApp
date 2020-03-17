@@ -9,6 +9,7 @@ import java.util.List;
 
 /**
  * Created by James on 2/17/2020. This file is called from EquipmentFragment
+ * It contains whatever information you want to store for Equipment items
  * TODO: fix the instance variables and the instantiation, depending on
  *      what information you want to store for each equipment item
  */
