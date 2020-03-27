@@ -44,8 +44,6 @@ app/release
 gradle/.DS_Store
 .DS_Store
 
-*api_keys.xml
-
 # Keystore files
 *.jks
 
