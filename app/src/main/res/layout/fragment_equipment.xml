@@ -29,6 +29,7 @@
         android:textSize="24sp"
         android:textStyle="bold" />
 
+    <!--
     <android.support.v7.widget.CardView
         android:layout_width="match_parent"
         android:layout_height="80dp"
@@ -40,7 +41,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:gravity="start|center"
-            android:text="@string/equipment1"
+            android:text="hi"
             android:textColor="#4CAF50"
             android:textSize="20sp" />
 
@@ -98,6 +99,7 @@
             android:entries="@array/equipinfo3" />
 
     </android.support.v7.widget.CardView>
+    -->
 
 </LinearLayout>
 

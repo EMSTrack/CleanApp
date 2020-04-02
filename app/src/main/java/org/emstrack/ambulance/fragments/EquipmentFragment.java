@@ -115,7 +115,7 @@ public class EquipmentFragment extends Fragment {
         }
     }
 
-    //TODO function: change Hospital to EquipmentItem for all of this code
+    //TODO function: change Hospital to EquipmentItem for all of this code, might not need equipmentExpandableGroup
     /**
      * Update equipment list
      *
