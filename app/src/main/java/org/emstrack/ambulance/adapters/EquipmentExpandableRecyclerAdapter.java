@@ -1,5 +1,6 @@
 package org.emstrack.ambulance.adapters;
 
+import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,9 +20,9 @@ import org.emstrack.models.Hospital;
 import java.util.List;
 
 /**
- * Created by James on 2/17/2020. This file is called from EquipmentFragment
+ * Created by James on 2/17/2020. This file is called from EquipmentFragment.
  * It allows for the app to know what to display for Equipment (there is a parent item,
- * which is the main item showed on each Card, and there is a child item, which is
+ * which is the main item shown on each Card, and there is a child item, which is
  * shown when the parent is clicked on and the Card is expanded)
  * TODO: fix these functions so that EquipmentFragment works, this file might not
  *      be needed if you choose not to use an adapter in EquipmentFragment
@@ -31,15 +32,17 @@ public class EquipmentExpandableRecyclerAdapter
         extends ExpandableRecyclerViewAdapter<EquipmentViewHolder, HospitalEquipmentViewHolder> {
 
     private static final String TAG = EquipmentExpandableRecyclerAdapter.class.getSimpleName();
+    private Context context;
 
-    public EquipmentExpandableRecyclerAdapter(List<? extends ExpandableGroup> groups) {
+    public EquipmentExpandableRecyclerAdapter(List<? extends ExpandableGroup> groups, Context context) {
         super(groups);
+        this.context = context;
     }
 
     @Override
     public EquipmentViewHolder onCreateGroupViewHolder(ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.equipment_item, parent, false);
-        return new EquipmentViewHolder(view);
+        return new EquipmentViewHolder(view, context);
     }
 
 

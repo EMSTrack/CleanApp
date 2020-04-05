@@ -285,7 +285,7 @@
     <string name="equipment2">\u0020 AED</string>
     <string name="equipment3">\u0020 Bandage</string>
 
-    <string-array name="equipinfo1">
+    <string-array name="equipment_info">
         <item>Quantity: 5</item>
         <item>Type: Utilities</item>
         <item>Description: N/A</item>

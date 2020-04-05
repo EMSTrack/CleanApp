@@ -34,20 +34,20 @@
 
 
         <TextView
-            android:id="@+id/equipName1"
+            android:id="@+id/equipment_name"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:gravity="start|center"
-            android:text="@string/equipment1"
-            android:textColor="#4CAF50"
+            android:text="equipment"
+            android:textColor="@color/colorAvailable"
             android:textSize="20sp" />
 
         <Spinner
-            android:id="@+id/spinner1"
+            android:id="@+id/spinner"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="bottom|center"
-            android:entries="@array/equipinfo1" />
+            android:entries="@array/equipment_info" />
 
     </android.support.v7.widget.CardView>
 

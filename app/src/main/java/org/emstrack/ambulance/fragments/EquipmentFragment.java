@@ -33,7 +33,8 @@ import java.util.List;
  *  TODO: Uncomment the commented code and update it so that it works for
  *          equipment instead of hospitals (they were copied over from the
  *          HospitalFragment file so they don't work, due to not having
- *          the corresponding files set up correctly yet) */
+ *          the corresponding files set up correctly yet)
+ */
 public class EquipmentFragment extends Fragment {
 
     private static final String TAG = EquipmentFragment.class.getSimpleName();
@@ -41,7 +42,7 @@ public class EquipmentFragment extends Fragment {
     View rootView;
     RecyclerView recyclerView;
 
-    //TODO set up EQUIPMENT_UPDATE and getEquipment
+    //TODO: set up EQUIPMENT_UPDATE and getEquipment
     EquipmentUpdateBroadcastReceiver receiver;
 
     public class EquipmentUpdateBroadcastReceiver extends BroadcastReceiver {
@@ -57,9 +58,9 @@ public class EquipmentFragment extends Fragment {
 
                 final String action = intent.getAction();
 
-                if (action.equals(AmbulanceForegroundService.BroadcastActions.HOSPITALS_UPDATE)) {
+                if (action.equals(AmbulanceForegroundService.BroadcastActions.EQUIPMENT_UPDATE)) {
 
-                    Log.i(TAG, "HOSPITALS_UPDATE");
+                    Log.i(TAG, "EQUIPMENT_UPDATE");
                     AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
                     update(appData.getHospitals());
 
@@ -148,7 +149,7 @@ public class EquipmentFragment extends Fragment {
         // Install fragment
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getContext());
         EquipmentExpandableRecyclerAdapter adapter =
-                new EquipmentExpandableRecyclerAdapter(equipmentExpandableGroup);
+                new EquipmentExpandableRecyclerAdapter(equipmentExpandableGroup, getActivity());
         recyclerView.setLayoutManager(linearLayoutManager);
         recyclerView.setAdapter(adapter);
 
