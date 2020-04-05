@@ -1,6 +1,8 @@
 package org.emstrack.ambulance.adapters;
 
 import android.content.Context;
+import android.support.annotation.NonNull;
+import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -28,17 +30,42 @@ import java.util.List;
  *      be needed if you choose not to use an adapter in EquipmentFragment
  */
 
-public class EquipmentExpandableRecyclerAdapter
-        extends ExpandableRecyclerViewAdapter<EquipmentViewHolder, HospitalEquipmentViewHolder> {
+public class EquipmentExpandableRecyclerAdapter extends RecyclerView.Adapter {
 
     private static final String TAG = EquipmentExpandableRecyclerAdapter.class.getSimpleName();
     private Context context;
+    List<EquipmentExpandableGroup> groups;
 
-    public EquipmentExpandableRecyclerAdapter(List<? extends ExpandableGroup> groups, Context context) {
-        super(groups);
+    public EquipmentExpandableRecyclerAdapter(List<EquipmentExpandableGroup> groups, Context context) {
+        this.groups = groups;
         this.context = context;
     }
 
+    @NonNull
+    @Override
+    //initialize ViewHolder
+    public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        final View view = LayoutInflater.from(parent.getContext()).inflate(viewType, parent, false);
+        return new EquipmentViewHolder(view, context);
+    }
+
+    @Override
+    //bind each ViewHolder to the adapter
+    public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
+        ((EquipmentViewHolder) holder).setEquipment(groups.get(position).getEquipment());
+        ((EquipmentViewHolder) holder).setValue(groups.get(position).getValue());
+        ((EquipmentViewHolder) holder).setType(groups.get(position).getType());
+        ((EquipmentViewHolder) holder).setDescription(groups.get(position).getDescription());
+    }
+
+    @Override
+    public int getItemCount() {
+        return groups.size();
+    }
+
+
+
+    /*
     @Override
     public EquipmentViewHolder onCreateGroupViewHolder(ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.equipment_item, parent, false);
@@ -72,7 +99,7 @@ public class EquipmentExpandableRecyclerAdapter
 
         //holder.setEquipment(equipment);
     }
-
+    */
 
 }
 

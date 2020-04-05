@@ -2,32 +2,44 @@ package org.emstrack.ambulance.models;
 
 import com.thoughtbot.expandablerecyclerview.models.ExpandableGroup;
 
-import org.emstrack.models.Hospital;
 import org.emstrack.models.EquipmentItem;
 
 import java.util.List;
 
 /**
  * Created by James on 2/17/2020. This file is called from EquipmentFragment
- * It contains whatever information you want to store for Equipment items
- * TODO: fix the instance variables and the instantiation, depending on
- *      what information you want to store for each equipment item; might not need this class
+ * It contains whatever information you want to store for Equipment items.
  */
 
-public class EquipmentExpandableGroup extends ExpandableGroup<EquipmentItem> {
+public class EquipmentExpandableGroup {
 
     private EquipmentItem equipment;
     //value can be string, boolean, or int
-    // private int value;
-    private String comment;
+    private String value;
+    private String type;
+    private String description;
 
     //TODO: change this function according to these instance variables
-    public EquipmentExpandableGroup(String title, List<EquipmentItem> items, Hospital hospital) {
-        super(title, items);
-        //this.equipment = null;
+    public EquipmentExpandableGroup(EquipmentItem equipment, String value, String type, String description) {
+        this.equipment = equipment;
+        this.value = value;
+        this.type = type;
+        this.description = description;
     }
 
     public EquipmentItem getEquipment() {
         return equipment;
+    }
+
+    public String getValue() {
+        return value;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public String getDescription() {
+        return description;
     }
 }

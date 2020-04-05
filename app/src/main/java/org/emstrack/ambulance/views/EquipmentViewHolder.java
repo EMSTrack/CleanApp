@@ -2,6 +2,7 @@ package org.emstrack.ambulance.views;
 
 import android.content.Context;
 import android.content.res.Resources;
+import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.widget.TextView;
 import android.widget.ArrayAdapter;
@@ -13,16 +14,17 @@ import org.emstrack.ambulance.R;
 import org.emstrack.models.EquipmentItem;
 
 /**
- * Created by James on 2/19/2020. This file holds the Equipment data and is called from EquipmentFragment.
+ * Created by James on 2/19/2020. This file is called from EquipmentExpandableRecyclerAdapter,
+ * and it holds the Equipment data.
  */
 
 
-public class EquipmentViewHolder extends GroupViewHolder {
+public class EquipmentViewHolder extends RecyclerView.ViewHolder {
 
-    TextView equipmentNameTextView;
-    String[] equipment_info = new String[3];
-    Spinner spinner;
-    ArrayAdapter<String> spinnerAdapter;
+    private TextView equipmentNameTextView;
+    private String[] equipment_info = new String[3];
+    private Spinner spinner;
+    private ArrayAdapter<String> spinnerAdapter;
 
 
     public EquipmentViewHolder(View itemView, Context context) {
@@ -42,14 +44,26 @@ public class EquipmentViewHolder extends GroupViewHolder {
     }
 
     // TODO: change color to green or red depending on value
-    public void setEquipmentValue(String equipmentValue) {
-        /*String string = spinnerAdapter.getItem(0);
-        spinnerAdapter.remove(string);
-        spinnerAdapter.insert(equipmentValue, 0);
-        */
+    public void setValue(String equipmentValue) {
 
         //changing the backing array will update the adapter if notified
         equipment_info[0] = equipmentValue;
+        spinnerAdapter.notifyDataSetChanged();
+
+    }
+
+    public void setType(String equipmentType) {
+
+        //changing the backing array will update the adapter if notified
+        equipment_info[1] = equipmentType;
+        spinnerAdapter.notifyDataSetChanged();
+
+    }
+
+    public void setDescription(String equipmentDescription) {
+
+        //changing the backing array will update the adapter if notified
+        equipment_info[2] = equipmentDescription;
         spinnerAdapter.notifyDataSetChanged();
 
     }
