@@ -2782,7 +2782,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
                 try {
 
-                    // Subscribe to hospital
+                    // Subscribe to ambulance equipment
                     subscribeToAmbulanceEquipment(ambulanceId);
 
                 } catch (MqttException e) {
@@ -2828,6 +2828,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                         Gson gson = gsonBuilder.create();
 
                         // Found equipment
+                        //TODO: James list of items?
                         EquipmentItem item = gson.fromJson(message.toString(), EquipmentItem.class);
 
                         // Add to equipment list

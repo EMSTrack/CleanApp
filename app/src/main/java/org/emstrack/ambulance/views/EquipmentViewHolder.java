@@ -27,7 +27,7 @@ public class EquipmentViewHolder extends RecyclerView.ViewHolder {
     private ArrayAdapter<String> spinnerAdapter;
 
 
-    public EquipmentViewHolder(View itemView, Context context) {
+    public EquipmentViewHolder(Context context, View itemView) {
         super(itemView);
 
         equipmentNameTextView = itemView.findViewById(R.id.equipment_name);

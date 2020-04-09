@@ -48,10 +48,9 @@ public class EquipmentFragment extends Fragment {
         public void onReceive(Context context, Intent intent ) {
 
             if (intent != null) {
-                //this is left over from HospitalFragment, it's not needed
 
                 final String action = intent.getAction();
-                // TODO: set up EQUIPMENT_UPDATE and getEquipment() so we can broadcast the equipment
+
                 if (action.equals(AmbulanceForegroundService.BroadcastActions.AMBULANCE_EQUIPMENT_UPDATE)) {
 
                     Log.i(TAG, "AMBULANCE_EQUIPMENT_UPDATE");
@@ -107,7 +106,6 @@ public class EquipmentFragment extends Fragment {
         }
     }
 
-    //TODO function: change Hospital to EquipmentItem for all of this code, might not need equipmentExpandableGroup
     /**
      * Update equipment list
      *

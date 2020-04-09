@@ -12,12 +12,8 @@ import com.thoughtbot.expandablerecyclerview.models.ExpandableGroup;
 
 import org.emstrack.ambulance.R;
 import org.emstrack.ambulance.models.EquipmentExpandableGroup;
-import org.emstrack.ambulance.models.HospitalExpandableGroup;
 import org.emstrack.ambulance.views.EquipmentViewHolder;
-import org.emstrack.ambulance.views.HospitalEquipmentViewHolder;
-import org.emstrack.ambulance.views.HospitalViewHolder;
 import org.emstrack.models.EquipmentItem;
-import org.emstrack.models.Hospital;
 
 import java.util.List;
 
@@ -46,7 +42,7 @@ public class EquipmentExpandableRecyclerAdapter extends RecyclerView.Adapter {
     //initialize ViewHolder
     public EquipmentViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         final View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.equipment_item, parent, false);
-        return new EquipmentViewHolder(view, context);
+        return new EquipmentViewHolder(context, view);
     }
 
     @Override
@@ -68,7 +64,7 @@ public class EquipmentExpandableRecyclerAdapter extends RecyclerView.Adapter {
     @Override
     public EquipmentViewHolder onCreateGroupViewHolder(ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.equipment_item, parent, false);
-        return new EquipmentViewHolder(view, context);
+        return new EquipmentViewHolder(context, view);
     }
 
 
