@@ -34,10 +34,11 @@ public class EquipmentExpandableRecyclerAdapter extends RecyclerView.Adapter {
 
     private static final String TAG = EquipmentExpandableRecyclerAdapter.class.getSimpleName();
     private Context context;
-    List<EquipmentExpandableGroup> groups;
+    //List<EquipmentExpandableGroup> groups;
+    List<EquipmentItem> equipment;
 
-    public EquipmentExpandableRecyclerAdapter(List<EquipmentExpandableGroup> groups, Context context) {
-        this.groups = groups;
+    public EquipmentExpandableRecyclerAdapter(List<EquipmentItem> equipment, Context context) {
+        this.equipment = equipment;
         this.context = context;
     }
 
@@ -52,17 +53,16 @@ public class EquipmentExpandableRecyclerAdapter extends RecyclerView.Adapter {
     @Override
     //bind each ViewHolder to the adapter
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
-        ((EquipmentViewHolder) holder).setEquipment(groups.get(position).getEquipment());
-        ((EquipmentViewHolder) holder).setValue(groups.get(position).getValue());
-        ((EquipmentViewHolder) holder).setType(groups.get(position).getType());
-        ((EquipmentViewHolder) holder).setDescription(groups.get(position).getDescription());
+        ((EquipmentViewHolder) holder).setEquipmentName(equipment.get(position).getEquipmentName());
+        ((EquipmentViewHolder) holder).setValue(equipment.get(position).getValue());
+        ((EquipmentViewHolder) holder).setEquipmentType(equipment.get(position).getEquipmentType());
+        ((EquipmentViewHolder) holder).setComment(equipment.get(position).getComment());
     }
 
     @Override
     public int getItemCount() {
-        return groups.size();
+        return equipment.size();
     }
-
 
 
     /*

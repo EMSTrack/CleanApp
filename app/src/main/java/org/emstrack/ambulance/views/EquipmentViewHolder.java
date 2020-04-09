@@ -39,8 +39,8 @@ public class EquipmentViewHolder extends RecyclerView.ViewHolder {
         spinner.setAdapter(spinnerAdapter);
     }
 
-    public void setEquipment(EquipmentItem equipment) {
-        equipmentNameTextView.setText(equipment.getEquipmentName());
+    public void setEquipmentName(String equipmentName) {
+        equipmentNameTextView.setText(equipmentName);
     }
 
     // TODO: change color to green or red depending on value
@@ -52,15 +52,15 @@ public class EquipmentViewHolder extends RecyclerView.ViewHolder {
 
     }
 
-    public void setType(String equipmentType) {
+    public void setEquipmentType(Character equipmentType) {
 
         //changing the backing array will update the adapter if notified
-        equipment_info[1] = equipmentType;
+        equipment_info[1] = equipmentType.toString();
         spinnerAdapter.notifyDataSetChanged();
 
     }
 
-    public void setDescription(String equipmentDescription) {
+    public void setComment(String equipmentDescription) {
 
         //changing the backing array will update the adapter if notified
         equipment_info[2] = equipmentDescription;

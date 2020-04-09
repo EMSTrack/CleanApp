@@ -31,9 +31,7 @@ import java.util.List;
 
 /** Edited by James on 3/8/2020.
  *  TODO: Uncomment the commented code and update it so that it works for
- *          equipment instead of hospitals (they were copied over from the
- *          HospitalFragment file so they don't work, due to not having
- *          the corresponding files set up correctly yet)
+ *          equipment instead of hospitals
  */
 public class EquipmentFragment extends Fragment {
 
@@ -49,14 +47,12 @@ public class EquipmentFragment extends Fragment {
 
         @Override
         public void onReceive(Context context, Intent intent ) {
-            /* TODO: create an EQUIPMENT_UPDATE so we can broadcast the equipment
-             *         info like how HOSPITALS_UPDATE is set up here
-             */
+
             if (intent != null) {
                 //this is left over from HospitalFragment, it's not needed
 
                 final String action = intent.getAction();
-
+                // TODO: set up EQUIPMENT_UPDATE and getEquipment() so we can broadcast the equipment
                 if (action.equals(AmbulanceForegroundService.BroadcastActions.EQUIPMENT_UPDATE)) {
 
                     Log.i(TAG, "EQUIPMENT_UPDATE");
@@ -77,7 +73,6 @@ public class EquipmentFragment extends Fragment {
         rootView = inflater.inflate(R.layout.fragment_equipment, container, false);
         recyclerView = rootView.findViewById(R.id.recycler_view);
 
-        //TODO set up getEquipment()
         AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
         update(appData.getEquipment());
 
@@ -88,7 +83,6 @@ public class EquipmentFragment extends Fragment {
     public void onResume() {
         super.onResume();
 
-        //TODO set up EquipmentUpdateBroadcastReceiver() and getEquipment()
         // Register receiver
         IntentFilter filter = new IntentFilter();
         filter.addAction(AmbulanceForegroundService.BroadcastActions.EQUIPMENT_UPDATE);
@@ -120,7 +114,7 @@ public class EquipmentFragment extends Fragment {
      *
      * @param equipment list of ...
      */
-    public void update(SparseArray<EquipmentItem> equipment) {
+    public void update(List<EquipmentItem> equipment) {
 
         // fast return if no equipment
         if (equipment == null)
@@ -128,6 +122,7 @@ public class EquipmentFragment extends Fragment {
 
         Log.i(TAG,"Updating equipment UI.");
 
+        /*
         // Create EquipmentExpandableGroups
         final List equipmentExpandableGroups = new ArrayList<EquipmentExpandableGroup>();
 
@@ -142,11 +137,11 @@ public class EquipmentFragment extends Fragment {
                             "",
                             ""));
 
-        }
+        }*/
         // Install fragment
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getContext());
         EquipmentExpandableRecyclerAdapter adapter =
-                new EquipmentExpandableRecyclerAdapter(equipmentExpandableGroups, getActivity());
+                new EquipmentExpandableRecyclerAdapter(equipment, getActivity());
         recyclerView.setLayoutManager(linearLayoutManager);
         recyclerView.setAdapter(adapter);
 
