@@ -22,10 +22,9 @@ import org.emstrack.models.Hospital;
 import java.util.List;
 
 /**
- * Created by James on 2/17/2020. This file is called from EquipmentFragment.
- * It allows for the app to know what to display for Equipment (there is a parent item,
- * which is the main item shown on each Card, and there is a child item, which is
- * shown when the parent is clicked on and the Card is expanded)
+ * Connects Equipment data to the RecyclerView (called from EquipmentFragment)
+ * @author James Basa
+ * @since 2/17/2020
  * TODO: fix these functions so that EquipmentFragment works, this file might not
  *      be needed if you choose not to use an adapter in EquipmentFragment
  */
@@ -37,16 +36,16 @@ public class EquipmentExpandableRecyclerAdapter extends RecyclerView.Adapter {
     //List<EquipmentExpandableGroup> groups;
     List<EquipmentItem> equipment;
 
-    public EquipmentExpandableRecyclerAdapter(List<EquipmentItem> equipment, Context context) {
-        this.equipment = equipment;
+    public EquipmentExpandableRecyclerAdapter(Context context, List<EquipmentItem> equipment) {
         this.context = context;
+        this.equipment = equipment;
     }
 
     @NonNull
     @Override
     //initialize ViewHolder
-    public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        final View view = LayoutInflater.from(parent.getContext()).inflate(viewType, parent, false);
+    public EquipmentViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        final View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.equipment_item, parent, false);
         return new EquipmentViewHolder(view, context);
     }
 

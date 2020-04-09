@@ -18,6 +18,8 @@ import java.util.List;
 
 /**
  * Created by mauricio on 3/11/2018.
+ * (there is a parent item, which is the main item shown on each Card, and there is a
+ * child item, which is shown when the parent is clicked on and the Card is expanded)
  */
 
 public class HospitalExpandableRecyclerAdapter

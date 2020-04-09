@@ -29,9 +29,9 @@ import org.emstrack.models.Hospital;
 import java.util.ArrayList;
 import java.util.List;
 
-/** Edited by James on 3/8/2020.
- *  TODO: Uncomment the commented code and update it so that it works for
- *          equipment instead of hospitals
+/**
+ * Functionality for the Equipment Tab.
+ * Edited by James on 3/8/2020.
  */
 public class EquipmentFragment extends Fragment {
 
@@ -40,7 +40,6 @@ public class EquipmentFragment extends Fragment {
     View rootView;
     RecyclerView recyclerView;
 
-    //TODO: set up EQUIPMENT_UPDATE and getEquipment
     EquipmentUpdateBroadcastReceiver receiver;
 
     public class EquipmentUpdateBroadcastReceiver extends BroadcastReceiver {
@@ -53,9 +52,9 @@ public class EquipmentFragment extends Fragment {
 
                 final String action = intent.getAction();
                 // TODO: set up EQUIPMENT_UPDATE and getEquipment() so we can broadcast the equipment
-                if (action.equals(AmbulanceForegroundService.BroadcastActions.EQUIPMENT_UPDATE)) {
+                if (action.equals(AmbulanceForegroundService.BroadcastActions.AMBULANCE_EQUIPMENT_UPDATE)) {
 
-                    Log.i(TAG, "EQUIPMENT_UPDATE");
+                    Log.i(TAG, "AMBULANCE_EQUIPMENT_UPDATE");
                     AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
                     update(appData.getEquipment());
 
@@ -71,7 +70,7 @@ public class EquipmentFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
         rootView = inflater.inflate(R.layout.fragment_equipment, container, false);
-        recyclerView = rootView.findViewById(R.id.recycler_view);
+        recyclerView = rootView.findViewById(R.id.recycler_view_equipment);
 
         AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
         update(appData.getEquipment());
@@ -85,7 +84,7 @@ public class EquipmentFragment extends Fragment {
 
         // Register receiver
         IntentFilter filter = new IntentFilter();
-        filter.addAction(AmbulanceForegroundService.BroadcastActions.EQUIPMENT_UPDATE);
+        filter.addAction(AmbulanceForegroundService.BroadcastActions.AMBULANCE_EQUIPMENT_UPDATE);
         receiver = new EquipmentFragment.EquipmentUpdateBroadcastReceiver();
         getLocalBroadcastManager().registerReceiver(receiver, filter);
 
@@ -141,7 +140,7 @@ public class EquipmentFragment extends Fragment {
         // Install fragment
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getContext());
         EquipmentExpandableRecyclerAdapter adapter =
-                new EquipmentExpandableRecyclerAdapter(equipment, getActivity());
+                new EquipmentExpandableRecyclerAdapter(getActivity(), equipment);
         recyclerView.setLayoutManager(linearLayoutManager);
         recyclerView.setAdapter(adapter);
 

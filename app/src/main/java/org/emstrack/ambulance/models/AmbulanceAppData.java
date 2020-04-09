@@ -6,6 +6,7 @@ import android.util.SparseArray;
 import org.emstrack.models.Ambulance;
 import org.emstrack.models.CallStack;
 import org.emstrack.models.Credentials;
+import org.emstrack.models.EquipmentItem;
 import org.emstrack.models.Hospital;
 import org.emstrack.models.Location;
 import org.emstrack.models.Profile;
@@ -33,6 +34,7 @@ public class AmbulanceAppData {
     private SparseArray<Hospital> hospitals;
     private List<Location> bases;
     private CallStack calls;
+    private List<EquipmentItem> equipment;
 
     /**
      *
@@ -220,6 +222,18 @@ public class AmbulanceAppData {
     public CallStack getCalls() {
         return calls;
     }
+
+    /**
+     *
+     * @param equipment the list of equipment
+     */
+    public void setEquipment(List<EquipmentItem> equipment) { this.equipment = equipment; }
+
+    /**
+     *
+     * @return the list of equipment
+     */
+    public List<EquipmentItem> getEquipment() { return equipment; }
 
 }
 

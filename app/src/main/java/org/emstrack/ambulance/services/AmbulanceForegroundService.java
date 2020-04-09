@@ -57,6 +57,7 @@ import org.emstrack.models.Call;
 import org.emstrack.models.CallStack;
 import org.emstrack.models.Client;
 import org.emstrack.models.Credentials;
+import org.emstrack.models.EquipmentItem;
 import org.emstrack.models.GPSLocation;
 import org.emstrack.models.Hospital;
 import org.emstrack.models.Location;
@@ -227,6 +228,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         public final static String HOSPITALS_UPDATE = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastaction.HOSPITALS_UPDATE";
         public final static String OTHER_AMBULANCES_UPDATE = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastaction.OTHER_AMBULANCES_UPDATE";
         public final static String AMBULANCE_UPDATE = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastaction.AMBULANCE_UPDATE";
+        public final static String AMBULANCE_EQUIPMENT_UPDATE = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastaction.AMBULANCE_EQUIPMENT_UPDATE";
         public final static String LOCATION_UPDATE_CHANGE = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastaction.LOCATION_UPDATE_CHANGE";
         public final static String GEOFENCE_EVENT = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastaction.GEOFENCE_EVENT";
         public final static String CONNECTIVITY_CHANGE = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastaction.CONNECTIVITY_CHANGE";
@@ -558,6 +560,14 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
             // Retrieve ambulance
             int ambulanceId = intent.getIntExtra(AmbulanceForegroundService.BroadcastExtras.AMBULANCE_ID, -1);
             retrieveAmbulance(ambulanceId, uuid);
+
+        } else if (action.equals(BroadcastActions.AMBULANCE_EQUIPMENT_UPDATE)) {
+
+
+            // Retrieve ambulance equipment
+            int ambulanceId = intent.getIntExtra(AmbulanceForegroundService.BroadcastExtras.AMBULANCE_ID, -1);
+            retrieveAmbulanceEquipment(ambulanceId, uuid);
+
 
         } else if (action.equals(Actions.GET_AMBULANCES)) {
 
@@ -2384,7 +2394,6 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                 broadcastFailure(extras, uuid);
 
             }
-
         }))))
                 .start();
 
@@ -2737,6 +2746,103 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
                         // Broadcast failure
                         broadcastFailure(getString(R.string.couldNotParseCallData));
+
+                    }
+
+                });
+
+    }
+
+    /** TODO: James
+     * Retrieve ambulance equipment
+     */
+    public void retrieveAmbulanceEquipment(final int ambulanceId, final String uuid) {
+
+        //TODO: James Remove equipment?
+        //removeHospitals();
+
+        Log.d(TAG, "Retrieving ambulance equipment...");
+
+        // Retrieve client
+        final MqttProfileClient profileClient = getProfileClient(this);
+
+        // Retrieve equipment data
+        APIService service = APIServiceGenerator.createService(APIService.class);
+        retrofit2.Call<List<org.emstrack.models.EquipmentItem>> ambulanceEquipmentCall = service.getAmbulanceEquipment(ambulanceId);
+
+        new OnAPICallComplete<List<EquipmentItem>>(ambulanceEquipmentCall) {
+
+            @Override
+            public void onSuccess(List<EquipmentItem> equipment) {
+
+                Log.d(TAG, "Got ambulance equipment");
+
+                // Set current equipment
+                appData.setEquipment(equipment);
+
+                try {
+
+                    // Subscribe to hospital
+                    subscribeToAmbulanceEquipment(ambulanceId);
+
+                } catch (MqttException e) {
+
+                    // Broadcast failure
+                    //TODO: James put this in strings.xml
+                    broadcastFailure("Could not subscribe to ambulance equipment", uuid);
+
+                    // return
+                    return;
+
+                }
+
+            }
+
+            @Override
+            public void onFailure(Throwable t) {
+                super.onFailure(t);
+
+                // Broadcast failure
+                broadcastFailure("Could not retrieve ambulance equipment", uuid);
+
+            }
+
+        }.start();
+
+    }
+
+    public void subscribeToAmbulanceEquipment(int ambulanceId) throws MqttException {
+
+        // Retrieve client
+        final MqttProfileClient profileClient = getProfileClient(this);
+
+        // Subscribe to hospital
+        profileClient.subscribe("ambulance/" + ambulanceId + "/equipment",1,
+                (topic, message) -> {
+
+                    try {
+
+                        // Parse hospital
+                        GsonBuilder gsonBuilder = new GsonBuilder();
+                        gsonBuilder.setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES);
+                        Gson gson = gsonBuilder.create();
+
+                        // Found equipment
+                        EquipmentItem item = gson.fromJson(message.toString(), EquipmentItem.class);
+
+                        // Add to equipment list
+                        appData.getEquipment().add(item);
+
+                        // Broadcast ambulance equipment update
+                        Intent localIntent = new Intent(BroadcastActions.AMBULANCE_EQUIPMENT_UPDATE);
+                        //localIntent.putExtra(BroadcastExtras.HOSPITAL_ID, hospital.getId());
+                        getLocalBroadcastManager().sendBroadcast(localIntent);
+
+                    } catch (Exception e) {
+
+                        // Broadcast failure
+                        //TODO: James put this in strings.xml
+                        broadcastFailure("Could not parse ambulance equipment update");
 
                     }
 

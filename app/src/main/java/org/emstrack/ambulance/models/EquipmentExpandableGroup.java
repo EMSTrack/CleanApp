@@ -4,13 +4,11 @@ import com.thoughtbot.expandablerecyclerview.models.ExpandableGroup;
 
 import org.emstrack.models.EquipmentItem;
 
-import java.util.List;
-
 /**
- * Created by James on 2/17/2020. This file is called from EquipmentFragment
- * It contains whatever information you want to store for Equipment items.
+ * Contains the information we want to store for Equipment items (called from EquipmentFragment)
+ * @author James Basa
+ * @since 2/17/2020
  */
-
 public class EquipmentExpandableGroup {
 
     private EquipmentItem equipment;
