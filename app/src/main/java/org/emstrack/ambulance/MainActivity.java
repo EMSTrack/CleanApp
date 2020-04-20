@@ -1095,21 +1095,21 @@ public class MainActivity extends AppCompatActivity {
                             int selectedHospital = hospitalSpinner.getSelectedItemPosition();
                             if (selectedHospital > 0) {
                                 HospitalPermission hospital = hospitalPermissions.get(selectedHospital - 1);
-                                waypoint = "{\"order\":" + maximumOrder + ",\"location\":{\"id\":" + hospital.getHospitalId() + ",\"type\":\"" + Location.TYPE_HOSPITAL + "\"}}";
+                                waypoint = "{\"order\":" + maximumOrder + ",\"location_id\":" + hospital.getHospitalId() + "}";
                             }
 
                             int selectedBase = baseSpinner.getSelectedItemPosition();
                             if (selectedBase > 0) {
                                 Location base = bases.get(selectedBase - 1);
                                 Log.d( TAG, "base = " + base);
-                                waypoint = "{\"order\":" + maximumOrder + ",\"location\":{\"id\":" + base.getId() + ",\"type\":\"" + Location.TYPE_BASE + "\"}}";
+                                waypoint = "{\"order\":" + maximumOrder + ",\"location_id\":" + base.getId() + "}";
                             }
 
                             int selectedOthers = othersSpinner.getSelectedItemPosition();
                             if (selectedOthers > 0) {
                                 Location others = otherLocations.get(selectedOthers - 1);
                                 Log.d( TAG, "other = " + others);
-                                waypoint = "{\"order\":" + maximumOrder + ",\"location\":{\"id\":" + others.getId() + ",\"type\":\"" + Location.TYPE_OTHER + "\"}}";
+                                waypoint = "{\"order\":" + maximumOrder + ",\"location_id\":" + others.getId() + "}";
                             }
 
                             // Publish waypoint
