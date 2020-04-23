@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.os.Build;
 import android.os.Bundle;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import android.util.Log;
@@ -14,6 +15,7 @@ import org.emstrack.models.util.OnServiceComplete;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
+import org.robolectric.annotation.Config;
 import org.robolectric.shadows.ShadowLog;
 import org.robolectric.shadows.ShadowLooper;
 
@@ -26,6 +28,7 @@ import static junit.framework.TestCase.assertTrue;
 import static org.junit.Assert.assertSame;
 
 @RunWith(RobolectricTestRunner.class)
+@Config(sdk=Build.VERSION_CODES.P)
 public class TestOnServiceComplete {
 
     static {
