@@ -1,32 +1,30 @@
 package org.emstrack.ambulance.models;
 
-import com.thoughtbot.expandablerecyclerview.models.ExpandableGroup;
-
 import org.emstrack.models.EquipmentItem;
 
 /**
- * Contains the information we want to store for Equipment items (called from EquipmentFragment)
+ * This is NOT being used--EquipmentViewHolder.java stores all the information now
+ * Contains the information we want to store for Equipment items
  * @author James Basa
  * @since 2/17/2020
  */
 public class EquipmentExpandableGroup {
 
-    private EquipmentItem equipment;
+    private EquipmentItem equipments;
     //value can be string, boolean, or int
     private String value;
     private String type;
     private String description;
 
-    //TODO: change this function according to these instance variables
-    public EquipmentExpandableGroup(EquipmentItem equipment, String value, String type, String description) {
-        this.equipment = equipment;
+    public EquipmentExpandableGroup(EquipmentItem equipments, String value, String type, String description) {
+        this.equipments = equipments;
         this.value = value;
         this.type = type;
         this.description = description;
     }
 
-    public EquipmentItem getEquipment() {
-        return equipment;
+    public EquipmentItem getEquipments() {
+        return equipments;
     }
 
     public String getValue() {

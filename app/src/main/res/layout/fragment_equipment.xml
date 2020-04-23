@@ -13,8 +13,7 @@
     android:paddingBottom="@dimen/activity_vertical_margin"
     tools:context="org.emstrack.ambulance.fragments.EquipmentFragment">
 
-    <!-- Below code was added by Parker on 3/8/2020.
-            id's can be found in strings.xml        -->
+    <!-- id's can be found in strings.xml -->
     <TextView
         android:id="@+id/equipment"
         android:layout_width="match_parent"
@@ -34,80 +33,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:layout_alignParentTop="true" />
-
-    <!--
-    <android.support.v7.widget.CardView
-        android:layout_width="match_parent"
-        android:layout_height="80dp"
-        android:layout_marginTop="10dp">
-
-
-        <TextView
-            android:id="@+id/equipName1"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:gravity="start|center"
-            android:text="hi"
-            android:textColor="#4CAF50"
-            android:textSize="20sp" />
-
-        <Spinner
-            android:id="@+id/spinner1"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="bottom|center"
-            android:entries="@array/equipinfo1" />
-
-    </android.support.v7.widget.CardView>
-
-    <android.support.v7.widget.CardView
-        android:layout_width="match_parent"
-        android:layout_height="80dp"
-        android:layout_marginTop="10dp">
-
-        <TextView
-            android:id="@+id/equipName2"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:gravity="start|center"
-            android:text="@string/equipment2"
-            android:textColor="#4CAF50"
-            android:textSize="20sp" />
-
-        <Spinner
-            android:id="@+id/spinner2"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="bottom|center"
-            android:entries="@array/equipinfo2" />
-
-    </android.support.v7.widget.CardView>
-
-    <android.support.v7.widget.CardView
-        android:layout_width="match_parent"
-        android:layout_height="80dp"
-        android:layout_marginTop="10dp">
-
-        <TextView
-            android:id="@+id/equipName3"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:gravity="start|center"
-            android:text="@string/equipment3"
-            android:textColor="#E91E25"
-            android:textSize="20sp" />
-
-        <Spinner
-            android:id="@+id/spinner3"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="bottom|center"
-            android:entries="@array/equipinfo3" />
-
-    </android.support.v7.widget.CardView>
-    -->
+        android:layout_alignParentTop="true"
+        android:layout_marginTop="60dp" />
 
 </RelativeLayout>
 

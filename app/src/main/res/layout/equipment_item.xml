@@ -1,54 +1,39 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
+
+<!-- this is for ambulance equipment -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="40dp"
-    android:layout_marginBottom="8dp"
-    android:layout_marginTop="8dp">
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
 
-    <!--
-    <ImageView
-        android:id="@+id/equipment_thumbnail"
-        android:layout_width="20dp"
-        android:layout_height="20dp"
-        android:layout_gravity="center_vertical"
-        android:layout_marginLeft="4dp"
-        android:scaleType="fitCenter"
-        android:src="@drawable/hospital_symbol" />
-
-    <TextView
-        android:id="@+id/equipment_name"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:gravity="center_vertical"
-        android:layout_marginLeft="30dp"
-        android:textSize="24sp"
-        android:textStyle="bold"
-        tools:text="Equipment" />
-    -->
-
-    <android.support.v7.widget.CardView
+    <android.support.v7.widget.CardView xmlns:app="http://schemas.android.com/apk/res-auto"
         android:layout_width="match_parent"
         android:layout_height="80dp"
-        android:layout_marginTop="10dp">
+        app:cardUseCompatPadding="true"
+        app:cardElevation="4dp"
+        app:cardCornerRadius="3dp">
 
 
         <TextView
             android:id="@+id/equipment_name"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:gravity="start|center"
-            android:text="equipment"
+            android:layout_height="40dp"
+            android:layout_marginStart="5dp"
+            android:gravity="center|start"
+            android:singleLine="true"
+            android:text="@string/equipment"
+            android:textSize="20sp"
             android:textColor="@color/colorAvailable"
-            android:textSize="20sp" />
+            android:textStyle="bold"/>
 
         <Spinner
             android:id="@+id/spinner"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="bottom|center"
+            android:layout_height="40dp"
+            android:layout_gravity="bottom"
+            android:layout_marginStart="0dp"
             android:entries="@array/equipment_info" />
 
     </android.support.v7.widget.CardView>
 
-</FrameLayout>
+</LinearLayout>

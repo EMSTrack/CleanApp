@@ -19,13 +19,9 @@ import org.emstrack.ambulance.R;
 //TODO change hospital imports to equipment imports below
 import org.emstrack.ambulance.adapters.EquipmentExpandableRecyclerAdapter;
 import org.emstrack.ambulance.models.AmbulanceAppData;
-import org.emstrack.ambulance.models.EquipmentExpandableGroup;
 import org.emstrack.ambulance.services.AmbulanceForegroundService;
-import org.emstrack.ambulance.util.SparseArrayUtils;
 import org.emstrack.models.EquipmentItem;
-import org.emstrack.models.Hospital;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -38,7 +34,6 @@ public class EquipmentFragment extends Fragment {
 
     View rootView;
     RecyclerView recyclerView;
-
     EquipmentUpdateBroadcastReceiver receiver;
 
     public class EquipmentUpdateBroadcastReceiver extends BroadcastReceiver {
@@ -50,12 +45,11 @@ public class EquipmentFragment extends Fragment {
 
                 final String action = intent.getAction();
 
-                if (action.equals(AmbulanceForegroundService.BroadcastActions.AMBULANCE_EQUIPMENT_UPDATE)) {
+                if (action.equals(AmbulanceForegroundService.BroadcastActions.AMBULANCE_EQUIPMENTS_UPDATE)) {
 
-                    Log.i(TAG, "AMBULANCE_EQUIPMENT_UPDATE");
+                    Log.i(TAG, "AMBULANCE_EQUIPMENTS_UPDATE");
                     AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
-                    update(appData.getEquipment());
-
+                    update(appData.getEquipments());
 
                 }
 
@@ -71,7 +65,7 @@ public class EquipmentFragment extends Fragment {
         recyclerView = rootView.findViewById(R.id.recycler_view_equipment);
 
         AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
-        update(appData.getEquipment());
+        update(appData.getEquipments());
 
         return rootView;
     }
@@ -82,7 +76,7 @@ public class EquipmentFragment extends Fragment {
 
         // Register receiver
         IntentFilter filter = new IntentFilter();
-        filter.addAction(AmbulanceForegroundService.BroadcastActions.AMBULANCE_EQUIPMENT_UPDATE);
+        filter.addAction(AmbulanceForegroundService.BroadcastActions.AMBULANCE_EQUIPMENTS_UPDATE);
         receiver = new EquipmentFragment.EquipmentUpdateBroadcastReceiver();
         getLocalBroadcastManager().registerReceiver(receiver, filter);
 
@@ -90,7 +84,7 @@ public class EquipmentFragment extends Fragment {
         AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
 
         // updateAmbulance UI
-        update(appData.getEquipment());
+        update(appData.getEquipments());
 
     }
 
@@ -106,38 +100,24 @@ public class EquipmentFragment extends Fragment {
     }
 
     /**
-     * Update equipment list
+     * Update equipments list
      *
-     * @param equipment list of ...
+     * @param equipments list of ...
      */
-    public void update(List<EquipmentItem> equipment) {
+    public void update(List<EquipmentItem> equipments) {
 
         // fast return if no equipment
-        if (equipment == null)
+        if (equipments == null) {
+            Log.i(TAG, "No equipments for this ambulance.");
             return;
+        }
 
-        Log.i(TAG,"Updating equipment UI.");
+        Log.i(TAG,"Updating equipments UI with " + equipments.size() + " items.");
 
-        /*
-        // Create EquipmentExpandableGroups
-        final List equipmentExpandableGroups = new ArrayList<EquipmentExpandableGroup>();
-
-        // Loop over all equipment
-        for (EquipmentItem item : SparseArrayUtils.iterable(equipment) ) {
-
-            // Add to expandable group list
-            //TODO: retrieve dynamic data
-            equipmentExpandableGroups.add(
-                    new EquipmentExpandableGroup(item,
-                            "",
-                            "",
-                            ""));
-
-        }*/
         // Install fragment
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getContext());
         EquipmentExpandableRecyclerAdapter adapter =
-                new EquipmentExpandableRecyclerAdapter(getActivity(), equipment);
+                new EquipmentExpandableRecyclerAdapter(getActivity(), equipments);
         recyclerView.setLayoutManager(linearLayoutManager);
         recyclerView.setAdapter(adapter);
 
