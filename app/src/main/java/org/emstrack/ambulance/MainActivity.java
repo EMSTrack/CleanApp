@@ -2,23 +2,22 @@ package org.emstrack.ambulance;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.res.Configuration;
 import android.graphics.PorterDuff;
 import android.os.Bundle;
-import android.support.design.widget.NavigationView;
-import android.support.design.widget.TabLayout;
-import android.support.v4.app.Fragment;
-import android.support.v4.content.ContextCompat;
-import android.support.v4.content.LocalBroadcastManager;
-import android.support.v4.view.ViewPager;
-import android.support.v4.widget.DrawerLayout;
-import android.support.v7.app.ActionBarDrawerToggle;
-import android.support.v7.app.AlertDialog;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
+import com.google.android.material.navigation.NavigationView;
+import com.google.android.material.tabs.TabLayout;
+import androidx.fragment.app.Fragment;
+import androidx.core.content.ContextCompat;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+import androidx.viewpager.widget.ViewPager;
+import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.appcompat.app.ActionBarDrawerToggle;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
@@ -33,7 +32,6 @@ import android.widget.Toast;
 
 import org.emstrack.ambulance.adapters.FragmentPager;
 import org.emstrack.ambulance.dialogs.AboutDialog;
-import org.emstrack.ambulance.dialogs.AlertSnackbar;
 import org.emstrack.ambulance.dialogs.LogoutDialog;
 import org.emstrack.ambulance.fragments.AmbulanceFragment;
 import org.emstrack.ambulance.fragments.EquipmentFragment;
@@ -49,7 +47,9 @@ import org.emstrack.models.CallStack;
 import org.emstrack.models.HospitalPermission;
 import org.emstrack.models.Location;
 import org.emstrack.models.Patient;
+import org.emstrack.models.PriorityCode;
 import org.emstrack.models.Profile;
+import org.emstrack.models.RadioCode;
 import org.emstrack.models.Waypoint;
 import org.emstrack.models.util.BroadcastActions;
 import org.emstrack.models.util.OnServiceComplete;
@@ -59,6 +59,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import android.os.CountDownTimer;
+
 
 /**
  * This is the main activity -- the default screen
@@ -77,10 +80,12 @@ public class MainActivity extends AppCompatActivity {
     private List<AmbulancePermission> ambulancePermissions;
     private List<HospitalPermission> hospitalPermissions;
     private List<Location> bases;
+    private List<Location> otherLocations;
 
     private ArrayAdapter<String> ambulanceListAdapter;
     private ArrayAdapter<String> hospitalListAdapter;
     private ArrayAdapter<String> baseListAdapter;
+    private ArrayAdapter<String> othersListAdapter;
 
     private DrawerLayout mDrawer;
     private ActionBarDrawerToggle drawerToggle;
@@ -304,7 +309,7 @@ public class MainActivity extends AppCompatActivity {
 
         // Panic button
         ImageButton panicButton = findViewById(R.id.panicButton);
-        panicButton.setOnClickListener(
+        panicButton.setOnLongClickListener(
                 v -> panicPopUp());
 
         // Set a Toolbar to replace the ActionBar.
@@ -376,6 +381,7 @@ public class MainActivity extends AppCompatActivity {
             hospitalPermissions = profile.getHospitals();
         }
         bases = appData.getBases();
+        otherLocations = appData.getOtherLocations();
 
         // Creates list of ambulance names
         ArrayList<String> ambulanceList = new ArrayList<>();
@@ -411,6 +417,17 @@ public class MainActivity extends AppCompatActivity {
         baseListAdapter = new ArrayAdapter<>(this,
                 android.R.layout.simple_spinner_dropdown_item, baseList);
         baseListAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+
+        // Creates list of other location names
+        ArrayList<String> othersList = new ArrayList<>();
+        othersList.add(getString(R.string.selectOthers));
+        for (Location other : otherLocations)
+            othersList.add(other.getName());
+
+        // Create the adapter
+        othersListAdapter = new ArrayAdapter<>(this,
+                android.R.layout.simple_spinner_dropdown_item, othersList);
+        othersListAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 
         // Any ambulance currently selected?
         Ambulance ambulance = AmbulanceForegroundService.getAppData().getAmbulance();
@@ -630,7 +647,9 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    public void panicPopUp() {
+    public boolean panicPopUp() {
+        final long DIALOG_DISMISS_TIME = 3000; // miliseconds
+
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setCancelable(true);
@@ -643,8 +662,24 @@ public class MainActivity extends AppCompatActivity {
                 (dialog, which) -> {
                 });
 
-        AlertDialog dialog = builder.create();
-        dialog.show();
+        AlertDialog alertDialog = builder.create();
+
+        //timer to dismiss dialog after DIALOG_DISMISS_TIME ms
+        final CountDownTimer timer = new CountDownTimer(DIALOG_DISMISS_TIME, 1000) {
+            @Override
+            public void onTick(long l) {
+                alertDialog.setMessage("Seconds remaining: "+((l/1000)+1));
+            }
+            @Override
+            public void onFinish() {
+                alertDialog.dismiss();
+            }
+        };
+        //if dismissed before timer's up, cancel timer
+        alertDialog.setOnDismissListener(dialog -> timer.cancel());
+        alertDialog.show();
+        timer.start();
+        return true;
     }
 
     /**
@@ -757,14 +792,35 @@ public class MainActivity extends AppCompatActivity {
         // Create call view
         View view = getLayoutInflater().inflate(R.layout.call_dialog, null);
 
-        Button callPriorityButton = view.findViewById(R.id.callPriorityButton);
-        callPriorityButton.setText(call.getPriority());
-        callPriorityButton.setBackgroundColor(callPriorityBackgroundColors.get(call.getPriority()));
-        callPriorityButton.setTextColor(callPriorityForegroundColors.get(call.getPriority()));
-
         ((TextView) view.findViewById(R.id.callPriorityLabel)).setText(R.string.nextCall);
 
+        // Set priority
+        TextView callPriorityTextView = view.findViewById(R.id.callPriorityTextView);
+        callPriorityTextView.setText(call.getPriority());
+        callPriorityTextView.setBackgroundColor(callPriorityBackgroundColors.get(call.getPriority()));
+        callPriorityTextView.setTextColor(callPriorityForegroundColors.get(call.getPriority()));
+
+        int priorityCodeInt = call.getPriorityCode();
+        if (priorityCodeInt < 0) {
+            ((TextView) view.findViewById(R.id.callPriorityPrefix)).setText("");
+            ((TextView) view.findViewById(R.id.callPrioritySuffix)).setText("");
+        } else {
+            PriorityCode priorityCode = appData.getPriorityCodes().get(priorityCodeInt);
+            ((TextView) view.findViewById(R.id.callPriorityPrefix)).setText(priorityCode.getPrefix() + "-");
+            ((TextView) view.findViewById(R.id.callPrioritySuffix)).setText("-" + priorityCode.getSuffix());
+        }
+
+        // Set radio code
+        int radioCodeInt = call.getRadioCode();
+        if (radioCodeInt < 0) {
+            ((TextView) view.findViewById(R.id.callRadioCodeText)).setText(R.string.unavailable);
+        } else {
+            RadioCode radioCode = appData.getRadioCodes().get(radioCodeInt);
+            ((TextView) view.findViewById(R.id.callRadioCodeText)).setText(radioCode.getId() + ": " + radioCode.getLabel());
+        }
+
         ((TextView) view.findViewById(R.id.callDetailsText)).setText(call.getDetails());
+
         ((TextView) view.findViewById(R.id.callPatientsText)).setText(patientsText);
         ((TextView) view.findViewById(R.id.callNumberWaypointsText)).setText(String.valueOf(numberOfWaypoints));
 
@@ -962,6 +1018,10 @@ public class MainActivity extends AppCompatActivity {
         final Spinner baseSpinner = view.findViewById(R.id.spinnerBases);
         baseSpinner.setAdapter(baseListAdapter);
 
+        // Create base spinner
+        final Spinner othersSpinner = view.findViewById(R.id.spinnerOthers);
+        othersSpinner.setAdapter(othersListAdapter);
+
         // Set spinner click listeners to make sure only base or hospital are selected
         hospitalSpinner.setOnItemSelectedListener(
                 new AdapterView.OnItemSelectedListener() {
@@ -969,6 +1029,9 @@ public class MainActivity extends AppCompatActivity {
                     public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                         if (position > 0 && baseSpinner.getSelectedItemPosition() > 0) {
                             baseSpinner.setSelection(0);
+                        }
+                        if (position > 0 && othersSpinner.getSelectedItemPosition() > 0) {
+                            othersSpinner.setSelection(0);
                         }
                     }
 
@@ -985,6 +1048,28 @@ public class MainActivity extends AppCompatActivity {
                     public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                         if (position > 0 && hospitalSpinner.getSelectedItemPosition() > 0) {
                             hospitalSpinner.setSelection(0);
+                        }
+                        if (position > 0 && othersSpinner.getSelectedItemPosition() > 0) {
+                            othersSpinner.setSelection(0);
+                        }
+                    }
+
+                    @Override
+                    public void onNothingSelected(AdapterView<?> parent) {
+
+                    }
+                }
+        );
+
+        othersSpinner.setOnItemSelectedListener(
+                new AdapterView.OnItemSelectedListener() {
+                    @Override
+                    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                        if (position > 0 && hospitalSpinner.getSelectedItemPosition() > 0) {
+                            hospitalSpinner.setSelection(0);
+                        }
+                        if (position > 0 && baseSpinner.getSelectedItemPosition() > 0) {
+                            baseSpinner.setSelection(0);
                         }
                     }
 
@@ -1010,14 +1095,21 @@ public class MainActivity extends AppCompatActivity {
                             int selectedHospital = hospitalSpinner.getSelectedItemPosition();
                             if (selectedHospital > 0) {
                                 HospitalPermission hospital = hospitalPermissions.get(selectedHospital - 1);
-                                waypoint = "{\"order\":" + maximumOrder + ",\"location\":{\"id\":" + hospital.getHospitalId() + ",\"type\":\"" + Location.TYPE_HOSPITAL + "\"}}";
+                                waypoint = "{\"order\":" + maximumOrder + ",\"location_id\":" + hospital.getHospitalId() + "}";
                             }
 
                             int selectedBase = baseSpinner.getSelectedItemPosition();
                             if (selectedBase > 0) {
                                 Location base = bases.get(selectedBase - 1);
                                 Log.d( TAG, "base = " + base);
-                                waypoint = "{\"order\":" + maximumOrder + ",\"location\":{\"id\":" + base.getId() + ",\"type\":\"" + Location.TYPE_BASE + "\"}}";
+                                waypoint = "{\"order\":" + maximumOrder + ",\"location_id\":" + base.getId() + "}";
+                            }
+
+                            int selectedOthers = othersSpinner.getSelectedItemPosition();
+                            if (selectedOthers > 0) {
+                                Location others = otherLocations.get(selectedOthers - 1);
+                                Log.d( TAG, "other = " + others);
+                                waypoint = "{\"order\":" + maximumOrder + ",\"location_id\":" + others.getId() + "}";
                             }
 
                             // Publish waypoint

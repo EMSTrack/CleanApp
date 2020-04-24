@@ -1,6 +1,5 @@
 package org.emstrack.ambulance.models;
 
-import android.support.annotation.NonNull;
 import android.util.SparseArray;
 
 import org.emstrack.models.Ambulance;
@@ -9,17 +8,15 @@ import org.emstrack.models.Credentials;
 import org.emstrack.models.EquipmentItem;
 import org.emstrack.models.Hospital;
 import org.emstrack.models.Location;
+import org.emstrack.models.PriorityClassification;
+import org.emstrack.models.PriorityCode;
 import org.emstrack.models.Profile;
+import org.emstrack.models.RadioCode;
 import org.emstrack.models.Settings;
 import org.emstrack.models.Token;
 
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
-import java.util.ListIterator;
-import java.util.Map;
 
 public class AmbulanceAppData {
 
@@ -33,8 +30,14 @@ public class AmbulanceAppData {
     private SparseArray<Ambulance> ambulances;
     private SparseArray<Hospital> hospitals;
     private List<Location> bases;
+    private List<Location> others;
     private CallStack calls;
     private List<EquipmentItem> equipments;
+
+    private SparseArray<RadioCode> radioCodes;
+    private SparseArray<PriorityCode> priorityCodes;
+    private SparseArray<PriorityClassification> priorityClassifications;
+    private List<String> serversList;
 
     /**
      *
@@ -43,8 +46,14 @@ public class AmbulanceAppData {
         ambulances = new SparseArray<>();
         hospitals = new SparseArray<>();
         bases = new ArrayList<>();
+        others = new ArrayList<>();
         calls = new CallStack();
         equipments = new ArrayList<>();
+
+        radioCodes = new SparseArray<>();
+        priorityCodes = new SparseArray<>();
+        priorityClassifications = new SparseArray<>();
+        serversList = new ArrayList<>();
     }
 
     /**
@@ -78,6 +87,18 @@ public class AmbulanceAppData {
     public void setCredentials(Credentials credentials) {
         this.credentials = credentials;
     }
+
+    /**
+     *
+     * @return the servers lists
+     */
+    public List<String> getServersList() { return serversList; }
+
+    /**
+     *
+     * @return the servers lists
+     */
+    public void setServersList(List<String> serversList) { this.serversList = serversList; }
 
     /**
      *
@@ -133,6 +154,79 @@ public class AmbulanceAppData {
      */
     public List<Location> getBases() {
         return bases;
+    }
+
+    /**
+     *
+     * @param others  list of other locations
+     */
+    public void setOtherLocations(List<Location> others) {
+        this.others= others;
+    }
+
+    /**
+     *
+     * @return the list of other locations
+     */
+    public List<Location> getOtherLocations() {
+        return others;
+    }
+
+    /**
+     *
+     * @param radioCodes list of radio codes
+     */
+    public void setRadioCodes(List<RadioCode> radioCodes) {
+        this.radioCodes = new SparseArray<>();
+        for (RadioCode code : radioCodes) {
+            this.radioCodes.put(code.getId(), code);
+        }
+    }
+
+    /**
+     *
+     * @return the list of radio codes
+     */
+    public SparseArray<RadioCode> getRadioCodes() {
+        return radioCodes;
+    }
+
+    /**
+     *
+     * @param priorityCodes list of priority codes
+     */
+    public void setPriorityCodes(List<PriorityCode> priorityCodes) {
+        this.priorityCodes = new SparseArray<>();
+        for (PriorityCode code : priorityCodes) {
+            this.priorityCodes.put(code.getId(), code);
+        }
+    }
+
+    /**
+     *
+     * @return the list of priority codes
+     */
+    public SparseArray<PriorityCode> getPriorityCodes() {
+        return priorityCodes;
+    }
+
+    /**
+     *
+     * @param priorityClassifications list of priority classifications
+     */
+    public void setPriorityClassifications(List<PriorityClassification> priorityClassifications) {
+        this.priorityClassifications = new SparseArray<>();
+        for (PriorityClassification classification : priorityClassifications) {
+            this.priorityClassifications.put(classification.getId(), classification);
+        }
+    }
+
+    /**
+     *
+     * @return the list of priority classifications
+     */
+    public SparseArray<PriorityClassification> getPriorityClassifications() {
+        return priorityClassifications;
     }
 
     /**

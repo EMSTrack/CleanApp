@@ -2,7 +2,7 @@
 <resources>
 
     <string name="app_name">EMSTrack</string>
-    <string name="app_version" translatable="false">0_5_5</string>
+    <string name="app_version" translatable="false">0_6_2</string>
     <string name="client_name" translatable="false">AndroidClient</string>
 
     <string name="drawer_open">Open navigation drawer</string>
@@ -265,10 +265,17 @@
     <string name="directions">Directions</string>
     <string name="couldNotOpenGoogleMaps">Could not open Google Maps.</string>
     <string name="wouldYouLikeToGoogleMaps">Would you like to get directions on Google Maps?</string>
+    <string name="other">Other:</string>
+    <string name="selectOthers">Select other locations:</string>
+    <string name="radio_code">Radio Code</string>
+    <string name="radio_code_label">Radio Code:</string>
+    <string name="unavailable">Unavailable</string>
+    <string name="couldNotRetrieveServers">Could not retrieve servers</string>
     <string-array name="spinner_list_item_array_server">
         <item>@string/server_select</item>
         <item>Tijuana Red Cross:tijuana.emstrack.org:8883</item>
         <item>UCSD:cruzroja.ucsd.edu:8883</item>
+        <item>EMSTrack Test:test.emstrack.org:8883</item>
     </string-array>
 
     <string-array name="call_priority_colors">

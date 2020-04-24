@@ -29,6 +29,8 @@ public class Call {
     private String status;
     private String details;
     private String priority;
+    private int priorityCode;
+    private int radioCode;
     private Date createdAt;
     private Date pendingAt;
     private Date startedAt;
@@ -45,6 +47,8 @@ public class Call {
     public Call() {
         id = -1;
         updatedBy = -1;
+        radioCode = -1;
+        priorityCode = -1;
         this.currentAmbulanceCall = null;
         this.sorted = false;
     }
@@ -69,6 +73,8 @@ public class Call {
         this.ambulancecallSet = ambulancecallSet;
         this.patientSet = patientSet;
 
+        this.priorityCode = -1;
+        this.radioCode = -1;
         this.currentAmbulanceCall = null;
         this.sorted = false;
     }
@@ -103,6 +109,22 @@ public class Call {
 
     public void setPriority(String priority) {
         this.priority = priority;
+    }
+
+    public int getRadioCode() {
+        return radioCode;
+    }
+
+    public void setRadioCode(int radioCode) {
+        this.radioCode = radioCode;
+    }
+
+    public int getPriorityCode() {
+        return priorityCode;
+    }
+
+    public void setPriorityCode(int priorityCode) {
+        this.priorityCode = priorityCode;
     }
 
     public Date getCreatedAt() {

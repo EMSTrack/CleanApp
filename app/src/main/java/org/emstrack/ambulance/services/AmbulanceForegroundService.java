@@ -17,10 +17,10 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
-import android.support.annotation.Nullable;
-import android.support.v4.app.NotificationCompat;
-import android.support.v4.app.NotificationManagerCompat;
-import android.support.v4.content.LocalBroadcastManager;
+import androidx.annotation.Nullable;
+import androidx.core.app.NotificationCompat;
+import androidx.core.app.NotificationManagerCompat;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import android.text.TextUtils;
 import android.util.Log;
 import android.util.Pair;
@@ -61,7 +61,10 @@ import org.emstrack.models.EquipmentItem;
 import org.emstrack.models.GPSLocation;
 import org.emstrack.models.Hospital;
 import org.emstrack.models.Location;
+import org.emstrack.models.PriorityClassification;
+import org.emstrack.models.PriorityCode;
 import org.emstrack.models.Profile;
+import org.emstrack.models.RadioCode;
 import org.emstrack.models.Settings;
 import org.emstrack.models.Token;
 import org.emstrack.models.Version;
@@ -164,6 +167,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
     public class Actions {
         public final static String START_SERVICE = "org.emstrack.ambulance.ambulanceforegroundservice.action.START_SERVICE";
         public final static String LOGIN = "org.emstrack.ambulance.ambulanceforegroundservice.action.LOGIN";
+        public final static String GET_SERVERS = "org.emstrack.ambulance.ambulanceforegroundservice.action.GET_SERVERS";
         public final static String GET_AMBULANCE = "org.emstrack.ambulance.ambulanceforegroundservice.action.GET_AMBULANCE";
         public final static String GET_AMBULANCES= "org.emstrack.ambulance.ambulanceforegroundservice.action.GET_AMBULANCES";
         public final static String STOP_AMBULANCES= "org.emstrack.ambulance.ambulanceforegroundservice.action.STOP_AMBULANCES";
@@ -221,6 +225,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         public final static byte AMBULANCE_CANNOT_LOGIN = 8;
         public final static byte AMBULANCE_CANNOT_RETRIEVE = 9;
         public final static byte AMBULANCE_CANNOT_SUBSCRIBE = 10;
+        public static final byte CANNOT_RETRIEVE_SERVERS = 11;
     }
 
     public class BroadcastActions {
@@ -551,6 +556,13 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
             // logout
             logout(uuid);
+
+        } else if (action.equals(Actions.GET_SERVERS)) {
+
+            Log.i(TAG, "GET_SERVERS Foreground Intent");
+
+            // get servers
+            retrieveServers(uuid);
 
         } else if (action.equals(Actions.GET_AMBULANCE)) {
 
@@ -1928,8 +1940,13 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                                 APIService service = APIServiceGenerator.createService(APIService.class);
                                 retrofit2.Call<Profile> profileCall = service.getProfile(username);
                                 retrofit2.Call<Settings> settingsCall = service.getSettings();
-                                retrofit2.Call<List<Location>> basesCall = service.getLocationsByType("Base");
+                                retrofit2.Call<List<Location>> basesCall = service.getLocationsByType("b");
+                                retrofit2.Call<List<Location>> othersCall = service.getLocationsByType("o");
                                 retrofit2.Call<Version> versionCall = service.getVersion();
+                                retrofit2.Call<List<RadioCode>> radioCodesCall = service.getRadioCodes();
+                                retrofit2.Call<List<PriorityCode>> priorityCodesCall = service.getPriorityCodes();
+                                retrofit2.Call<List<PriorityClassification>> priorityClassificationsCall = service.getPriorityClassification();
+
 
                                 new OnAPICallComplete<Version>(versionCall) {
 
@@ -2044,6 +2061,93 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
                                     }
 
+                                }.setNext(new OnAPICallComplete<List<Location>>(othersCall) {
+
+                                    @Override
+                                    public void onSuccess(List<Location> locations) {
+
+                                        Log.d(TAG, String.format("Got %1$d other locations", locations.size()));
+
+                                        // sort bases
+                                        Collections.sort(locations, (a, b) -> a.getName().compareTo(b.getName()) );
+
+                                        // save bases
+                                        appData.setOtherLocations(locations);
+
+                                    }
+
+                                    @Override
+                                    public void onFailure(Throwable t) {
+                                        super.onFailure(t);
+
+                                        // Broadcast failure
+                                        broadcastFailure("Could not retrieve other locations", uuid, t);
+
+                                    }
+
+                                }.setNext(new OnAPICallComplete<List<PriorityCode>>(priorityCodesCall) {
+
+                                    @Override
+                                    public void onSuccess(List<PriorityCode> codes) {
+
+                                        Log.d(TAG, String.format("Got %1$d priority codes", codes.size()));
+
+                                        // save bases
+                                        appData.setPriorityCodes(codes);
+
+                                    }
+
+                                    @Override
+                                    public void onFailure(Throwable t) {
+                                        super.onFailure(t);
+
+                                        // Broadcast failure
+                                        broadcastFailure("Could not retrieve priority codes", uuid, t);
+
+                                    }
+
+                                }.setNext(new OnAPICallComplete<List<PriorityClassification>>(priorityClassificationsCall) {
+
+                                    @Override
+                                    public void onSuccess(List<PriorityClassification> classifications) {
+
+                                        Log.d(TAG, String.format("Got %1$d priority classifications", classifications.size()));
+
+                                        // save bases
+                                        appData.setPriorityClassifications(classifications);
+
+                                    }
+
+                                    @Override
+                                    public void onFailure(Throwable t) {
+                                        super.onFailure(t);
+
+                                        // Broadcast failure
+                                        broadcastFailure("Could not retrieve priority classifications", uuid, t);
+
+                                    }
+
+                                }.setNext(new OnAPICallComplete<List<RadioCode>>(radioCodesCall) {
+
+                                    @Override
+                                    public void onSuccess(List<RadioCode> codes) {
+
+                                        Log.d(TAG, String.format("Got %1$d radio codes", codes.size()));
+
+                                        // save bases
+                                        appData.setRadioCodes(codes);
+
+                                    }
+
+                                    @Override
+                                    public void onFailure(Throwable t) {
+                                        super.onFailure(t);
+
+                                        // Broadcast failure
+                                        broadcastFailure("Could not retrieve radio codes", uuid, t);
+
+                                    }
+
                                 }.setNext(new OnServiceComplete(AmbulanceForegroundService.this,
                                         org.emstrack.models.util.BroadcastActions.SUCCESS,
                                         org.emstrack.models.util.BroadcastActions.FAILURE,
@@ -2081,7 +2185,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
                                     }
 
-                                })))))
+                                })))))))))
                                         .start();
 
                             }
@@ -2184,6 +2288,45 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
             }
 
+        }
+                .start();
+
+    }
+
+    /**
+     * Retrieve servers
+     *
+     */
+    public void retrieveServers(final String uuid) {
+
+        Log.d(TAG, "retrieveServers");
+
+        // Retrieve servers data API call
+        APIService service = APIServiceGenerator.createService(APIService.class);
+        retrofit2.Call<List<String>> getServersCall = service.getServers();
+
+        new OnAPICallComplete<List<String>>(getServersCall) {
+
+            @Override
+            public void onSuccess(List<String> serversList) {
+
+                /* Log.d(TAG, "Successfully retrieved servers list"); */
+                getAppData().setServersList(serversList);
+
+                // Broadcast success
+                broadcastSuccess("Successfully retrieved servers list", uuid);
+
+            }
+
+            @Override
+            public void onFailure(Throwable t) {
+                super.onFailure(t);
+
+                // Broadcast failure
+                broadcastFailure(getString(R.string.couldNotRetrieveServers), uuid,
+                        t, ErrorCodes.CANNOT_RETRIEVE_SERVERS);
+
+            }
         }
                 .start();
 
@@ -2439,7 +2582,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                 try {
 
                     // Unsubscribe from ambulance data
-                    profileClient.unsubscribe("ambulance/" + ambulanceId + "/data");
+                    profileClient.unsubscribe(String.format("ambulance/%1$d/data", ambulanceId));
 
                 } catch (MqttException exception) {
 
@@ -2590,7 +2733,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         final MqttProfileClient profileClient = getProfileClient(this);
 
         // Subscribe to ambulance
-        profileClient.subscribe("ambulance/" + ambulanceId + "/data", 1,
+        profileClient.subscribe(String.format("ambulance/%1$d/data", ambulanceId), 1,
                 (topic, message) -> {
 
                     try {
@@ -2627,8 +2770,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         // Retrieve client
         final MqttProfileClient profileClient = getProfileClient(this);
 
-        profileClient.subscribe(
-                String.format("ambulance/%1$d/call/+/status", ambulanceId),2,
+        profileClient.subscribe(String.format("ambulance/%1$d/call/+/status", ambulanceId), 2,
                 (topic, message) -> {
 
                     // Get calls
@@ -2709,7 +2851,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         // Retrieve client
         final MqttProfileClient profileClient = getProfileClient(this);
 
-        profileClient.subscribe(String.format("call/%1$s/data", callId),2,
+        profileClient.subscribe(String.format("call/%1$s/data", callId), 2,
                 (topic, message) -> {
 
                     // Keep subscription to call_current to make sure we receive latest updates
@@ -2866,7 +3008,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         final MqttProfileClient profileClient = getProfileClient(this);
 
         // Subscribe to hospital
-        profileClient.subscribe("hospital/" + hospitalId + "/data",1,
+        profileClient.subscribe(String.format("hospital/%1$d/data", hospitalId), 1,
                 (topic, message) -> {
 
                     try {
@@ -2992,7 +3134,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
             try {
 
                 // Unsubscribe to hospital data
-                profileClient.unsubscribe("hospital/" + hospital.getId() + "/data");
+                profileClient.unsubscribe(String.format("hospital/%1$d/data", hospital.getId()));
 
             } catch (MqttException exception) {
                 Log.d(TAG, "Could not unsubscribe to 'hospital/" + hospital.getId() + "/data'");
@@ -3109,7 +3251,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
             try {
 
                 // Unsubscribe to ambulance data
-                profileClient.unsubscribe("ambulance/" + ambulance.getId() + "/data");
+                profileClient.unsubscribe(String.format("ambulance/%1$d/data", ambulance.getId()));
 
             } catch (MqttException exception) {
                 Log.d(TAG, "Could not unsubscribe to 'ambulance/" + ambulance.getId() + "/data'");
@@ -3801,7 +3943,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
             // unsubscribe from call
             Log.i(TAG, "Unsubscribe from call/" + callId + "/data");
             try {
-                profileClient.unsubscribe("call/" + callId + "/data");
+                profileClient.unsubscribe(String.format("call/%1$d/data",  callId));
             } catch (MqttException e) {
                 Log.d(TAG, "Could not unsubscribe from 'call/" + callId + "/data'");
             }
@@ -4025,7 +4167,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
                             // unsubscribe from call
                             try {
-                                profileClient.unsubscribe("call/" + callId + "/data");
+                                profileClient.unsubscribe(String.format("call/%1$d/data", callId));
                             } catch (MqttException e) {
                                 Log.d(TAG, "Could not unsubscribe from 'call/" + callId + "/data'");
                             }
@@ -4414,6 +4556,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
                     break;
                 case Location.TYPE_WAYPOINT:
+                case Location.TYPE_OTHER:
 
                     // step 7: publish waypoint bound to server
                     updateAmbulanceStatus(ambulanceCall.getAmbulanceId(),
@@ -4506,6 +4649,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
                 break;
             case Location.TYPE_WAYPOINT:
+            case Location.TYPE_OTHER:
 
                 // publish waypoint bound to server
                 updateAmbulanceStatus(ambulanceCall.getAmbulanceId(), Ambulance.STATUS_AT_WAYPOINT);

@@ -1,11 +1,14 @@
 package org.emstrack.models;
 
+import android.os.Build;
+
 import org.emstrack.models.api.APIService;
 import org.emstrack.models.api.APIServiceGenerator;
 import org.emstrack.models.api.OnAPICallComplete;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
+import org.robolectric.annotation.Config;
 import org.robolectric.shadows.ShadowLooper;
 
 import java.util.List;
@@ -15,6 +18,7 @@ import static org.junit.Assert.assertTrue;
 import retrofit2.Response;
 
 @RunWith(RobolectricTestRunner.class)
+@Config(sdk= Build.VERSION_CODES.P)
 public class TestRetrofit {
 
     @Test
@@ -23,6 +27,13 @@ public class TestRetrofit {
         System.out.println("test_retrofit()");
 
         APIService service = APIServiceGenerator.createService(APIService.class);
+
+        // retrieve servers
+        retrofit2.Call<List<String>> callServers = service.getServers();
+        Response<List<String>> serversResponse = callServers.execute();
+        List<String> servers = serversResponse.body();
+        assertTrue(servers.size() > 0);
+        System.out.println("servers = " + servers);
 
         String username = "admin";
         String password = "cruzrojaadmin";
