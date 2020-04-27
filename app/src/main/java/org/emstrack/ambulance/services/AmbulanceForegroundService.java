@@ -2911,6 +2911,8 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                 // Set current equipment
                 appData.setEquipments(equipments);
 
+
+
                 // Broadcast ambulance equipment update
                 Intent localIntent = new Intent(BroadcastActions.AMBULANCE_EQUIPMENTS_UPDATE);
                 //localIntent.putExtra(BroadcastExtras.HOSPITAL_ID, hospital.getId());
@@ -2936,6 +2938,10 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
             @Override
             public void onFailure(Throwable t) {
                 super.onFailure(t);
+
+                Log.d( TAG, "no equips!!");
+
+
 
                 // Broadcast failure
                 broadcastFailure("Could not retrieve ambulance equipments", uuid);

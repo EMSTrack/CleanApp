@@ -34,6 +34,7 @@ public class TestAPI {
     @Test
     public void testApi() throws Exception {
 
+
         Log.d(TAG, "testApi()");
 
         APIService service = APIServiceGenerator.createService(APIService.class);
@@ -55,6 +56,8 @@ public class TestAPI {
 
         // then execute authenticated api call
         retrofit2.Call<List<Location>> callLocations = service.getLocations();
+
+
 
         Response<List<Location>> locationsResponse = callLocations.execute();
         List<Location> locations = locationsResponse.body();

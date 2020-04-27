@@ -1,8 +1,10 @@
 package org.emstrack.ambulance.views;
 
-import android.annotation.SuppressLint;
 import android.content.Context;
 import androidx.recyclerview.widget.RecyclerView;
+
+import android.graphics.Color;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
@@ -27,6 +29,9 @@ public class EquipmentViewHolder extends RecyclerView.ViewHolder {
     private String[] equipment_info = new String[3]; //index: 0 = value; 1 = comment, 2 = date updated
     private Spinner spinner;
     private ArrayAdapter<String> spinnerAdapter;
+
+    private static final String TAG = EquipmentViewHolder.class.getSimpleName();
+
 
     public EquipmentViewHolder(Context context, View itemView) {
         super(itemView);
@@ -56,15 +61,27 @@ public class EquipmentViewHolder extends RecyclerView.ViewHolder {
 
     }
 
-    @SuppressLint("ResourceAsColor")
     public void setEquipmentName(String equipmentName, Character equipmentType, String equipmentValue, Context context) {
+
 
         equipmentNameTextView.setText(equipmentName);
 
+        int intVal = 0;
+        try {
+            intVal = Integer.parseInt(equipmentValue);
+        } catch (NumberFormatException e) {
+            equipmentNameTextView.setText(equipmentName);
+            Log.i(TAG, "Equipment Value is not number but is: " + equipmentName);
+            intVal = -1;
+            equipmentNameTextView.setTextColor(Color.parseColor("#e6921e")); //orange color
+        }
+
         // this only checks values for integer types and changes text color to red if quantity is 0
-        if ((equipmentType == 'I') && (Integer.parseInt(equipmentValue) == 0)){
+        if ((equipmentType == 'I') && (intVal == 0)){o
             equipmentNameTextView.setTextColor(context.getResources().getColor(R.color.colorRed));
         }
+
+
 
     }
 
@@ -84,7 +101,6 @@ public class EquipmentViewHolder extends RecyclerView.ViewHolder {
 
     }
 
-    @SuppressLint("SimpleDateFormat")
     public void setEquipmentDateUpdated(Date updatedOn) {
 
         // the string representation of date according to the chosen pattern

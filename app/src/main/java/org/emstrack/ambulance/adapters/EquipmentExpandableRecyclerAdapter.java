@@ -3,6 +3,8 @@ package org.emstrack.ambulance.adapters;
 import android.content.Context;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -38,9 +40,15 @@ public class EquipmentExpandableRecyclerAdapter extends RecyclerView.Adapter {
         return new EquipmentViewHolder(context, view);
     }
 
+
+
     @Override
     //bind each ViewHolder to the adapter
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
+
+        Log.i(TAG,"equipname:" + equipments.get(position).getEquipmentName());
+
+
         ((EquipmentViewHolder) holder).setEquipmentName(equipments.get(position).getEquipmentName(), equipments.get(position).getEquipmentType(), equipments.get(position).getValue(), context);
         ((EquipmentViewHolder) holder).setEquipmentValue(equipments.get(position).getValue());
         ((EquipmentViewHolder) holder).setEquipmentDateUpdated(equipments.get(position).getUpdatedOn());
