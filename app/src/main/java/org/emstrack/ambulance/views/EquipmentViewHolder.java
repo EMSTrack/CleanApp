@@ -72,11 +72,11 @@ public class EquipmentViewHolder extends RecyclerView.ViewHolder {
         } catch (NumberFormatException e) {
             Log.i(TAG, "Equipment Value is not number but is: " + equipmentName);
             intVal = -1;
-            equipmentNameTextView.setTextColor(Color.parseColor("#e6921e")); //orange color
+//            equipmentNameTextView.setTextColor(Color.parseColor("#e6921e")); //orange color
         }
 
         // this only checks values for integer types and changes text color to red if quantity is 0
-        if ((equipmentType == 'I') && (intVal == 0)){o
+        if ((equipmentType == 'I') && (intVal == 0)){
             equipmentNameTextView.setTextColor(context.getResources().getColor(R.color.colorRed));
         }
 
