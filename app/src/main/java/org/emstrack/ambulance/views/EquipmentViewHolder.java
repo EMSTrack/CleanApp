@@ -70,7 +70,6 @@ public class EquipmentViewHolder extends RecyclerView.ViewHolder {
         try {
             intVal = Integer.parseInt(equipmentValue);
         } catch (NumberFormatException e) {
-            equipmentNameTextView.setText(equipmentName);
             Log.i(TAG, "Equipment Value is not number but is: " + equipmentName);
             intVal = -1;
             equipmentNameTextView.setTextColor(Color.parseColor("#e6921e")); //orange color
