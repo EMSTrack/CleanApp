@@ -75,8 +75,16 @@ public class EquipmentViewHolder extends RecyclerView.ViewHolder {
 //            equipmentNameTextView.setTextColor(Color.parseColor("#e6921e")); //orange color
         }
 
+        boolean booleanVal = true;
+        try {
+            booleanVal = Boolean.parseBoolean(equipmentValue);
+        } catch (NumberFormatException e) {
+            Log.i(TAG, "Equipment Value is not boolean but is: " + equipmentName);
+//            equipmentNameTextView.setTextColor(Color.parseColor("#e6921e")); //orange color
+        }
+
         // this only checks values for integer types and changes text color to red if quantity is 0
-        if ((equipmentType == 'I') && (intVal == 0)){
+        if ((equipmentType == 'I') && (intVal == 0) || (equipmentType == 'B') && (!booleanVal)){
             equipmentNameTextView.setTextColor(context.getResources().getColor(R.color.colorRed));
         }
 
