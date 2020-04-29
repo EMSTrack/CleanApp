@@ -185,13 +185,13 @@ public class TestModels {
 
     @Test
     public void test_hospital_equipment() {
-
         EquipmentItem equipment = new EquipmentItem(1,
                                                             2, "beds",'I',
-                                                            "12", "",
+                                                            "12", "000",
                                                             1, new Date());
 
         Gson gson = new Gson();
+
 
         String to_json = gson.toJson(equipment);
 
@@ -212,6 +212,7 @@ public class TestModels {
         assertEquals(expectedId, answerId);
 
         String expectedName = equipment.getEquipmentName();
+
         String answerName = from_json.getEquipmentName();
         assertEquals(expectedName, answerName);
 

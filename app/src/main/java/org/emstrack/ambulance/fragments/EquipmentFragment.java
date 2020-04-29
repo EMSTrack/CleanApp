@@ -106,11 +106,16 @@ public class EquipmentFragment extends Fragment {
      */
     public void update(List<EquipmentItem> equipments) {
 
+
+
         // fast return if no equipment
         if (equipments == null) {
             Log.i(TAG, "No equipments for this ambulance.");
             return;
         }
+
+
+
 
         Log.i(TAG,"Updating equipments UI with " + equipments.size() + " items.");
 
