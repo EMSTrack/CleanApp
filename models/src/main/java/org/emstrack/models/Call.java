@@ -40,6 +40,7 @@ public class Call {
     private Date updatedOn;
     private List<AmbulanceCall> ambulancecallSet = new ArrayList<>();
     private List<Patient> patientSet = new ArrayList <>();
+    private List<CallNote> callNoteSet = new ArrayList<>();
 
     private AmbulanceCall currentAmbulanceCall;
     private boolean sorted;
@@ -56,7 +57,8 @@ public class Call {
     public Call(int id, String status, String details, String priority, 
                 Date createdAt, Date pendingAt, Date startedAt, Date endedAt,
                 String comment, int updatedBy, Date updatedOn,
-                List<AmbulanceCall> ambulancecallSet, List<Patient> patientSet) {
+                List<AmbulanceCall> ambulancecallSet, List<Patient> patientSet,
+                List<CallNote> callNoteSet) {
     
         this.id = id;
         this.status = status;
@@ -72,6 +74,7 @@ public class Call {
 
         this.ambulancecallSet = ambulancecallSet;
         this.patientSet = patientSet;
+        this.callNoteSet = callNoteSet;
 
         this.priorityCode = -1;
         this.radioCode = -1;
@@ -197,6 +200,14 @@ public class Call {
 
     public void setPatientSet(List<Patient> patientSet) {
         this.patientSet = patientSet;
+    }
+
+    public List<CallNote> getCallNoteSet() {
+        return callNoteSet;
+    }
+
+    public void setCallNoteSet(List<CallNote> callNoteSet) {
+        this.callNoteSet = callNoteSet;
     }
 
     public AmbulanceCall getAmbulanceCall(int ambulance_id) {

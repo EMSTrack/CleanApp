@@ -17,6 +17,8 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Map;
 
+
+
 /**
  * Example local unit test, which will execute on the development machine (host).
  *
@@ -883,12 +885,16 @@ public class TestModels {
         List<AmbulanceCall> ambulanceCallSet = new ArrayList<>();
         ambulanceCallSet.add(ambulanceCall);
 
+        CallNote callNote = new CallNote("A note", 1, new Date());
+        List<CallNote> callNoteSet = new ArrayList<>();
+        callNoteSet.add(callNote);
+
         Call call = new Call(
                 64,
                 Call.STATUS_STARTED, "ads asd",
                 null,null,null,null,
                 null,"",1, null,
-                ambulanceCallSet, patientSet);
+                ambulanceCallSet, patientSet, callNoteSet);
 
         double epsilon = 1e-4;
 
@@ -949,6 +955,23 @@ public class TestModels {
         DateFormat df = new SimpleDateFormat("MMM d, y K:mm:ss a");
         String ambulance_call_json = "{\"id\":1,\"ambulance_id\":2,\"status\":\"S\",\"updated_on\":\"" + df.format(ambulanceCall.getUpdatedOn()) + "\",\"waypoint_set\":[{\"order\":0,\"status\":\"C\",\"location\":{\"type\":\"i\",\"number\":\"\",\"street\":\"Bonifácio Avilés\",\"unit\":null,\"neighborhood\":null,\"city\":\"Tijuana\",\"state\":\"BCN\",\"zipcode\":\"\",\"country\":\"MX\",\"waypoint\":{\"latitude\":\"32.51543632662701\",\"longitude\":\"-117.03812250149775\"},\"updated_on\":\"2018-11-14T22:33:46.055339Z\",\"pending_at\":\"2018-11-14T22:33:46.054955Z\",\"started_at\":\"2018-11-14T22:34:50.329321Z\",\"ended_at\":null,\"comment\":null,\"updated_by\":1,\"updated_on\":\"2018-11-14T22:34:50.329428Z\"}}]}";
         to_json = "{\"id\":64,\"status\":\"S\",\"details\":\"ads asd\",\"priority\":\"O\",\"updated_on\":\"2018-11-14T22:33:46.055339Z\",\"pending_at\":\"2018-11-14T22:33:46.054955Z\",\"started_at\":\"2018-11-14T22:34:50.329321Z\",\"ended_at\":null,\"comment\":null,\"updated_by\":1,\"updated_on\":\"2018-11-14T22:34:50.329428Z\",\"ambulancecall_set\":[" + ambulance_call_json + "],\"patient_set\":[{\"id\":31,\"name\":\"Maria\",\"age\":null},{\"id\":30,\"name\":\"Jose\",\"age\":13}]}";
+
+        //CallNote testing
+        CallNote expectedCallNote = call.getCallNoteSet().get(0);
+        CallNote answerCallNote = from_json.getCallNoteSet().get(0);
+
+        String expectedCallNoteComment = expectedCallNote.getComment();
+        String answerCallNoteComment = answerCallNote.getComment();
+        assertEquals(expectedCallNoteComment, answerCallNoteComment);
+
+        expectedId = expectedCallNote.getUpdatedBy();
+        answerId = answerCallNote.getUpdatedBy();
+        assertEquals(expectedId, answerId);
+
+        Date expectedDate = expectedCallNote.getUpdatedOn();
+        Date answerDate = answerCallNote.getUpdatedOn();
+        assertEquals(df.format(expectedDate), df.format(answerDate));
+
 
         from_json = gson.fromJson(to_json, Call.class);
         System.out.println("to_json = " + to_json + "'");
