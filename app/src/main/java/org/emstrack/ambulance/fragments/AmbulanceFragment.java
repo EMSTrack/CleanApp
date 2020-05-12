@@ -30,6 +30,7 @@ import org.emstrack.ambulance.services.AmbulanceForegroundService;
 import org.emstrack.models.Ambulance;
 import org.emstrack.models.AmbulanceCall;
 import org.emstrack.models.Call;
+import org.emstrack.models.CallNote;
 import org.emstrack.models.CallStack;
 import org.emstrack.models.Location;
 import org.emstrack.models.Patient;
@@ -55,7 +56,7 @@ public class AmbulanceFragment extends Fragment {
     private Button statusButton;
 
     private TextView capabilityText;
-    private TextView commentText;
+    private TextView callNotesText;
     private TextView updatedOnText;
 
     private AmbulancesUpdateBroadcastReceiver receiver;
@@ -72,7 +73,7 @@ public class AmbulanceFragment extends Fragment {
     private TextView callDistanceTextView;
     private Button callAddWaypointButton;
     private TextView callNextWaypointTypeTextView;
-    private TextView callNumberWayointsView;
+    private TextView callNumberWaypointsView;
     private ImageButton toMapsButton;
 
     private RelativeLayout callInformationLayout;
@@ -83,7 +84,7 @@ public class AmbulanceFragment extends Fragment {
     private Button callResumeButton;
 
     private View callSkipLayout;
-    private Button callSkipWaypoinButton;
+    private Button callSkipWaypointButton;
     private Button callVisitingWaypointButton;
 
     private Map<String,String> ambulanceStatus;
@@ -95,7 +96,7 @@ public class AmbulanceFragment extends Fragment {
 
     private int currentCallId;
     private View callNextWaypointLayout;
-    private StatusButtonClickListener statusButtonClickListerner;
+    private StatusButtonClickListener statusButtonClickListener;
 
     public class AmbulancesUpdateBroadcastReceiver extends BroadcastReceiver {
 
@@ -243,7 +244,7 @@ public class AmbulanceFragment extends Fragment {
         callRadioCodeTextView = callLayout.findViewById(R.id.callRadioCodeText);
         callDescriptionTextView = callLayout.findViewById(R.id.callDetailsText);
         callPatientsTextView = callLayout.findViewById(R.id.callPatientsText);
-        callNumberWayointsView = callLayout.findViewById(R.id.callNumberWaypointsText);
+        callNumberWaypointsView = callLayout.findViewById(R.id.callNumberWaypointsText);
 
         callEndButton = callLayout.findViewById(R.id.callEndButton);
         callAddWaypointButton = callLayout.findViewById(R.id.callAddWaypointButton);
@@ -262,8 +263,8 @@ public class AmbulanceFragment extends Fragment {
         // setup callSkipLayout
         callSkipLayout = callLayout.findViewById(R.id.callSkipLayout);
 
-        callSkipWaypoinButton = callSkipLayout.findViewById(R.id.callSkipWaypointButton);
-        callVisitingWaypointButton = callSkipLayout.findViewById(R.id.callVisitingWaypoingButton);
+        callSkipWaypointButton = callSkipLayout.findViewById(R.id.callSkipWaypointButton);
+        callVisitingWaypointButton = callSkipLayout.findViewById(R.id.callVisitingWaypointButton);
 
         AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
         Settings settings = appData.getSettings();
@@ -305,15 +306,15 @@ public class AmbulanceFragment extends Fragment {
 
         // Other text
         capabilityText = view.findViewById(R.id.capabilityText);
-        commentText = view.findViewById(R.id.commentText);
+        callNotesText = view.findViewById(R.id.callNotesText);
         updatedOnText = view.findViewById(R.id.updatedOnText);
 
         // Set status button
         statusButton = view.findViewById(R.id.statusButton);
 
         // Set the ambulance button's adapter
-        statusButtonClickListerner = new StatusButtonClickListener();
-        statusButton.setOnClickListener(statusButtonClickListerner);
+        statusButtonClickListener = new StatusButtonClickListener();
+        statusButton.setOnClickListener(statusButtonClickListener);
 
         // Update ambulance
         Ambulance ambulance = appData.getAmbulance();
@@ -404,7 +405,7 @@ public class AmbulanceFragment extends Fragment {
                 // update ambulance to show resume panel
                 updateAmbulance(ambulance);
 
-                statusButtonClickListerner.setEnabled(true);
+                statusButtonClickListener.setEnabled(true);
 
             } else {
 
@@ -429,7 +430,7 @@ public class AmbulanceFragment extends Fragment {
                         }
                 );
 
-                statusButtonClickListerner.setEnabled(false);
+                statusButtonClickListener.setEnabled(false);
 
             }
 
@@ -471,6 +472,20 @@ public class AmbulanceFragment extends Fragment {
                 callPrioritySuffixTextView.setText("-" + priorityCode.getSuffix());
             }
 
+            //set call notes
+            List<CallNote> callNoteSet = call.getCallNoteSet();
+            Log.d(TAG, String.format("Retrieved '%1$d' call notes", callNoteSet.size()));
+            if (callNoteSet.size() == 0){
+                callNotesText.setText(R.string.noCallNotesAvailable);
+            }
+            else {
+                callNotesText.setText("");
+                for (int i = 0; i < callNoteSet.size(); i++) {
+                    callNotesText.append(callNoteSet.get(i).getComment());
+                    callNotesText.append(" (" + callNoteSet.get(i).getUpdatedOn() + ")\n");
+                }
+            }
+
             // Set radio code
             int radioCodeInt = call.getRadioCode();
             if (radioCodeInt < 0) {
@@ -501,7 +516,7 @@ public class AmbulanceFragment extends Fragment {
 
             int numberOfWaypoints =
                     (ambulanceCall == null ? 0 : ambulanceCall.getWaypointSet().size());
-            callNumberWayointsView.setText(String.valueOf(numberOfWaypoints));
+            callNumberWaypointsView.setText(String.valueOf(numberOfWaypoints));
 
             final Waypoint waypoint =
                     (ambulanceCall != null
@@ -596,7 +611,7 @@ public class AmbulanceFragment extends Fragment {
                 callSkipLayout.setVisibility(View.VISIBLE);
 
                 // Setup skip buttons
-                callSkipWaypoinButton.setOnClickListener(
+                callSkipWaypointButton.setOnClickListener(
                         v -> promptSkipVisitingOrVisited(Waypoint.STATUS_SKIPPED,
                                 waypoint.getId(), call.getId(), ambulance.getId(),
                                 getString(R.string.pleaseConfirm),
@@ -640,6 +655,7 @@ public class AmbulanceFragment extends Fragment {
                 callSkipLayout.setVisibility(View.GONE);
 
             }
+
 
         } else
             // update ambulance to set suspended/requested count correct
@@ -761,7 +777,6 @@ public class AmbulanceFragment extends Fragment {
         }
 
         // set status and comment
-        commentText.setText(ambulance.getComment());
         updatedOnText.setText(ambulance.getUpdatedOn().toString());
 
         // set capability
