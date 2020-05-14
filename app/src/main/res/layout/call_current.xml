@@ -68,6 +68,7 @@
 
     </LinearLayout>
 
+
     <TextView
         android:id="@+id/callNotesLabel"
         android:layout_height="wrap_content"
@@ -75,7 +76,7 @@
         android:text="@string/callNotesLabel"
         android:textStyle="bold"
         android:textSize="18dp"
-        android:layout_marginTop="10dp"
+        android:layout_marginTop="5dp"
         android:layout_below="@+id/capabilityText"/>
 
     <TextView
@@ -91,4 +92,16 @@
         android:scrollbars = "vertical"
         android:layout_alignParentRight="true"
         android:layout_below="@+id/callNotesLabel"/>
+
+    <Button
+        android:id="@+id/addCallNoteButton"
+        android:layout_width="wrap_content"
+        android:layout_height="35dp"
+        android:layout_margin="5dp"
+        android:layout_gravity="center"
+        android:gravity="center"
+        android:background="@drawable/textview_border"
+        android:backgroundTint="@color/bootstrapSuccess"
+        android:text="@string/addCallNote"
+        android:textColor="@color/colorWhite" />
 </LinearLayout>

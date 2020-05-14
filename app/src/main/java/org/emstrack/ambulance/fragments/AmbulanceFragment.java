@@ -87,6 +87,7 @@ public class AmbulanceFragment extends Fragment {
     private Button callSkipWaypointButton;
     private Button callVisitingWaypointButton;
 
+
     private Map<String,String> ambulanceStatus;
     private List<String> ambulanceStatusList;
     private ArrayList<Integer> ambulanceStatusBackgroundColorList;

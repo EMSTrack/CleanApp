@@ -272,6 +272,7 @@
     <string name="unavailable">Unavailable</string>
     <string name="couldNotRetrieveServers">Could not retrieve servers</string>
     <string name="noCallNotesAvailable">No call notes currently available</string>
+    <string name="addCallNote">Add Note</string>
     <string-array name="spinner_list_item_array_server">
         <item>@string/server_select</item>
         <item>Tijuana Red Cross:tijuana.emstrack.org:8883</item>

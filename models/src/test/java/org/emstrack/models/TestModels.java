@@ -957,6 +957,8 @@ public class TestModels {
         to_json = "{\"id\":64,\"status\":\"S\",\"details\":\"ads asd\",\"priority\":\"O\",\"updated_on\":\"2018-11-14T22:33:46.055339Z\",\"pending_at\":\"2018-11-14T22:33:46.054955Z\",\"started_at\":\"2018-11-14T22:34:50.329321Z\",\"ended_at\":null,\"comment\":null,\"updated_by\":1,\"updated_on\":\"2018-11-14T22:34:50.329428Z\",\"ambulancecall_set\":[" + ambulance_call_json + "],\"patient_set\":[{\"id\":31,\"name\":\"Maria\",\"age\":null},{\"id\":30,\"name\":\"Jose\",\"age\":13}]}";
 
         //CallNote testing
+        assertEquals(call.getCallNoteSet().size(), from_json.getCallNoteSet().size());
+
         CallNote expectedCallNote = call.getCallNoteSet().get(0);
         CallNote answerCallNote = from_json.getCallNoteSet().get(0);
 

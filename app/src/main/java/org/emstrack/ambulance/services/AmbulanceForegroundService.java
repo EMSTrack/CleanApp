@@ -2873,6 +2873,17 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                         // Parse call data
                         Call call = gson.fromJson(payload, Call.class);
 
+                        Log.d(TAG, String.format("Retrieved '%1$d' call notes after subscribing", call.getCallNoteSet().size()));
+
+                        /*
+                        Integer expectedId = call.getId();
+                        Integer answerId = from_json.getId();
+                        assertEquals(expectedId, answerId);
+
+                        String expectedString = call.getDetails();
+                        String answerString = from_json.getDetails();
+                        assertEquals(expectedString, answerString);
+*/
                         // process call
                         addCallToStack(call, true);
 
@@ -3678,6 +3689,9 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
                 // add calls to stack
                 for (Call call : calls) {
+
+                    Log.d(TAG, String.format("Retrieved '%1$d' call notes upon start of call updates", call.getCallNoteSet().size()));
+                    Log.d(TAG, String.format("Retrieved '%1$d' patients upon start of call updates", call.getPatientSet().size()));
 
                     // add call, do not process until all calls are in
                     addCallToStack(call, false);
