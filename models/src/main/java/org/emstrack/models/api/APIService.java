@@ -1,6 +1,7 @@
 package org.emstrack.models.api;
 
 import org.emstrack.models.Ambulance;
+import org.emstrack.models.CallNote;
 import org.emstrack.models.Client;
 import org.emstrack.models.Credentials;
 import org.emstrack.models.EquipmentItem;
@@ -17,6 +18,8 @@ import org.emstrack.models.Version;
 import java.util.List;
 
 import retrofit2.http.Body;
+import retrofit2.http.Field;
+import retrofit2.http.FormUrlEncoded;
 import retrofit2.http.GET;
 import retrofit2.http.Header;
 import retrofit2.http.POST;
@@ -33,6 +36,8 @@ public interface APIService {
 
     /**
      * Retrieve token
+     *
+     * IMPORTANT: Add language to POST request
      *
      * @param credentials the user credentials
      * @return the api call
@@ -112,7 +117,7 @@ public interface APIService {
      * @return the equipment
      */
     @GET("ambulance/{id}/equipment/")
-    Call<List<org.emstrack.models.EquipmentItem>> getAmbulanceEquipment(@Path("id") int id);
+    Call<List<EquipmentItem>> getAmbulanceEquipment(@Path("id") int id);
 
     /**
      * Retrieve call
@@ -121,6 +126,16 @@ public interface APIService {
      */
     @GET("call/{id}/")
     Call<org.emstrack.models.Call> getCall(@Path("id") int id);
+
+    /**
+     * Add call note
+     *
+     * IMPORTANT: Add language to POST request
+     *
+     * @return the api call
+     */
+    @POST("/en/api/call/{id}/note/")
+    Call<CallNote> addCallNote(@Path("id") int id, @Body CallNote callNote);
 
     /**
      * Retrieve api version
@@ -151,11 +166,13 @@ public interface APIService {
      *
      * @return the api call
      */
-    @GET("priority/classification")
+    @GET("priority/classification/")
     Call<List<PriorityClassification>> getPriorityClassification();
 
     /**
      * Set client
+     *
+     * IMPORTANT: Add language to POST request
      *
      * @return the api call
      */

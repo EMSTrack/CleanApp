@@ -221,6 +221,7 @@
     <string name="accept">Accept</string>
     <string name="no">No</string>
     <string name="yes">Yes</string>
+    <string name="add">Add</string>
     <string name="confirm">Confirm</string>
     <string name="end">End</string>
     <string name="select">Select</string>
@@ -273,6 +274,8 @@
     <string name="couldNotRetrieveServers">Could not retrieve servers</string>
     <string name="noCallNotesAvailable">No call notes currently available</string>
     <string name="addCallNote">Add Note</string>
+    <string name="couldNotPostCallNote">Could not post call note</string>
+    <string name="successfullyPostedCallNote">Successfully posted call note</string>
     <string-array name="spinner_list_item_array_server">
         <item>@string/server_select</item>
         <item>Tijuana Red Cross:tijuana.emstrack.org:8883</item>

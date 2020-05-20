@@ -54,6 +54,7 @@ import org.emstrack.ambulance.util.SparseArrayUtils;
 import org.emstrack.models.Ambulance;
 import org.emstrack.models.AmbulanceCall;
 import org.emstrack.models.Call;
+import org.emstrack.models.CallNote;
 import org.emstrack.models.CallStack;
 import org.emstrack.models.Client;
 import org.emstrack.models.Credentials;
@@ -169,8 +170,8 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         public final static String LOGIN = "org.emstrack.ambulance.ambulanceforegroundservice.action.LOGIN";
         public final static String GET_SERVERS = "org.emstrack.ambulance.ambulanceforegroundservice.action.GET_SERVERS";
         public final static String GET_AMBULANCE = "org.emstrack.ambulance.ambulanceforegroundservice.action.GET_AMBULANCE";
-        public final static String GET_AMBULANCES= "org.emstrack.ambulance.ambulanceforegroundservice.action.GET_AMBULANCES";
-        public final static String STOP_AMBULANCES= "org.emstrack.ambulance.ambulanceforegroundservice.action.STOP_AMBULANCES";
+        public final static String GET_AMBULANCES = "org.emstrack.ambulance.ambulanceforegroundservice.action.GET_AMBULANCES";
+        public final static String STOP_AMBULANCES = "org.emstrack.ambulance.ambulanceforegroundservice.action.STOP_AMBULANCES";
         public final static String START_LOCATION_UPDATES = "org.emstrack.ambulance.ambulanceforegroundservice.action.START_LOCATION_UPDATES";
         public final static String STOP_LOCATION_UPDATES = "org.emstrack.ambulance.ambulanceforegroundservice.action.STOP_LOCATION_UPDATES";
         public final static String UPDATE_AMBULANCE_STATUS = "org.emstrack.ambulance.ambulanceforegroundservice.action.UPDATE_AMBULANCE_STATUS";
@@ -186,6 +187,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         public final static String CALL_DECLINE = "org.emstrack.ambulance.ambulanceforegroundservice.action.CALL_DECLINE";
         public final static String CALL_SUSPEND = "org.emstrack.ambulance.ambulanceforegroundservice.action.CALL_SUSPEND";
         public final static String CALL_FINISH = "org.emstrack.ambulance.ambulanceforegroundservice.action.CALL_FINISH";
+        public final static String CALLNOTE_CREATE = "org.emstrack.ambulance.ambulanceforegroundservice.action.CALLNOTE_CREATE";
         public final static String WAYPOINT_ENTER = "org.emstrack.ambulance.ambulanceforegroundservice.action.WAYPOINT_ENTER";
         public final static String WAYPOINT_EXIT = "org.emstrack.ambulance.ambulanceforegroundservice.action.WAYPOINT_EXIT";
         public final static String WAYPOINT_SKIP = "org.emstrack.ambulance.ambulanceforegroundservice.action.WAYPOINT_SKIP";
@@ -194,6 +196,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
     public class BroadcastExtras {
         public final static String CALL_ID = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastextras.CALL_ID";
+        public final static String CALLNOTE_COMMENT = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastextras.CALLNOTE_COMMENT";
         public final static String AMBULANCE_ID = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastextras.AMBULANCE_ID";
         public final static String HOSPITAL_ID = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastextras.HOSPITAL_ID";
         public final static String WAYPOINT_ID = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastextras.WAYPOINT_ID";
@@ -218,7 +221,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         public final static byte APP_VERSION_BELOW_MINIMUM = 1;
         public final static byte ANOTHER_CLIENT_IS_UPDATING_LOCATION = 2;
         public final static byte CANNOT_USE_LOCATION_SERVICES = 3;
-        public final static byte LOCATION_SETTINGS_ARE_INADEQUATE= 4;
+        public final static byte LOCATION_SETTINGS_ARE_INADEQUATE = 4;
         public final static byte NO_AMBULANCE_SELECTED = 5;
         public final static byte AMBULANCE_CANNOT_UPDATE = 6;
         public final static byte AMBULANCE_INVALID_ID = 7;
@@ -809,6 +812,19 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
             // finish call
             requestToFinishCurrentCall(uuid);
 
+        } else if (action.equals(Actions.CALLNOTE_CREATE)) {
+
+            Log.i(TAG, "CALLNOTE_CREATE Foreground Intent");
+
+            // get the ambulance that suspended the call and the call id
+            int callId = intent.getIntExtra(AmbulanceForegroundService.BroadcastExtras.CALL_ID, -1);
+
+            String comment = intent.getStringExtra(AmbulanceForegroundService.BroadcastExtras.CALLNOTE_COMMENT);
+
+            // create call note
+            postCallNote(callId, comment, uuid);
+
+
         } else if (action.equals(Actions.GEOFENCE_ENTER) ||
                 action.equals(Actions.GEOFENCE_EXIT)) {
 
@@ -845,7 +861,6 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
     }
 
     /**
-     *
      * @return the ambulance app data
      */
     public static AmbulanceAppData getAppData() {
@@ -853,7 +868,6 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
     }
 
     /**
-     *
      * @param context the context
      * @return the unique id
      */
@@ -894,7 +908,6 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
     }
 
     /**
-     *
      * @return <code>True</code> if has last location
      */
     public static boolean hasLastLocation() {
@@ -911,10 +924,11 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
     /**
      * @return <code>true</code> if online
      */
-    public static boolean isOnline() { return _online; }
+    public static boolean isOnline() {
+        return _online;
+    }
 
     /**
-     *
      * @param online <code>true</code> if online
      */
     protected void setOnline(boolean online) {
@@ -922,8 +936,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
     }
 
     /**
-     *
-     * @param online <code>true</code> if online
+     * @param online  <code>true</code> if online
      * @param context the current context
      */
     public static void setOnline(boolean online, Context context) {
@@ -944,22 +957,30 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
     /**
      * @return <code>true</code> if reconnecting
      */
-    public static boolean isReconnecting() { return _reconnecting; }
+    public static boolean isReconnecting() {
+        return _reconnecting;
+    }
 
     /**
      * @return <code>true</code> if updating location
      */
-    public static boolean isUpdatingLocation() { return _updatingLocation; }
+    public static boolean isUpdatingLocation() {
+        return _updatingLocation;
+    }
 
     /**
      * @return <code>true</code> if app can update location
      */
-    public static boolean canUpdateLocation() { return _canUpdateLocation; }
+    public static boolean canUpdateLocation() {
+        return _canUpdateLocation;
+    }
 
     /**
      * @param canUpdateLocation <code>true</code> if app can update location
      */
-    public static void setCanUpdateLocation(boolean canUpdateLocation) { AmbulanceForegroundService._canUpdateLocation = canUpdateLocation; }
+    public static void setCanUpdateLocation(boolean canUpdateLocation) {
+        AmbulanceForegroundService._canUpdateLocation = canUpdateLocation;
+    }
 
     /**
      * @return the location request
@@ -1003,7 +1024,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
      * Send updates in bulk for ambulance with id <code>ambulanceId</code> to server
      *
      * @param ambulanceId the ambulance id
-     * @param updates a list of {@link AmbulanceUpdate}s
+     * @param updates     a list of {@link AmbulanceUpdate}s
      */
     public boolean updateAmbulance(int ambulanceId, List<AmbulanceUpdate> updates) {
 
@@ -1046,7 +1067,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
      * Send bulk updates for ambulance with id <code>ambulanceId</code> to server
      *
      * @param ambulanceId the ambulance id
-     * @param updates a <code>ArrayList</code> of json update <code>String</code>s
+     * @param updates     a <code>ArrayList</code> of json update <code>String</code>s
      */
     public boolean updateAmbulance(int ambulanceId, ArrayList<String> updates) {
 
@@ -1061,7 +1082,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
      * Send updates for ambulance with id <code>ambulanceId</code> to server
      *
      * @param ambulanceId the ambulance id
-     * @param update the update json string
+     * @param update      the update json string
      */
     public boolean updateAmbulance(int ambulanceId, String update) {
 
@@ -1076,10 +1097,10 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
     /**
      * Send waypoint status updates to server
      *
-     * @param status the status
-     * @param waypoint the waypoint
+     * @param status      the status
+     * @param waypoint    the waypoint
      * @param ambulanceId the ambulance id
-     * @param callId the call id
+     * @param callId      the call id
      */
     public void updateWaypointStatus(String status, Waypoint waypoint, int ambulanceId, int callId) {
 
@@ -1097,10 +1118,10 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
     /**
      * Send waypoint updates to server
      *
-     * @param update the update json <code>String</code>
-     * @param waypointId the waypoint id
+     * @param update      the update json <code>String</code>
+     * @param waypointId  the waypoint id
      * @param ambulanceId the ambulance id
-     * @param callId the call id
+     * @param callId      the call id
      */
     public void updateWaypoint(String update, int waypointId, int ambulanceId, int callId) {
 
@@ -1115,7 +1136,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
      * Send status updates for ambulance with id <code>ambulanceId</code> to the server
      *
      * @param ambulanceId the ambulance id
-     * @param status the status
+     * @param status      the status
      */
     public void updateAmbulanceStatus(int ambulanceId, String status) {
         updateAmbulanceStatus(ambulanceId, status, new Date());
@@ -1125,8 +1146,8 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
      * Send status updates for ambulance with id <code>ambulanceId</code> to the server
      *
      * @param ambulanceId the ambulance id
-     * @param status the status
-     * @param timestamp the timestamp
+     * @param status      the status
+     * @param timestamp   the timestamp
      */
     public void updateAmbulanceStatus(int ambulanceId, String status, Date timestamp) {
 
@@ -1155,7 +1176,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
     /**
      * Add message to buffer for later processing
      *
-     * @param topic string
+     * @param topic   string
      * @param message string
      */
     public void addToMQTTBuffer(String topic, String message) {
@@ -1188,7 +1209,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         getProfileClient(AmbulanceForegroundService.this);
 
         // Loop through buffer unless it failed
-        Iterator<Pair<String,String>> iterator = _MQTTMessageBuffer.iterator();
+        Iterator<Pair<String, String>> iterator = _MQTTMessageBuffer.iterator();
         boolean success = true;
         while (success && iterator.hasNext()) {
 
@@ -1208,7 +1229,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
     /**
      * Send message to MQTT or buffer it when not online
      *
-     * @param topic string
+     * @param topic   string
      * @param message string
      */
     public boolean sendMQTTMessage(String topic, String message) {
@@ -1230,8 +1251,8 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
             // Otherwise, publish to MQTT
             profileClient.publish(String.format("user/%1$s/client/%2$s/%3$s",
-                        profileClient.getUsername(), profileClient.getClientId(), topic),
-                        message, 2, false);
+                    profileClient.getUsername(), profileClient.getClientId(), topic),
+                    message, 2, false);
 
             // Set update time
             _lastServerUpdate = new Date();
@@ -1245,7 +1266,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         }
 
         // Log and build a notification in case of error
-        Log.i(TAG,message);
+        Log.i(TAG, message);
 
         // Create notification
         NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(this, PRIMARY_CHANNEL)
@@ -1291,17 +1312,17 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         Notification notification =
                 new NotificationCompat.Builder(this,
                         PRIMARY_CHANNEL)
-                .setContentTitle(getString(R.string.EMSTrack))
-                .setTicker(message)
-                .setContentText(message)
-                .setStyle(new NotificationCompat.BigTextStyle()
-                        .bigText(message))
-                .setSmallIcon(R.mipmap.ic_launcher)
-                .setContentIntent(pendingIntent)
-                .setOngoing(true)
-                .addAction(android.R.drawable.ic_menu_close_clear_cancel,
-                        getString(R.string.restartText), stopServicePendingIntent)
-                .build();
+                        .setContentTitle(getString(R.string.EMSTrack))
+                        .setTicker(message)
+                        .setContentText(message)
+                        .setStyle(new NotificationCompat.BigTextStyle()
+                                .bigText(message))
+                        .setSmallIcon(R.mipmap.ic_launcher)
+                        .setContentIntent(pendingIntent)
+                        .setOngoing(true)
+                        .addAction(android.R.drawable.ic_menu_close_clear_cancel,
+                                getString(R.string.restartText), stopServicePendingIntent)
+                        .build();
 
         NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
         notificationManager.notify(NOTIFICATION_ID, notification);
@@ -1539,7 +1560,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         // Set online true
         setOnline(true);
 
-        if (!_reconnecting ) {
+        if (!_reconnecting) {
 
             Log.e(TAG, "Not reconnecting. Aborting...");
             return;
@@ -1616,7 +1637,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                     super.onFailure(t);
 
                     // Broadcast failure
-                    Log.d(TAG,"Could not retrieve ambulance");
+                    Log.d(TAG, "Could not retrieve ambulance");
 
                     // clear reconnecting flag and set online false
                     _reconnecting = false;
@@ -1657,7 +1678,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                     org.emstrack.models.util.BroadcastActions.SUCCESS,
                     org.emstrack.models.util.BroadcastActions.FAILURE,
                     locationUpdatesIntent
-                    ) {
+            ) {
 
                 @Override
                 public void run() {
@@ -1799,7 +1820,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         MqttProfileClient profileClient = getProfileClient(AmbulanceForegroundService.this);
 
         profileClient.subscribe(String.format("user/%1$s/client/%2$s/error",
-                username, profileClient.getClientId()),1,
+                username, profileClient.getClientId()), 1,
                 (topic, message) -> {
 
                     Log.d(TAG, "MQTT error message.");
@@ -1871,9 +1892,9 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                     client = null;
                     _serverUri = serverURI;
                     _serverApiUri = serverApi;
-                    Log.d(TAG,"Server has changed. Invalidating current client");
+                    Log.d(TAG, "Server has changed. Invalidating current client");
                 } else
-                    Log.d(TAG,"Server has not changed.");
+                    Log.d(TAG, "Server has not changed.");
 
                 // Retrieve client
                 final MqttProfileClient profileClient = getProfileClient(AmbulanceForegroundService.this);
@@ -2045,7 +2066,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                                         Log.d(TAG, String.format("Got %1$d bases", locations.size()));
 
                                         // sort bases
-                                        Collections.sort(locations, (a, b) -> a.getName().compareTo(b.getName()) );
+                                        Collections.sort(locations, (a, b) -> a.getName().compareTo(b.getName()));
 
                                         // save bases
                                         appData.setBases(locations);
@@ -2069,7 +2090,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                                         Log.d(TAG, String.format("Got %1$d other locations", locations.size()));
 
                                         // sort bases
-                                        Collections.sort(locations, (a, b) -> a.getName().compareTo(b.getName()) );
+                                        Collections.sort(locations, (a, b) -> a.getName().compareTo(b.getName()));
 
                                         // save bases
                                         appData.setOtherLocations(locations);
@@ -2175,7 +2196,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
                                     }
 
-                                } .setNext(new OnComplete() {
+                                }.setNext(new OnComplete() {
 
                                     @Override
                                     public void run() {
@@ -2295,7 +2316,6 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
     /**
      * Retrieve servers
-     *
      */
     public void retrieveServers(final String uuid) {
 
@@ -2542,7 +2562,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         Log.d(TAG, "removeAmbulance");
 
         Ambulance ambulance = getAppData().getAmbulance();
-        if (ambulance == null ) {
+        if (ambulance == null) {
 
             // broadcast success
             broadcastSuccess("No ambulance to remove", uuid);
@@ -2873,17 +2893,9 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                         // Parse call data
                         Call call = gson.fromJson(payload, Call.class);
 
-                        Log.d(TAG, String.format("Retrieved '%1$d' call notes after subscribing", call.getCallNoteSet().size()));
+                        Log.d(TAG, String.format("Retrieved '%1$d' call notes after subscribing", call.getCallnoteSet().size()));
 
-                        /*
-                        Integer expectedId = call.getId();
-                        Integer answerId = from_json.getId();
-                        assertEquals(expectedId, answerId);
 
-                        String expectedString = call.getDetails();
-                        String answerString = from_json.getDetails();
-                        assertEquals(expectedString, answerString);
-*/
                         // process call
                         addCallToStack(call, true);
 
@@ -2923,7 +2935,6 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                 appData.setEquipments(equipments);
 
 
-
                 // Broadcast ambulance equipment update
                 Intent localIntent = new Intent(BroadcastActions.AMBULANCE_EQUIPMENTS_UPDATE);
                 //localIntent.putExtra(BroadcastExtras.HOSPITAL_ID, hospital.getId());
@@ -2950,8 +2961,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
             public void onFailure(Throwable t) {
                 super.onFailure(t);
 
-                Log.d( TAG, "no equips!!");
-
+                Log.d(TAG, "no equips!!");
 
 
                 // Broadcast failure
@@ -3189,7 +3199,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
                 // Loop over all ambulances
                 SparseArray<Ambulance> ambulanceArray = new SparseArray<>();
-                for (Ambulance ambulance: ambulances) {
+                for (Ambulance ambulance : ambulances) {
 
                     // Skip current ambulance
                     if (ambulance.getId() != currentAmbulanceId)
@@ -3673,7 +3683,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
      * Start call updates
      *
      * @param ambulanceId the ambulance id
-     * @param uuid the unique id
+     * @param uuid        the unique id
      */
     public void startCalls(int ambulanceId, final String uuid) {
 
@@ -3690,7 +3700,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                 // add calls to stack
                 for (Call call : calls) {
 
-                    Log.d(TAG, String.format("Retrieved '%1$d' call notes upon start of call updates", call.getCallNoteSet().size()));
+                    Log.d(TAG, String.format("Retrieved '%1$d' call notes upon start of call updates", call.getCallnoteSet().size()));
                     Log.d(TAG, String.format("Retrieved '%1$d' patients upon start of call updates", call.getPatientSet().size()));
 
                     // add call, do not process until all calls are in
@@ -3750,7 +3760,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
     /**
      * Add call to call stack
      *
-     * @param call the call
+     * @param call        the call
      * @param processNext <code>True</code> if call is to processed immediately
      */
     public void addCallToStack(Call call, boolean processNext) {
@@ -3963,7 +3973,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
             // unsubscribe from call
             Log.i(TAG, "Unsubscribe from call/" + callId + "/data");
             try {
-                profileClient.unsubscribe(String.format("call/%1$d/data",  callId));
+                profileClient.unsubscribe(String.format("call/%1$d/data", callId));
             } catch (MqttException e) {
                 Log.d(TAG, "Could not unsubscribe from 'call/" + callId + "/data'");
             }
@@ -4057,7 +4067,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
      * Remove current geofences
      *
      * @param callId the call id
-     * @param uuid the unique identifier
+     * @param uuid   the unique identifier
      */
     private void removeCurrentGeofences(int callId, String uuid) {
 
@@ -4262,7 +4272,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
      *
      * @param callId the call id
      * @param status the new status
-     * @param uuid the unique identifier
+     * @param uuid   the unique identifier
      */
     public void requestToChangeCallStatus(int callId, String status, String uuid) {
 
@@ -4270,7 +4280,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         CallStack calls = appData.getCalls();
 
         // Is this the current call?
-        if ( calls.hasCurrentCall() && calls.getCurrentCallId() == callId) {
+        if (calls.hasCurrentCall() && calls.getCurrentCallId() == callId) {
 
             // Set status locally
             // This prevents further processing of this call
@@ -4411,7 +4421,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
      *
      * @param callId the call id
      * @param status the new status
-     * @param uuid the unique identifier
+     * @param uuid   the unique identifier
      */
     public void setAmbulanceCallStatus(int callId, String status, String uuid) {
 
@@ -4431,12 +4441,12 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
             Log.e(TAG, "Ambulance not found while in setCallStatus");
 
             // broadcast failure
-            broadcastFailure( getString(R.string.couldNotFindAmbulance), uuid);
+            broadcastFailure(getString(R.string.couldNotFindAmbulance), uuid);
 
         }
 
         // broadcast success
-        broadcastSuccess( "Successfully updated call status", uuid);
+        broadcastSuccess("Successfully updated call status", uuid);
 
     }
 
@@ -4535,6 +4545,49 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                     .start();
 
         }
+
+    }
+
+    /**
+     * Post call note
+     *
+     * @param callId          the call id
+     * @param comment         the call note
+     * @param uuid            the unique identifier
+     */
+    public void postCallNote(int callId, String comment, String uuid) {
+
+        Log.d(TAG, "Post call note: " + comment);
+        Log.d(TAG, "Call ID: " + callId);
+
+        //add call note through API
+        CallNote note = new CallNote(comment);
+        APIService service = APIServiceGenerator.createService(APIService.class);
+        retrofit2.Call<CallNote> callNote = service.addCallNote(callId, note);
+
+        new OnAPICallComplete<CallNote>(callNote) {
+
+            @Override
+            public void onSuccess(CallNote callNote) {
+
+                Log.d(TAG, "Successfully posted call note");
+
+                // broadcast success
+                broadcastSuccess(getString(R.string.successfullyPostedCallNote), uuid);
+
+            }
+
+            @Override
+            public void onFailure(Throwable t) {
+                super.onFailure(t);
+
+                // Broadcast failure
+                broadcastFailure(getString(R.string.couldNotPostCallNote), uuid);
+
+            }
+
+        }
+                .start();
 
     }
 
