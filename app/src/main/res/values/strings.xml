@@ -287,4 +287,11 @@
         <item>O:@color/bootstrapSecondary:@color/bootstrapLight</item>
     </string-array>
 
+
+    <string-array name="equipment_info">
+        <item>Value: Insert Value</item>
+        <item>Comment: Insert Comment</item>
+        <item>Updated on: Date</item>
+    </string-array>
+
 </resources>
