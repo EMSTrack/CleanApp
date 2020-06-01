@@ -282,7 +282,7 @@ public class MqttProfileClient implements MqttCallbackExtended {
         final String topic =
                 String.format(connectTopic,
                         username,mqttClient.getClientId());
-        mqttConnectOptions.setWill(topic, Client.STATUS_DISCONNECTED.getBytes(), 2, true);
+        mqttConnectOptions.setWill(topic, Client.STATUS_DISCONNECTED.getBytes(), 2, false);
 
         mqttClient.connect(mqttConnectOptions,
                 null,
