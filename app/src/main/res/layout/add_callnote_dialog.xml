@@ -6,10 +6,12 @@
     android:padding="@dimen/activity_vertical_margin">
 
     <EditText
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
         android:id="@+id/dialog_text"
-        android:hint="Enter New Call Note Here">
+        android:layout_width="match_parent"
+        android:layout_height="100dp"
+        android:padding="8dp"
+        android:gravity="top"
+        android:inputType="textMultiLine">
     </EditText>
 
 

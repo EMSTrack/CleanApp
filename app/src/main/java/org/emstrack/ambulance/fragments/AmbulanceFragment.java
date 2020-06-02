@@ -16,6 +16,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
@@ -42,6 +43,7 @@ import org.emstrack.models.Waypoint;
 import java.net.URLEncoder;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -58,6 +60,7 @@ public class AmbulanceFragment extends Fragment {
     private TextView capabilityText;
     private TextView callNotesText;
     private TextView updatedOnText;
+    private TextView commentText;
 
     private AmbulancesUpdateBroadcastReceiver receiver;
 
@@ -87,6 +90,7 @@ public class AmbulanceFragment extends Fragment {
     private Button callSkipWaypointButton;
     private Button callVisitingWaypointButton;
 
+    private Button addCallNoteButton;
 
     private Map<String,String> ambulanceStatus;
     private List<String> ambulanceStatusList;
@@ -267,6 +271,8 @@ public class AmbulanceFragment extends Fragment {
         callSkipWaypointButton = callSkipLayout.findViewById(R.id.callSkipWaypointButton);
         callVisitingWaypointButton = callSkipLayout.findViewById(R.id.callVisitingWaypointButton);
 
+        addCallNoteButton = callLayout.findViewById(R.id.addCallNoteButton);
+
         AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
         Settings settings = appData.getSettings();
         if (settings != null) {
@@ -309,6 +315,8 @@ public class AmbulanceFragment extends Fragment {
         capabilityText = view.findViewById(R.id.capabilityText);
         callNotesText = view.findViewById(R.id.callNotesText);
         updatedOnText = view.findViewById(R.id.updatedOnText);
+
+        commentText = view.findViewById(R.id.commentText);
 
         // Set status button
         statusButton = view.findViewById(R.id.statusButton);
@@ -474,7 +482,7 @@ public class AmbulanceFragment extends Fragment {
             }
 
             //set call notes
-            List<CallNote> callNoteSet = call.getCallNoteSet();
+            List<CallNote> callNoteSet = call.getCallnoteSet();
             Log.d(TAG, String.format("Retrieved '%1$d' call notes", callNoteSet.size()));
             if (callNoteSet.size() == 0){
                 callNotesText.setText(R.string.noCallNotesAvailable);
@@ -641,6 +649,11 @@ public class AmbulanceFragment extends Fragment {
                         }
                 );
 
+                // Setup add call note button
+                addCallNoteButton.setOnClickListener(
+                        v -> promptAddCallNote(call.getId(), getString(R.string.addCallNote))
+                );
+
             } else {
 
                 Log.d(TAG, "Call does not have a next waypoint!");
@@ -656,7 +669,6 @@ public class AmbulanceFragment extends Fragment {
                 callSkipLayout.setVisibility(View.GONE);
 
             }
-
 
         } else
             // update ambulance to set suspended/requested count correct
@@ -778,6 +790,7 @@ public class AmbulanceFragment extends Fragment {
         }
 
         // set status and comment
+        commentText.setText(ambulance.getComment());
         updatedOnText.setText(ambulance.getUpdatedOn().toString());
 
         // set capability
@@ -913,6 +926,42 @@ public class AmbulanceFragment extends Fragment {
                             bundle.putInt(AmbulanceForegroundService.BroadcastExtras.CALL_ID, callId);
                             intent.putExtras(bundle);
                             getActivity().startService(intent);
+
+                        });
+
+        // Create the AlertDialog object and return it
+        builder.create().show();
+    }
+
+    public void promptAddCallNote(final int callId, final String title) {
+
+        Log.d(TAG, "Creating promptAddCallNote dialog");
+
+        // Use the Builder class for convenient dialog construction
+        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+        final View callNoteDialog = getLayoutInflater().inflate(R.layout.add_callnote_dialog, null);
+
+        builder.setView(callNoteDialog)
+                .setTitle(title)
+                //.setMessage(message)
+                .setNegativeButton(R.string.cancel,
+                        (dialog, id) -> Log.i(TAG, "Cancelling add call note"))
+                .setPositiveButton(R.string.add,
+                        (dialog, id) -> {
+
+                            EditText editText = callNoteDialog.findViewById(R.id.dialog_text);
+                            Toast.makeText(getContext(), editText.getText().toString(), Toast.LENGTH_SHORT).show();
+
+                            // post call note on server
+                            Intent intent = new Intent(getContext(),
+                                    AmbulanceForegroundService.class);
+                            intent.setAction(AmbulanceForegroundService.Actions.CALLNOTE_CREATE);
+                            Bundle bundle = new Bundle();
+                            bundle.putString(AmbulanceForegroundService.BroadcastExtras.CALLNOTE_COMMENT, editText.getText().toString());
+                            bundle.putInt(AmbulanceForegroundService.BroadcastExtras.CALL_ID, callId);
+                            intent.putExtras(bundle);
+                            getActivity().startService(intent);
+
 
                         });
 

@@ -18,8 +18,8 @@
             android:id="@+id/callSkipWaypointButton"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginHorizontal="10dp"
             android:layout_marginTop="10dp"
+            android:layout_marginEnd="5dp"
             android:layout_weight="1"
             android:background="@color/bootstrapSecondary"
             android:text="@string/skip"
@@ -30,7 +30,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
-            android:layout_marginRight="10dp"
+            android:layout_marginStart="5dp"
             android:layout_weight="1"
             android:background="@color/bootstrapPrimary"
             android:text="@string/markAsVisiting"
@@ -48,8 +48,8 @@
             android:id="@+id/callAddWaypointButton"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginHorizontal="10dp"
             android:layout_marginTop="10dp"
+            android:layout_marginEnd="5dp"
             android:layout_weight="1"
             android:background="@color/bootstrapSuccess"
             android:text="@string/addWaypoint"
@@ -60,7 +60,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
-            android:layout_marginRight="10dp"
+            android:layout_marginStart="5dp"
             android:layout_weight="1"
             android:background="@color/colorAccent"
             android:text="@string/endCall"
@@ -68,40 +68,30 @@
 
     </LinearLayout>
 
-
     <TextView
         android:id="@+id/callNotesLabel"
         android:layout_height="wrap_content"
         android:layout_width="wrap_content"
         android:text="@string/callNotesLabel"
         android:textStyle="bold"
-        android:textSize="18dp"
-        android:layout_marginTop="5dp"
-        android:layout_below="@+id/capabilityText"/>
+        android:textSize="18sp"
+        android:layout_marginTop="5dp" />
 
     <TextView
         android:id="@+id/callNotesText"
-        android:layout_height="60dp"
+        android:layout_height="wrap_content"
         android:layout_width="match_parent"
-        android:paddingBottom="8dp"
-        android:paddingLeft="8dp"
-        android:paddingRight="8dp"
-        android:paddingTop="8dp"
-        android:background="@drawable/textview_border"
         android:text="@string/noCallNotesAvailable"
-        android:scrollbars = "vertical"
-        android:layout_alignParentRight="true"
-        android:layout_below="@+id/callNotesLabel"/>
+        android:scrollbars = "vertical" />
 
     <Button
         android:id="@+id/addCallNoteButton"
-        android:layout_width="wrap_content"
-        android:layout_height="35dp"
-        android:layout_margin="5dp"
-        android:layout_gravity="center"
-        android:gravity="center"
-        android:background="@drawable/textview_border"
-        android:backgroundTint="@color/bootstrapSuccess"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="5dp"
+        android:layout_marginHorizontal="0dp"
+        android:background="@color/bootstrapSuccess"
         android:text="@string/addCallNote"
         android:textColor="@color/colorWhite" />
+
 </LinearLayout>

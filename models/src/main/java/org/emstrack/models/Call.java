@@ -1,11 +1,8 @@
 package org.emstrack.models;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * A class representing a call.
@@ -40,7 +37,7 @@ public class Call {
     private Date updatedOn;
     private List<AmbulanceCall> ambulancecallSet = new ArrayList<>();
     private List<Patient> patientSet = new ArrayList <>();
-    private List<CallNote> callNoteSet = new ArrayList<>();
+    private List<CallNote> callnoteSet = new ArrayList<>();
 
     private AmbulanceCall currentAmbulanceCall;
     private boolean sorted;
@@ -58,7 +55,7 @@ public class Call {
                 Date createdAt, Date pendingAt, Date startedAt, Date endedAt,
                 String comment, int updatedBy, Date updatedOn,
                 List<AmbulanceCall> ambulancecallSet, List<Patient> patientSet,
-                List<CallNote> callNoteSet) {
+                List<CallNote> callnoteSet) {
     
         this.id = id;
         this.status = status;
@@ -74,7 +71,7 @@ public class Call {
 
         this.ambulancecallSet = ambulancecallSet;
         this.patientSet = patientSet;
-        this.callNoteSet = callNoteSet;
+        this.callnoteSet = callnoteSet;
 
         this.priorityCode = -1;
         this.radioCode = -1;
@@ -202,12 +199,12 @@ public class Call {
         this.patientSet = patientSet;
     }
 
-    public List<CallNote> getCallNoteSet() {
-        return callNoteSet;
+    public List<CallNote> getCallnoteSet() {
+        return callnoteSet;
     }
 
-    public void setCallNoteSet(List<CallNote> callNoteSet) {
-        this.callNoteSet = callNoteSet;
+    public void setCallnoteSet(List<CallNote> callnoteSet) {
+        this.callnoteSet = callnoteSet;
     }
 
     public AmbulanceCall getAmbulanceCall(int ambulance_id) {

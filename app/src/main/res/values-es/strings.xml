@@ -252,5 +252,11 @@
     <string name="radio_code_label">Código de Radio:</string>
     <string name="unavailable">Indisponible</string>
     <string name="couldNotRetrieveServers">No se pudieron obtener los servidores</string>
+    <string name="callNotesLabel">Notas:</string>
+    <string name="add">Una mas</string>
+    <string name="noCallNotesAvailable">Todavía no hay notas</string>
+    <string name="addCallNote">Nueva nota</string>
+    <string name="couldNotPostCallNote">No se pudo publicar la nota</string>
+    <string name="successfullyPostedCallNote">Nota publicada exitosamente</string>
 
 </resources>

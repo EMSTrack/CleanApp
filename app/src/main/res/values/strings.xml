@@ -73,8 +73,9 @@
     <string name="gpsStatusLabel">Status:</string>
     <string name="gpsIdentifierLabel">Identifier:</string>
     <string name="gpsCapabilityLabel">Capability:</string>
-    <string name="callNotesLabel">Call Notes:</string>
+    <string name="callNotesLabel">Notes:</string>
     <string name="gpsLastUpdatedOnLabel">Last update:</string>
+    <string name="gpsCommentsLabel">Comments:</string>
     <string name="access_token" translatable="false">pk.eyJ1IjoieWFuZ2Y5NiIsImEiOiJjaXltYTNmbTcwMDJzMzNwZnpzM3Z6ZW9kIn0.gjEwLiCIbYhVFUGud9B56w</string>
     <string name="failedToConnectToBrocker">Failed to connected to broker.</string>
     <string name="Exception">Exception:</string>
@@ -221,6 +222,7 @@
     <string name="accept">Accept</string>
     <string name="no">No</string>
     <string name="yes">Yes</string>
+    <string name="add">Add</string>
     <string name="confirm">Confirm</string>
     <string name="end">End</string>
     <string name="select">Select</string>
@@ -271,8 +273,10 @@
     <string name="radio_code_label">Radio Code:</string>
     <string name="unavailable">Unavailable</string>
     <string name="couldNotRetrieveServers">Could not retrieve servers</string>
-    <string name="noCallNotesAvailable">No call notes currently available</string>
-    <string name="addCallNote">Add Note</string>
+    <string name="noCallNotesAvailable">No notes yet</string>
+    <string name="addCallNote">New note</string>
+    <string name="couldNotPostCallNote">Could not post call note</string>
+    <string name="successfullyPostedCallNote">Successfully posted call note</string>
     <string-array name="spinner_list_item_array_server">
         <item>@string/server_select</item>
         <item>Tijuana Red Cross:tijuana.emstrack.org:8883</item>

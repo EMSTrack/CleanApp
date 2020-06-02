@@ -1,6 +1,7 @@
 package org.emstrack.models.api;
 
 import org.emstrack.models.Ambulance;
+import org.emstrack.models.CallNote;
 import org.emstrack.models.Client;
 import org.emstrack.models.Credentials;
 import org.emstrack.models.EquipmentItem;
@@ -33,6 +34,8 @@ public interface APIService {
 
     /**
      * Retrieve token
+     *
+     * IMPORTANT: Add language to POST request
      *
      * @param credentials the user credentials
      * @return the api call
@@ -123,6 +126,16 @@ public interface APIService {
     Call<org.emstrack.models.Call> getCall(@Path("id") int id);
 
     /**
+     * Add call note
+     *
+     * IMPORTANT: Add language to POST request
+     *
+     * @return the api call
+     */
+    @POST("/en/api/call/{id}/note/")
+    Call<CallNote> addCallNote(@Path("id") int id, @Body CallNote callNote);
+
+    /**
      * Retrieve api version
      *
      * @return the api call
@@ -151,11 +164,13 @@ public interface APIService {
      *
      * @return the api call
      */
-    @GET("priority/classification")
+    @GET("priority/classification/")
     Call<List<PriorityClassification>> getPriorityClassification();
 
     /**
      * Set client
+     *
+     * IMPORTANT: Add language to POST request
      *
      * @return the api call
      */
