@@ -3699,8 +3699,8 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                 // add calls to stack
                 for (Call call : calls) {
 
-                    Log.d(TAG, String.format("Retrieved '%1$d' call notes upon start of call updates", call.getCallNoteSet().size()));
                     Log.d(TAG, String.format("Retrieved '%1$d' patients upon start of call updates", call.getPatientSet().size()));
+                    Log.d(TAG, String.format("Retrieved '%1$d' call notes upon start of call updates", call.getCallnoteSet().size()));
 
                     // add call, do not process until all calls are in
                     addCallToStack(call, false);

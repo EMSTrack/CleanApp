@@ -277,6 +277,7 @@
     <string name="addCallNote">New note</string>
     <string name="couldNotPostCallNote">Could not post call note</string>
     <string name="successfullyPostedCallNote">Successfully posted call note</string>
+    <string name="equipment_detail_text">comments: %1$s\nupdated on: %2$s</string>
     <string-array name="spinner_list_item_array_server">
         <item>@string/server_select</item>
         <item>Tijuana Red Cross:tijuana.emstrack.org:8883</item>

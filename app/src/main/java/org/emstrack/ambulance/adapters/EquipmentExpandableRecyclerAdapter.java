@@ -40,19 +40,23 @@ public class EquipmentExpandableRecyclerAdapter extends RecyclerView.Adapter {
         return new EquipmentViewHolder(context, view);
     }
 
-
-
     @Override
     //bind each ViewHolder to the adapter
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
 
-        Log.i(TAG,"equipname:" + equipments.get(position).getEquipmentName());
+        EquipmentItem item = equipments.get(position);
+        EquipmentViewHolder equipmentViewHolder = (EquipmentViewHolder) holder;
 
+        equipmentViewHolder.setEquipment(item, context);
+//
+//        equipmentViewHolder.setEquipmentName(item.getEquipmentName(),
+//                item.getEquipmentType(),
+//                item.getValue(),
+//                context);
+//        equipmentViewHolder.setEquipmentValue(item.getValue());
+//        equipmentViewHolder.setEquipmentDateUpdated(item.getUpdatedOn());
+//        equipmentViewHolder.setEquipmentComment(item.getComment());
 
-        ((EquipmentViewHolder) holder).setEquipmentName(equipments.get(position).getEquipmentName(), equipments.get(position).getEquipmentType(), equipments.get(position).getValue(), context);
-        ((EquipmentViewHolder) holder).setEquipmentValue(equipments.get(position).getValue());
-        ((EquipmentViewHolder) holder).setEquipmentDateUpdated(equipments.get(position).getUpdatedOn());
-        ((EquipmentViewHolder) holder).setEquipmentComment(equipments.get(position).getComment());
     }
 
     @Override

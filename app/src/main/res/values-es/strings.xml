@@ -258,5 +258,6 @@
     <string name="addCallNote">Nueva nota</string>
     <string name="couldNotPostCallNote">No se pudo publicar la nota</string>
     <string name="successfullyPostedCallNote">Nota publicada exitosamente</string>
+    <string name="equipment_detail_text">comentários: %1$s\nactualizado en: %2$s</string>
 
 </resources>

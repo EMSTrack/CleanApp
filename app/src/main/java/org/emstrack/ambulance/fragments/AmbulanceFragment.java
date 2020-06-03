@@ -315,7 +315,6 @@ public class AmbulanceFragment extends Fragment {
         capabilityText = view.findViewById(R.id.capabilityText);
         callNotesText = view.findViewById(R.id.callNotesText);
         updatedOnText = view.findViewById(R.id.updatedOnText);
-
         commentText = view.findViewById(R.id.commentText);
 
         // Set status button

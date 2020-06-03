@@ -2,37 +2,69 @@
 
 <!-- this is for ambulance equipment -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical">
 
-    <androidx.cardview.widget.CardView xmlns:app="http://schemas.android.com/apk/res-auto"
+    <androidx.cardview.widget.CardView
+        android:id="@+id/equipment_card"
         android:layout_width="match_parent"
-        android:layout_height="80dp"
+        android:layout_height="wrap_content"
         app:cardUseCompatPadding="true"
-        app:cardElevation="4dp"
+        app:cardElevation="3dp"
         app:cardCornerRadius="3dp">
 
-
-        <TextView
-            android:id="@+id/equipment_name"
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="40dp"
-            android:layout_marginStart="5dp"
-            android:gravity="center|start"
-            android:singleLine="true"
-            android:text="@string/equipment"
-            android:textSize="20sp"
-            android:textColor="@color/colorAvailable"
-            android:textStyle="bold"/>
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
 
-        <Spinner
-            android:id="@+id/spinner"
-            android:layout_width="match_parent"
-            android:layout_height="40dp"
-            android:layout_gravity="bottom"
-            android:layout_marginStart="0dp"
-            android:entries="@array/equipment_info" />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:id="@+id/equipment_name"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/equipment"
+                    android:paddingLeft="3dp"
+                    android:textSize="20sp"
+                    android:textColor="@color/colorAvailable"
+                    android:textStyle="bold"/>
+
+                <TextView
+                    android:id="@+id/equipment_value"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingTop="3dp"
+                    android:paddingEnd="6dp"
+                    android:text="@string/equipment"
+                    android:textSize="16sp"/>
+
+                <CheckBox
+                    android:id="@+id/equipment_checkbox"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="right"
+                    android:gravity="right"
+                    android:clickable="false"/>
+
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/equipment_detail"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="5dp"
+                android:paddingLeft="5dp"
+                android:visibility="gone"
+                android:text="@string/equipment"
+                android:textSize="16sp"/>
+
+        </LinearLayout>
 
     </androidx.cardview.widget.CardView>
 

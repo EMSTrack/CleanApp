@@ -118,7 +118,23 @@
                 android:layout_marginTop="20dp"
                 android:layout_below="@+id/callLayout"/>
 
+            <TextView
+                android:id="@+id/commentLabel"
+                android:layout_height="wrap_content"
+                android:layout_width="wrap_content"
+                android:text="@string/gpsCommentsLabel"
+                android:textStyle="bold"
+                android:textSize="18dp"
+                android:layout_marginTop="10dp"
+                android:layout_below="@+id/capabilityText"/>
 
+            <TextView
+                android:id="@+id/commentText"
+                android:layout_height="wrap_content"
+                android:layout_width="wrap_content"
+                android:text="@string/unknown"
+                android:layout_alignParentRight="true"
+                android:layout_below="@+id/commentLabel"/>
 
             <TextView
                 android:id="@+id/updatedOnLabel"
@@ -128,7 +144,7 @@
                 android:textStyle="bold"
                 android:textSize="18dp"
                 android:layout_marginTop="10dp"
-                android:layout_below="@+id/capabilityText"/>
+                android:layout_below="@+id/commentText"/>
 
             <TextView
                 android:id="@+id/updatedOnText"

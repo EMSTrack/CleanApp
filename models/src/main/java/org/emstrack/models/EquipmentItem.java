@@ -2,6 +2,7 @@ package org.emstrack.models;
 
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.util.Log;
 
 import java.util.Date;
 
@@ -11,6 +12,8 @@ import java.util.Date;
  * @since 5/4/2017
  */
 public class EquipmentItem implements Parcelable {
+
+    private static final String TAG = EquipmentItem.class.getSimpleName();
 
     private int equipmentHolderId;
     private int equipmentId;
@@ -105,6 +108,46 @@ public class EquipmentItem implements Parcelable {
 
     public void setUpdatedOn(Date updatedOn) {
         this.updatedOn = updatedOn;
+    }
+
+    public boolean isInteger() { return this.equipmentType == 'I'; }
+
+    public boolean isString() { return this.equipmentType == 'S'; }
+
+    public boolean isBoolean() { return this.equipmentType == 'B'; }
+
+    public boolean valueToBoolean() {
+        return Boolean.parseBoolean(this.value);
+    }
+
+    public int valueToInteger() {
+        return Integer.parseInt(this.value);
+    }
+
+    public String valueToString() {
+
+        switch (this.equipmentType) {
+
+            case 'I':
+
+                int intVal = 0;
+                try {
+                    intVal = Integer.parseInt(this.value);
+                } catch (NumberFormatException e) {
+                    Log.i(TAG, "Equipment Value is not number but is: " + this.value);
+                    intVal = -1;
+                }
+                return Integer.toString(intVal);
+
+            case 'B':
+
+                return Boolean.parseBoolean(this.value) ? "true" : "false";
+
+            default:
+                return this.value;
+
+        }
+
     }
 
     @Override
