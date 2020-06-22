@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.res.Configuration;
 import android.graphics.PorterDuff;
+import android.net.Uri;
 import android.os.Bundle;
 import com.google.android.material.navigation.NavigationView;
 import com.google.android.material.tabs.TabLayout;
@@ -311,6 +312,19 @@ public class MainActivity extends AppCompatActivity {
         ImageButton panicButton = findViewById(R.id.panicButton);
         panicButton.setOnLongClickListener(
                 v -> panicPopUp());
+
+        // Video Call button
+        ImageButton videoCallButton = findViewById(R.id.videoCallButton);
+        videoCallButton.setOnClickListener(
+                v -> {
+
+                    // open this web page when clicked
+                    Uri uri = Uri.parse("https://cruzroja.ucsd.edu/en/"); // missing 'http://' will cause crashe
+                    Intent intent = new Intent(Intent.ACTION_VIEW, uri);
+                    startActivity(intent);
+
+                }
+        );
 
         // Set a Toolbar to replace the ActionBar.
         toolbar = findViewById(R.id.toolbar);

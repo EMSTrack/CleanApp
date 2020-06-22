@@ -38,6 +38,19 @@
                     android:scaleType="fitCenter"
                     app:srcCompat="@drawable/ic_exclamation_triangle" />
 
+                <ImageButton
+                    android:id="@+id/videoCallButton"
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"
+                    android:layout_gravity="right"
+                    android:scaleX="1.5"
+                    android:scaleY="1.5"
+                    android:layout_marginRight="10dp"
+                    android:adjustViewBounds="true"
+                    android:background="@drawable/button_states"
+                    android:scaleType="fitCenter"
+                    app:srcCompat="@drawable/ic_video_call" />
+
                 <ImageView
                     android:id="@+id/onlineIcon"
                     android:layout_width="30dp"
