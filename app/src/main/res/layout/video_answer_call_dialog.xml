@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingHorizontal="10dp">
+
+    <TextView
+        android:id="@+id/video_answer_from_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:text="@string/from"/>
+
+    <TextView
+        android:id="@+id/video_answer_from_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="18sp"
+        android:text="someone"/>
+
+    <TextView
+        android:id="@+id/video_answer_at_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:text="@string/at"/>
+
+    <TextView
+        android:id="@+id/video_answer_at_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="18sp"
+        android:text="somewhere"/>
+
+</LinearLayout>

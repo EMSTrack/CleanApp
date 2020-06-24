@@ -277,6 +277,17 @@
     <string name="addCallNote">New note</string>
     <string name="couldNotPostCallNote">Could not post call note</string>
     <string name="successfullyPostedCallNote">Successfully posted call note</string>
+    <string name="couldNotRedirectToBrowser">Could not redirect to browser</string>
+    <string name="new_video_call_title">New video call</string>
+    <string name="select_user">Select user:</string>
+    <string name="could_not_retrieve_onilne_clients">Could not retrieve online clients</string>
+    <string name="error_invalid_client">Please select an existing user</string>
+    <string name="calling_client">Calling user...</string>
+    <string name="call">Call</string>
+    <string name="answer">Answer</string>
+    <string name="video_call">Video call</string>
+    <string name="from">From:</string>
+    <string name="at">At:</string>
     <string-array name="spinner_list_item_array_server">
         <item>@string/server_select</item>
         <item>Tijuana Red Cross:tijuana.emstrack.org:8883</item>

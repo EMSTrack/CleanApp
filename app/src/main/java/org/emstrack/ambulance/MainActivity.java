@@ -33,6 +33,7 @@ import android.widget.Toast;
 
 import org.emstrack.ambulance.adapters.FragmentPager;
 import org.emstrack.ambulance.dialogs.AboutDialog;
+import org.emstrack.ambulance.dialogs.AlertSnackbar;
 import org.emstrack.ambulance.dialogs.LogoutDialog;
 import org.emstrack.ambulance.fragments.AmbulanceFragment;
 import org.emstrack.ambulance.fragments.EquipmentFragment;
@@ -45,13 +46,18 @@ import org.emstrack.models.AmbulanceCall;
 import org.emstrack.models.AmbulancePermission;
 import org.emstrack.models.Call;
 import org.emstrack.models.CallStack;
+import org.emstrack.models.Client;
 import org.emstrack.models.HospitalPermission;
 import org.emstrack.models.Location;
 import org.emstrack.models.Patient;
 import org.emstrack.models.PriorityCode;
 import org.emstrack.models.Profile;
 import org.emstrack.models.RadioCode;
+import org.emstrack.models.TokenLogin;
 import org.emstrack.models.Waypoint;
+import org.emstrack.models.api.APIService;
+import org.emstrack.models.api.APIServiceGenerator;
+import org.emstrack.models.api.OnAPICallComplete;
 import org.emstrack.models.util.BroadcastActions;
 import org.emstrack.models.util.OnServiceComplete;
 
@@ -99,6 +105,17 @@ public class MainActivity extends AppCompatActivity {
 
     private boolean logoutAfterFinish;
     private ViewPager viewPager;
+
+    public class VideoButtonClickListener implements View.OnClickListener {
+
+        @Override
+        public void onClick(View v) {
+
+            promptVideoCallNew();
+
+        }
+
+    }
 
     public class AmbulanceButtonClickListener implements View.OnClickListener {
 
@@ -260,6 +277,16 @@ public class MainActivity extends AppCompatActivity {
                         }
 
                         break;
+                    case AmbulanceForegroundService.BroadcastActions.WEBRTC_NEW_CALL:
+
+                        Log.i(TAG, "WEBRTC_NEW_CALL");
+
+                        String username = intent.getStringExtra(AmbulanceForegroundService.BroadcastExtras.WEBRTC_CLIENT_USERNAME);
+                        String clientId = intent.getStringExtra(AmbulanceForegroundService.BroadcastExtras.WEBRTC_CLIENT_ID);
+
+                        promptVideoCallAccept(username, clientId);
+
+                        break;
                 }
             }
         }
@@ -315,16 +342,7 @@ public class MainActivity extends AppCompatActivity {
 
         // Video Call button
         ImageButton videoCallButton = findViewById(R.id.videoCallButton);
-        videoCallButton.setOnClickListener(
-                v -> {
-
-                    // open this web page when clicked
-                    Uri uri = Uri.parse("https://cruzroja.ucsd.edu/en/"); // missing 'http://' will cause crashe
-                    Intent intent = new Intent(Intent.ACTION_VIEW, uri);
-                    startActivity(intent);
-
-                }
-        );
+        videoCallButton.setOnClickListener(new VideoButtonClickListener());
 
         // Set a Toolbar to replace the ActionBar.
         toolbar = findViewById(R.id.toolbar);
@@ -529,6 +547,7 @@ public class MainActivity extends AppCompatActivity {
         filter.addAction(AmbulanceForegroundService.BroadcastActions.CALL_ACCEPTED);
         filter.addAction(AmbulanceForegroundService.BroadcastActions.CALL_DECLINED);
         filter.addAction(AmbulanceForegroundService.BroadcastActions.CALL_COMPLETED);
+        filter.addAction(AmbulanceForegroundService.BroadcastActions.WEBRTC_NEW_CALL);
         receiver = new MainActivityBroadcastReceiver();
         getLocalBroadcastManager().registerReceiver(receiver, filter);
 
@@ -703,6 +722,222 @@ public class MainActivity extends AppCompatActivity {
      */
     private LocalBroadcastManager getLocalBroadcastManager() {
         return LocalBroadcastManager.getInstance(this);
+    }
+
+    public void startVideoCall(Client client, String callMode) {
+
+        // Build user url token login
+        Uri.Builder builder = new Uri.Builder();
+        builder.scheme("https")
+                .authority("cruzroja.ucsd.edu")
+                .appendPath("en")
+                .appendPath("guest")
+                .appendQueryParameter("callUsername", client.getUsername())
+                .appendQueryParameter("callClientId", client.getClientId())
+                .appendQueryParameter("callMode", callMode);
+        String url = builder.build().toString();
+        TokenLogin tokenLogin = new TokenLogin(url);
+
+        APIService service = APIServiceGenerator.createService(APIService.class);
+        retrofit2.Call<TokenLogin> callTokenLogin = service.getTokenLogin("guest", tokenLogin);
+
+        new OnAPICallComplete<TokenLogin>(callTokenLogin) {
+
+            @Override
+            public void onSuccess(TokenLogin token) {
+
+                Log.d(TAG, "Successfully posted token login, will redirect to browser");
+
+                Uri.Builder builder = new Uri.Builder();
+                builder.scheme("https")
+                        .authority("cruzroja.ucsd.edu")
+                        .appendPath("en")
+                        .appendPath("auth")
+                        .appendPath("login")
+                        .appendPath(token.getToken());
+                Uri uri = builder.build();
+
+                // open this web page when clicked
+                Intent intent = new Intent(Intent.ACTION_VIEW, uri);
+                startActivity(intent);
+
+            }
+
+            @Override
+            public void onFailure(Throwable t) {
+                super.onFailure(t);
+
+                Toast.makeText(MainActivity.this,
+                        R.string.couldNotRedirectToBrowser,
+                        Toast.LENGTH_SHORT).show();
+
+            }
+
+        }
+                .start();
+
+    }
+
+    public void promptVideoCallAccept(String username, String clientId) {
+
+        Log.i(TAG, "Creating accept video call dialog");
+
+        // Use the Builder class for convenient dialog construction
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+
+        // Create call view
+        View view = getLayoutInflater().inflate(R.layout.video_answer_call_dialog, null);
+
+        TextView fromText = view.findViewById(R.id.video_answer_from_text);
+        fromText.setText(username);
+
+        TextView atText = view.findViewById(R.id.video_answer_at_text);
+        atText.setText(clientId);
+
+        // build dialog
+        builder.setTitle(R.string.video_call)
+                .setView(view)
+                .setCancelable(false)
+                .setPositiveButton(R.string.answer,
+                        (dialog, id) -> {
+
+                            Toast.makeText(MainActivity.this,
+                                    R.string.calling_client,
+                                    Toast.LENGTH_SHORT).show();
+
+                            Client client = new Client(username, clientId);
+                            startVideoCall(client, "answer");
+
+                        })
+                .setNegativeButton(R.string.decline, (dialog, id) -> {
+
+                    Log.i(TAG, "Video call cancelled");
+
+                    Intent serviceIntent = new Intent(MainActivity.this,
+                            AmbulanceForegroundService.class);
+                    serviceIntent.setAction(AmbulanceForegroundService.Actions.WEBRTC_MESSAGE);
+                    serviceIntent.putExtra(AmbulanceForegroundService.BroadcastExtras.WEBRTC_TYPE, "decline");
+                    serviceIntent.putExtra(AmbulanceForegroundService.BroadcastExtras.WEBRTC_CLIENT_USERNAME, username);
+                    serviceIntent.putExtra(AmbulanceForegroundService.BroadcastExtras.WEBRTC_CLIENT_ID, clientId);
+                    startService(serviceIntent);
+
+                } );
+
+        // Create the AlertDialog object and display it
+        builder.create().show();
+
+    }
+
+    public void promptVideoCallNew() {
+
+        Log.i(TAG, "Creating new video call dialog");
+
+        MainActivity self = this;
+
+        // Retrieve list of online clients
+
+        APIService service = APIServiceGenerator.createService(APIService.class);
+        retrofit2.Call<List<Client>> callOnlineClients = service.getOnlineClients();
+
+        new OnAPICallComplete<List<Client>>(callOnlineClients) {
+
+            @Override
+            public void onSuccess(List<Client> clients) {
+
+                Log.d(TAG, "Got list of online clients");
+
+                // Get app data
+                AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
+
+                // Get client id
+                String clientId = AmbulanceForegroundService.getProfileClientId(MainActivity.this);
+                String username = appData.getCredentials().getUsername();
+
+                // Use the Builder class for convenient dialog construction
+                AlertDialog.Builder builder = new AlertDialog.Builder(self);
+
+                // Create call view
+                View view = getLayoutInflater().inflate(R.layout.video_new_call_dialog, null);
+
+                // Populate client list
+                ArrayAdapter<String> userNames = new ArrayAdapter<String>(self, android.R.layout.simple_spinner_item);
+
+                // add select server message
+                userNames.add(getString(R.string.select_user));
+
+                int selfIndex = -1;
+                int i = 0;
+                for (Client client: clients) {
+                    if (client.getUsername().equals(username) && client.getClientId().equals(clientId)) {
+                        // self
+                        selfIndex = i++;
+                        continue;
+                    }
+                    userNames.add( client.getUsername() + " @ " + client.getClientId() );
+                    i++;
+                }
+
+                // Attach to spinner
+                Spinner spinnerVideoCall = view.findViewById(R.id.spinner_video_call);
+                userNames.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                spinnerVideoCall.setAdapter(userNames);
+
+                // build dialog
+                int finalSelfIndex = selfIndex;
+                builder.setTitle(R.string.new_video_call_title)
+                        .setView(view)
+                        .setCancelable(false)
+                        .setPositiveButton(R.string.call,
+                                (dialog, id) -> {
+
+                                    // first entry is prompt
+                                    int index = spinnerVideoCall.getSelectedItemPosition() - 1;
+                                    if (index >= 0) {
+
+                                        // increment index if past self
+                                        if (finalSelfIndex >= 0 && index >= finalSelfIndex)
+                                            index++;
+
+                                        final Client client = clients.get(index);
+                                        Log.i(TAG, "Calling: index=" + index + ", client=" + client);
+
+                                        Toast.makeText(MainActivity.this,
+                                                R.string.calling_client,
+                                                Toast.LENGTH_SHORT).show();
+
+                                        startVideoCall(client, "new");
+
+                                    } else {
+
+                                        new AlertSnackbar(self).alert(getResources().getString(R.string.error_invalid_client));
+
+                                    }
+
+                                })
+                        .setNegativeButton(R.string.cancel, (dialog, id) -> {
+
+                            Log.i(TAG, "Video call cancelled");
+
+                        } );
+
+                // Create the AlertDialog object and display it
+                builder.create().show();
+
+            }
+
+            @Override
+            public void onFailure(Throwable t) {
+                super.onFailure(t);
+
+                Toast.makeText(MainActivity.this,
+                        R.string.could_not_retrieve_onilne_clients,
+                        Toast.LENGTH_SHORT).show();
+
+            }
+
+        }
+                .start();
+
     }
 
     public void promptCallAccept(final int callId) {

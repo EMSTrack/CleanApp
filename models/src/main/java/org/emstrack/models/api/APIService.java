@@ -12,6 +12,7 @@ import org.emstrack.models.Profile;
 import org.emstrack.models.RadioCode;
 import org.emstrack.models.Settings;
 import org.emstrack.models.Token;
+import org.emstrack.models.TokenLogin;
 import org.emstrack.models.Version;
 
 import java.util.List;
@@ -43,6 +44,17 @@ public interface APIService {
     Call<Token> getToken(@Body Credentials credentials);
 
     /**
+     * Retrieve token login
+     *
+     * IMPORTANT: Add language to POST request
+     *
+     * @param tokenLogin
+     * @return the api call
+     */
+    @POST("/en/api/user/{username}/tokenlogin/")
+    Call<TokenLogin> getTokenLogin(@Path("username") String username, @Body TokenLogin tokenLogin);
+
+    /**
      * Retrieve the user profile
      *
      * @param username the username
@@ -58,6 +70,14 @@ public interface APIService {
      */
     @GET("settings/")
     Call<Settings> getSettings();
+
+    /**
+     * Retrieve the online clients
+     *
+     * @return the api call
+     */
+    @GET("client/")
+    Call<List<Client>> getOnlineClients();
 
     /**
      * Retrieve locations by type

@@ -16,6 +16,7 @@ public class Client {
     public static final String STATUS_ONLINE = "O";
     public static final String STATUS_OFFLINE = "F";
     public static final String STATUS_DISCONNECTED = "D";
+    public static final String STATUS_RECONNECTED = "R";
 
 
     private String clientId;
@@ -35,10 +36,24 @@ public class Client {
      * @param hospital the hospital id or <code>null</code>
      */
     public Client(String clientId, String status, Integer ambulance, Integer hospital) {
+        this.username = "";
         this.clientId = clientId;
         this.status = status;
         this.ambulance = ambulance;
         this.hospital = hospital;
+    }
+
+    /**
+     *
+     * @param username the username
+     * @param clientId the client id
+     */
+    public Client(String username, String clientId) {
+        this.username = username;
+        this.clientId = clientId;
+        this.status = STATUS_ONLINE;
+        this.ambulance = -1;
+        this.hospital = -1;
     }
 
     /**
@@ -135,6 +150,15 @@ public class Client {
      */
     public void setUpdatedOn(Date updatedOn) {
         this.updatedOn = updatedOn;
+    }
+
+
+    /**
+     *
+     * @return string representaion
+     */
+    public String toString() {
+        return username + " @ " + clientId;
     }
 
 }

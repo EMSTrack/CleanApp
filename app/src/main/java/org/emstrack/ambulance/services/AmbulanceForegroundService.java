@@ -41,6 +41,8 @@ import com.google.android.gms.location.SettingsClient;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 
 import org.eclipse.paho.android.service.MqttAndroidClient;
 import org.eclipse.paho.client.mqttv3.MqttException;
@@ -191,6 +193,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         public final static String WAYPOINT_EXIT = "org.emstrack.ambulance.ambulanceforegroundservice.action.WAYPOINT_EXIT";
         public final static String WAYPOINT_SKIP = "org.emstrack.ambulance.ambulanceforegroundservice.action.WAYPOINT_SKIP";
         public final static String WAYPOINT_ADD = "org.emstrack.ambulance.ambulanceforegroundservice.action.WAYPOINT_ADD";
+        public final static String WEBRTC_MESSAGE = "org.emstrack.ambulance.ambulanceforegroundservice.action.WEBRTC_DECLINE";
     }
 
     public class BroadcastExtras {
@@ -212,6 +215,9 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         public final static String GEOFENCE_RADIUS = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastextras.GEOFENCE_RADIUS";
         public final static String GEOFENCE_REQUESTID = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastextras.GEOFENCE_REQUESTID";
         public final static String GEOFENCE_TRIGGERED = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastextras.GEOFENCE_TRIGGERED";
+        public final static String WEBRTC_TYPE = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastextras.WEBRTC_TYPE";
+        public final static String WEBRTC_CLIENT_USERNAME = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastextras.WEBRTC_CLIENT_USERNAME";
+        public final static String WEBRTC_CLIENT_ID = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastextras.WEBRTC_CLIENT_ID";
     }
 
     public class ErrorCodes {
@@ -246,6 +252,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         public final static String CALL_UPDATE = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastaction.CALL_UPDATE";
         public final static String VERSION_UPDATE = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastaction.VERSION_UPDATE";
         public final static String CANNOT_UPDATE_LOCATION = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastaction.CANNOT_UPDATE_LOCATION";
+        public final static String WEBRTC_NEW_CALL = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastaction.WEBRTC_NEW_CALL";
     }
 
     public class AmbulanceForegroundServiceException extends Exception {
@@ -328,7 +335,11 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         final String uuid = intent.getStringExtra(org.emstrack.models.util.BroadcastExtras.UUID);
 
         final String action = intent.getAction();
-        if (action.equals(Actions.START_SERVICE)) {
+        if (action == null) {
+
+            Log.i(TAG, "action is null!");
+
+        } else if (action.equals(Actions.START_SERVICE)) {
 
             Log.i(TAG, "START_SERVICE Foreground Intent ");
 
@@ -755,9 +766,9 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
             // Retrieve latitude and longitude
             String type = intent.getStringExtra(AmbulanceForegroundService.BroadcastExtras.GEOFENCE_TYPE);
-            Float latitude = intent.getFloatExtra(AmbulanceForegroundService.BroadcastExtras.GEOFENCE_LATITUDE, 0.f);
-            Float longitude = intent.getFloatExtra(AmbulanceForegroundService.BroadcastExtras.GEOFENCE_LONGITUDE, 0.f);
-            Float radius = intent.getFloatExtra(AmbulanceForegroundService.BroadcastExtras.GEOFENCE_RADIUS, 50.f);
+            float latitude = intent.getFloatExtra(AmbulanceForegroundService.BroadcastExtras.GEOFENCE_LATITUDE, 0.f);
+            float longitude = intent.getFloatExtra(AmbulanceForegroundService.BroadcastExtras.GEOFENCE_LONGITUDE, 0.f);
+            float radius = intent.getFloatExtra(AmbulanceForegroundService.BroadcastExtras.GEOFENCE_RADIUS, 50.f);
 
             startGeofence(uuid, new Geofence(new GPSLocation(latitude, longitude), radius, type));
 
@@ -836,6 +847,23 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                 replyToGeofenceTransitions(uuid, geofence, action);
             }
 
+        } else if (action.equals(Actions.WEBRTC_MESSAGE)) {
+
+            Log.i(TAG, "WEBRTC_MESSAGE Foreground Intent");
+
+            // get remote client
+            String username = intent.getStringExtra(BroadcastExtras.WEBRTC_CLIENT_USERNAME);
+            String clientId = intent.getStringExtra(BroadcastExtras.WEBRTC_CLIENT_ID);
+            String type = intent.getStringExtra(BroadcastExtras.WEBRTC_TYPE);
+
+            // publish decline
+            String path = String.format("user/%1$s/client/%2$s/webrtc/message",
+                    username, clientId);
+            String message =
+                    String.format("{\"type\":\"%1$s\",\"client\":{\"username\":\"%2$s\",\"client_id\":\"%3$s\"}}",
+                            type, appData.getCredentials().getUsername(), getProfileClientId(this));
+            publishToPath(message, path, uuid);
+
         } else
 
             Log.i(TAG, "Unknown Intent");
@@ -883,6 +911,10 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
             }
         }
         return uniqueID;
+    }
+
+    public static String getProfileClientId(Context context) {
+        return getProfileClient(context).getClientId();
     }
 
     /**
@@ -1960,7 +1992,6 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                                 retrofit2.Call<List<PriorityCode>> priorityCodesCall = service.getPriorityCodes();
                                 retrofit2.Call<List<PriorityClassification>> priorityClassificationsCall = service.getPriorityClassification();
 
-
                                 new OnAPICallComplete<Version>(versionCall) {
 
                                     @Override
@@ -2192,6 +2223,16 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
                                     @Override
                                     public void run() {
+
+                                        try {
+
+                                            // subscribe to webrtc messages
+                                            subscribeToWebRTC();
+
+                                        } catch (MqttException e) {
+
+                                            Log.d(TAG, "Could not subscribe to WebRTC messages");
+                                        }
 
                                         // Broadcast success
                                         broadcastSuccess("Login succeeded.", uuid);
@@ -2941,6 +2982,58 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                 });
 
     }
+
+    public void subscribeToWebRTC() throws MqttException {
+
+        // Retrieve client
+        final MqttProfileClient profileClient = getProfileClient(this);
+
+        // Subscribe to ambulance
+        profileClient.subscribe(String.format("user/%1$s/client/%2$s/webrtc/message",
+                profileClient.getUsername(),
+                profileClient.getClientId()), 1,
+                (topic, message) -> {
+
+                    try {
+
+                        // Parse message
+                        JsonObject jsonObject = new JsonParser()
+                                .parse(String.valueOf(message))
+                                .getAsJsonObject();
+
+
+                        // get type
+                        String type = jsonObject.get("type").getAsString();
+                        JsonObject client = jsonObject.getAsJsonObject("client");
+
+                        if (type.equals("call")) {
+
+                            Log.d(TAG, "Got webrtc message: type=" + type + ", client=" + client);
+
+                            // Broadcast new video call
+                            Intent localIntent = new Intent(BroadcastActions.WEBRTC_NEW_CALL);
+                            localIntent.putExtra(BroadcastExtras.WEBRTC_TYPE, type);
+                            localIntent.putExtra(BroadcastExtras.WEBRTC_CLIENT_USERNAME, client.get("username").getAsString());
+                            localIntent.putExtra(BroadcastExtras.WEBRTC_CLIENT_ID, client.get("client_id").getAsString());
+                            getLocalBroadcastManager().sendBroadcast(localIntent);
+
+                        } else {
+
+                            Log.d(TAG, "Ignoring webrtc message: type=" + type + ", client=" + client);
+
+                        }
+
+                    } catch (Exception e) {
+
+                        // Broadcast failure
+                        broadcastFailure(getString(R.string.couldNotParseAmbulance));
+
+                    }
+
+                });
+
+    }
+
 
     /**
      * Retrieve hospitals

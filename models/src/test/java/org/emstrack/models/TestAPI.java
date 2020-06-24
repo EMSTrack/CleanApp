@@ -1,5 +1,6 @@
 package org.emstrack.models;
 
+import android.net.Uri;
 import android.os.Build;
 import android.util.Log;
 
@@ -13,11 +14,13 @@ import org.robolectric.annotation.Config;
 import org.robolectric.shadows.ShadowLog;
 import org.robolectric.shadows.ShadowLooper;
 
+import java.net.URI;
 import java.util.List;
 
 import retrofit2.Response;
 
 import static junit.framework.Assert.assertNotNull;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 @RunWith(RobolectricTestRunner.class)
@@ -68,6 +71,27 @@ public class TestAPI {
         Profile profile = profileResponse.body();
         Log.d(TAG, "profile = " + profile);
         assertTrue(profile != null);
+
+        // token login
+        Uri.Builder builder = new Uri.Builder();
+        builder.scheme("https")
+                .authority("cruzroja.ucsd.edu")
+                .appendPath("en")
+                .appendPath("guest");
+        String url = builder.build().toString();
+        Log.d(TAG, "url = " + url);
+        TokenLogin tokenLogin = new TokenLogin(url);
+
+        retrofit2.Call<TokenLogin> callTokenLogin =
+                service.getTokenLogin("guest", tokenLogin);
+
+        Response<TokenLogin> tokenLoginResponse = callTokenLogin.execute();
+        TokenLogin tokenLogin_ = tokenLoginResponse.body();
+        assertTrue(tokenLogin_.getToken().length() > 0);
+        Log.d(TAG, "token = " + tokenLogin_.getToken());
+        assertEquals(tokenLogin_.getUsername(), "guest");
+        Log.d(TAG, "url = " + tokenLogin_.getUrl());
+        assertEquals(tokenLogin_.getUrl(), "https://cruzroja.ucsd.edu/en/guest");
 
     }
 
