@@ -252,7 +252,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         public final static String CALL_UPDATE = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastaction.CALL_UPDATE";
         public final static String VERSION_UPDATE = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastaction.VERSION_UPDATE";
         public final static String CANNOT_UPDATE_LOCATION = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastaction.CANNOT_UPDATE_LOCATION";
-        public final static String WEBRTC_NEW_CALL = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastaction.WEBRTC_NEW_CALL";
+        public final static String WEBRTC_MESSAGE = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastaction.WEBRTC_NEW_CALL";
     }
 
     public class AmbulanceForegroundServiceException extends Exception {
@@ -3006,12 +3006,12 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                         String type = jsonObject.get("type").getAsString();
                         JsonObject client = jsonObject.getAsJsonObject("client");
 
-                        if (type.equals("call")) {
+                        if (type.equals("call") || type.equals("cancel")) {
 
                             Log.d(TAG, "Got webrtc message: type=" + type + ", client=" + client);
 
                             // Broadcast new video call
-                            Intent localIntent = new Intent(BroadcastActions.WEBRTC_NEW_CALL);
+                            Intent localIntent = new Intent(BroadcastActions.WEBRTC_MESSAGE);
                             localIntent.putExtra(BroadcastExtras.WEBRTC_TYPE, type);
                             localIntent.putExtra(BroadcastExtras.WEBRTC_CLIENT_USERNAME, client.get("username").getAsString());
                             localIntent.putExtra(BroadcastExtras.WEBRTC_CLIENT_ID, client.get("client_id").getAsString());

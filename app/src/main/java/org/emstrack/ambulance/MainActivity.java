@@ -53,6 +53,7 @@ import org.emstrack.models.Patient;
 import org.emstrack.models.PriorityCode;
 import org.emstrack.models.Profile;
 import org.emstrack.models.RadioCode;
+import org.emstrack.models.Settings;
 import org.emstrack.models.TokenLogin;
 import org.emstrack.models.Waypoint;
 import org.emstrack.models.api.APIService;
@@ -106,16 +107,7 @@ public class MainActivity extends AppCompatActivity {
     private boolean logoutAfterFinish;
     private ViewPager viewPager;
 
-    public class VideoButtonClickListener implements View.OnClickListener {
-
-        @Override
-        public void onClick(View v) {
-
-            promptVideoCallNew();
-
-        }
-
-    }
+    private AlertDialog promptVideoCallDialog;
 
     public class AmbulanceButtonClickListener implements View.OnClickListener {
 
@@ -277,14 +269,37 @@ public class MainActivity extends AppCompatActivity {
                         }
 
                         break;
-                    case AmbulanceForegroundService.BroadcastActions.WEBRTC_NEW_CALL:
+                    case AmbulanceForegroundService.BroadcastActions.WEBRTC_MESSAGE:
 
                         Log.i(TAG, "WEBRTC_NEW_CALL");
 
+                        String type = intent.getStringExtra(AmbulanceForegroundService.BroadcastExtras.WEBRTC_TYPE);
                         String username = intent.getStringExtra(AmbulanceForegroundService.BroadcastExtras.WEBRTC_CLIENT_USERNAME);
                         String clientId = intent.getStringExtra(AmbulanceForegroundService.BroadcastExtras.WEBRTC_CLIENT_ID);
 
-                        promptVideoCallAccept(username, clientId);
+                        if (type.equals("call")) {
+
+                            promptVideoCallAccept(username, clientId);
+
+                        } else if (type.equals("cancel")) {
+
+                            if (promptVideoCallDialog != null) {
+
+                                Log.d(TAG, "Cancelling call");
+                                promptVideoCallDialog.dismiss();
+                                promptVideoCallDialog = null;
+
+                                Toast.makeText(MainActivity.this,
+                                        R.string.video_call_cancelled,
+                                        Toast.LENGTH_SHORT).show();
+                            } else
+                                Log.d(TAG, "Canceled call was not been prompted");
+
+                        } else {
+
+                            Log.d(TAG, String.format("Unknown WebRTC message type '%1$s'", type));
+
+                        }
 
                         break;
                 }
@@ -302,8 +317,14 @@ public class MainActivity extends AppCompatActivity {
 
         Log.d(TAG, "onCreate");
 
+        // Get appData
+        AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
+
         // Do not logout
         logoutAfterFinish = false;
+
+        // not prompting new video call
+        promptVideoCallDialog = null;
 
         // Call priority colors
         String[] callPriorityColorsArray = getResources().getStringArray(R.array.call_priority_colors);
@@ -342,7 +363,13 @@ public class MainActivity extends AppCompatActivity {
 
         // Video Call button
         ImageButton videoCallButton = findViewById(R.id.videoCallButton);
-        videoCallButton.setOnClickListener(new VideoButtonClickListener());
+        videoCallButton.setOnClickListener(v -> promptVideoCallNew());
+
+        // Hide video button if video is not enabled
+        Settings settings = appData.getSettings();
+        if (!settings.isEnableVideo()) {
+            videoCallButton.setVisibility(View.GONE);
+        }
 
         // Set a Toolbar to replace the ActionBar.
         toolbar = findViewById(R.id.toolbar);
@@ -406,7 +433,6 @@ public class MainActivity extends AppCompatActivity {
 
         ambulancePermissions = new ArrayList<>();
         hospitalPermissions = new ArrayList<>();
-        AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
         Profile profile = appData.getProfile();
         if (profile != null) {
             ambulancePermissions = profile.getAmbulances();
@@ -547,7 +573,11 @@ public class MainActivity extends AppCompatActivity {
         filter.addAction(AmbulanceForegroundService.BroadcastActions.CALL_ACCEPTED);
         filter.addAction(AmbulanceForegroundService.BroadcastActions.CALL_DECLINED);
         filter.addAction(AmbulanceForegroundService.BroadcastActions.CALL_COMPLETED);
-        filter.addAction(AmbulanceForegroundService.BroadcastActions.WEBRTC_NEW_CALL);
+
+        // Enable video
+        if (appData.getSettings().isEnableVideo())
+            filter.addAction(AmbulanceForegroundService.BroadcastActions.WEBRTC_MESSAGE);
+
         receiver = new MainActivityBroadcastReceiver();
         getLocalBroadcastManager().registerReceiver(receiver, filter);
 
@@ -782,6 +812,12 @@ public class MainActivity extends AppCompatActivity {
 
         Log.i(TAG, "Creating accept video call dialog");
 
+        // return if already prompting for call
+        if (promptVideoCallDialog != null) {
+            Log.i(TAG, "Already prompting for call. Simply return.");
+            return;
+        }
+
         // Use the Builder class for convenient dialog construction
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
 
@@ -798,17 +834,20 @@ public class MainActivity extends AppCompatActivity {
         builder.setTitle(R.string.video_call)
                 .setView(view)
                 .setCancelable(false)
-                .setPositiveButton(R.string.answer,
-                        (dialog, id) -> {
+                .setPositiveButton(R.string.answer, (dialog, id) -> {
 
-                            Toast.makeText(MainActivity.this,
-                                    R.string.calling_client,
-                                    Toast.LENGTH_SHORT).show();
+                    Log.i(TAG, "Video call accepted");
 
-                            Client client = new Client(username, clientId);
-                            startVideoCall(client, "answer");
+                    Toast.makeText(MainActivity.this,
+                            R.string.calling_client,
+                            Toast.LENGTH_SHORT).show();
 
-                        })
+                    Client client = new Client(username, clientId);
+                    startVideoCall(client, "answer");
+
+                    promptVideoCallDialog = null;
+
+                })
                 .setNegativeButton(R.string.decline, (dialog, id) -> {
 
                     Log.i(TAG, "Video call cancelled");
@@ -821,10 +860,13 @@ public class MainActivity extends AppCompatActivity {
                     serviceIntent.putExtra(AmbulanceForegroundService.BroadcastExtras.WEBRTC_CLIENT_ID, clientId);
                     startService(serviceIntent);
 
+                    promptVideoCallDialog = null;
+
                 } );
 
         // Create the AlertDialog object and display it
-        builder.create().show();
+        promptVideoCallDialog = builder.create();
+        promptVideoCallDialog.show();
 
     }
 

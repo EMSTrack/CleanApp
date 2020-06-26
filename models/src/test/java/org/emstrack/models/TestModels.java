@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.FieldNamingPolicy;
 
+import org.apache.tools.ant.taskdefs.condition.IsFalse;
 import org.emstrack.models.gson.ExcludeAnnotationExclusionStrategy;
 import org.junit.Test;
 
@@ -295,6 +296,14 @@ public class TestModels {
         equipmentTypeDefaults.put("B", "True");
         equipmentTypeDefaults.put("I", "0");
 
+        String guestUsername = "guest";
+        boolean enableVideo = false;
+        Map<String, String> turnServer = new HashMap<>();
+        turnServer.put("ip", "127.0.0.1");
+        turnServer.put("port", "80");
+        turnServer.put("user", "turnuser");
+        turnServer.put("pass", "secret");
+
         Defaults defaults = new Defaults(new GPSLocation(32.5149,-117.0382),"BC","Tijuana","MX");
 
         Settings settings = new Settings(ambulanceStatus, ambulanceStatusOrder,
@@ -303,7 +312,9 @@ public class TestModels {
                 callStatus, callStatusOrder,
                 ambulancecallStatus,
                 locationType, locationTypeOrder,
-                equipmentType, equipmentTypeDefaults, defaults);
+                equipmentType, equipmentTypeDefaults,
+                guestUsername, enableVideo, turnServer,
+                defaults);
 
         GsonBuilder gsonBuilder = new GsonBuilder();
         gsonBuilder.setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES);
@@ -346,7 +357,19 @@ public class TestModels {
         for (Map.Entry<String,String> entry : expectedLocationType.entrySet()) {
             assertEquals(entry.getValue(), answerLocationType.get(entry.getKey()));
         }
-        
+
+        String expectedGuestUsername = settings.getGuestUsername();
+        assertEquals(expectedGuestUsername, from_json.getGuestUsername());
+
+        boolean expectedEnableVideo = settings.isEnableVideo();
+        assertEquals(expectedEnableVideo, from_json.isEnableVideo());
+
+        Map<String,String> expectedTurnServer = settings.getTurnServer();
+        Map<String,String> answerTurnServer = from_json.getTurnServer();
+        for (Map.Entry<String,String> entry : expectedTurnServer.entrySet()) {
+            assertEquals(entry.getValue(), answerTurnServer.get(entry.getKey()));
+        }
+
         to_json = "{\"ambulance_status\":{\"PB\":\"Patient bound\",\"HB\":\"Hospital bound\",\"UK\":\"Unknown\",\"AH\":\"At hospital\",\"AV\":\"Available\",\"AP\":\"At patient\",\"OS\":\"Out of service\"},\"defaults\":{\"state\":\"BC\",\"location\":{\"latitude\":\"32.5149\",\"longitude\":\"-117.0382\"},\"city\":\"Tijuana\",\"country\":\"MX\"},\"equipment_type\":{\"I\":\"Integer\",\"S\":\"String\",\"B\":\"Boolean\"},\"ambulance_capability\":{\"R\":\"Rescue\",\"B\":\"Basic\",\"A\":\"Advanced\"},\"location_type\":{\"B\":\"Base\",\"A\":\"AED\",\"O\":\"Other\"}}";
 
         from_json = gson.fromJson(to_json, Settings.class);
@@ -382,7 +405,9 @@ public class TestModels {
                 callStatus, callStatusOrder,
                 ambulancecallStatus,
                 locationType, locationTypeOrder,
-                equipmentType, equipmentTypeDefaults, defaults);
+                equipmentType, equipmentTypeDefaults,
+                guestUsername, enableVideo, turnServer,
+                defaults);
 
         expectedDefaults = settings.getDefaults();
         answerDefaults = from_json.getDefaults();
@@ -480,7 +505,7 @@ public class TestModels {
 
         to_json = gson.toJson(ambulance);
 
-        df = new SimpleDateFormat("MMM d, y K:mm:ss a");
+        df = new SimpleDateFormat("MMM d, y h:mm:ss a");
         String expected_to_json = "{\"capability\":\"B\",\"status\":\"UK\",\"orientation\":12.0,\"location\":{\"latitude\":32.5149,\"longitude\":-117.0382},\"timestamp\":\"" + df.format(ambulance.getTimestamp()) + "\"}";
 
         assertEquals(expected_to_json, to_json);
@@ -882,9 +907,11 @@ public class TestModels {
         List<AmbulanceCall> ambulanceCallSet = new ArrayList<>();
         ambulanceCallSet.add(ambulanceCall);
 
-        CallNote callNote = new CallNote("A note", 1, new Date());
         List<CallNote> callNoteSet = new ArrayList<>();
+        CallNote callNote = new CallNote("new note after call", 1, new Date());
         callNoteSet.add(callNote);
+        CallNote secondCallNote = new CallNote("note made after creation of call", 1, new Date());
+        callNoteSet.add(secondCallNote);
 
         Call call = new Call(
                 64,
@@ -956,12 +983,12 @@ public class TestModels {
                 "        {\n" +
                 "            \"comment\": \"new note after call\",\n" +
                 "            \"updated_by\": 1,\n" +
-                "            \"updated_on\": \"2020-05-14T03:08:16.442480Z\"\n" +
+                "            \"updated_on\": \"" + df.format(callNote.getUpdatedOn()) + "\"\n" +
                 "        },\n" +
                 "        {\n" +
                 "            \"comment\": \"note made after creation of call\",\n" +
                 "            \"updated_by\": 1,\n" +
-                "            \"updated_on\": \"2020-05-14T02:22:35.481634Z\"\n" +
+                "            \"updated_on\": \"" + df.format(secondCallNote.getUpdatedOn()) + "\"\n" +
                 "        }\n" +
                 "    ]}";
 
@@ -971,6 +998,7 @@ public class TestModels {
         //CallNote testing
         assertEquals(call.getCallnoteSet().size(), from_json.getCallnoteSet().size());
 
+        // call note 0
         CallNote expectedCallNote = call.getCallnoteSet().get(0);
         CallNote answerCallNote = from_json.getCallnoteSet().get(0);
 
@@ -986,8 +1014,23 @@ public class TestModels {
         Date answerDate = answerCallNote.getUpdatedOn();
         assertEquals(df.format(expectedDate), df.format(answerDate));
 
+        // call note 1
+        expectedCallNote = call.getCallnoteSet().get(1);
+        answerCallNote = from_json.getCallnoteSet().get(1);
 
+        expectedCallNoteComment = expectedCallNote.getComment();
+        answerCallNoteComment = answerCallNote.getComment();
+        assertEquals(expectedCallNoteComment, answerCallNoteComment);
 
+        expectedId = expectedCallNote.getUpdatedBy();
+        answerId = answerCallNote.getUpdatedBy();
+        assertEquals(expectedId, answerId);
+
+        expectedDate = expectedCallNote.getUpdatedOn();
+        answerDate = answerCallNote.getUpdatedOn();
+        assertEquals(df.format(expectedDate), df.format(answerDate));
+
+        // test call
 
         expectedId = call.getId();
         answerId = from_json.getId();

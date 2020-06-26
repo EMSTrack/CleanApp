@@ -288,6 +288,7 @@
     <string name="video_call">Video call</string>
     <string name="from">From:</string>
     <string name="at">At:</string>
+    <string name="video_call_cancelled">Video call cancelled</string>
     <string-array name="spinner_list_item_array_server">
         <item>@string/server_select</item>
         <item>Tijuana Red Cross:tijuana.emstrack.org:8883</item>

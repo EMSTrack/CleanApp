@@ -12,27 +12,32 @@ import java.util.Map;
  */
 public class Settings {
 
-    public Map<String, String> ambulanceStatus;
-    public List<String> ambulanceStatusOrder;
+    private Map<String, String> ambulanceStatus;
+    private List<String> ambulanceStatusOrder;
 
-    public Map<String, String> ambulanceCapability;
-    public List<String> ambulanceCapabilityOrder;
+    private Map<String, String> ambulanceCapability;
+    private List<String> ambulanceCapabilityOrder;
 
-    public Map<String, String> callPriority;
-    public List<String> callPriorityOrder;
+    private Map<String, String> callPriority;
+    private List<String> callPriorityOrder;
 
-    public Map<String, String> callStatus;
-    public List<String> callStatusOrder;
+    private Map<String, String> callStatus;
+    private List<String> callStatusOrder;
 
-    public Map<String, String> ambulancecallStatus;
+    private Map<String, String> ambulancecallStatus;
 
-    public Map<String, String> locationType;
-    public List<String> locationTypeOrder;
+    private Map<String, String> locationType;
+    private List<String> locationTypeOrder;
 
-    public Map<String, String> waypointStatus;
+    private Map<String, String> waypointStatus;
 
-    public Map<String, String> equipmentType;
-    public Map<String, String> equipmentTypeDefaults;
+    private Map<String, String> equipmentType;
+    private Map<String, String> equipmentTypeDefaults;
+
+    private String guestUsername;
+
+    private boolean enableVideo;
+    private Map<String, String> turnServer;
 
     private Defaults defaults;
 
@@ -276,6 +281,54 @@ public class Settings {
 
     /**
      *
+     * @return the guest user name
+     */
+    public String getGuestUsername() {
+        return guestUsername;
+    }
+
+    /**
+     *
+     * @param guestUsername the guest user name
+     */
+    public void setGuestUsername(String guestUsername) {
+        this.guestUsername = guestUsername;
+    }
+
+    /**
+     *
+     * @return the enable video flag
+     */
+    public boolean isEnableVideo() {
+        return enableVideo;
+    }
+
+    /**
+     *
+     * @param enableVideo the enable video flag
+     */
+    public void setEnableVideo(boolean enableVideo) {
+        this.enableVideo = enableVideo;
+    }
+
+    /**
+     *
+     * @return the turn server settings
+     */
+    public Map<String, String> getTurnServer() {
+        return turnServer;
+    }
+
+    /**
+     *
+     * @param turnServer the turn server settings
+     */
+    public void setTurnServer(Map<String, String> turnServer) {
+        this.turnServer = turnServer;
+    }
+
+    /**
+     *
      * @param ambulanceStatus the ambulance status map
      * @param ambulanceStatusOrder the ambulance status order list
      * @param ambulanceCapability the ambulance capability map
@@ -289,6 +342,9 @@ public class Settings {
      * @param locationTypeOrder the location type order list
      * @param equipmentType the equipment type map
      * @param equipmentTypeDefaults the equipment type defaults map
+     * @param guestUsername the guest user name
+     * @param enableVideo enable user flag
+     * @param turnServer the turn server settings
      * @param defaults the defaults map
      */
     public Settings(Map<String,String> ambulanceStatus,
@@ -304,6 +360,9 @@ public class Settings {
                     List<String> locationTypeOrder,
                     Map<String,String> equipmentType,
                     Map<String,String> equipmentTypeDefaults,
+                    String guestUsername,
+                    boolean enableVideo,
+                    Map<String, String> turnServer,
                     Defaults defaults) {
         this.ambulanceStatus = ambulanceStatus;
         this.ambulanceStatusOrder = ambulanceStatusOrder;
@@ -318,6 +377,9 @@ public class Settings {
         this.locationTypeOrder = locationTypeOrder;
         this.equipmentType = equipmentType;
         this.equipmentTypeDefaults = equipmentTypeDefaults;
+        this.guestUsername = guestUsername;
+        this.enableVideo = enableVideo;
+        this.turnServer = turnServer;
         this.defaults = defaults;
     }
 
@@ -336,6 +398,9 @@ public class Settings {
                 "\nlocationType = " + Arrays.toString(locationType.entrySet().toArray()) +
                 "\nequipmentType = " + Arrays.toString(equipmentType.entrySet().toArray()) +
                 "\nequipmentTypeDefaults = " + Arrays.toString(equipmentTypeDefaults.entrySet().toArray()) +
+                "\nguestUsername = " + guestUsername +
+                "\nenableVideo = " + enableVideo +
+                "\nturnServer = " + turnServer +
                 "\ndefaults = " + defaults;
     }
 }
