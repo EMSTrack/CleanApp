@@ -1472,6 +1472,9 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
                 try {
 
+                    // Unsubscribe from WebRCT
+                    unsubscribeFromWebRTC();
+
                     // disconnect mqttclient
                     profileClient.disconnect(new MqttProfileCallback() {
 
@@ -2983,6 +2986,18 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
     }
 
+    public void unsubscribeFromWebRTC() throws MqttException {
+
+        // Retrieve client
+        final MqttProfileClient profileClient = getProfileClient(this);
+
+        // Subscribe to ambulance
+        profileClient.unsubscribe(String.format("user/%1$s/client/%2$s/webrtc/message",
+                profileClient.getUsername(),
+                profileClient.getClientId()));
+
+    }
+
     public void subscribeToWebRTC() throws MqttException {
 
         // Retrieve client
@@ -3009,6 +3024,28 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                         if (type.equals("call") || type.equals("cancel")) {
 
                             Log.d(TAG, "Got webrtc message: type=" + type + ", client=" + client);
+
+                            // Login intent
+                            Intent notificationIntent = new Intent(AmbulanceForegroundService.this, LoginActivity.class);
+                            notificationIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                            PendingIntent pendingIntent = PendingIntent.getActivity(AmbulanceForegroundService.this, 0,
+                                    notificationIntent, 0);
+
+                            // Create notification
+                            NotificationCompat.Builder mBuilder =
+                                    new NotificationCompat.Builder(this, PRIMARY_CHANNEL)
+                                            .setSmallIcon(R.mipmap.ic_launcher)
+                                            .setContentTitle(getString(R.string.EMSTrack))
+                                            .setContentText(getString(R.string.youHaveANewVideoCall))
+                                            .setPriority(NotificationCompat.PRIORITY_MAX)
+                                            .setAutoCancel(true)
+                                            .setDefaults(Notification.DEFAULT_ALL)
+                                            .setContentIntent(pendingIntent);
+
+                            NotificationManagerCompat notificationManager
+                                    = NotificationManagerCompat.from(this);
+                            notificationManager.notify(notificationId.getAndIncrement(), mBuilder.build());
+
 
                             // Broadcast new video call
                             Intent localIntent = new Intent(BroadcastActions.WEBRTC_MESSAGE);

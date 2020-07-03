@@ -269,5 +269,7 @@
     <string name="video_call">Videollamada</string>
     <string name="from">De:</string>
     <string name="at">En:</string>
+    <string name="video_call_cancelled">Videollamada cancelada</string>
+    <string name="youHaveANewVideoCall">Nueva videollamada</string>
 
 </resources>

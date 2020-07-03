@@ -47,6 +47,7 @@ import org.emstrack.models.AmbulancePermission;
 import org.emstrack.models.Call;
 import org.emstrack.models.CallStack;
 import org.emstrack.models.Client;
+import org.emstrack.models.Credentials;
 import org.emstrack.models.HospitalPermission;
 import org.emstrack.models.Location;
 import org.emstrack.models.Patient;
@@ -756,10 +757,18 @@ public class MainActivity extends AppCompatActivity {
 
     public void startVideoCall(Client client, String callMode) {
 
+        // get url
+        Credentials credentials = AmbulanceForegroundService.getAppData().getCredentials();
+        String[] baseUrl = credentials.getApiServerUri().split("://");
+        Log.d(TAG, "baseUrl = ");
+        for (String url: baseUrl){
+            Log.d(TAG, url);
+        }
+
         // Build user url token login
         Uri.Builder builder = new Uri.Builder();
-        builder.scheme("https")
-                .authority("cruzroja.ucsd.edu")
+        builder.scheme(baseUrl[0])
+                .authority(baseUrl[1])
                 .appendPath("en")
                 .appendPath("guest")
                 .appendQueryParameter("callUsername", client.getUsername())
@@ -779,8 +788,8 @@ public class MainActivity extends AppCompatActivity {
                 Log.d(TAG, "Successfully posted token login, will redirect to browser");
 
                 Uri.Builder builder = new Uri.Builder();
-                builder.scheme("https")
-                        .authority("cruzroja.ucsd.edu")
+                builder.scheme(baseUrl[0])
+                        .authority(baseUrl[1])
                         .appendPath("en")
                         .appendPath("auth")
                         .appendPath("login")
