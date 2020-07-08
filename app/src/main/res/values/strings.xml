@@ -290,6 +290,7 @@
     <string name="at">At:</string>
     <string name="video_call_cancelled">Video call cancelled</string>
     <string name="youHaveANewVideoCall">You have a new video call</string>
+    <string name="anotherUserIsLoggedIn">Another user is logged in at this ambulance</string>
     <string-array name="spinner_list_item_array_server">
         <item>@string/server_select</item>
         <item>Tijuana Red Cross:tijuana.emstrack.org:8883</item>

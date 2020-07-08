@@ -41,6 +41,7 @@ import com.google.android.gms.location.SettingsClient;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
@@ -71,9 +72,11 @@ import org.emstrack.models.Settings;
 import org.emstrack.models.Token;
 import org.emstrack.models.Version;
 import org.emstrack.models.Waypoint;
+import org.emstrack.models.api.APIError;
 import org.emstrack.models.api.APIService;
 import org.emstrack.models.api.APIServiceGenerator;
 import org.emstrack.models.api.OnAPICallComplete;
+import org.emstrack.models.util.BroadcastActions;
 import org.emstrack.models.util.OnComplete;
 import org.emstrack.models.util.OnServiceComplete;
 import org.emstrack.mqtt.MishandledTopicException;
@@ -91,6 +94,8 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import javax.xml.transform.sax.TransformerHandler;
 
 import static org.emstrack.models.util.BroadcastExtras.ERROR_CODE;
 
@@ -2482,6 +2487,19 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
             @Override
             public void onFailure(Throwable t) {
                 super.onFailure(t);
+
+                APIError error = (APIError) t;
+                JsonObject jsonObject = error.getJson();
+
+                if ( jsonObject.has("ambulance") ) {
+                    JsonArray array = jsonObject.get("ambulance").getAsJsonArray();
+                    if (array.get(0).getAsString().equals("This field must be unique.")) {
+
+                        // Broadcast failure
+                        broadcastFailure(getString(R.string.anotherUserIsLoggedIn), uuid, ErrorCodes.AMBULANCE_CANNOT_LOGIN);
+
+                    }
+                }
 
                 // Broadcast failure
                 broadcastFailure(getString(R.string.couldNotLoginToAmbulance), uuid,

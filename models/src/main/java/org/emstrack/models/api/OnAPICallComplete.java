@@ -1,5 +1,7 @@
 package org.emstrack.models.api;
 
+import android.util.Log;
+
 import org.emstrack.models.util.Alert;
 import org.emstrack.models.util.StartableTask;
 
@@ -175,8 +177,12 @@ public abstract class OnAPICallComplete<T> implements StartableTask<OnAPICallCom
                         next.start();
                 } else {
                     // Log.i(TAG, "FAILURE");
+
+                    // parse the response body …
+                    APIError error = APIErrorUtils.parseError(response);
+
                     successFlag = false;
-                    OnAPICallComplete.this.onFailure(new Exception("Response not successful."));
+                    OnAPICallComplete.this.onFailure(error);
                 }
             }
 

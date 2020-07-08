@@ -271,5 +271,6 @@
     <string name="at">En:</string>
     <string name="video_call_cancelled">Videollamada cancelada</string>
     <string name="youHaveANewVideoCall">Nueva videollamada</string>
+    <string name="anotherUserIsLoggedIn">Otro usuario ha iniciado sesión en esta ambulancia</string>
 
 </resources>
