@@ -1,15 +1,23 @@
 package org.emstrack.ambulance;
 
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.res.Configuration;
+import android.graphics.BitmapFactory;
 import android.graphics.PorterDuff;
 import android.net.Uri;
 import android.os.Bundle;
 import com.google.android.material.navigation.NavigationView;
 import com.google.android.material.tabs.TabLayout;
+
+import androidx.browser.customtabs.CustomTabsCallback;
+import androidx.browser.customtabs.CustomTabsClient;
+import androidx.browser.customtabs.CustomTabsIntent;
+import androidx.browser.customtabs.CustomTabsServiceConnection;
+import androidx.browser.customtabs.CustomTabsSession;
 import androidx.fragment.app.Fragment;
 import androidx.core.content.ContextCompat;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
@@ -41,6 +49,7 @@ import org.emstrack.ambulance.fragments.HospitalFragment;
 import org.emstrack.ambulance.fragments.MapFragment;
 import org.emstrack.ambulance.models.AmbulanceAppData;
 import org.emstrack.ambulance.services.AmbulanceForegroundService;
+import org.emstrack.ambulance.util.BitmapUtils;
 import org.emstrack.models.Ambulance;
 import org.emstrack.models.AmbulanceCall;
 import org.emstrack.models.AmbulancePermission;
@@ -109,6 +118,7 @@ public class MainActivity extends AppCompatActivity {
     private ViewPager viewPager;
 
     private AlertDialog promptVideoCallDialog;
+    private CustomTabsClient customTabsClient;
 
     public class AmbulanceButtonClickListener implements View.OnClickListener {
 
@@ -317,6 +327,23 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
 
         Log.d(TAG, "onCreate");
+
+        // Create custom tab service
+        CustomTabsClient.bindCustomTabsService(this, "com.android.chrome", new CustomTabsServiceConnection() {
+            @Override
+            public void onCustomTabsServiceConnected(ComponentName name, CustomTabsClient client) {
+                // mClient is now valid.
+                Log.d(TAG, "Got valid customTabsClient");
+                customTabsClient = client;
+            }
+
+            @Override
+            public void onServiceDisconnected(ComponentName name) {
+                // mClient is no longer valid. This also invalidates sessions.
+                Log.d(TAG, "Invalidated customTabsClient");
+                customTabsClient = null;
+            }
+        });
 
         // Get appData
         AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
@@ -757,6 +784,13 @@ public class MainActivity extends AppCompatActivity {
 
     public void startVideoCall(Client client, String callMode) {
 
+        // Get app data
+        AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
+
+        // Get client id
+        String clientId = AmbulanceForegroundService.getProfileClientId(MainActivity.this);
+        String username = appData.getCredentials().getUsername();
+
         // get url
         Credentials credentials = AmbulanceForegroundService.getAppData().getCredentials();
         String[] baseUrl = credentials.getApiServerUri().split("://");
@@ -769,16 +803,20 @@ public class MainActivity extends AppCompatActivity {
         Uri.Builder builder = new Uri.Builder();
         builder.scheme(baseUrl[0])
                 .authority(baseUrl[1])
-                .appendPath("en")
-                .appendPath("guest")
+                .appendPath("video")
                 .appendQueryParameter("callUsername", client.getUsername())
                 .appendQueryParameter("callClientId", client.getClientId())
                 .appendQueryParameter("callMode", callMode);
+        if (callMode.equals("new")) {
+            // Append as proxy
+            builder.appendQueryParameter("callProxyUsername", username)
+                    .appendQueryParameter("callProxyClientId", clientId);
+        }
         String url = builder.build().toString();
         TokenLogin tokenLogin = new TokenLogin(url);
 
         APIService service = APIServiceGenerator.createService(APIService.class);
-        retrofit2.Call<TokenLogin> callTokenLogin = service.getTokenLogin("guest", tokenLogin);
+        retrofit2.Call<TokenLogin> callTokenLogin = service.getTokenLogin(username, tokenLogin);
 
         new OnAPICallComplete<TokenLogin>(callTokenLogin) {
 
@@ -787,19 +825,48 @@ public class MainActivity extends AppCompatActivity {
 
                 Log.d(TAG, "Successfully posted token login, will redirect to browser");
 
-                Uri.Builder builder = new Uri.Builder();
-                builder.scheme(baseUrl[0])
+                Uri.Builder uriBuilder = new Uri.Builder();
+                uriBuilder.scheme(baseUrl[0])
                         .authority(baseUrl[1])
                         .appendPath("en")
                         .appendPath("auth")
                         .appendPath("login")
                         .appendPath(token.getToken());
-                Uri uri = builder.build();
+                Uri uri = uriBuilder.build();
 
+                // Custom tab integration
+                CustomTabsSession session = customTabsClient.newSession(new CustomTabsCallback() {
+                    @Override
+                    public void onNavigationEvent(int navigationEvent, Bundle extras) {
+                        if (navigationEvent == NAVIGATION_ABORTED || navigationEvent == NAVIGATION_FAILED || navigationEvent == TAB_HIDDEN) {
+                            Log.d(TAG, String.format("Navigation event: %1$d, will send bye", navigationEvent));
+
+                            // send bye
+                            Intent serviceIntent = new Intent(MainActivity.this,
+                                    AmbulanceForegroundService.class);
+                            serviceIntent.setAction(AmbulanceForegroundService.Actions.WEBRTC_MESSAGE);
+                            serviceIntent.putExtra(AmbulanceForegroundService.BroadcastExtras.WEBRTC_TYPE, "bye");
+                            serviceIntent.putExtra(AmbulanceForegroundService.BroadcastExtras.WEBRTC_CLIENT_USERNAME, client.getUsername());
+                            serviceIntent.putExtra(AmbulanceForegroundService.BroadcastExtras.WEBRTC_CLIENT_ID, client.getClientId());
+                            startService(serviceIntent);
+
+                        }
+                    }
+                });
+
+                CustomTabsIntent.Builder builder = new CustomTabsIntent.Builder();
+                builder.setSession(session);
+                builder.setCloseButtonIcon(BitmapFactory.decodeResource(getResources(), R.drawable.ic_arrow_back));
+                // builder.setCloseButtonIcon(BitmapUtils.bitmapFromVector(MainActivity.this, R.drawable.ic_arrow_back));
+
+                CustomTabsIntent customTabsIntent = builder.build();
+                customTabsIntent.launchUrl(MainActivity.this, uri);
+
+                /*
                 // open this web page when clicked
                 Intent intent = new Intent(Intent.ACTION_VIEW, uri);
                 startActivity(intent);
-
+                 */
             }
 
             @Override
