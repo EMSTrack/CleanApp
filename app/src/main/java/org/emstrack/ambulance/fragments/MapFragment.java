@@ -5,14 +5,10 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.graphics.Bitmap;
-import android.graphics.Canvas;
-import android.graphics.drawable.Drawable;
 import android.hardware.SensorManager;
 import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
-import androidx.core.content.ContextCompat;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import android.util.Log;
 import android.util.SparseArray;
@@ -27,8 +23,6 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.BitmapDescriptor;
-import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
@@ -39,6 +33,7 @@ import org.emstrack.ambulance.dialogs.AlertSnackbar;
 import org.emstrack.ambulance.models.AmbulanceAppData;
 import org.emstrack.ambulance.services.AmbulanceForegroundService;
 import org.emstrack.ambulance.R;
+import org.emstrack.ambulance.util.BitmapUtils;
 import org.emstrack.ambulance.util.SparseArrayUtils;
 import org.emstrack.models.Call;
 import org.emstrack.models.Settings;
@@ -799,7 +794,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
             // Create marker
             marker = googleMap.addMarker(new MarkerOptions()
                     .position(latLng)
-                    .icon(bitmapDescriptorFromVector(getActivity(), R.drawable.ambulance_blue, 0.1))
+                    .icon(BitmapUtils.bitmapDescriptorFromVector(getActivity(), R.drawable.ambulance_blue, 0.1))
                     .anchor(0.5F,0.5F)
                     .rotation((float) ambulance.getOrientation())
                     .flat(true)
@@ -835,7 +830,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
             // Create marker
             marker = googleMap.addMarker(new MarkerOptions()
                     .position(latLng)
-                    .icon(bitmapDescriptorFromVector(getActivity(), R.drawable.ic_hospital_15, 1))
+                    .icon(BitmapUtils.bitmapDescriptorFromVector(getActivity(), R.drawable.ic_hospital_15, 1))
                     .anchor(0.5F,0.5F)
                     .flat(true)
                     .title(hospital.getName()));
@@ -869,7 +864,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
             // Create marker
             marker = googleMap.addMarker(new MarkerOptions()
                     .position(latLng)
-                    .icon(bitmapDescriptorFromVector(getActivity(), R.drawable.ic_marker_15, 1))
+                    .icon(BitmapUtils.bitmapDescriptorFromVector(getActivity(), R.drawable.ic_marker_15, 1))
                     .anchor(0.5F,1.0F)
                     .flat(false));
                     // .title(waypoint.getName()));
@@ -905,22 +900,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
 
     }
 
-    /*
-     * This is from
-     * https://stackoverflow.com/questions/42365658/custom-marker-in-google-maps-in-android-with-vector-asset-icon
-     */
-    private BitmapDescriptor bitmapDescriptorFromVector(Context context, int vectorResId, double scale) {
-        Drawable vectorDrawable = ContextCompat.getDrawable(context, vectorResId);
-        int width = Math.round((float) Math.ceil(vectorDrawable.getIntrinsicWidth()*scale));
-        int height = Math.round((float) Math.ceil(vectorDrawable.getIntrinsicHeight()*scale));
-        vectorDrawable.setBounds(0, 0, width, height);
-        Bitmap bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
-        Canvas canvas = new Canvas(bitmap);
-        vectorDrawable.draw(canvas);
-        return BitmapDescriptorFactory.fromBitmap(bitmap);
-    }
-
-   /**
+    /**
      * Get LocalBroadcastManager
      *
      * @return the LocalBroadcastManager

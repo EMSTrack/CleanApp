@@ -861,7 +861,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
             String clientId = intent.getStringExtra(BroadcastExtras.WEBRTC_CLIENT_ID);
             String type = intent.getStringExtra(BroadcastExtras.WEBRTC_TYPE);
 
-            // publish decline
+            // publish message
             String path = String.format("user/%1$s/client/%2$s/webrtc/message",
                     username, clientId);
             String message =
