@@ -20,31 +20,43 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
 
-            <ImageView
-                android:id="@+id/hospital_thumbnail"
-                android:layout_width="20dp"
-                android:layout_height="20dp"
-                android:layout_gravity="center_vertical"
-                android:layout_marginLeft="4dp"
-                android:scaleType="fitCenter"
-                android:src="@drawable/hospital_symbol" />
+            <TextView
+                android:id="@+id/equipment_name"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/equipment"
+                android:paddingLeft="3dp"
+                android:textSize="20sp"
+                android:textColor="@color/colorAvailable"
+                android:textStyle="bold"/>
 
             <TextView
-                android:id="@+id/hospital_name"
+                android:id="@+id/equipment_value"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:gravity="center_vertical"
-                android:layout_marginLeft="30dp"
-                android:textSize="24sp"
-                android:textStyle="bold"
-                android:text="Hospital" />
+                android:paddingTop="3dp"
+                android:paddingEnd="6dp"
+                android:text="@string/equipment"
+                android:textSize="16sp"/>
+
+            <CheckBox
+                android:id="@+id/equipment_checkbox"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="right"
+                android:gravity="right"
+                android:clickable="false"
+                android:buttonTint="@color/bootstrapSuccess"/>
 
         </LinearLayout>
 
-        <include layout="@layout/fragment_equipment"
-            android:id="@+id/hospital_equipment"
+        <TextView
+            android:id="@+id/equipment_detail"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="5dp"
+            android:paddingLeft="5dp"
             android:visibility="gone"
             android:text="@string/equipment"
             android:textSize="16sp"/>
