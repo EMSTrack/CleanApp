@@ -17,15 +17,10 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import org.emstrack.ambulance.R;
-import org.emstrack.ambulance.adapters.HospitalExpandableRecyclerAdapter;
+import org.emstrack.ambulance.adapters.HospitalRecyclerAdapter;
 import org.emstrack.ambulance.models.AmbulanceAppData;
-import org.emstrack.ambulance.models.HospitalExpandableGroup;
 import org.emstrack.ambulance.services.AmbulanceForegroundService;
-import org.emstrack.ambulance.util.SparseArrayUtils;
 import org.emstrack.models.Hospital;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class HospitalFragment extends Fragment {
 
@@ -56,7 +51,7 @@ public class HospitalFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
         rootView = inflater.inflate(R.layout.fragment_hospital, container, false);
-        recyclerView = rootView.findViewById(R.id.recycler_view);
+        recyclerView = rootView.findViewById(R.id.hospital_recycler_view);
 
         AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
         update(appData.getHospitals());
@@ -107,24 +102,10 @@ public class HospitalFragment extends Fragment {
 
         Log.i(TAG,"Updating hospitals UI.");
 
-        // Create HospitalExpandableGroup
-        final List hospitalExpandableGroup = new ArrayList<HospitalExpandableGroup>();
-
-        // Loop over all hospitals
-        for (Hospital hospital : SparseArrayUtils.iterable(hospitals) ) {
-
-            // Add to to expandable group
-            hospitalExpandableGroup.add(
-                    new HospitalExpandableGroup(hospital.getName(),
-                            new ArrayList<>(),
-                            hospital));
-
-        }
-
-        // Install fragment
+        // Install adapter
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getContext());
-        HospitalExpandableRecyclerAdapter adapter =
-                new HospitalExpandableRecyclerAdapter(hospitalExpandableGroup);
+        HospitalRecyclerAdapter adapter =
+                new HospitalRecyclerAdapter(getActivity(), hospitals);
         recyclerView.setLayoutManager(linearLayoutManager);
         recyclerView.setAdapter(adapter);
 

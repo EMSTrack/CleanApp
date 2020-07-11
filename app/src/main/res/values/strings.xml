@@ -282,7 +282,7 @@
     <string name="select_user">Select user:</string>
     <string name="could_not_retrieve_onilne_clients">Could not retrieve online clients</string>
     <string name="error_invalid_client">Please select an existing user</string>
-    <string name="calling_client">Calling user...</string>
+    <string name="calling_client">Calling user…</string>
     <string name="call">Call</string>
     <string name="answer">Answer</string>
     <string name="video_call">Video call</string>
@@ -291,6 +291,8 @@
     <string name="video_call_cancelled">Video call cancelled</string>
     <string name="youHaveANewVideoCall">You have a new video call</string>
     <string name="anotherUserIsLoggedIn">Another user is logged in at this ambulance</string>
+    <string name="equipment_detail_text">comments: %1$s\nupdated on: %2$s</string>
+    <string name="refreshingData">Refreshing data…</string>
     <string-array name="spinner_list_item_array_server">
         <item>@string/server_select</item>
         <item>Tijuana Red Cross:tijuana.emstrack.org:8883</item>

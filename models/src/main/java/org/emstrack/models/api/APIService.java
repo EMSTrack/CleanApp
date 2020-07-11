@@ -4,6 +4,7 @@ import org.emstrack.models.Ambulance;
 import org.emstrack.models.CallNote;
 import org.emstrack.models.Client;
 import org.emstrack.models.Credentials;
+import org.emstrack.models.EquipmentItem;
 import org.emstrack.models.Hospital;
 import org.emstrack.models.Location;
 import org.emstrack.models.PriorityClassification;
@@ -127,6 +128,14 @@ public interface APIService {
      */
     @GET("ambulance/{id}/calls/")
     Call<List<org.emstrack.models.Call>> getCalls(@Path("id") int id);
+
+    /**
+     * Retrieve ambulance's equipment
+     *
+     * @return the equipment
+     */
+    @GET("ambulance/{id}/equipment/")
+    Call<List<org.emstrack.models.EquipmentItem>> getAmbulanceEquipment(@Path("id") int id);
 
     /**
      * Retrieve call

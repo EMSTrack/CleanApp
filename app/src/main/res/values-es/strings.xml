@@ -194,7 +194,7 @@
     <string name="callDeclined">Llamada rechazada</string>
     <string name="suspendingCall">Suspendiendo llamada</string>
     <string name="endingCall">Terminando llamada</string>
-    <string name="checkingResources">Por favor sea paciente. Comprobando permisos...</string>
+    <string name="checkingResources">Por favor sea paciente. Comprobando permisos…</string>
     <string name="permissionsSatisfied">Permisos de localización satisfechos.</string>
     <string name="expectLimitedFuncionality">Permisos de localización no satisfechos. Espere una funcionalidad limitada.</string>
     <string name="settingsAreInadequate">Los permisos de ubicación de GPS son inadecuados y no se pueden corregir aquí. Arreglo en Configuraciones.</string>
@@ -263,7 +263,7 @@
     <string name="select_user">Seleccione usuario:</string>
     <string name="could_not_retrieve_onilne_clients">No se pudieron recuperar clientes en línea</string>
     <string name="error_invalid_client">Por favor seleccione un usuario existente</string>
-    <string name="calling_client">Llamando usuario...</string>
+    <string name="calling_client">Llamando usuario…</string>
     <string name="call">Llamar</string>
     <string name="answer">Responder</string>
     <string name="video_call">Videollamada</string>
@@ -272,5 +272,7 @@
     <string name="video_call_cancelled">Videollamada cancelada</string>
     <string name="youHaveANewVideoCall">Nueva videollamada</string>
     <string name="anotherUserIsLoggedIn">Otro usuario ha iniciado sesión en esta ambulancia</string>
+    <string name="equipment_detail_text">comentários: %1$s\nactualizado en: %2$s</string>
+    <string name="refreshingData">Actualizando los datos…</string>
 
 </resources>
