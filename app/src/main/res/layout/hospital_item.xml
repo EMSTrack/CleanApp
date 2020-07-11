@@ -1,59 +1,54 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<androidx.cardview.widget.CardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/equipment_card"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical">
+    android:focusable="true"
+    android:clickable="true"
+    android:layout_margin="4dp"
+    android:background="?android:attr/selectableItemBackground">
 
-    <androidx.cardview.widget.CardView
-        android:id="@+id/equipment_card"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:cardUseCompatPadding="true"
-        app:cardElevation="3dp"
-        app:cardCornerRadius="3dp">
+        android:orientation="vertical"
+        android:paddingVertical="6dp"
+        android:paddingHorizontal="2dp">
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:layout_height="wrap_content">
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content">
+            <ImageView
+                android:id="@+id/hospital_thumbnail"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:layout_gravity="center_vertical"
+                android:layout_marginLeft="4dp"
+                android:scaleType="fitCenter"
+                android:src="@drawable/hospital_symbol" />
 
-                <ImageView
-                    android:id="@+id/hospital_thumbnail"
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:layout_gravity="center_vertical"
-                    android:layout_marginLeft="4dp"
-                    android:scaleType="fitCenter"
-                    android:src="@drawable/hospital_symbol" />
-
-                <TextView
-                    android:id="@+id/hospital_name"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    android:layout_marginLeft="30dp"
-                    android:textSize="24sp"
-                    android:textStyle="bold"
-                    android:text="Hospital" />
-
-            </LinearLayout>
-
-            <include layout="@layout/fragment_equipment"
-                android:layout_width="match_parent"
+            <TextView
+                android:id="@+id/hospital_name"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="5dp"
-                android:paddingLeft="5dp"
-                android:visibility="gone"
-                android:text="@string/equipment"
-                android:textSize="16sp"/>
+                android:gravity="center_vertical"
+                android:layout_marginLeft="30dp"
+                android:textSize="24sp"
+                android:textStyle="bold"
+                android:text="Hospital" />
 
         </LinearLayout>
 
-    </androidx.cardview.widget.CardView>
+        <include layout="@layout/fragment_equipment"
+            android:id="@+id/hospital_equipment"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            android:text="@string/equipment"
+            android:textSize="16sp"/>
 
-</LinearLayout>
+    </LinearLayout>
+
+</androidx.cardview.widget.CardView>

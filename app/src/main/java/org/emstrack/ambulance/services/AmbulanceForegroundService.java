@@ -61,7 +61,6 @@ import org.emstrack.models.CallNote;
 import org.emstrack.models.CallStack;
 import org.emstrack.models.Client;
 import org.emstrack.models.Credentials;
-import org.emstrack.models.EquipmentItem;
 import org.emstrack.models.GPSLocation;
 import org.emstrack.models.Hospital;
 import org.emstrack.models.Location;
@@ -177,7 +176,6 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         public final static String LOGIN = "org.emstrack.ambulance.ambulanceforegroundservice.action.LOGIN";
         public final static String GET_SERVERS = "org.emstrack.ambulance.ambulanceforegroundservice.action.GET_SERVERS";
         public final static String GET_AMBULANCE = "org.emstrack.ambulance.ambulanceforegroundservice.action.GET_AMBULANCE";
-        public final static String GET_AMBULANCE_EQUIPMENT = "org.emstrack.ambulance.ambulanceforegroundservice.action.GET_AMBULANCE_EQUIPMENT";
         public final static String GET_AMBULANCES = "org.emstrack.ambulance.ambulanceforegroundservice.action.GET_AMBULANCES";
         public final static String STOP_AMBULANCES = "org.emstrack.ambulance.ambulanceforegroundservice.action.STOP_AMBULANCES";
         public final static String START_LOCATION_UPDATES = "org.emstrack.ambulance.ambulanceforegroundservice.action.START_LOCATION_UPDATES";
@@ -247,7 +245,6 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         public final static String HOSPITALS_UPDATE = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastaction.HOSPITALS_UPDATE";
         public final static String OTHER_AMBULANCES_UPDATE = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastaction.OTHER_AMBULANCES_UPDATE";
         public final static String AMBULANCE_UPDATE = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastaction.AMBULANCE_UPDATE";
-        public final static String AMBULANCE_EQUIPMENTS_UPDATE = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastaction.AMBULANCE_EQUIPMENT_UPDATE";
         public final static String LOCATION_UPDATE_CHANGE = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastaction.LOCATION_UPDATE_CHANGE";
         public final static String GEOFENCE_EVENT = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastaction.GEOFENCE_EVENT";
         public final static String CONNECTIVITY_CHANGE = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastaction.CONNECTIVITY_CHANGE";
@@ -591,14 +588,6 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
             // Retrieve ambulance
             int ambulanceId = intent.getIntExtra(AmbulanceForegroundService.BroadcastExtras.AMBULANCE_ID, -1);
             retrieveAmbulance(ambulanceId, uuid);
-
-        } else if (action.equals(Actions.GET_AMBULANCE_EQUIPMENT)) {
-
-            Log.i(TAG, "GET_AMBULANCE_EQUIPMENT Foreground Intent");
-
-            // Retrieve ambulance
-            int ambulanceId = intent.getIntExtra(AmbulanceForegroundService.BroadcastExtras.AMBULANCE_ID, -1);
-            retrieveAmbulanceEquipments(ambulanceId, uuid);
 
         } else if (action.equals(Actions.GET_AMBULANCES)) {
 
@@ -2976,109 +2965,6 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                 });
 
     }
-
-    /**
-     * Retrieve ambulance equipments
-     */
-    public void retrieveAmbulanceEquipments(final int ambulanceId, final String uuid) {
-
-        removeAmbulanceEquipments();
-
-        Log.d(TAG, "Retrieving ambulance equipments...");
-
-        // Retrieve equipment data
-        APIService service = APIServiceGenerator.createService(APIService.class);
-        retrofit2.Call<List<org.emstrack.models.EquipmentItem>> ambulanceEquipmentCall = service.getAmbulanceEquipment(ambulanceId);
-
-        new OnAPICallComplete<List<EquipmentItem>>(ambulanceEquipmentCall) {
-
-            @Override
-            public void onSuccess(List<EquipmentItem> equipments) {
-
-                Log.d(TAG, "Got ambulance equipments");
-
-                // Set current equipment
-                appData.setEquipments(equipments);
-
-                // Broadcast ambulance equipment update
-                Intent localIntent = new Intent(BroadcastActions.AMBULANCE_EQUIPMENTS_UPDATE);
-                getLocalBroadcastManager().sendBroadcast(localIntent);
-
-                // Broadcast success
-                broadcastSuccess("Successfully retrieved equipments", uuid);
-
-            }
-
-            @Override
-            public void onFailure(Throwable t) {
-                super.onFailure(t);
-
-                Log.d( TAG, "no equips!!");
-
-                // Broadcast failure
-                broadcastFailure("Could not retrieve ambulance equipments", uuid);
-
-            }
-
-        }.start();
-
-    }
-
-    /**
-     * Remove current ambulance equipments
-     */
-    public void removeAmbulanceEquipments() {
-
-        List<EquipmentItem> equipments = appData.getEquipments();
-        if (equipments.size() == 0) {
-            Log.i(TAG, "No other equipment to remove.");
-            return;
-        }
-
-        // Remove equipments
-        appData.setEquipments(new ArrayList<>());
-
-    }
-
-    /*
-    public void subscribeToAmbulanceEquipment(int ambulanceId) throws MqttException {
-
-        // Retrieve client
-        final MqttProfileClient profileClient = getProfileClient(this);
-
-        // Subscribe to ambulance equipment
-        profileClient.subscribe("ambulance/" + ambulanceId + "/equipment",1,
-                (topic, message) -> {
-
-                    try {
-
-                        // Parse hospital
-                        GsonBuilder gsonBuilder = new GsonBuilder();
-                        gsonBuilder.setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES);
-                        Gson gson = gsonBuilder.create();
-
-                        // Found equipment
-                        //TODO: list of items?
-                        EquipmentItem item = gson.fromJson(message.toString(), EquipmentItem.class);
-
-                        // Add to equipment list
-                        appData.getEquipment().add(item);
-
-                        // Broadcast ambulance equipment update
-                        Intent localIntent = new Intent(BroadcastActions.AMBULANCE_EQUIPMENT_UPDATE);
-                        //localIntent.putExtra(BroadcastExtras.HOSPITAL_ID, hospital.getId());
-                        getLocalBroadcastManager().sendBroadcast(localIntent);
-
-                    } catch (Exception e) {
-
-                        // Broadcast failure
-                        broadcastFailure("Could not parse ambulance equipment update");
-
-                    }
-
-                });
-
-    }*/
 
     public void subscribeToHospital(int hospitalId) throws MqttException {
 

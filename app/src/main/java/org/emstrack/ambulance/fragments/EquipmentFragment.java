@@ -4,10 +4,12 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.graphics.Canvas;
 import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import android.util.Log;
@@ -19,11 +21,17 @@ import android.widget.TextView;
 import org.emstrack.ambulance.R;
 //TODO change hospital imports to equipment imports below
 import org.emstrack.ambulance.adapters.EquipmentRecyclerAdapter;
+import org.emstrack.ambulance.dialogs.AlertDialog;
 import org.emstrack.ambulance.dialogs.AlertSnackbar;
 import org.emstrack.ambulance.models.AmbulanceAppData;
 import org.emstrack.ambulance.services.AmbulanceForegroundService;
+import org.emstrack.ambulance.util.SwipeController;
+import org.emstrack.ambulance.util.SwipeControllerActions;
 import org.emstrack.models.Ambulance;
 import org.emstrack.models.EquipmentItem;
+import org.emstrack.models.api.APIService;
+import org.emstrack.models.api.APIServiceGenerator;
+import org.emstrack.models.api.OnAPICallComplete;
 import org.emstrack.models.util.BroadcastActions;
 import org.emstrack.models.util.OnServiceComplete;
 
@@ -37,75 +45,37 @@ public class EquipmentFragment extends Fragment {
 
     private static final String TAG = EquipmentFragment.class.getSimpleName();
 
-    View rootView;
-    RecyclerView recyclerView;
-    EquipmentUpdateBroadcastReceiver receiver;
+    private View rootView;
+    private RecyclerView recyclerView;
     private TextView refreshingData;
-
-    public class EquipmentUpdateBroadcastReceiver extends BroadcastReceiver {
-
-        @Override
-        public void onReceive(Context context, Intent intent ) {
-
-            if (intent != null) {
-
-                final String action = intent.getAction();
-
-                if (action.equals(AmbulanceForegroundService.BroadcastActions.AMBULANCE_EQUIPMENTS_UPDATE)) {
-
-                    Log.i(TAG, "AMBULANCE_EQUIPMENTS_UPDATE");
-                    AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
-                    update(appData.getEquipments());
-
-                }
-
-            }
-        }
-    }
-
-
-    public void refreshData() {
-
-        // make refresh text visible
-        refreshingData.setVisibility(View.VISIBLE);
-
-        // Refresh data
-        Ambulance ambulance = AmbulanceForegroundService.getAppData().getAmbulance();
-        Intent intent = new Intent(getContext(), AmbulanceForegroundService.class);
-        intent.setAction(AmbulanceForegroundService.Actions.GET_AMBULANCE_EQUIPMENT);
-        Bundle bundle = new Bundle();
-        bundle.putInt(AmbulanceForegroundService.BroadcastExtras.AMBULANCE_ID, ambulance.getId());
-        intent.putExtras(bundle);
-
-        new OnServiceComplete(getActivity(),
-                BroadcastActions.SUCCESS,
-                BroadcastActions.FAILURE,
-                intent) {
-
-            @Override
-            public void onSuccess(Bundle extras) {
-                // Everything is done in the receiver
-            }
-
-            @Override
-            public void onFailure(Bundle extras) {
-                super.onFailure(extras);
-
-                refreshingData.setVisibility(View.GONE);
-            }
-        }
-                .setFailureMessage("Could not retrieve equipments.")
-                .setAlert(new AlertSnackbar(getActivity()))
-                .start();
-
-    }
+    private SwipeController swipeController;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
         rootView = inflater.inflate(R.layout.fragment_equipment, container, false);
-        recyclerView = rootView.findViewById(R.id.equipment_recycler_view);
         refreshingData = rootView.findViewById(R.id.equipment_refreshing_data);
+
+        swipeController = new SwipeController(getContext(), new SwipeControllerActions(){
+            @Override
+            public void onLeftClicked(int position) {
+                new AlertDialog(getActivity(), getString(R.string.editEquipment))
+                        .alert(getString(R.string.notImplementedYet));
+            }
+        },
+                ItemTouchHelper.RIGHT);
+
+        recyclerView = rootView.findViewById(R.id.equipment_recycler_view);
+        recyclerView.addItemDecoration(new RecyclerView.ItemDecoration() {
+            @Override
+            public void onDraw(Canvas c, RecyclerView parent, RecyclerView.State state) {
+                swipeController.onDraw(c);
+            }
+        });
+
+        ItemTouchHelper itemTouchhelper = new ItemTouchHelper(swipeController);
+        itemTouchhelper.attachToRecyclerView(recyclerView);
+
 
         // Refresh data
         refreshData();
@@ -117,12 +87,6 @@ public class EquipmentFragment extends Fragment {
     public void onResume() {
         super.onResume();
 
-        // Register receiver
-        IntentFilter filter = new IntentFilter();
-        filter.addAction(AmbulanceForegroundService.BroadcastActions.AMBULANCE_EQUIPMENTS_UPDATE);
-        receiver = new EquipmentFragment.EquipmentUpdateBroadcastReceiver();
-        getLocalBroadcastManager().registerReceiver(receiver, filter);
-
         // Refresh data
         refreshData();
 
@@ -131,40 +95,53 @@ public class EquipmentFragment extends Fragment {
     @Override
     public void onPause() {
         super.onPause();
-
-        // Unregister receiver
-        if (receiver != null) {
-            getLocalBroadcastManager().unregisterReceiver(receiver);
-            receiver = null;
-        }
     }
+
 
     /**
-     * Update equipments list
-     *
-     * @param equipments list of ...
+     * refreshData
      */
-    public void update(List<EquipmentItem> equipments) {
+    public void refreshData() {
 
-        // fast return if no equipment
-        if (equipments == null) {
-            Log.i(TAG, "No equipments for this ambulance.");
-            return;
+        // retrieve hospital equipment
+        Ambulance ambulance = AmbulanceForegroundService.getAppData().getAmbulance();
+        APIService service = APIServiceGenerator.createService(APIService.class);
+        retrofit2.Call<List<EquipmentItem>> callAmbulanceEquipment = service.getAmbulanceEquipment(ambulance.getId());
+
+        refreshingData.setText(R.string.refreshingData);
+        refreshingData.setVisibility(View.VISIBLE);
+        recyclerView.setVisibility(View.GONE);
+
+        new OnAPICallComplete<List<EquipmentItem>>(callAmbulanceEquipment) {
+
+            @Override
+            public void onSuccess(List<EquipmentItem> equipments) {
+
+                // hide refresh label
+                refreshingData.setVisibility(View.GONE);
+
+                // Install adapter
+                LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getContext());
+                EquipmentRecyclerAdapter adapter =
+                        new EquipmentRecyclerAdapter(getContext(), equipments);
+                recyclerView.setLayoutManager(linearLayoutManager);
+                recyclerView.setAdapter(adapter);
+
+                recyclerView.setVisibility(View.VISIBLE);
+            }
+
+            @Override
+            public void onFailure(Throwable t) {
+                super.onFailure(t);
+
+                refreshingData.setText(R.string.couldNotRetrieveEquipments);
+
+            }
         }
-
-        Log.i(TAG,"Updating equipments UI with " + equipments.size() + " items.");
-
-        // hide refresh label
-        refreshingData.setVisibility(View.GONE);
-
-        // Install adapter
-        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getContext());
-        EquipmentRecyclerAdapter adapter =
-                new EquipmentRecyclerAdapter(getActivity(), equipments);
-        recyclerView.setLayoutManager(linearLayoutManager);
-        recyclerView.setAdapter(adapter);
+                .start();
 
     }
+
 
     /**
      * Get LocalBroadcastManager

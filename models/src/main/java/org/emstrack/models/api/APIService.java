@@ -138,6 +138,14 @@ public interface APIService {
     Call<List<org.emstrack.models.EquipmentItem>> getAmbulanceEquipment(@Path("id") int id);
 
     /**
+     * Retrieve hospital's equipment
+     *
+     * @return the equipment
+     */
+    @GET("hospital/{id}/equipment/")
+    Call<List<org.emstrack.models.EquipmentItem>> getHospitalEquipment(@Path("id") int id);
+
+    /**
      * Retrieve call
      *
      * @return the api call

@@ -293,6 +293,10 @@
     <string name="anotherUserIsLoggedIn">Another user is logged in at this ambulance</string>
     <string name="equipment_detail_text">comments: %1$s\nupdated on: %2$s</string>
     <string name="refreshingData">Refreshing data…</string>
+    <string name="couldNotRetrieveEquipments">Could not retrieve equipments.</string>
+    <string name="DELETE">DELETE</string>
+    <string name="EDIT">EDIT</string>
+    <string name="editEquipment">Edit equipment</string>
     <string-array name="spinner_list_item_array_server">
         <item>@string/server_select</item>
         <item>Tijuana Red Cross:tijuana.emstrack.org:8883</item>

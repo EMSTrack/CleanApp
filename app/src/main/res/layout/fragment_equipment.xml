@@ -7,10 +7,6 @@
     android:background="?android:windowBackground"
     android:gravity="top"
     android:orientation="vertical"
-    android:paddingLeft="@dimen/activity_horizontal_margin"
-    android:paddingTop="@dimen/activity_vertical_margin"
-    android:paddingRight="@dimen/activity_horizontal_margin"
-    android:paddingBottom="@dimen/activity_vertical_margin"
     tools:context="org.emstrack.ambulance.fragments.EquipmentFragment">
 
     <TextView
@@ -18,13 +14,15 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:textSize="20sp"
-        android:paddingBottom="10dp"
+        android:padding="8dp"
         android:text="@string/refreshingData">
     </TextView>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/equipment_recycler_view"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"/>
+        android:layout_height="wrap_content"
+        android:clipToPadding="false"
+        android:overScrollMode="never"/>
 
 </LinearLayout>

@@ -274,5 +274,9 @@
     <string name="anotherUserIsLoggedIn">Otro usuario ha iniciado sesión en esta ambulancia</string>
     <string name="equipment_detail_text">comentários: %1$s\nactualizado en: %2$s</string>
     <string name="refreshingData">Actualizando los datos…</string>
+    <string name="couldNotRetrieveEquipments">No se pudieron recuperar los equipos.</string>
+    <string name="DELETE">ELIMINAR</string>
+    <string name="EDIT">EDITAR</string>
+    <string name="editEquipment">Editar equipo</string>
 
 </resources>

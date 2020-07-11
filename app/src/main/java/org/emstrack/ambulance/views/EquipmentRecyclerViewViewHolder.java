@@ -3,6 +3,8 @@ package org.emstrack.ambulance.views;
 import android.content.Context;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.content.res.ColorStateList;
+import android.os.Build;
 import android.view.View;
 import android.widget.CheckBox;
 import android.widget.TextView;
@@ -52,9 +54,13 @@ public class EquipmentRecyclerViewViewHolder extends RecyclerView.ViewHolder {
         if (item.isBoolean()) {
 
             boolean value = item.valueToBoolean();
+            int color = context.getResources().getColor(value ? R.color.bootstrapSuccess : R.color.bootstrapDanger);
             equipmentValueTextView.setVisibility(View.GONE);
             equipmentValueCheckbox.setChecked(value);
-            equipmentNameTextView.setTextColor(context.getResources().getColor(value ? R.color.bootstrapSuccess : R.color.bootstrapDanger));
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                equipmentValueCheckbox.setButtonTintList(ColorStateList.valueOf(color));
+            }
+            equipmentNameTextView.setTextColor(color);
 
         } else {
 

@@ -32,7 +32,6 @@ public class AmbulanceAppData {
     private List<Location> bases;
     private List<Location> others;
     private CallStack calls;
-    private List<EquipmentItem> equipments;
 
     private SparseArray<RadioCode> radioCodes;
     private SparseArray<PriorityCode> priorityCodes;
@@ -48,7 +47,6 @@ public class AmbulanceAppData {
         bases = new ArrayList<>();
         others = new ArrayList<>();
         calls = new CallStack();
-        equipments = new ArrayList<>();
 
         radioCodes = new SparseArray<>();
         priorityCodes = new SparseArray<>();
@@ -317,18 +315,6 @@ public class AmbulanceAppData {
     public CallStack getCalls() {
         return calls;
     }
-
-    /**
-     *
-     * @param equipments the list of equipment
-     */
-    public void setEquipments(List<EquipmentItem> equipments) { this.equipments = equipments; }
-
-    /**
-     *
-     * @return the list of equipment
-     */
-    public List<EquipmentItem> getEquipments() { return equipments; }
 
 }
 
