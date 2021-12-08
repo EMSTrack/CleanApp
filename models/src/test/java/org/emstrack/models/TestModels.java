@@ -4,7 +4,6 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.FieldNamingPolicy;
 
-import org.apache.tools.ant.taskdefs.condition.IsFalse;
 import org.emstrack.models.gson.ExcludeAnnotationExclusionStrategy;
 import org.junit.Test;
 
@@ -189,7 +188,7 @@ public class TestModels {
 
         EquipmentItem equipment = new EquipmentItem(1,
                                                             2, "beds",'I',
-                                                            "12", "",
+                                                            "12", "000",
                                                             1, new Date());
 
         Gson gson = new Gson();
@@ -1078,4 +1077,54 @@ public class TestModels {
         assertEquals(expectedStreet, answerStreet);
 
     }
+
+    @Test
+    public void test_ambulance_equipment() {
+
+        EquipmentItem equipment = new EquipmentItem(1,
+                2, "gauze",'I',
+                "20", "2 packages",
+                1, new Date());
+
+        Gson gson = new Gson();
+
+        String to_json = gson.toJson(equipment);
+
+        EquipmentItem from_json = gson.fromJson(to_json, EquipmentItem.class);
+
+        Integer expectedId = equipment.getEquipmentHolderId();
+        Integer answerId = from_json.getEquipmentHolderId();
+        assertEquals(expectedId, answerId);
+
+        expectedId = equipment.getEquipmentId();
+        answerId = from_json.getEquipmentId();
+        assertEquals(expectedId, answerId);
+
+        String expectedName = equipment.getEquipmentName();
+        String answerName = from_json.getEquipmentName();
+        assertEquals(expectedName, answerName);
+
+        Character expectedType = equipment.getEquipmentType();
+        Character answerType = from_json.getEquipmentType();
+        assertEquals(expectedType, answerType);
+
+        String expectedValue = equipment.getValue();
+        String answerValue = from_json.getValue();
+        assertEquals(expectedValue, answerValue);
+
+        String expectedComment = equipment.getComment();
+        String answerComment = from_json.getComment();
+        assertEquals(expectedComment, answerComment);
+
+        expectedId = equipment.getUpdatedBy();
+        answerId = from_json.getUpdatedBy();
+        assertEquals(expectedId, answerId);
+
+        Date expectedDate = equipment.getUpdatedOn();
+        Date answerDate = from_json.getUpdatedOn();
+        SimpleDateFormat df = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
+        assertEquals(df.format(expectedDate), df.format(answerDate));
+
+    }
+
 }

@@ -1,24 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:background="?android:windowBackground"
-    android:id="@+id/activity_demo_view_transmission"
+    android:id="@+id/equipment_fragment"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:paddingBottom="@dimen/activity_vertical_margin"
-    android:paddingLeft="@dimen/activity_horizontal_margin"
-    android:paddingRight="@dimen/activity_horizontal_margin"
-    android:paddingTop="@dimen/activity_vertical_margin"
-    tools:context="org.emstrack.ambulance.fragments.HospitalFragment">
+    android:layout_height="fill_parent"
+    android:background="?android:windowBackground"
+    android:gravity="top"
+    android:orientation="vertical"
+    tools:context="org.emstrack.ambulance.fragments.EquipmentFragment">
 
-
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recycler_view"
+    <TextView
+        android:id="@+id/equipment_refreshing_data"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:layout_alignParentTop="true" />
+        android:textSize="20sp"
+        android:padding="8dp"
+        android:text="@string/refreshingData">
+    </TextView>
 
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/equipment_recycler_view"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:clipToPadding="false"
+        android:overScrollMode="never"/>
 
-</RelativeLayout>
+</LinearLayout>

@@ -5,6 +5,7 @@ import android.util.SparseArray;
 import org.emstrack.models.Ambulance;
 import org.emstrack.models.CallStack;
 import org.emstrack.models.Credentials;
+import org.emstrack.models.EquipmentItem;
 import org.emstrack.models.Hospital;
 import org.emstrack.models.Location;
 import org.emstrack.models.PriorityClassification;
@@ -46,7 +47,7 @@ public class AmbulanceAppData {
         bases = new ArrayList<>();
         others = new ArrayList<>();
         calls = new CallStack();
-        
+
         radioCodes = new SparseArray<>();
         priorityCodes = new SparseArray<>();
         priorityClassifications = new SparseArray<>();
