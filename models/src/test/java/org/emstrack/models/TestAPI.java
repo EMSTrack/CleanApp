@@ -24,7 +24,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 @RunWith(RobolectricTestRunner.class)
-@Config(sdk= Build.VERSION_CODES.P)
+// @Config(sdk= Build.VERSION_CODES.P)
 public class TestAPI {
 
     static {
@@ -173,7 +173,7 @@ public class TestAPI {
         };
 
         retrofit2.Call<Profile> callProfile = service.getProfile(username);
-        OnAPICallComplete apiProfile= new OnAPICallComplete<Profile>(callProfile, apiLocations) {
+        OnAPICallComplete apiProfile = new OnAPICallComplete<Profile>(callProfile, apiLocations) {
 
             @Override
             public void onSuccess(Profile p) {

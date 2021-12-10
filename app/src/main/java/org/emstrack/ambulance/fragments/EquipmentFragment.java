@@ -105,41 +105,49 @@ public class EquipmentFragment extends Fragment {
 
         // retrieve hospital equipment
         Ambulance ambulance = AmbulanceForegroundService.getAppData().getAmbulance();
-        APIService service = APIServiceGenerator.createService(APIService.class);
-        retrofit2.Call<List<EquipmentItem>> callAmbulanceEquipment = service.getAmbulanceEquipment(ambulance.getId());
 
-        refreshingData.setText(R.string.refreshingData);
         refreshingData.setVisibility(View.VISIBLE);
         recyclerView.setVisibility(View.GONE);
 
-        new OnAPICallComplete<List<EquipmentItem>>(callAmbulanceEquipment) {
+        if (ambulance == null) {
 
-            @Override
-            public void onSuccess(List<EquipmentItem> equipments) {
+            refreshingData.setText(R.string.equipmentNotAvailable);
 
-                // hide refresh label
-                refreshingData.setVisibility(View.GONE);
+        } else {
 
-                // Install adapter
-                LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getContext());
-                EquipmentRecyclerAdapter adapter =
-                        new EquipmentRecyclerAdapter(getContext(), equipments);
-                recyclerView.setLayoutManager(linearLayoutManager);
-                recyclerView.setAdapter(adapter);
+            APIService service = APIServiceGenerator.createService(APIService.class);
+            retrofit2.Call<List<EquipmentItem>> callAmbulanceEquipment = service.getAmbulanceEquipment(ambulance.getId());
 
-                recyclerView.setVisibility(View.VISIBLE);
+            refreshingData.setText(R.string.refreshingData);
+
+            new OnAPICallComplete<List<EquipmentItem>>(callAmbulanceEquipment) {
+
+                @Override
+                public void onSuccess(List<EquipmentItem> equipments) {
+
+                    // hide refresh label
+                    refreshingData.setVisibility(View.GONE);
+
+                    // Install adapter
+                    LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getContext());
+                    EquipmentRecyclerAdapter adapter =
+                            new EquipmentRecyclerAdapter(getContext(), equipments);
+                    recyclerView.setLayoutManager(linearLayoutManager);
+                    recyclerView.setAdapter(adapter);
+
+                    recyclerView.setVisibility(View.VISIBLE);
+                }
+
+                @Override
+                public void onFailure(Throwable t) {
+                    super.onFailure(t);
+
+                    refreshingData.setText(R.string.couldNotRetrieveEquipments);
+
+                }
             }
-
-            @Override
-            public void onFailure(Throwable t) {
-                super.onFailure(t);
-
-                refreshingData.setText(R.string.couldNotRetrieveEquipments);
-
-            }
+                    .start();
         }
-                .start();
-
     }
 
 

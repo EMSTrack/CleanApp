@@ -27,8 +27,9 @@ import static junit.framework.Assert.assertNotNull;
 import static junit.framework.TestCase.assertTrue;
 import static org.junit.Assert.assertSame;
 
+// @Config(sdk=Build.VERSION_CODES.P)
+
 @RunWith(RobolectricTestRunner.class)
-@Config(sdk=Build.VERSION_CODES.P)
 public class TestOnServiceComplete {
 
     static {

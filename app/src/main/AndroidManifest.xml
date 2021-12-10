@@ -25,7 +25,8 @@
         tools:ignore="GoogleAppIndexingWarning">
 
         <activity android:name="org.emstrack.ambulance.LoginActivity"
-            android:screenOrientation="nosensor">
+            android:screenOrientation="nosensor"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -34,19 +35,21 @@
 
         <activity android:name="org.emstrack.ambulance.MainActivity"
             android:parentActivityName=".LoginActivity"
-            android:screenOrientation="nosensor">
+            android:screenOrientation="nosensor"
+            android:exported="true">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".LoginActivity" />
         </activity>
 
         <service android:name="org.eclipse.paho.android.service.MqttService"/>
-        <service android:name=".services.AmbulanceForegroundService"/>
+        <service android:name=".services.AmbulanceForegroundService"
+            android:foregroundServiceType="location"/>
 
         <receiver
             android:name=".services.GeofenceBroadcastReceiver"
             android:enabled="true"
-            android:exported="true" />
+            android:exported="true"/>
 
         <!--
         <receiver android:name=".services.AmbulanceForegroundService$LocationUpdatesBroadcastReceiver"

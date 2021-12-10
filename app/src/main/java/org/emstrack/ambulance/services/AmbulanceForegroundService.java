@@ -176,6 +176,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         public final static String LOGIN = "org.emstrack.ambulance.ambulanceforegroundservice.action.LOGIN";
         public final static String GET_SERVERS = "org.emstrack.ambulance.ambulanceforegroundservice.action.GET_SERVERS";
         public final static String GET_AMBULANCE = "org.emstrack.ambulance.ambulanceforegroundservice.action.GET_AMBULANCE";
+        public final static String STOP_AMBULANCE = "org.emstrack.ambulance.ambulanceforegroundservice.action.STOP_AMBULANCE";
         public final static String GET_AMBULANCES = "org.emstrack.ambulance.ambulanceforegroundservice.action.GET_AMBULANCES";
         public final static String STOP_AMBULANCES = "org.emstrack.ambulance.ambulanceforegroundservice.action.STOP_AMBULANCES";
         public final static String START_LOCATION_UPDATES = "org.emstrack.ambulance.ambulanceforegroundservice.action.START_LOCATION_UPDATES";
@@ -588,6 +589,13 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
             // Retrieve ambulance
             int ambulanceId = intent.getIntExtra(AmbulanceForegroundService.BroadcastExtras.AMBULANCE_ID, -1);
             retrieveAmbulance(ambulanceId, uuid);
+
+        } else if (action.equals(Actions.STOP_AMBULANCE)) {
+
+            Log.i(TAG, "STOP_AMBULANCE Foreground Intent");
+
+            // Stop ambulance
+            stopAmbulance(uuid);
 
         } else if (action.equals(Actions.GET_AMBULANCES)) {
 
@@ -1410,7 +1418,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
             public void run() {
 
                 // remove current ambulance
-                removeAmbulance(getUuid());
+                removeAmbulance(getUuid(), Client.STATUS_OFFLINE);
 
             }
 
@@ -2610,10 +2618,24 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
     }
 
+    //
+
     /**
      * Remove current ambulance
+     *
+     * @param uuid unique identifier
      */
     public void removeAmbulance(final String uuid) {
+        removeAmbulance(uuid, Client.STATUS_ONLINE);
+    }
+
+    /**
+     * Remove current ambulance
+     *
+     * @param uuid unique identifier
+     * @param clientStatus the client status
+     */
+    public void removeAmbulance(final String uuid, String clientStatus) {
 
         Log.d(TAG, "removeAmbulance");
 
@@ -2631,7 +2653,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         final MqttProfileClient profileClient = getProfileClient(this);
 
         // logout from ambulance
-        Client client = new Client(profileClient.getClientId(), Client.STATUS_OFFLINE,
+        Client client = new Client(profileClient.getClientId(), clientStatus,
                 null, null);
         APIService service = APIServiceGenerator.createService(APIService.class);
         retrofit2.Call<Client> clientCall = service.setClient(client);
@@ -2686,7 +2708,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
             public void run() {
 
                 // remove location updates
-                stopLocationUpdates(getUuid(), false);
+                stopLocationUpdates(getUuid());
 
             }
 
@@ -2714,6 +2736,10 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
                 // broadcast success
                 broadcastSuccess("Successfully removed ambulance", uuid);
+
+                // Broadcast ambulance update
+                Intent localIntent = new Intent(BroadcastActions.AMBULANCE_UPDATE);
+                sendBroadcastWithUUID(localIntent);
 
             }
 
@@ -3317,6 +3343,16 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
     /**
      * Stop subscribing to ambulances
      */
+    public void stopAmbulance(final String uuid) {
+
+        // Remove current ambulance map
+        removeAmbulance(uuid);
+
+    }
+
+    /**
+     * Stop subscribing to ambulances
+     */
     public void stopAmbulances(final String uuid) {
 
         // Remove current ambulance map
@@ -3649,13 +3685,6 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
      * Requests removal of location updates.
      */
     public void stopLocationUpdates(final String uuid) {
-        stopLocationUpdates(uuid, true);
-    }
-
-    /**
-     * Requests removal of location updates.
-     */
-    public void stopLocationUpdates(final String uuid, final boolean broadcastLocationChange) {
 
         Log.d(TAG, "Stop location updates");
 
@@ -3685,11 +3714,9 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                             // broadcast success
                             broadcastSuccess("Successfully stopped location updates", uuid);
 
-                            if (broadcastLocationChange) {
-                                // Broadcast location change
-                                Intent changeIntent = new Intent(BroadcastActions.LOCATION_UPDATE_CHANGE);
-                                getLocalBroadcastManager().sendBroadcast(changeIntent);
-                            }
+                            // Broadcast location change
+                            Intent changeIntent = new Intent(BroadcastActions.LOCATION_UPDATE_CHANGE);
+                            getLocalBroadcastManager().sendBroadcast(changeIntent);
 
                         })
                 .addOnFailureListener(

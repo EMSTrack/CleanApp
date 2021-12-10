@@ -12,7 +12,9 @@ import android.net.Uri;
 import android.os.Bundle;
 import com.google.android.material.navigation.NavigationView;
 import com.google.android.material.tabs.TabLayout;
+import com.google.android.material.tabs.TabLayoutMediator;
 
+import androidx.annotation.NonNull;
 import androidx.browser.customtabs.CustomTabsCallback;
 import androidx.browser.customtabs.CustomTabsClient;
 import androidx.browser.customtabs.CustomTabsIntent;
@@ -21,7 +23,7 @@ import androidx.browser.customtabs.CustomTabsSession;
 import androidx.fragment.app.Fragment;
 import androidx.core.content.ContextCompat;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
-import androidx.viewpager.widget.ViewPager;
+import androidx.viewpager2.widget.ViewPager2;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AlertDialog;
@@ -35,6 +37,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -49,7 +52,6 @@ import org.emstrack.ambulance.fragments.HospitalFragment;
 import org.emstrack.ambulance.fragments.MapFragment;
 import org.emstrack.ambulance.models.AmbulanceAppData;
 import org.emstrack.ambulance.services.AmbulanceForegroundService;
-import org.emstrack.ambulance.util.BitmapUtils;
 import org.emstrack.models.Ambulance;
 import org.emstrack.models.AmbulanceCall;
 import org.emstrack.models.AmbulancePermission;
@@ -88,12 +90,10 @@ public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = MainActivity.class.getSimpleName();
 
-    private static DecimalFormat df = new DecimalFormat();
+    private static final DecimalFormat df = new DecimalFormat();
 
     private static final float enabledAlpha = 1.0f;
     private static final float disabledAlpha = 0.25f;
-
-    private Button ambulanceSelectionButton;
 
     private List<AmbulancePermission> ambulancePermissions;
     private List<HospitalPermission> hospitalPermissions;
@@ -115,70 +115,11 @@ public class MainActivity extends AppCompatActivity {
     private Map<String, Integer> callPriorityForegroundColors;
 
     private boolean logoutAfterFinish;
-    private ViewPager viewPager;
+    private ViewPager2 viewPager;
 
     private AlertDialog promptVideoCallDialog;
     private CustomTabsClient customTabsClient;
-
-    public class AmbulanceButtonClickListener implements View.OnClickListener {
-
-        @Override
-        public void onClick(View v) {
-
-            new AlertDialog.Builder(
-                    MainActivity.this)
-                    .setTitle(R.string.selectAmbulance)
-                    .setAdapter(ambulanceListAdapter,
-                            (dialog, which) -> {
-
-                                AmbulancePermission selectedAmbulance = ambulancePermissions.get(which);
-                                Log.d(TAG, "Selected ambulance " + selectedAmbulance.getAmbulanceIdentifier());
-
-                                // If currently handling ambulance
-                                Ambulance ambulance = AmbulanceForegroundService.getAppData().getAmbulance();
-                                if (ambulance != null) {
-
-                                    Log.d(TAG, "Current ambulance " + ambulance.getIdentifier());
-                                    Log.d(TAG, "Requesting location updates? " +
-                                            (AmbulanceForegroundService.isUpdatingLocation() ? "TRUE" : "FALSE"));
-
-                                    if (ambulance.getId() != selectedAmbulance.getAmbulanceId())
-                                        // If another ambulance, confirm first
-                                        switchAmbulanceDialog(selectedAmbulance);
-
-                                    else if (!AmbulanceForegroundService.isUpdatingLocation())
-                                        // else, if current ambulance is not updating location,
-                                        // retrieve again
-                                        retrieveAmbulance(selectedAmbulance);
-
-                                    // otherwise do nothing
-
-                                } else {
-
-                                    // otherwise go ahead!
-                                    retrieveAmbulance(selectedAmbulance);
-                                    // dialog.dismiss();
-
-                                }
-
-                            })
-                    .setOnCancelListener(
-                            dialog -> {
-
-                                // Any ambulance currently selected?
-                                if (AmbulanceForegroundService.getAppData().getAmbulance()== null
-                                        || !AmbulanceForegroundService.isUpdatingLocation() ) {
-
-                                    // User must always choose ambulance
-                                    promptMustChooseAmbulance();
-
-                                }
-
-                            })
-                    .create()
-                    .show();
-        }
-    }
+    // private View equipmentTabLayout;
 
     public class MainActivityBroadcastReceiver extends BroadcastReceiver {
 
@@ -198,17 +139,17 @@ public class MainActivity extends AppCompatActivity {
                         else {
                             trackingIcon.setAlpha(disabledAlpha);
 
-                            // Alert then prompt for new ambulance
-                            new org.emstrack.ambulance.dialogs.AlertDialog(MainActivity.this,
-                                    getResources()
-                                            .getString(R.string.anotherClientIsStreamingLocations))
-                                    .alert(getString(R.string.pleaseChooseAnotherAmbulance),
-                                            (dialog, which) -> {
-
-                                                // Invoke ambulance selection
-                                                ambulanceSelectionButton.performClick();
-
-                                            });
+//                            // Alert then prompt for new ambulance
+//                            new org.emstrack.ambulance.dialogs.AlertDialog(MainActivity.this,
+//                                    getResources()
+//                                            .getString(R.string.anotherClientIsStreamingLocations))
+//                                    .alert(getString(R.string.pleaseChooseAnotherAmbulance),
+//                                            (dialog, which) -> {
+//
+//                                                // Invoke ambulance selection
+//                                                ambulanceSelectionButton.performClick();
+//
+//                                            });
 
                         }
 
@@ -381,9 +322,6 @@ public class MainActivity extends AppCompatActivity {
         // set content view
         setContentView(R.layout.activity_main);
 
-        // Ambulance button
-        ambulanceSelectionButton = findViewById(R.id.ambulanceButton);
-
         // Panic button
         ImageButton panicButton = findViewById(R.id.panicButton);
         panicButton.setOnLongClickListener(
@@ -422,26 +360,31 @@ public class MainActivity extends AppCompatActivity {
         viewPager = findViewById(R.id.pager);
 
         // Setup Adapter for tabLayout
-        FragmentPager adapter = new FragmentPager(getSupportFragmentManager(),
-                new Fragment[]{new AmbulanceFragment(),
+        FragmentPager adapter = new FragmentPager(
+                getSupportFragmentManager(),
+                getLifecycle(),
+                new Fragment[]{
                         new MapFragment(),
                         new HospitalFragment(),
-                        new EquipmentFragment()},
-                new CharSequence[]{getString(R.string.ambulance),
-                        getString(R.string.map),
-                        getString(R.string.hospitals),
-                        getString(R.string.equipment)});
+                        new AmbulanceFragment(),
+                        new EquipmentFragment()
+                }
+        );
         viewPager.setAdapter(adapter);
 
-        //set up TabLayout Structure
         TabLayout tabLayout = findViewById(R.id.tab_layout_home);
         tabLayout.setTabGravity(TabLayout.GRAVITY_FILL);
-        tabLayout.setupWithViewPager(viewPager);
-        //tabLayout.getTabAt(0).setIcon(R.drawable.ic_ambulance);
-        tabLayout.getTabAt(0).setCustomView(createView(R.drawable.ic_ambulance));
-        tabLayout.getTabAt(1).setCustomView(createView(R.drawable.ic_globe));
-        tabLayout.getTabAt(2).setCustomView(createView(R.drawable.ic_hospital));
-        tabLayout.getTabAt(3).setCustomView(createView(R.drawable.ic_briefcase_medical));
+
+        TabLayoutMediator tabLayoutMediator = new TabLayoutMediator(tabLayout, viewPager,true,
+                (tab, position) -> {
+                    final int[] icons = {R.drawable.ic_globe, R.drawable.ic_hospital, R.drawable.ic_ambulance, R.drawable.ic_briefcase_medical};
+                    tab.setIcon(icons[position]).setCustomView(R.layout.tab_icon);
+                });
+        tabLayoutMediator.attach();
+
+        // LinearLayout tabStrip = ((LinearLayout)tabLayout.getChildAt(0));
+        // equipmentTabLayout = tabStrip.getChildAt(3);
+        // equipmentTabLayout.setEnabled(false); //disable tab
 
         // Online icon
         onlineIcon = findViewById(R.id.onlineIcon);
@@ -479,9 +422,6 @@ public class MainActivity extends AppCompatActivity {
                 android.R.layout.simple_spinner_dropdown_item, ambulanceList);
         ambulanceListAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 
-        // Set the ambulance button's adapter
-        ambulanceSelectionButton.setOnClickListener(new AmbulanceButtonClickListener());
-
         // Creates list of hospital names
         ArrayList<String> hospitalList = new ArrayList<>();
         hospitalList.add(getString(R.string.selectHospital));
@@ -515,24 +455,6 @@ public class MainActivity extends AppCompatActivity {
                 android.R.layout.simple_spinner_dropdown_item, othersList);
         othersListAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 
-        // Any ambulance currently selected?
-        Ambulance ambulance = AmbulanceForegroundService.getAppData().getAmbulance();
-        if (ambulance != null) {
-
-            // Set button
-            setAmbulanceButtonText(ambulance.getIdentifier());
-
-            // Automatically attempting to start streaming
-            // Log.i(TAG, "Attempting to start streaming");
-            // startUpdatingLocation();
-
-        } else {
-
-            // Invoke ambulance selection
-            ambulanceSelectionButton.performClick();
-
-        }
-
     }
 
     @Override
@@ -543,7 +465,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    public void onConfigurationChanged(Configuration newConfig) {
+    public void onConfigurationChanged(@NonNull Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
 
         // Pass any configuration change to the drawer toggles
@@ -628,41 +550,6 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    public void retrieveAmbulance(final AmbulancePermission selectedAmbulance) {
-
-        // Retrieve ambulance
-        Intent ambulanceIntent = new Intent(this, AmbulanceForegroundService.class);
-        ambulanceIntent.setAction(AmbulanceForegroundService.Actions.GET_AMBULANCE);
-        ambulanceIntent.putExtra(AmbulanceForegroundService.BroadcastExtras.AMBULANCE_ID,
-                selectedAmbulance.getAmbulanceId());
-
-        // What to do when GET_AMBULANCE service completes?
-        new OnServiceComplete(this,
-                BroadcastActions.SUCCESS,
-                BroadcastActions.FAILURE,
-                ambulanceIntent) {
-
-            @Override
-            public void onSuccess(Bundle extras) {
-
-                // Start MainActivity
-                setAmbulanceButtonText(selectedAmbulance.getAmbulanceIdentifier());
-
-                // Start updating
-                // startUpdatingLocation();
-
-            }
-
-        }
-                .setFailureMessage(getResources().getString(R.string.couldNotRetrieveAmbulance,
-                        selectedAmbulance.getAmbulanceIdentifier()))
-                .setAlert(new org.emstrack.ambulance.dialogs.AlertDialog(this,
-                        getResources().getString(R.string.couldNotStartLocationUpdates),
-                        (dialog, which) -> ambulanceSelectionButton.callOnClick()))
-                .start();
-
-    }
-
     public boolean canWrite() {
 
         Ambulance ambulance = AmbulanceForegroundService.getAppData().getAmbulance();
@@ -686,16 +573,6 @@ public class MainActivity extends AppCompatActivity {
 
         return canWrite;
 
-    }
-
-    /**
-     * Set ambulance text
-     *
-     * @param ambulance the ambulance
-     */
-    public void setAmbulanceButtonText(String ambulance) {
-        // Set ambulance selection button
-        ambulanceSelectionButton.setText(ambulance);
     }
 
     // Hamburger Menu setup
@@ -1325,6 +1202,15 @@ public class MainActivity extends AppCompatActivity {
                             serviceIntent.setAction(AmbulanceForegroundService.Actions.CALL_FINISH);
                             startService(serviceIntent);
 
+                        })
+                .setOnCancelListener(
+                        dialog -> {
+
+                            Log.i(TAG, "Cancelling dialog");
+
+                            if (logoutAfterFinish)
+                                logoutAfterFinish = false;
+
                         });
 
         // Create the AlertDialog object and return it
@@ -1519,31 +1405,6 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    private void switchAmbulanceDialog(final AmbulancePermission newAmbulance) {
-
-        Log.i(TAG, "Creating switch ambulance dialog");
-
-        // Use the Builder class for convenient dialog construction
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle(R.string.switchAmbulance)
-                .setMessage(String.format(getString(R.string.switchToAmbulance), newAmbulance.getAmbulanceIdentifier()))
-                .setNegativeButton(R.string.no,
-                        (dialog, id) -> Log.i(TAG, "Continue with same ambulance"))
-                .setPositiveButton(R.string.yes,
-                        (dialog, id) -> {
-
-                            Log.d(TAG, String.format("Switching to ambulance %1$s", newAmbulance.getAmbulanceIdentifier()));
-
-                            // retrieve new ambulance
-                            retrieveAmbulance(newAmbulance);
-
-                        });
-
-        // Create the AlertDialog object and return it
-        builder.create().show();
-
-    }
-
     public void promptLogout() {
 
         Call call = AmbulanceForegroundService.getAppData().getCalls().getCurrentCall();
@@ -1562,39 +1423,6 @@ public class MainActivity extends AppCompatActivity {
 
         }
 
-    }
-
-    public void promptMustChooseAmbulance() {
-
-        // Use the Builder class for convenient dialog construction
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle(R.string.pleaseSelectAmbulance)
-                .setCancelable(false)
-                .setMessage(R.string.mustChooseAmbulance)
-                .setPositiveButton(R.string.ok,
-                        (dialog, id) -> {
-
-                            Log.i(TAG, "Will choose ambulance");
-
-                            // Invoke ambulance selection
-                            ambulanceSelectionButton.performClick();
-
-                        })
-                .setNegativeButton(R.string.logout,
-                        (dialog, id) -> {
-
-                            Log.i(TAG, "Will logout");
-
-                            // Start login activity
-                            Intent loginIntent = new Intent(MainActivity.this, LoginActivity.class);
-                            loginIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP|Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                            loginIntent.setAction(LoginActivity.LOGOUT);
-                            MainActivity.this.startActivity(loginIntent);
-
-                        });
-
-        // Create the AlertDialog object and return it
-        builder.create().show();
     }
 
     @Override

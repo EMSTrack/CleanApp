@@ -10,14 +10,41 @@
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
+    android:orientation="vertical"
     tools:context="org.emstrack.ambulance.fragments.AmbulanceFragment">
+
+    <LinearLayout
+        android:id="@+id/ambulanceSelectionLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <Button
+            android:id="@+id/ambulanceSelectionButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/ambulanceButtonDefaultText"
+            android:background="@color/bootstrapSecondary"
+            android:textColor="@color/colorWhite"
+            android:textAllCaps="false"
+            android:textSize="24sp" />
+
+        <TextView
+            android:id="@+id/ambulanceSelectionMessage"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="20sp"
+            android:text="@string/noAmbulanceMessage">
+        </TextView>
+
+    </LinearLayout>
 
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
-        <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-            xmlns:tools="http://schemas.android.com/tools"
+        <RelativeLayout
+            android:id="@+id/ambulanceFragmentLayout"
             android:background="?android:windowBackground"
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
@@ -36,8 +63,7 @@
                 android:textSize="24sp"
                 android:textStyle="bold" />
 
-            <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-                xmlns:tools="http://schemas.android.com/tools"
+            <RelativeLayout
                 android:id="@+id/callInformationLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -50,17 +76,17 @@
                     android:text="@string/callLabel"
                     android:layout_marginTop="10dp"
                     android:textStyle="bold"
-                    android:textSize="18dp"/>
+                    android:textSize="18sp"/>
 
                 <TextView
                     android:id="@+id/callInformationText"
                     android:layout_height="wrap_content"
                     android:layout_width="fill_parent"
-                    android:gravity="right"
+                    android:gravity="end"
                     android:layout_marginTop="10dp"
-                    android:layout_toRightOf="@id/callLabel"/>
+                    android:layout_toEndOf="@id/callLabel"/>
 
-                <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                <LinearLayout
                     android:id="@+id/callResumeLayout"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -85,7 +111,7 @@
 
             </RelativeLayout>
 
-            <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+            <LinearLayout
                 android:id="@+id/callLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -105,7 +131,7 @@
                 android:layout_width="wrap_content"
                 android:text="@string/gpsCapabilityLabel"
                 android:textStyle="bold"
-                android:textSize="18dp"
+                android:textSize="18sp"
                 android:layout_marginTop="10dp"
                 android:layout_below="@+id/callLayout"/>
 
@@ -114,7 +140,7 @@
                 android:layout_height="wrap_content"
                 android:layout_width="wrap_content"
                 android:text="@string/unknown"
-                android:layout_alignParentRight="true"
+                android:layout_alignParentEnd="true"
                 android:layout_marginTop="20dp"
                 android:layout_below="@+id/callLayout"/>
 
@@ -124,7 +150,7 @@
                 android:layout_width="wrap_content"
                 android:text="@string/gpsCommentsLabel"
                 android:textStyle="bold"
-                android:textSize="18dp"
+                android:textSize="18sp"
                 android:layout_marginTop="10dp"
                 android:layout_below="@+id/capabilityText"/>
 
@@ -133,7 +159,7 @@
                 android:layout_height="wrap_content"
                 android:layout_width="wrap_content"
                 android:text="@string/unknown"
-                android:layout_alignParentRight="true"
+                android:layout_alignParentEnd="true"
                 android:layout_below="@+id/commentLabel"/>
 
             <TextView
@@ -142,7 +168,7 @@
                 android:layout_width="wrap_content"
                 android:text="@string/gpsLastUpdatedOnLabel"
                 android:textStyle="bold"
-                android:textSize="18dp"
+                android:textSize="18sp"
                 android:layout_marginTop="10dp"
                 android:layout_below="@+id/commentText"/>
 
@@ -151,8 +177,21 @@
                 android:layout_height="wrap_content"
                 android:layout_width="wrap_content"
                 android:text="@string/unknown"
-                android:layout_alignParentRight="true"
+                android:layout_alignParentEnd="true"
                 android:layout_below="@+id/updatedOnLabel"/>
+
+            <Button
+                android:id="@+id/amublanceReleaseButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/updatedOnText"
+                android:background="@color/bootstrapDanger"
+                android:fontFamily="sans-serif"
+                android:text="@string/release"
+                android:textStyle="bold"
+                android:textColor="@color/colorWhite"
+                android:layout_marginTop="20dp"
+                android:textSize="20sp"/>
 
         </RelativeLayout>
 

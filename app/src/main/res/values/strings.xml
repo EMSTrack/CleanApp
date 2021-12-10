@@ -297,6 +297,12 @@
     <string name="DELETE">DELETE</string>
     <string name="EDIT">EDIT</string>
     <string name="editEquipment">Edit equipment</string>
+    <string name="equipmentNotAvailable">List of equipment is only available if ambulance is selected</string>
+    <string name="noAmbulanceMessage">Select ambulance to start tracking the vehicle location and receiving calls.\\nThis feature requires access to precise background location.</string>
+    <string name="release">Release</string>
+    <string name="releaseAmbulance">Release ambulance</string>
+    <string name="confirmAmbulanceReleaseMessage">Are you sure that you want to release the current ambulance?</string>
+    <string name="couldNotReleaseAmbulance">Could not release ambulance</string>
     <string-array name="spinner_list_item_array_server">
         <item>@string/server_select</item>
         <item>Tijuana Red Cross:tijuana.emstrack.org:8883</item>

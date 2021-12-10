@@ -26,36 +26,42 @@ import android.widget.Toast;
 
 import org.emstrack.ambulance.MainActivity;
 import org.emstrack.ambulance.R;
+import org.emstrack.ambulance.dialogs.AlertSnackbar;
 import org.emstrack.ambulance.models.AmbulanceAppData;
 import org.emstrack.ambulance.services.AmbulanceForegroundService;
 import org.emstrack.models.Ambulance;
 import org.emstrack.models.AmbulanceCall;
+import org.emstrack.models.AmbulancePermission;
 import org.emstrack.models.Call;
 import org.emstrack.models.CallNote;
 import org.emstrack.models.CallStack;
 import org.emstrack.models.Location;
 import org.emstrack.models.Patient;
 import org.emstrack.models.PriorityCode;
+import org.emstrack.models.Profile;
 import org.emstrack.models.RadioCode;
 import org.emstrack.models.Settings;
 import org.emstrack.models.Waypoint;
+import org.emstrack.models.util.BroadcastActions;
+import org.emstrack.models.util.OnServiceComplete;
 
 import java.net.URLEncoder;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 public class AmbulanceFragment extends Fragment {
 
     private static final String TAG = AmbulanceFragment.class.getSimpleName();
 
-    private static DecimalFormat df = new DecimalFormat();
+    private static final DecimalFormat df = new DecimalFormat();
 
     private View view;
 
     private Button statusButton;
+    private View releaseButton;
 
     private TextView capabilityText;
     private TextView callNotesText;
@@ -63,6 +69,8 @@ public class AmbulanceFragment extends Fragment {
     private TextView commentText;
 
     private AmbulancesUpdateBroadcastReceiver receiver;
+
+    private View ambulanceFragmentLayout;
 
     private LinearLayout callLayout;
     private TextView callDescriptionTextView;
@@ -102,6 +110,12 @@ public class AmbulanceFragment extends Fragment {
     private int currentCallId;
     private View callNextWaypointLayout;
     private StatusButtonClickListener statusButtonClickListener;
+
+    private Button ambulanceSelectionButton;
+    private TextView ambulanceSelectionMessage;
+
+    private ArrayList<String> ambulanceList;
+    private List<AmbulancePermission> ambulancePermissions;
 
     public class AmbulancesUpdateBroadcastReceiver extends BroadcastReceiver {
 
@@ -166,20 +180,82 @@ public class AmbulanceFragment extends Fragment {
         }
     }
 
+    private class AmbulanceSelectionButtonClickListener implements View.OnClickListener {
+
+        ArrayAdapter<String> ambulanceListAdapter;
+
+        public AmbulanceSelectionButtonClickListener() {
+
+            // Create the adapter
+            this.ambulanceListAdapter =
+                    new ArrayAdapter<>(AmbulanceFragment.this.requireContext(),
+                            android.R.layout.simple_spinner_dropdown_item, ambulanceList);
+            ambulanceListAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        }
+
+        @Override
+        public void onClick(View v) {
+
+            new AlertDialog.Builder(requireActivity())
+                    .setTitle(R.string.selectAmbulance)
+                    .setAdapter(ambulanceListAdapter,
+                            (dialog, which) -> {
+
+                                // Get selected status
+                                Log.i(TAG, "Ambulance at position '" + which + "' selected.");
+
+                                // get selected ambulance
+                                AmbulancePermission selectedAmbulance = ambulancePermissions.get(which);
+                                Log.d(TAG, "Selected ambulance " + selectedAmbulance.getAmbulanceIdentifier());
+
+                                // If currently handling ambulance
+                                Ambulance ambulance = AmbulanceForegroundService.getAppData().getAmbulance();
+                                if (ambulance != null) {
+
+                                    Log.d(TAG, "Current ambulance " + ambulance.getIdentifier());
+                                    Log.d(TAG, "Requesting location updates? " +
+                                            (AmbulanceForegroundService.isUpdatingLocation() ? "TRUE" : "FALSE"));
+
+                                    if (ambulance.getId() != selectedAmbulance.getAmbulanceId())
+                                        // If another ambulance, confirm first
+                                        switchAmbulanceDialog(selectedAmbulance);
+
+                                    else if (!AmbulanceForegroundService.isUpdatingLocation())
+                                        // else, if current ambulance is not updating location,
+                                        // retrieve again
+                                        retrieveAmbulance(selectedAmbulance);
+
+                                    // otherwise do nothing
+
+                                } else {
+
+                                    // otherwise go ahead!
+                                    retrieveAmbulance(selectedAmbulance);
+                                    // dialog.dismiss();
+
+                                }
+
+                            })
+                    .create()
+                    .show();
+        }
+    }
+
+
     public class StatusButtonClickListener implements View.OnClickListener {
 
         private boolean enabled;
-        ArrayAdapter<String> ambulanceListAdapter;
+        ArrayAdapter<String> ambulanceStatusListAdapter;
 
         public StatusButtonClickListener() {
             this.enabled = true;
 
             // Create the adapter
-            this.ambulanceListAdapter =
-                    new ArrayAdapter<>(AmbulanceFragment.this.getContext(),
+            this.ambulanceStatusListAdapter =
+                    new ArrayAdapter<>(AmbulanceFragment.this.requireContext(),
                             android.R.layout.simple_spinner_dropdown_item,
                             ambulanceStatusList);
-            ambulanceListAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+            ambulanceStatusListAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 
         }
 
@@ -199,9 +275,9 @@ public class AmbulanceFragment extends Fragment {
                 return;
 
             new AlertDialog.Builder(
-                    getActivity())
+                    requireActivity())
                     .setTitle(R.string.selectAmbulanceStatus)
-                    .setAdapter(ambulanceListAdapter,
+                    .setAdapter(ambulanceStatusListAdapter,
                             (dialog, which) -> {
 
                                 // Get selected status
@@ -216,6 +292,149 @@ public class AmbulanceFragment extends Fragment {
         }
     }
 
+    public class ReleaseButtonClickListener implements View.OnClickListener {
+
+        @Override
+        public void onClick(View view) {
+
+            Call call = AmbulanceForegroundService.getAppData().getCalls().getCurrentCall();
+            if (call == null || !call.getCurrentAmbulanceCall().getStatus().equals(AmbulanceCall.STATUS_ACCEPTED))
+
+                // no calls, ask for confirmation
+                new AlertDialog.Builder(requireActivity())
+                        .setTitle(getString(R.string.releaseAmbulance))
+                        .setMessage(R.string.confirmAmbulanceReleaseMessage)
+                        .setPositiveButton( android.R.string.ok,
+                                (dialog, which) -> {
+
+                                    // Stop current ambulance
+                                    Intent intent = new Intent(getActivity(), AmbulanceForegroundService.class);
+                                    intent.setAction(AmbulanceForegroundService.Actions.STOP_AMBULANCE);
+
+                                    // Chain services
+                                    new OnServiceComplete(getActivity(),
+                                            BroadcastActions.SUCCESS,
+                                            BroadcastActions.FAILURE,
+                                            intent) {
+
+                                        @Override
+                                        public void onSuccess(Bundle extras) {
+                                            Log.i(TAG, "ambulance released");
+                                        }
+
+                                    }
+                                            .setFailureMessage(getString(R.string.couldNotReleaseAmbulance))
+                                            .setAlert(new AlertSnackbar(requireActivity()))
+                                            .start();
+
+                                } )
+                        .setNegativeButton( android.R.string.cancel,
+                                (dialog, which) -> { /* do nothing */ } )
+                        .create()
+                        .show();
+
+            else {
+
+                // Prompt to end call first
+                promptEndCallDialog();
+
+            }
+
+        }
+    }
+
+    public void promptEndCallDialog() {
+
+        Log.d(TAG, "Creating end call dialog");
+
+        // Gather call details
+        final Call call = AmbulanceForegroundService.getAppData().getCalls().getCurrentCall();
+        if (call == null) {
+
+            // Not currently handling call
+            Log.d(TAG, "Not currently handling call");
+            return;
+
+        }
+
+        // Use the Builder class for convenient dialog construction
+        AlertDialog.Builder builder = new AlertDialog.Builder(requireActivity());
+        builder.setTitle(R.string.currentlyHandlingCall)
+                .setMessage(R.string.whatDoYouWantToDo)
+                .setNegativeButton(R.string.toContinue,
+                        (dialog, id) -> {})
+                .setNeutralButton(R.string.suspend,
+                        (dialog, id) -> {
+
+                            Toast.makeText(getActivity(),
+                                    R.string.suspendingCall,
+                                    Toast.LENGTH_SHORT).show();
+
+                            Log.i(TAG, "Suspending call");
+
+                            Intent serviceIntent = new Intent(getActivity(),
+                                    AmbulanceForegroundService.class);
+                            serviceIntent.setAction(AmbulanceForegroundService.Actions.CALL_SUSPEND);
+                            serviceIntent.putExtra(AmbulanceForegroundService.BroadcastExtras.CALL_ID, call.getId());
+
+                            // Chain services
+                            new OnServiceComplete(getActivity(),
+                                    BroadcastActions.SUCCESS,
+                                    BroadcastActions.FAILURE,
+                                    serviceIntent) {
+
+                                @Override
+                                public void onSuccess(Bundle extras) {
+                                    Log.i(TAG, "fire ambulance release dialog");
+
+                                    releaseButton.performClick();
+
+                                }
+
+                            }
+                                    .setFailureMessage(getString(R.string.couldNotSuspendCall))
+                                    .setAlert(new AlertSnackbar(requireActivity()))
+                                    .start();
+
+                        })
+                .setPositiveButton(R.string.end,
+                        (dialog, id) -> {
+
+                            Toast.makeText(requireActivity(),
+                                    R.string.endingCall,
+                                    Toast.LENGTH_SHORT).show();
+
+                            Log.i(TAG, "Ending call");
+
+                            Intent serviceIntent = new Intent(getActivity(),
+                                    AmbulanceForegroundService.class);
+                            serviceIntent.setAction(AmbulanceForegroundService.Actions.CALL_FINISH);
+
+                            // Chain services
+                            new OnServiceComplete(getActivity(),
+                                    BroadcastActions.SUCCESS,
+                                    BroadcastActions.FAILURE,
+                                    serviceIntent) {
+
+                                @Override
+                                public void onSuccess(Bundle extras) {
+                                    Log.i(TAG, "fire ambulance release dialog");
+
+                                    releaseButton.performClick();
+
+                                }
+
+                            }
+                                    .setFailureMessage(getString(R.string.couldNotFinishCall))
+                                    .setAlert(new AlertSnackbar(requireActivity()))
+                                    .start();
+
+                        });
+
+        // Create the AlertDialog object and return it
+        builder.create().show();
+    }
+
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
         Log.d(TAG, "onCreateView");
@@ -225,6 +444,16 @@ public class AmbulanceFragment extends Fragment {
 
         // inflate view
         view = inflater.inflate(R.layout.fragment_ambulance, container, false);
+
+        // retrieve ambulanceMessage
+        View ambulanceSelectionLayout = view.findViewById(R.id.ambulanceSelectionLayout);
+
+        // retrieve ambulance selection button and message
+        ambulanceSelectionButton = ambulanceSelectionLayout.findViewById(R.id.ambulanceSelectionButton);
+        ambulanceSelectionMessage = ambulanceSelectionLayout.findViewById(R.id.ambulanceSelectionMessage);
+
+        // retrieve ambulanceFragmentLayout
+        ambulanceFragmentLayout = view.findViewById(R.id.ambulanceFragmentLayout);
 
         // retrieveObject callInformationLayout
         callInformationLayout = view.findViewById(R.id.callInformationLayout);
@@ -257,6 +486,24 @@ public class AmbulanceFragment extends Fragment {
         toMapsButton = callLayout.findViewById(R.id.toMapsButton);
         toMapsButton.setVisibility(View.VISIBLE);
 
+        // Get appData
+        AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
+
+        // ambulance permissions
+        ambulancePermissions = new ArrayList<>();
+        Profile profile = appData.getProfile();
+        if (profile != null) {
+            ambulancePermissions = profile.getAmbulances();
+        }
+
+        // Creates list of ambulance names
+        ambulanceList = new ArrayList<>();
+        for (AmbulancePermission ambulancePermission : ambulancePermissions)
+            ambulanceList.add(ambulancePermission.getAmbulanceIdentifier());
+
+        // Set the ambulance button's adapter
+        ambulanceSelectionButton.setOnClickListener(new AmbulanceSelectionButtonClickListener());
+
         // setup callNextWaypointLayout
         callNextWaypointLayout = callLayout.findViewById(R.id.callNextWaypointLayout);
 
@@ -273,7 +520,6 @@ public class AmbulanceFragment extends Fragment {
 
         addCallNoteButton = callLayout.findViewById(R.id.addCallNoteButton);
 
-        AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
         Settings settings = appData.getSettings();
         if (settings != null) {
 
@@ -318,19 +564,22 @@ public class AmbulanceFragment extends Fragment {
 
         commentText = view.findViewById(R.id.commentText);
 
+        // Set release button
+        releaseButton = view.findViewById(R.id.amublanceReleaseButton);
+        ReleaseButtonClickListener releaseButtonClickListener = new ReleaseButtonClickListener();
+        releaseButton.setOnClickListener(releaseButtonClickListener);
+
         // Set status button
         statusButton = view.findViewById(R.id.statusButton);
-
-        // Set the ambulance button's adapter
         statusButtonClickListener = new StatusButtonClickListener();
         statusButton.setOnClickListener(statusButtonClickListener);
 
         // Update ambulance
         Ambulance ambulance = appData.getAmbulance();
-        if (ambulance != null)
-            updateAmbulance(ambulance);
-        else
-            callLayout.setVisibility(View.GONE);
+        updateAmbulance(ambulance);
+//        if (ambulance == null) {
+//            callLayout.setVisibility(View.GONE);
+//        }
 
         // Is there a current call?
         currentCallId = -1;
@@ -361,8 +610,7 @@ public class AmbulanceFragment extends Fragment {
 
         // Update ambulance
         Ambulance ambulance = appData.getAmbulance();
-        if (ambulance != null)
-            updateAmbulance(ambulance);
+        updateAmbulance(ambulance);
 
         // Are there any call been currently handled?
         currentCallId = -1;
@@ -676,13 +924,71 @@ public class AmbulanceFragment extends Fragment {
 
     }
 
+    public void retrieveAmbulance(final AmbulancePermission selectedAmbulance) {
+
+        // Disable equipment tab
+        // equipmentTabLayout.setEnabled(false); //disable clicking
+
+        // Retrieve ambulance
+        Intent ambulanceIntent = new Intent(requireActivity(), AmbulanceForegroundService.class);
+        ambulanceIntent.setAction(AmbulanceForegroundService.Actions.GET_AMBULANCE);
+        ambulanceIntent.putExtra(AmbulanceForegroundService.BroadcastExtras.AMBULANCE_ID,
+                selectedAmbulance.getAmbulanceId());
+
+        // What to do when GET_AMBULANCE service completes?
+        new OnServiceComplete(requireContext(),
+                BroadcastActions.SUCCESS,
+                BroadcastActions.FAILURE,
+                ambulanceIntent) {
+
+            @Override
+            public void onSuccess(Bundle extras) {
+
+                // set ambulance button text
+                ambulanceSelectionButton.setText(selectedAmbulance.getAmbulanceIdentifier());
+
+                // Enable equipment tab
+                // equipmentTabLayout.setEnabled(true); // enable clicking
+
+                // Start updating
+                // startUpdatingLocation();
+
+            }
+
+        }
+                .setFailureMessage(getResources().getString(R.string.couldNotRetrieveAmbulance,
+                        selectedAmbulance.getAmbulanceIdentifier()))
+                .setAlert(new org.emstrack.ambulance.dialogs.AlertDialog(requireActivity(),
+                        getResources().getString(R.string.couldNotStartLocationUpdates),
+                        (dialog, which) -> ambulanceSelectionButton.callOnClick()))
+                .start();
+
+    }
+
     public void updateAmbulance(Ambulance ambulance) {
+
+        // quick return if null
+        if (ambulance == null) {
+            // set selection button label
+            ambulanceSelectionButton.setText(R.string.ambulanceButtonDefaultText);
+
+            // set message visible
+            ambulanceSelectionMessage.setVisibility(View.VISIBLE);
+            ambulanceFragmentLayout.setVisibility(View.GONE);
+            return;
+        }
+
+        // set message visibility
+        ambulanceSelectionMessage.setVisibility(View.GONE);
+
+        // set layout visible
+        ambulanceFragmentLayout.setVisibility(View.VISIBLE);
+
+        // set selection button label
+        ambulanceSelectionButton.setText(ambulance.getIdentifier());
 
         // set status button
         setStatusButton(ambulanceStatusList.indexOf(ambulanceStatus.get(ambulance.getStatus())));
-
-        // set identifier
-        ((MainActivity) getActivity()).setAmbulanceButtonText(ambulance.getIdentifier());
 
         Log.d(TAG,"Summarizing pending call_current");
 
@@ -969,13 +1275,38 @@ public class AmbulanceFragment extends Fragment {
         builder.create().show();
     }
 
+    private void switchAmbulanceDialog(final AmbulancePermission newAmbulance) {
+
+        Log.i(TAG, "Creating switch ambulance dialog");
+
+        // Use the Builder class for convenient dialog construction
+        AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
+        builder.setTitle(R.string.switchAmbulance)
+                .setMessage(String.format(getString(R.string.switchToAmbulance), newAmbulance.getAmbulanceIdentifier()))
+                .setNegativeButton(R.string.no,
+                        (dialog, id) -> Log.i(TAG, "Continue with same ambulance"))
+                .setPositiveButton(R.string.yes,
+                        (dialog, id) -> {
+
+                            Log.d(TAG, String.format("Switching to ambulance %1$s", newAmbulance.getAmbulanceIdentifier()));
+
+                            // retrieve new ambulance
+                            retrieveAmbulance(newAmbulance);
+
+                        });
+
+        // Create the AlertDialog object and return it
+        builder.create().show();
+
+    }
+
     /**
      * Get LocalBroadcastManager
      *
      * @return the LocalBroadcastManager
      */
     private LocalBroadcastManager getLocalBroadcastManager() {
-        return LocalBroadcastManager.getInstance(getContext());
+        return LocalBroadcastManager.getInstance(requireContext());
     }
 
 }

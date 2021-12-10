@@ -7,6 +7,7 @@ import android.content.IntentSender;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
 import androidx.annotation.NonNull;
@@ -79,7 +80,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         // Retrieve list of servers
 
         // Log.d(TAG, "Populating server list");
-        serverNames = new ArrayAdapter(this, android.R.layout.simple_spinner_item);
+        serverNames = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item);
         serverMqttURIs = new ArrayList<>();
         serverAPIURIs = new ArrayList<>();
 
@@ -129,7 +130,8 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
             enableLogin();
 
             // Check and request permissions to retrieve locations if necessary
-        } else if (checkPermissions()) {
+        } else if (checkPermissions(Manifest.permission.ACCESS_FINE_LOCATION) &&
+                (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q || checkPermissions(Manifest.permission.ACCESS_BACKGROUND_LOCATION))) {
 
             // Otherwise check
             checkLocationSettings();
@@ -273,7 +275,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
                                     // Populate server list
                                     // Log.d(TAG, "Populating server list");
-                                    serverNames = new ArrayAdapter(self, android.R.layout.simple_spinner_item);
+                                    serverNames = new ArrayAdapter<>(self, android.R.layout.simple_spinner_item);
                                     serverMqttURIs = new ArrayList<>();
                                     serverAPIURIs = new ArrayList<>();
 
@@ -470,10 +472,39 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     /**
      * Return the current state of the permissions needed.
      */
-    private boolean checkPermissions() {
-        int permissionState = ActivityCompat.checkSelfPermission(this,
-                Manifest.permission.ACCESS_FINE_LOCATION);
-        return permissionState == PackageManager.PERMISSION_GRANTED;
+    private boolean checkPermissions(String permission) {
+        return ActivityCompat.checkSelfPermission(this, permission) == PackageManager.PERMISSION_GRANTED;
+    }
+
+    /**
+     * build required permission arrays
+     */
+    private void doRequestPermissions() {
+
+        // Request permissions
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            ActivityCompat.requestPermissions(LoginActivity.this,
+                    new String[]{
+                            Manifest.permission.ACCESS_COARSE_LOCATION,
+                            Manifest.permission.ACCESS_FINE_LOCATION,
+                            Manifest.permission.ACCESS_BACKGROUND_LOCATION
+                    },
+                    REQUEST_PERMISSIONS_REQUEST_CODE);
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            ActivityCompat.requestPermissions(LoginActivity.this,
+                    new String[]{
+                            Manifest.permission.ACCESS_FINE_LOCATION,
+                            Manifest.permission.ACCESS_BACKGROUND_LOCATION
+                    },
+                    REQUEST_PERMISSIONS_REQUEST_CODE);
+        } else {
+            ActivityCompat.requestPermissions(LoginActivity.this,
+                    new String[]{
+                            Manifest.permission.ACCESS_FINE_LOCATION
+                    },
+                    REQUEST_PERMISSIONS_REQUEST_CODE);
+        }
+
     }
 
     /**
@@ -481,9 +512,24 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
      */
     private void requestPermissions() {
 
-        boolean shouldProvideRationale =
-                ActivityCompat.shouldShowRequestPermissionRationale(this,
-                        Manifest.permission.ACCESS_FINE_LOCATION);
+        boolean shouldProvideRationale;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            shouldProvideRationale = ActivityCompat.shouldShowRequestPermissionRationale(this,
+                    Manifest.permission.ACCESS_COARSE_LOCATION) ||
+                    ActivityCompat.shouldShowRequestPermissionRationale(this,
+                            Manifest.permission.ACCESS_FINE_LOCATION) ||
+                    ActivityCompat.shouldShowRequestPermissionRationale(this,
+                            Manifest.permission.ACCESS_BACKGROUND_LOCATION);
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            shouldProvideRationale = ActivityCompat.shouldShowRequestPermissionRationale(this,
+                    Manifest.permission.ACCESS_FINE_LOCATION) ||
+                    ActivityCompat.shouldShowRequestPermissionRationale(this,
+                            Manifest.permission.ACCESS_BACKGROUND_LOCATION);
+        } else {
+            shouldProvideRationale =
+                    ActivityCompat.shouldShowRequestPermissionRationale(this,
+                            Manifest.permission.ACCESS_FINE_LOCATION);
+        }
 
         // Provide an additional rationale to the user. This would happen if the user denied the
         // request previously, but didn't check the "Don't ask again" checkbox.
@@ -492,21 +538,14 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
             new AlertSnackbar(this)
                     .alert(getString(R.string.permission_rationale),
-                            view -> {
-                                // Request permission
-                                ActivityCompat.requestPermissions(LoginActivity.this,
-                                        new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
-                                        REQUEST_PERMISSIONS_REQUEST_CODE);
-                            });
+                            view -> this.doRequestPermissions() );
 
         } else {
             Log.i(TAG, "Requesting permission");
             // Request permission. It's possible this can be auto answered if device policy
             // sets the permission in a given state or the user denied the permission
             // previously and checked "Never ask again".
-            ActivityCompat.requestPermissions(LoginActivity.this,
-                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
-                    REQUEST_PERMISSIONS_REQUEST_CODE);
+            this.doRequestPermissions();
         }
     }
 
@@ -514,8 +553,11 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
      * APICallback received when a permissions request has been completed.
      */
     @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
+    public void onRequestPermissionsResult(int requestCode,
+                                           @NonNull String[] permissions,
                                            @NonNull int[] grantResults) {
+        // call super
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
 
         Log.i(TAG, "onRequestPermissionResult");
         if (requestCode == REQUEST_PERMISSIONS_REQUEST_CODE) {
@@ -526,39 +568,70 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                 // receive empty arrays.
                 Log.i(TAG, "User interaction was cancelled.");
 
-            } else if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-
-                // Permission granted
-                Log.i(TAG, "Permission granted");
-
-                // Will check location settings
-                checkLocationSettings();
-
             } else {
-                // Permission denied.
+                boolean foreground = false, background = false;
+                for (int i = 0; i < permissions.length; i++) {
 
-                // Notify the user via a SnackBar that they have rejected a core permission for the
-                // app, which makes the Activity useless. In a real app, core permissions would
-                // typically be best requested during a welcome-screen flow.
+                    if (permissions[i].equalsIgnoreCase(Manifest.permission.ACCESS_FINE_LOCATION)) {
+                        // foreground permission
+                        if (grantResults[i] == PackageManager.PERMISSION_GRANTED) {
+                            foreground = true;
+                            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+                                background = true;
+                            }
+                            Toast.makeText(getApplicationContext(), "Foreground location permission granted", Toast.LENGTH_SHORT).show();
+                            continue;
+                        } else {
+                            Toast.makeText(getApplicationContext(), "Location Permission denied", Toast.LENGTH_SHORT).show();
+                            break;
+                        }
+                    }
 
-                // Additionally, it is important to remember that a permission might have been
-                // rejected without asking the user for permission (device policy or "Never ask
-                // again" prompts). Therefore, a user interface affordance is typically implemented
-                // when permissions are denied. Otherwise, your app could appear unresponsive to
-                // touches or interactions which have required permissions.
-                new AlertSnackbar(this)
-                        .alert(getString(R.string.permission_denied_explanation),
-                                view -> {
-                                    // Build intent that displays the App settings screen.
-                                    Intent intent = new Intent();
-                                    intent.setAction(
-                                            Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
-                                    Uri uri = Uri.fromParts("package",
-                                            BuildConfig.APPLICATION_ID, null);
-                                    intent.setData(uri);
-                                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                                    startActivity(intent);
-                                });
+                    if (permissions[i].equalsIgnoreCase(Manifest.permission.ACCESS_BACKGROUND_LOCATION)) {
+                        if (grantResults[i] == PackageManager.PERMISSION_GRANTED) {
+                            background = true;
+                            Toast.makeText(getApplicationContext(), "Background location permission granted", Toast.LENGTH_SHORT).show();
+                        } else {
+                            Toast.makeText(getApplicationContext(), "Background location permission denied", Toast.LENGTH_SHORT).show();
+                        }
+
+                    }
+
+                }
+
+                if (foreground && background) {
+
+                    // Permission granted
+                    Log.i(TAG, "Permission granted");
+
+                    // Will check location settings
+                    checkLocationSettings();
+
+                } else {
+                    // Permission denied.
+
+                    // Notify the user via a SnackBar that they have rejected a core permission for the
+                    // app, which makes the Activity useless.
+
+                    // Additionally, it is important to remember that a permission might have been
+                    // rejected without asking the user for permission (device policy or "Never ask
+                    // again" prompts). Therefore, a user interface affordance is typically implemented
+                    // when permissions are denied. Otherwise, your app could appear unresponsive to
+                    // touches or interactions which have required permissions.
+                    new AlertSnackbar(this)
+                            .alert(getString(R.string.permission_denied_explanation),
+                                    view -> {
+                                        // Build intent that displays the App settings screen.
+                                        Intent intent = new Intent();
+                                        intent.setAction(
+                                                Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+                                        Uri uri = Uri.fromParts("package",
+                                                BuildConfig.APPLICATION_ID, null);
+                                        intent.setData(uri);
+                                        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                                        startActivity(intent);
+                                    });
+                }
             }
         }
     }
@@ -615,18 +688,18 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        switch (requestCode) {
-            // Check for the integer request code originally supplied to startResolutionForResult().
-            case REQUEST_CHECK_SETTINGS:
-                switch (resultCode) {
-                    case Activity.RESULT_OK:
-                        Log.i(TAG, "User agreed to make required location settings changes.");
-                        break;
-                    case Activity.RESULT_CANCELED:
-                        Log.i(TAG, "User chose not to make required location settings changes.");
-                        break;
-                }
-                break;
+        super.onActivityResult(requestCode, resultCode, data);
+
+        // Check for the integer request code originally supplied to startResolutionForResult().
+        if (requestCode == REQUEST_CHECK_SETTINGS) {
+            switch (resultCode) {
+                case Activity.RESULT_OK:
+                    Log.i(TAG, "User agreed to make required location settings changes.");
+                    break;
+                case Activity.RESULT_CANCELED:
+                    Log.i(TAG, "User chose not to make required location settings changes.");
+                    break;
+            }
         }
     }
 

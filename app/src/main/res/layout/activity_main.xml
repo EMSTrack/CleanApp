@@ -20,8 +20,8 @@
                 android:id="@+id/toolbar"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_alignParentLeft="true"
                 android:layout_alignParentStart="true"
+                android:layout_alignParentLeft="true"
                 android:layout_alignParentTop="true"
                 android:background="@color/colorPrimary"
                 android:textColor="@android:color/black"
@@ -43,12 +43,12 @@
                     android:layout_width="30dp"
                     android:layout_height="30dp"
                     android:layout_gravity="right"
-                    android:scaleX="1.5"
-                    android:scaleY="1.5"
                     android:layout_marginRight="10dp"
                     android:adjustViewBounds="true"
                     android:background="@drawable/button_states"
                     android:scaleType="fitCenter"
+                    android:scaleX="1.5"
+                    android:scaleY="1.5"
                     app:srcCompat="@drawable/ic_video_call" />
 
                 <ImageView
@@ -73,25 +73,26 @@
                     android:scaleType="fitCenter"
                     app:srcCompat="@drawable/ic_shipping_fast" />
 
-                <!--TextView
-                    android:id="@+id/identifierText"
+                <TextView
+                    android:id="@+id/emstrack_name"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginRight="10dp"
+                    android:layout_marginEnd="10dp"
                     android:textColor="@android:color/black"
-                    android:textSize="25sp" /-->
+                    android:textSize="25sp"
+                    android:text="@string/EMSTrack"/>
 
-                <Button
+                <!--Button
                     android:id="@+id/ambulanceButton"
                     android:layout_width="fill_parent"
                     android:layout_height="wrap_content"
-                    android:text="@string/ambulanceButtonDefaultText"
-                    android:textColor="@android:color/black"
-                    android:textSize="24sp"
-                    android:textAllCaps="false"
                     android:layout_marginRight="10dp"
                     android:background="?attr/selectableItemBackgroundBorderless"
-                    android:gravity="left|center_vertical" />
+                    android:gravity="left|center_vertical"
+                    android:text="@string/ambulanceButtonDefaultText"
+                    android:textAllCaps="false"
+                    android:textColor="@android:color/black"
+                    android:textSize="24sp" /-->
 
             </androidx.appcompat.widget.Toolbar>
 
@@ -99,20 +100,18 @@
                 android:id="@+id/tab_layout_home"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_alignParentLeft="true"
-                android:layout_alignParentStart="true"
                 android:layout_below="@+id/toolbar"
+                android:layout_alignParentStart="true"
                 android:background="#EFEFEF"
                 app:tabMode="fixed" />
 
-            <androidx.viewpager.widget.ViewPager
+            <androidx.viewpager2.widget.ViewPager2
                 android:id="@+id/pager"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:layout_alignParentBottom="true"
-                android:layout_alignParentLeft="true"
+                android:layout_below="@+id/tab_layout_home"
                 android:layout_alignParentStart="true"
-                android:layout_below="@+id/tab_layout_home" />
+                android:layout_alignParentBottom="true" />
 
         </RelativeLayout>
 

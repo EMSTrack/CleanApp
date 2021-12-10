@@ -31,6 +31,7 @@ public class APIServiceGenerator {
     private static Gson gson = new GsonBuilder()
             .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
             .addSerializationExclusionStrategy(new ExcludeAnnotationExclusionStrategy())
+            .serializeNulls()
             .create();
 
     private static Retrofit.Builder builder

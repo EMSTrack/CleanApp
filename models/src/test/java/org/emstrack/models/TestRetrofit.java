@@ -17,8 +17,9 @@ import static org.junit.Assert.assertTrue;
 
 import retrofit2.Response;
 
+// @Config(sdk= Build.VERSION_CODES.P)
+
 @RunWith(RobolectricTestRunner.class)
-@Config(sdk= Build.VERSION_CODES.P)
 public class TestRetrofit {
 
     @Test

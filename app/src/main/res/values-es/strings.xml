@@ -278,5 +278,11 @@
     <string name="DELETE">ELIMINAR</string>
     <string name="EDIT">EDITAR</string>
     <string name="editEquipment">Editar equipo</string>
+    <string name="equipmentNotAvailable">La lista de equipos solo está disponible si se selecciona ambulancia.</string>
+    <string name="noAmbulanceMessage">Seleccione ambulancia para comenzar a rastrear la ubicación del vehículo y recibir llamadas.\\nEsta función requiere acceso a una ubicación precisa en segundo plano.</string>
+    <string name="release">Liberar</string>
+    <string name="releaseAmbulance">Liberar la ambulancia</string>
+    <string name="confirmAmbulanceReleaseMessage">¿Estás seguro de que quieres liberar la ambulancia?</string>
+    <string name="couldNotReleaseAmbulance">No se pudo liberar la ambulancia</string>
 
 </resources>
