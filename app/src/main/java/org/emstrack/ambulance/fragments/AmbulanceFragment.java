@@ -199,6 +199,7 @@ public class AmbulanceFragment extends Fragment {
         private final ActivityResultLauncher<String[]> activityResultLauncher;
         private String[] permissions;
         private final ArrayAdapter<String> ambulanceListAdapter;
+        private boolean promptIfNotGranted;
 
         public CheckPermissionsClickListener() {
             // Build permissions
@@ -207,7 +208,7 @@ public class AmbulanceFragment extends Fragment {
                 if (RequestPermissionHelper.checkPermissions(requireContext(), new String[] {Manifest.permission.ACCESS_COARSE_LOCATION})
                         || RequestPermissionHelper.checkPermissions(requireContext(), new String[] {Manifest.permission.ACCESS_FINE_LOCATION})) {
                     // has coarse or fine location, ask for all
-                    Log.i(TAG, "Will ask for BACKGROUND LOCATION");
+                    Log.i(TAG, "Will ask for BACKGROUND LOCATION first");
                     this.permissions = new String[]{
                             Manifest.permission.ACCESS_COARSE_LOCATION,
                             Manifest.permission.ACCESS_FINE_LOCATION,
@@ -238,6 +239,10 @@ public class AmbulanceFragment extends Fragment {
             activityResultLauncher =
                     registerForActivityResult(new ActivityResultContracts.RequestMultiplePermissions(),
                         isGrantedMap -> {
+
+                            Log.i(TAG, "Permissions results:");
+                            Log.i(TAG, isGrantedMap.toString());
+
                             // check all permissions
                             boolean granted = true;
                             for (String permission: this.permissions) {
@@ -257,6 +262,8 @@ public class AmbulanceFragment extends Fragment {
                     new ArrayAdapter<>(AmbulanceFragment.this.requireContext(),
                             android.R.layout.simple_spinner_dropdown_item, ambulanceList);
             ambulanceListAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+
+            this.promptIfNotGranted = true;
         }
 
         private void action(boolean granted) {
@@ -272,7 +279,11 @@ public class AmbulanceFragment extends Fragment {
 
                     // create permission helper
                     RequestPermissionHelper requestPermissionHelper = new RequestPermissionHelper(
-                            requireContext(), requireActivity(), this.permissions,
+                            requireContext(), requireActivity(), this.permissions);
+
+                    // fire request, permissions will be denied and processed by user
+                    this.promptIfNotGranted = false;
+                    requestPermissionHelper.checkAndRequest(activityResultLauncher,
                             getString(R.string.locationPermissionMessageVersionRMessage2)
                                     + "\n\n" +
                                     getString(R.string.locationPermissionSettingsMessage,
@@ -281,16 +292,12 @@ public class AmbulanceFragment extends Fragment {
                                     getString(R.string.locationPermissionMessage)
                     );
 
-                    // fire request, permissions will be denied and processed by user
-                    requestPermissionHelper.checkAndRequest(activityResultLauncher,
-                            getString(R.string.permission_rationale));
-
                 } else {
                     Log.i(TAG, "Check settings");
                     checkLocationSettings();
                 }
 
-            } else {
+            } else if (this.promptIfNotGranted) {
                 Log.i(TAG, "Permissions have not been granted, will launch prompt.");
                 // Notify the user via a SnackBar that they have rejected a core permission for the
                 // app, which makes the Activity useless.
@@ -304,10 +311,13 @@ public class AmbulanceFragment extends Fragment {
                         getString(R.string.versionRPermissionOption, requireContext().getPackageManager().getBackgroundPermissionOptionLabel()) :
                         "";
 
+                // dismiss first, then go to settings
+                // Build intent that displays the App settings screen.
+                // intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 new AlertDialog.Builder(requireActivity())
                         .setTitle(R.string.needPermissions)
                         .setMessage(getString(R.string.locationPermissionMessage) + "\n\n" + getString(R.string.locationPermissionSettingsMessage, message))
-                        .setPositiveButton( android.R.string.ok,
+                        .setPositiveButton(android.R.string.ok,
                                 (dialog, which) -> {
 
                                     // Build intent that displays the App settings screen.
@@ -318,8 +328,8 @@ public class AmbulanceFragment extends Fragment {
                                     // intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                                     startActivity(intent);
 
-                                } )
-                        .setNegativeButton( android.R.string.cancel,
+                                })
+                        .setNegativeButton(android.R.string.cancel,
                                 (dialog, which) -> new AlertSnackbar(requireActivity())
                                         .alert(getString(R.string.expectLimitedFuncionality)))
                         .create()
@@ -411,11 +421,11 @@ public class AmbulanceFragment extends Fragment {
 
                 // create permission helper
                 RequestPermissionHelper requestPermissionHelper = new RequestPermissionHelper(requireContext(),
-                        requireActivity(), this.permissions, message);
+                        requireActivity(), this.permissions);
 
                 // fire request
-                if ( requestPermissionHelper.checkAndRequest(activityResultLauncher,
-                        getString(R.string.permission_rationale)) ) {
+                this.promptIfNotGranted = true;
+                if ( requestPermissionHelper.checkAndRequest(activityResultLauncher, message) ) {
                     Log.i(TAG, "Permissions granted but not checked; checking location settings");
                     checkLocationSettings();
                 } else {
@@ -761,9 +771,6 @@ public class AmbulanceFragment extends Fragment {
         // Update ambulance
         Ambulance ambulance = appData.getAmbulance();
         updateAmbulance(ambulance);
-//        if (ambulance == null) {
-//            callLayout.setVisibility(View.GONE);
-//        }
 
         // Is there a current call?
         currentCallId = -1;

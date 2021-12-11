@@ -20,13 +20,11 @@ public class RequestPermissionHelper {
     private final Context context;
     private final String[] permissions;
     private final Activity activity;
-    private final String rationaleMessage;
 
-    public RequestPermissionHelper(Context context, Activity activity, String[] permissions, String rationaleMessage) {
+    public RequestPermissionHelper(Context context, Activity activity, String[] permissions) {
         this.context = context;
         this.activity = activity;
         this.permissions = permissions;
-        this.rationaleMessage = rationaleMessage;
     }
 
     public static boolean checkPermissions(Context context, String[] permissions) {
@@ -69,7 +67,7 @@ public class RequestPermissionHelper {
 
             new AlertDialog.Builder(this.activity)
                     .setTitle(R.string.needPermissions)
-                    .setMessage(this.rationaleMessage)
+                    .setMessage(rationale)
                     .setPositiveButton( android.R.string.ok,
                             (dialog, which) -> launcher.launch(this.permissions)
                     )

@@ -1910,7 +1910,6 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
     }
 
-
     public void subscribeToError(final String username) throws MqttException {
 
         MqttProfileClient profileClient = getProfileClient(AmbulanceForegroundService.this);
