@@ -298,11 +298,17 @@
     <string name="EDIT">EDIT</string>
     <string name="editEquipment">Edit equipment</string>
     <string name="equipmentNotAvailable">List of equipment is only available if ambulance is selected</string>
-    <string name="noAmbulanceMessage">Select ambulance to start tracking the vehicle location and receiving calls.\\nThis feature requires access to precise background location.</string>
+    <string name="noAmbulanceMessage">Select ambulance to start tracking this device\'s location and being able to receive call alerts.\n\nThis feature requires access to precise background location.</string>
     <string name="release">Release</string>
     <string name="releaseAmbulance">Release ambulance</string>
     <string name="confirmAmbulanceReleaseMessage">Are you sure that you want to release the current ambulance?</string>
     <string name="couldNotReleaseAmbulance">Could not release ambulance</string>
+    <string name="versionRPermissionOption">" by selecting the \'(%1$s)\' option"</string>
+    <string name="locationPermissionMessage">Access to this device\'s precise location is necessary to enable vehicle tracking and call dispatching.\n\nIt is also necessary to access the device\'s location in the background for the application to be able to receive calls."</string>
+    <string name="locationPermissionMessageVersionRMessage1">You will be required to enable locations twice in this process, one time to enable foreground location, and a second time to enable background location in the application\'s settings page."</string>
+    <string name="locationPermissionMessageVersionRMessage2">Congratulations, your foreground location has been successfully enabled!"</string>
+    <string name="locationPermissionSettingsMessage">After clicking \'OK\' you will be taken to the application\'s settings page where you can enable background location for this device%1$s in the \'Permissions\' settings.</string>
+    <string name="needPermissions">Need permissions</string>
     <string-array name="spinner_list_item_array_server">
         <item>@string/server_select</item>
         <item>Tijuana Red Cross:tijuana.emstrack.org:8883</item>

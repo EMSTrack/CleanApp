@@ -1,33 +1,18 @@
 package org.emstrack.ambulance;
 
-import android.Manifest;
-import android.app.Activity;
 import android.content.Intent;
-import android.content.IntentSender;
 import android.content.SharedPreferences;
-import android.content.pm.PackageManager;
-import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
-import android.provider.Settings;
-import androidx.annotation.NonNull;
-import androidx.core.app.ActivityCompat;
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
-import androidx.appcompat.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.android.gms.common.api.ApiException;
-import com.google.android.gms.common.api.ResolvableApiException;
-import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.location.LocationSettingsStatusCodes;
-import com.google.android.gms.location.SettingsClient;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import org.emstrack.ambulance.dialogs.AlertDialog;
 import org.emstrack.ambulance.dialogs.AlertSnackbar;
@@ -46,9 +31,6 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     private static final String TAG = LoginActivity.class.getSimpleName();
 
     public static final String LOGOUT = "org.emstrack.ambulance.LoginActivity.LOGOUT";
-
-    private static final int REQUEST_PERMISSIONS_REQUEST_CODE = 34;
-    private static final int REQUEST_CHECK_SETTINGS = 0x1;
 
     private SharedPreferences sharedPreferences;
     private Button loginSubmitButton;
@@ -104,14 +86,6 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         // Submit button
         loginSubmitButton = findViewById(R.id.buttonLogin);
 
-        // allow keyboard to disappear on screen click
-        findViewById(R.id.relativeLayout).setOnTouchListener(
-                (v, event) -> {
-                    InputMethodManager imm = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
-                    imm.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), 0);
-                    return true;
-                });
-
     }
 
     @Override
@@ -120,43 +94,8 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
         Log.d(TAG, "onResume");
 
-        // Disable login
-        disableLogin();
-
-        // Can updateAmbulance?
-        if (AmbulanceForegroundService.canUpdateLocation()) {
-
-            // Enable login
-            enableLogin();
-
-            // Check and request permissions to retrieve locations if necessary
-        } else if (checkPermissions(Manifest.permission.ACCESS_FINE_LOCATION) &&
-                (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q || checkPermissions(Manifest.permission.ACCESS_BACKGROUND_LOCATION))) {
-
-            // Otherwise check
-            checkLocationSettings();
-
-        } else {
-
-            // requestPermissions call_current checkLocationSettings if successful
-            requestPermissions();
-
-        }
-
-    }
-
-    public void disableLogin() {
-
-        // Disable login
-        loginSubmitButton.setOnClickListener(
-                v -> {
-
-                    // Toast to warn about check permissions
-                    Toast.makeText(LoginActivity.this,
-                            R.string.checkingResources,
-                            Toast.LENGTH_LONG).show();
-
-                });
+        // enable login
+        enableLogin();
 
     }
 
@@ -239,22 +178,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
                         @Override
                         public void onSuccess(Bundle extras) {
-
-                            if (AmbulanceForegroundService.canUpdateLocation()) {
-
-                                // Toast to warn about check permissions
-                                Toast.makeText(LoginActivity.this,
-                                        R.string.permissionsSatisfied,
-                                        Toast.LENGTH_SHORT).show();
-
-                            } else {
-
-                                // Alert to warn about check permissions
-                                new AlertSnackbar(LoginActivity.this)
-                                        .alert(getString(R.string.expectLimitedFuncionality));
-
-                            }
-
+                            Log.i(TAG, "Successfully started service");
                         }
 
                     }
@@ -467,240 +391,6 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
         }
 
-    }
-
-    /**
-     * Return the current state of the permissions needed.
-     */
-    private boolean checkPermissions(String permission) {
-        return ActivityCompat.checkSelfPermission(this, permission) == PackageManager.PERMISSION_GRANTED;
-    }
-
-    /**
-     * build required permission arrays
-     */
-    private void doRequestPermissions() {
-
-        // Request permissions
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            ActivityCompat.requestPermissions(LoginActivity.this,
-                    new String[]{
-                            Manifest.permission.ACCESS_COARSE_LOCATION,
-                            Manifest.permission.ACCESS_FINE_LOCATION,
-                            Manifest.permission.ACCESS_BACKGROUND_LOCATION
-                    },
-                    REQUEST_PERMISSIONS_REQUEST_CODE);
-        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            ActivityCompat.requestPermissions(LoginActivity.this,
-                    new String[]{
-                            Manifest.permission.ACCESS_FINE_LOCATION,
-                            Manifest.permission.ACCESS_BACKGROUND_LOCATION
-                    },
-                    REQUEST_PERMISSIONS_REQUEST_CODE);
-        } else {
-            ActivityCompat.requestPermissions(LoginActivity.this,
-                    new String[]{
-                            Manifest.permission.ACCESS_FINE_LOCATION
-                    },
-                    REQUEST_PERMISSIONS_REQUEST_CODE);
-        }
-
-    }
-
-    /**
-     * Request permission to access fine location
-     */
-    private void requestPermissions() {
-
-        boolean shouldProvideRationale;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            shouldProvideRationale = ActivityCompat.shouldShowRequestPermissionRationale(this,
-                    Manifest.permission.ACCESS_COARSE_LOCATION) ||
-                    ActivityCompat.shouldShowRequestPermissionRationale(this,
-                            Manifest.permission.ACCESS_FINE_LOCATION) ||
-                    ActivityCompat.shouldShowRequestPermissionRationale(this,
-                            Manifest.permission.ACCESS_BACKGROUND_LOCATION);
-        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            shouldProvideRationale = ActivityCompat.shouldShowRequestPermissionRationale(this,
-                    Manifest.permission.ACCESS_FINE_LOCATION) ||
-                    ActivityCompat.shouldShowRequestPermissionRationale(this,
-                            Manifest.permission.ACCESS_BACKGROUND_LOCATION);
-        } else {
-            shouldProvideRationale =
-                    ActivityCompat.shouldShowRequestPermissionRationale(this,
-                            Manifest.permission.ACCESS_FINE_LOCATION);
-        }
-
-        // Provide an additional rationale to the user. This would happen if the user denied the
-        // request previously, but didn't check the "Don't ask again" checkbox.
-        if (shouldProvideRationale) {
-            Log.i(TAG, "Displaying permission rationale to provide additional context.");
-
-            new AlertSnackbar(this)
-                    .alert(getString(R.string.permission_rationale),
-                            view -> this.doRequestPermissions() );
-
-        } else {
-            Log.i(TAG, "Requesting permission");
-            // Request permission. It's possible this can be auto answered if device policy
-            // sets the permission in a given state or the user denied the permission
-            // previously and checked "Never ask again".
-            this.doRequestPermissions();
-        }
-    }
-
-    /**
-     * APICallback received when a permissions request has been completed.
-     */
-    @Override
-    public void onRequestPermissionsResult(int requestCode,
-                                           @NonNull String[] permissions,
-                                           @NonNull int[] grantResults) {
-        // call super
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-
-        Log.i(TAG, "onRequestPermissionResult");
-        if (requestCode == REQUEST_PERMISSIONS_REQUEST_CODE) {
-            if (grantResults.length <= 0) {
-
-                // If user interaction was interrupted,
-                // the permission request is cancelled and you
-                // receive empty arrays.
-                Log.i(TAG, "User interaction was cancelled.");
-
-            } else {
-                boolean foreground = false, background = false;
-                for (int i = 0; i < permissions.length; i++) {
-
-                    if (permissions[i].equalsIgnoreCase(Manifest.permission.ACCESS_FINE_LOCATION)) {
-                        // foreground permission
-                        if (grantResults[i] == PackageManager.PERMISSION_GRANTED) {
-                            foreground = true;
-                            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
-                                background = true;
-                            }
-                            Toast.makeText(getApplicationContext(), "Foreground location permission granted", Toast.LENGTH_SHORT).show();
-                            continue;
-                        } else {
-                            Toast.makeText(getApplicationContext(), "Location Permission denied", Toast.LENGTH_SHORT).show();
-                            break;
-                        }
-                    }
-
-                    if (permissions[i].equalsIgnoreCase(Manifest.permission.ACCESS_BACKGROUND_LOCATION)) {
-                        if (grantResults[i] == PackageManager.PERMISSION_GRANTED) {
-                            background = true;
-                            Toast.makeText(getApplicationContext(), "Background location permission granted", Toast.LENGTH_SHORT).show();
-                        } else {
-                            Toast.makeText(getApplicationContext(), "Background location permission denied", Toast.LENGTH_SHORT).show();
-                        }
-
-                    }
-
-                }
-
-                if (foreground && background) {
-
-                    // Permission granted
-                    Log.i(TAG, "Permission granted");
-
-                    // Will check location settings
-                    checkLocationSettings();
-
-                } else {
-                    // Permission denied.
-
-                    // Notify the user via a SnackBar that they have rejected a core permission for the
-                    // app, which makes the Activity useless.
-
-                    // Additionally, it is important to remember that a permission might have been
-                    // rejected without asking the user for permission (device policy or "Never ask
-                    // again" prompts). Therefore, a user interface affordance is typically implemented
-                    // when permissions are denied. Otherwise, your app could appear unresponsive to
-                    // touches or interactions which have required permissions.
-                    new AlertSnackbar(this)
-                            .alert(getString(R.string.permission_denied_explanation),
-                                    view -> {
-                                        // Build intent that displays the App settings screen.
-                                        Intent intent = new Intent();
-                                        intent.setAction(
-                                                Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
-                                        Uri uri = Uri.fromParts("package",
-                                                BuildConfig.APPLICATION_ID, null);
-                                        intent.setData(uri);
-                                        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                                        startActivity(intent);
-                                    });
-                }
-            }
-        }
-    }
-
-    public void checkLocationSettings() {
-
-        // Build settings client
-        SettingsClient settingsClient = LocationServices.getSettingsClient(this);
-
-        // Check if the device has the necessary location settings.
-        settingsClient.checkLocationSettings(AmbulanceForegroundService.getLocationSettingsRequest())
-                .addOnSuccessListener(this,
-                        locationSettingsResponse -> {
-                            Log.i(TAG, "All location settings are satisfied.");
-
-                            // enable location updates
-                            AmbulanceForegroundService.setCanUpdateLocation(true);
-
-                            // enable login
-                            enableLogin();
-
-                        })
-                .addOnFailureListener(this,
-                        e -> {
-                            int statusCode = ((ApiException) e).getStatusCode();
-                            switch (statusCode) {
-                                case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
-                                    Log.i(TAG, "Location settings are not satisfied. Attempting to upgrade " +
-                                            "location settings ");
-                                    try {
-                                        // Show the dialog by calling startResolutionForResult(), and check the
-                                        // result in onActivityResult().
-                                        ResolvableApiException rae = (ResolvableApiException) e;
-                                        rae.startResolutionForResult(LoginActivity.this, REQUEST_CHECK_SETTINGS);
-                                    } catch (IntentSender.SendIntentException sie) {
-                                        Log.i(TAG, "PendingIntent unable to execute request.");
-                                    }
-                                    break;
-                                case LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:
-                                    new AlertSnackbar(LoginActivity.this)
-                                            .alert(getString(R.string.settingsAreInadequate));
-
-                                    // disable location updates
-                                    AmbulanceForegroundService.setCanUpdateLocation(false);
-
-                                    // enable login
-                                    enableLogin();
-
-                            }
-
-                        });
-
-    }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-
-        // Check for the integer request code originally supplied to startResolutionForResult().
-        if (requestCode == REQUEST_CHECK_SETTINGS) {
-            switch (resultCode) {
-                case Activity.RESULT_OK:
-                    Log.i(TAG, "User agreed to make required location settings changes.");
-                    break;
-                case Activity.RESULT_CANCELED:
-                    Log.i(TAG, "User chose not to make required location settings changes.");
-                    break;
-            }
-        }
     }
 
     /**

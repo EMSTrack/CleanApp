@@ -1,11 +1,16 @@
 package org.emstrack.ambulance.fragments;
 
+import android.Manifest;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.fragment.app.Fragment;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.appcompat.app.AlertDialog;
@@ -24,11 +29,13 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.emstrack.ambulance.BuildConfig;
 import org.emstrack.ambulance.MainActivity;
 import org.emstrack.ambulance.R;
 import org.emstrack.ambulance.dialogs.AlertSnackbar;
 import org.emstrack.ambulance.models.AmbulanceAppData;
 import org.emstrack.ambulance.services.AmbulanceForegroundService;
+import org.emstrack.ambulance.util.RequestPermissionHelper;
 import org.emstrack.models.Ambulance;
 import org.emstrack.models.AmbulanceCall;
 import org.emstrack.models.AmbulancePermission;
@@ -48,9 +55,9 @@ import org.emstrack.models.util.OnServiceComplete;
 import java.net.URLEncoder;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 public class AmbulanceFragment extends Fragment {
 
@@ -130,71 +137,199 @@ public class AmbulanceFragment extends Fragment {
                 CallStack calls = appData.getCalls();
 
                 final String action = intent.getAction();
-                switch (action) {
-                    case AmbulanceForegroundService.BroadcastActions.AMBULANCE_UPDATE:
+                if (action != null) {
+                    switch (action) {
+                        case AmbulanceForegroundService.BroadcastActions.AMBULANCE_UPDATE:
 
-                        Log.i(TAG, "AMBULANCE_UPDATE");
-                        updateAmbulance(appData.getAmbulance());
+                            Log.i(TAG, "AMBULANCE_UPDATE");
+                            updateAmbulance(appData.getAmbulance());
 
-                        break;
-                    case AmbulanceForegroundService.BroadcastActions.CALL_UPDATE:
+                            break;
+                        case AmbulanceForegroundService.BroadcastActions.CALL_UPDATE:
 
-                        Log.i(TAG, "CALL_UPDATE");
-                        if (currentCallId > 0)
+                            Log.i(TAG, "CALL_UPDATE");
+                            if (currentCallId > 0)
+                                updateCall(appData.getAmbulance(), calls.getCurrentCall());
+
+                            break;
+                        case AmbulanceForegroundService.BroadcastActions.CALL_ACCEPTED: {
+
+                            Log.i(TAG, "CALL_ACCEPTED");
+
+                            // Toast to warn user
+                            Toast.makeText(getContext(), R.string.CallStarted, Toast.LENGTH_LONG).show();
+
+                            int callId = intent.getIntExtra(AmbulanceForegroundService.BroadcastExtras.CALL_ID, -1);
+                            currentCallId = -1;
                             updateCall(appData.getAmbulance(), calls.getCurrentCall());
 
-                        break;
-                    case AmbulanceForegroundService.BroadcastActions.CALL_ACCEPTED: {
+                            break;
+                        }
+                        case AmbulanceForegroundService.BroadcastActions.CALL_COMPLETED: {
 
-                        Log.i(TAG, "CALL_ACCEPTED");
+                            Log.i(TAG, "CALL_COMPLETED");
 
-                        // Toast to warn user
-                        Toast.makeText(getContext(), R.string.CallStarted, Toast.LENGTH_LONG).show();
+                            // Toast to warn user
+                            Toast.makeText(getContext(), R.string.CallFinished, Toast.LENGTH_LONG).show();
 
-                        int callId = intent.getIntExtra(AmbulanceForegroundService.BroadcastExtras.CALL_ID, -1);
-                        currentCallId = -1;
-                        updateCall(appData.getAmbulance(), calls.getCurrentCall());
+                            int callId = intent.getIntExtra(AmbulanceForegroundService.BroadcastExtras.CALL_ID, -1);
+                            Ambulance ambulance = appData.getAmbulance();
+                            if (currentCallId == callId)
+                                updateCall(ambulance, null);
+                            else
+                                /* makes sure that requested and suspended get updated */
+                                updateAmbulance(ambulance);
 
-                        break;
+                            break;
+                        }
+                        default: {
+                            Log.i(TAG, "Unknown broadcast action");
+                        }
                     }
-                    case AmbulanceForegroundService.BroadcastActions.CALL_COMPLETED: {
-
-                        Log.i(TAG, "CALL_COMPLETED");
-
-                        // Toast to warn user
-                        Toast.makeText(getContext(), R.string.CallFinished, Toast.LENGTH_LONG).show();
-
-                        int callId = intent.getIntExtra(AmbulanceForegroundService.BroadcastExtras.CALL_ID, -1);
-                        Ambulance ambulance = appData.getAmbulance();
-                        if (currentCallId == callId)
-                            updateCall(ambulance, null);
-                        else
-                            /* makes sure that requested and suspended get updated */
-                            updateAmbulance(ambulance);
-
-                        break;
-                    }
+                } else {
+                    Log.i(TAG, "Action is null");
                 }
 
             }
         }
     }
 
-    private class AmbulanceSelectionButtonClickListener implements View.OnClickListener {
+    private class CheckPermissionsClickListener implements View.OnClickListener {
 
-        ArrayAdapter<String> ambulanceListAdapter;
+        private final ActivityResultLauncher<String[]> activityResultLauncher;
+        private String[] permissions;
+        private final ArrayAdapter<String> ambulanceListAdapter;
 
-        public AmbulanceSelectionButtonClickListener() {
+        public CheckPermissionsClickListener() {
+            // Build permissions
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                Log.i(TAG, "Permissions version >= R");
+                if (RequestPermissionHelper.checkPermissions(requireContext(), new String[] {Manifest.permission.ACCESS_COARSE_LOCATION})
+                        || RequestPermissionHelper.checkPermissions(requireContext(), new String[] {Manifest.permission.ACCESS_FINE_LOCATION})) {
+                    // has coarse or fine location, ask for all
+                    Log.i(TAG, "Will ask for BACKGROUND LOCATION");
+                    this.permissions = new String[]{
+                            Manifest.permission.ACCESS_COARSE_LOCATION,
+                            Manifest.permission.ACCESS_FINE_LOCATION,
+                            Manifest.permission.ACCESS_BACKGROUND_LOCATION
+                    };
+                } else {
+                    Log.i(TAG, "Will ask for FOREGROUND LOCATION");
+                    // does not have foreground location, start with foreground first
+                    this.permissions = new String[]{
+                            Manifest.permission.ACCESS_COARSE_LOCATION,
+                            Manifest.permission.ACCESS_FINE_LOCATION
+                    };
+                }
+            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                Log.i(TAG, "Permissions version >= Q");
+                this.permissions = new String[]{
+                        Manifest.permission.ACCESS_FINE_LOCATION,
+                        Manifest.permission.ACCESS_BACKGROUND_LOCATION
+                };
+            } else {
+                Log.i(TAG, "Permissions version < Q");
+                this.permissions = new String[]{
+                        Manifest.permission.ACCESS_FINE_LOCATION
+                };
+            }
 
-            // Create the adapter
+            // register laucher
+            activityResultLauncher =
+                    registerForActivityResult(new ActivityResultContracts.RequestMultiplePermissions(),
+                        isGrantedMap -> {
+                            // check all permissions
+                            boolean granted = true;
+                            for (String permission: this.permissions) {
+                                //noinspection ConstantConditions
+                                if (isGrantedMap.containsKey(permission) && isGrantedMap.get(permission)) {
+                                    continue;
+                                }
+                                granted = false;
+                                break;
+                            }
+                            this.action(granted);
+                        }
+                );
+
+            // Create the ambulance list adapter
             this.ambulanceListAdapter =
                     new ArrayAdapter<>(AmbulanceFragment.this.requireContext(),
                             android.R.layout.simple_spinner_dropdown_item, ambulanceList);
             ambulanceListAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         }
 
-        @Override
-        public void onClick(View v) {
+        private void action(boolean granted) {
+            if (granted) {
+                Log.i(TAG, "Permissions granted");
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && !Arrays.asList(this.permissions).contains(Manifest.permission.ACCESS_BACKGROUND_LOCATION)) {
+                    Log.i(TAG, "Permissions version >= R, need to ask for BACKGROUND LOCATION");
+                    this.permissions = new String[]{
+                            Manifest.permission.ACCESS_COARSE_LOCATION,
+                            Manifest.permission.ACCESS_FINE_LOCATION,
+                            Manifest.permission.ACCESS_BACKGROUND_LOCATION
+                    };
+
+                    // create permission helper
+                    RequestPermissionHelper requestPermissionHelper = new RequestPermissionHelper(
+                            requireContext(), requireActivity(), this.permissions,
+                            getString(R.string.locationPermissionMessageVersionRMessage2)
+                                    + "\n\n" +
+                                    getString(R.string.locationPermissionSettingsMessage,
+                                            getString(R.string.versionRPermissionOption, requireContext().getPackageManager().getBackgroundPermissionOptionLabel()))
+                                    + "\n\n" +
+                                    getString(R.string.locationPermissionMessage)
+                    );
+
+                    // fire request, permissions will be denied and processed by user
+                    requestPermissionHelper.checkAndRequest(activityResultLauncher,
+                            getString(R.string.permission_rationale));
+
+                } else {
+                    Log.i(TAG, "Check settings");
+                    checkLocationSettings();
+                }
+
+            } else {
+                Log.i(TAG, "Permissions have not been granted, will launch prompt.");
+                // Notify the user via a SnackBar that they have rejected a core permission for the
+                // app, which makes the Activity useless.
+
+                // Additionally, it is important to remember that a permission might have been
+                // rejected without asking the user for permission (device policy or "Never ask
+                // again" prompts). Therefore, a user interface affordance is typically implemented
+                // when permissions are denied. Otherwise, your app could appear unresponsive to
+                // touches or interactions which have required permissions.
+                final String message = android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R ?
+                        getString(R.string.versionRPermissionOption, requireContext().getPackageManager().getBackgroundPermissionOptionLabel()) :
+                        "";
+
+                new AlertDialog.Builder(requireActivity())
+                        .setTitle(R.string.needPermissions)
+                        .setMessage(getString(R.string.locationPermissionMessage) + "\n\n" + getString(R.string.locationPermissionSettingsMessage, message))
+                        .setPositiveButton( android.R.string.ok,
+                                (dialog, which) -> {
+
+                                    // Build intent that displays the App settings screen.
+                                    Intent intent = new Intent();
+                                    intent.setAction(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+                                    Uri uri = Uri.fromParts("package", BuildConfig.APPLICATION_ID, null);
+                                    intent.setData(uri);
+                                    // intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                                    startActivity(intent);
+
+                                } )
+                        .setNegativeButton( android.R.string.cancel,
+                                (dialog, which) -> new AlertSnackbar(requireActivity())
+                                        .alert(getString(R.string.expectLimitedFuncionality)))
+                        .create()
+                        .show();
+
+            }
+        }
+
+        private void selectAmbulance() {
+            Log.i(TAG, "Location settings satisfied, select ambulance");
 
             new AlertDialog.Builder(requireActivity())
                     .setTitle(R.string.selectAmbulance)
@@ -239,8 +374,57 @@ public class AmbulanceFragment extends Fragment {
                     .create()
                     .show();
         }
-    }
 
+        private void checkLocationSettings() {
+            // check location settings
+            Intent intent = new Intent(getActivity(), AmbulanceForegroundService.class);
+            intent.setAction(AmbulanceForegroundService.Actions.CHECK_LOCATION_SETTINGS);
+
+            new OnServiceComplete(getActivity(),
+                    BroadcastActions.SUCCESS,
+                    BroadcastActions.FAILURE,
+                    intent) {
+
+                @Override
+                public void onSuccess(Bundle extras) {
+                    selectAmbulance();
+                }
+
+            }
+                    .setFailureMessage(getString(R.string.expectLimitedFuncionality))
+                    .setAlert(new AlertSnackbar(requireActivity()))
+                    .start();
+        }
+
+        @Override
+        public void onClick(View view) {
+            Log.i(TAG, "Clicked on select ambulances.");
+
+            if (AmbulanceForegroundService.canUpdateLocation()) {
+                selectAmbulance();
+            } else {
+                Log.i(TAG, "Location settings not satisfied, checking for permission");
+
+                String message = Build.VERSION.SDK_INT >= Build.VERSION_CODES.R ?
+                        getString(R.string.locationPermissionMessage) + "\n\n" + getString(R.string.locationPermissionMessageVersionRMessage1) :
+                        getString(R.string.locationPermissionMessage);
+
+                // create permission helper
+                RequestPermissionHelper requestPermissionHelper = new RequestPermissionHelper(requireContext(),
+                        requireActivity(), this.permissions, message);
+
+                // fire request
+                if ( requestPermissionHelper.checkAndRequest(activityResultLauncher,
+                        getString(R.string.permission_rationale)) ) {
+                    Log.i(TAG, "Permissions granted but not checked; checking location settings");
+                    checkLocationSettings();
+                } else {
+                    Log.i(TAG, "Permissions denied, interacting with user.");
+                }
+            }
+        }
+
+    }
 
     public class StatusButtonClickListener implements View.OnClickListener {
 
@@ -502,7 +686,7 @@ public class AmbulanceFragment extends Fragment {
             ambulanceList.add(ambulancePermission.getAmbulanceIdentifier());
 
         // Set the ambulance button's adapter
-        ambulanceSelectionButton.setOnClickListener(new AmbulanceSelectionButtonClickListener());
+        ambulanceSelectionButton.setOnClickListener(new CheckPermissionsClickListener());
 
         // setup callNextWaypointLayout
         callNextWaypointLayout = callLayout.findViewById(R.id.callNextWaypointLayout);
@@ -676,14 +860,14 @@ public class AmbulanceFragment extends Fragment {
                 callEndButton.setOnClickListener(
                         v -> {
                             // Prompt end of call
-                            ((MainActivity) getActivity()).promptEndCallDialog(call.getId());
+                            ((MainActivity) requireActivity()).promptEndCallDialog(call.getId());
                         }
                 );
 
                 callAddWaypointButton.setOnClickListener(
                         v -> {
                             // Prompt add new waypoint
-                            ((MainActivity) getActivity()).promptNextWaypointDialog(call.getId());
+                            ((MainActivity) requireActivity()).promptNextWaypointDialog(call.getId());
                         }
                 );
 
@@ -711,11 +895,11 @@ public class AmbulanceFragment extends Fragment {
             // set priority
             callPriorityTextView.setText(call.getPriority());
             callPriorityTextView.setBackgroundColor(
-                    ((MainActivity) getActivity())
+                    ((MainActivity) requireActivity())
                             .getCallPriorityBackgroundColors()
                             .get(call.getPriority()));
             callPriorityTextView.setTextColor(
-                    ((MainActivity) getActivity())
+                    ((MainActivity) requireActivity())
                             .getCallPriorityForegroundColors()
                             .get(call.getPriority()));
 
@@ -725,8 +909,8 @@ public class AmbulanceFragment extends Fragment {
                 callPrioritySuffixTextView.setText("");
             } else {
                 PriorityCode priorityCode = appData.getPriorityCodes().get(priorityCodeInt);
-                callPriorityPrefixTextView.setText(priorityCode.getPrefix() + "-");
-                callPrioritySuffixTextView.setText("-" + priorityCode.getSuffix());
+                callPriorityPrefixTextView.setText(String.format("%d-", priorityCode.getPrefix()));
+                callPrioritySuffixTextView.setText(String.format("-%s", priorityCode.getSuffix()));
             }
 
             //set call notes
@@ -749,7 +933,7 @@ public class AmbulanceFragment extends Fragment {
                 callRadioCodeTextView.setText(R.string.unavailable);
             } else {
                 RadioCode radioCode = appData.getRadioCodes().get(radioCodeInt);
-                callRadioCodeTextView.setText(radioCode.getId() + ": " + radioCode.getLabel());
+                callRadioCodeTextView.setText(String.format("%d: %s", radioCode.getId(), radioCode.getLabel()));
             }
 
             // set details
@@ -758,16 +942,16 @@ public class AmbulanceFragment extends Fragment {
             // patients
             List<Patient> patients = call.getPatientSet();
             if (patients != null && patients.size() > 0) {
-                String text = "";
+                StringBuilder text = new StringBuilder();
                 for (Patient patient : patients) {
-                    if (!text.isEmpty())
-                        text += ", ";
-                    text += patient.getName();
+                    if (text.length() > 0)
+                        text.append(", ");
+                    text.append(patient.getName());
                     if (patient.getAge() != null)
-                        text += " (" + patient.getAge() + ")";
+                        text.append(" (").append(patient.getAge()).append(")");
                 }
 
-                callPatientsTextView.setText(text);
+                callPatientsTextView.setText(text.toString());
             } else
                 callPatientsTextView.setText(R.string.noPatientAvailable);
 
@@ -812,11 +996,10 @@ public class AmbulanceFragment extends Fragment {
                     toMapsButton.setOnClickListener(v -> {
 
                         //checks if google maps or any other map app is installed
-                        if ( mapIntent.resolveActivity(getActivity().getPackageManager()) != null) {
+                        if ( mapIntent.resolveActivity(requireActivity().getPackageManager()) != null) {
 
                             // Alert before opening in google maps
-                            new AlertDialog.Builder(
-                                    getActivity())
+                            new AlertDialog.Builder(requireActivity())
                                     .setTitle(getString(R.string.directions))
                                     .setMessage(R.string.wouldYouLikeToGoogleMaps)
                                     .setPositiveButton( android.R.string.ok,
@@ -853,7 +1036,7 @@ public class AmbulanceFragment extends Fragment {
                     visitingWaypointText = getString(R.string.markAsVisiting);
                     callVisitingWaypointButton.setBackgroundColor(getResources().getColor(R.color.bootstrapWarning));
                     callVisitingWaypointButton.setTextColor(getResources().getColor(R.color.bootstrapDark));
-                } else { // if (waypoint.isVisting())
+                } else { // if (waypoint.isVisiting())
                     // visitingWaypointText += Waypoint.statusLabel.get(Waypoint.STATUS_VISITED);
                     visitingWaypointText = getString(R.string.markAsVisited);
                     callVisitingWaypointButton.setBackgroundColor(getResources().getColor(R.color.bootstrapInfo));
@@ -1043,7 +1226,7 @@ public class AmbulanceFragment extends Fragment {
             }
 
             // Create the spinner adapter
-            ArrayAdapter<String> pendingCallListAdapter = new ArrayAdapter<>(getContext(),
+            ArrayAdapter<String> pendingCallListAdapter = new ArrayAdapter<>(requireContext(),
                     android.R.layout.simple_spinner_dropdown_item, pendingCallList);
             pendingCallListAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 
@@ -1064,7 +1247,7 @@ public class AmbulanceFragment extends Fragment {
 
                         // prompt user
                         Log.d(TAG,"Will prompt user to accept call");
-                        ((MainActivity) getActivity()).promptCallAccept(call.getId());
+                        ((MainActivity) requireActivity()).promptCallAccept(call.getId());
 
                     });
 
@@ -1143,7 +1326,7 @@ public class AmbulanceFragment extends Fragment {
 
         try {
 
-            if (!((MainActivity) getActivity()).canWrite()) {
+            if (!((MainActivity) requireActivity()).canWrite()) {
 
                 // Toast to warn user
                 Toast.makeText(getContext(),
@@ -1185,7 +1368,7 @@ public class AmbulanceFragment extends Fragment {
             bundle.putInt(AmbulanceForegroundService.BroadcastExtras.AMBULANCE_ID, ambulance.getId());
             bundle.putString(AmbulanceForegroundService.BroadcastExtras.AMBULANCE_STATUS, statusCode);
             intent.putExtras(bundle);
-            getActivity().startService(intent);
+            requireActivity().startService(intent);
 
         } catch (Exception e) {
 
@@ -1202,7 +1385,7 @@ public class AmbulanceFragment extends Fragment {
         Log.d(TAG, "Creating promptSkipVisitingOrVisited dialog");
 
         // Use the Builder class for convenient dialog construction
-        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+        AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
         builder.setTitle(title)
                 .setMessage(message)
                 .setNegativeButton(R.string.no,
@@ -1215,9 +1398,9 @@ public class AmbulanceFragment extends Fragment {
                             Toast.makeText(getContext(), doneMessage, Toast.LENGTH_SHORT).show();
 
                             String action;
-                            if (status == Waypoint.STATUS_SKIPPED)
+                            if (status.equals(Waypoint.STATUS_SKIPPED))
                                 action = AmbulanceForegroundService.Actions.WAYPOINT_SKIP;
-                            else if (status == Waypoint.STATUS_VISITING)
+                            else if (status.equals(Waypoint.STATUS_VISITING))
                                 action = AmbulanceForegroundService.Actions.WAYPOINT_ENTER;
                             else // if (status == Waypoint.STATUS_VISITED)
                                 action = AmbulanceForegroundService.Actions.WAYPOINT_EXIT;
@@ -1231,7 +1414,7 @@ public class AmbulanceFragment extends Fragment {
                             bundle.putInt(AmbulanceForegroundService.BroadcastExtras.AMBULANCE_ID, ambulanceId);
                             bundle.putInt(AmbulanceForegroundService.BroadcastExtras.CALL_ID, callId);
                             intent.putExtras(bundle);
-                            getActivity().startService(intent);
+                            requireActivity().startService(intent);
 
                         });
 
@@ -1244,7 +1427,7 @@ public class AmbulanceFragment extends Fragment {
         Log.d(TAG, "Creating promptAddCallNote dialog");
 
         // Use the Builder class for convenient dialog construction
-        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+        AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
         final View callNoteDialog = getLayoutInflater().inflate(R.layout.add_callnote_dialog, null);
 
         builder.setView(callNoteDialog)
@@ -1266,7 +1449,7 @@ public class AmbulanceFragment extends Fragment {
                             bundle.putString(AmbulanceForegroundService.BroadcastExtras.CALLNOTE_COMMENT, editText.getText().toString());
                             bundle.putInt(AmbulanceForegroundService.BroadcastExtras.CALL_ID, callId);
                             intent.putExtras(bundle);
-                            getActivity().startService(intent);
+                            requireActivity().startService(intent);
 
 
                         });

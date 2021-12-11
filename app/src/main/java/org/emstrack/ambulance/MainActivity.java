@@ -10,37 +10,37 @@ import android.graphics.BitmapFactory;
 import android.graphics.PorterDuff;
 import android.net.Uri;
 import android.os.Bundle;
-import com.google.android.material.navigation.NavigationView;
-import com.google.android.material.tabs.TabLayout;
-import com.google.android.material.tabs.TabLayoutMediator;
-
-import androidx.annotation.NonNull;
-import androidx.browser.customtabs.CustomTabsCallback;
-import androidx.browser.customtabs.CustomTabsClient;
-import androidx.browser.customtabs.CustomTabsIntent;
-import androidx.browser.customtabs.CustomTabsServiceConnection;
-import androidx.browser.customtabs.CustomTabsSession;
-import androidx.fragment.app.Fragment;
-import androidx.core.content.ContextCompat;
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
-import androidx.viewpager2.widget.ViewPager2;
-import androidx.drawerlayout.widget.DrawerLayout;
-import androidx.appcompat.app.ActionBarDrawerToggle;
-import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
+import android.os.CountDownTimer;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.ActionBarDrawerToggle;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import androidx.browser.customtabs.CustomTabsCallback;
+import androidx.browser.customtabs.CustomTabsClient;
+import androidx.browser.customtabs.CustomTabsIntent;
+import androidx.browser.customtabs.CustomTabsServiceConnection;
+import androidx.browser.customtabs.CustomTabsSession;
+import androidx.core.content.ContextCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.fragment.app.Fragment;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+import androidx.viewpager2.widget.ViewPager2;
+
+import com.google.android.material.navigation.NavigationView;
+import com.google.android.material.tabs.TabLayout;
+import com.google.android.material.tabs.TabLayoutMediator;
 
 import org.emstrack.ambulance.adapters.FragmentPager;
 import org.emstrack.ambulance.dialogs.AboutDialog;
@@ -71,16 +71,12 @@ import org.emstrack.models.Waypoint;
 import org.emstrack.models.api.APIService;
 import org.emstrack.models.api.APIServiceGenerator;
 import org.emstrack.models.api.OnAPICallComplete;
-import org.emstrack.models.util.BroadcastActions;
-import org.emstrack.models.util.OnServiceComplete;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import android.os.CountDownTimer;
 
 
 /**
@@ -95,12 +91,10 @@ public class MainActivity extends AppCompatActivity {
     private static final float enabledAlpha = 1.0f;
     private static final float disabledAlpha = 0.25f;
 
-    private List<AmbulancePermission> ambulancePermissions;
     private List<HospitalPermission> hospitalPermissions;
     private List<Location> bases;
     private List<Location> otherLocations;
 
-    private ArrayAdapter<String> ambulanceListAdapter;
     private ArrayAdapter<String> hospitalListAdapter;
     private ArrayAdapter<String> baseListAdapter;
     private ArrayAdapter<String> othersListAdapter;
@@ -119,7 +113,6 @@ public class MainActivity extends AppCompatActivity {
 
     private AlertDialog promptVideoCallDialog;
     private CustomTabsClient customTabsClient;
-    // private View equipmentTabLayout;
 
     public class MainActivityBroadcastReceiver extends BroadcastReceiver {
 
@@ -129,6 +122,9 @@ public class MainActivity extends AppCompatActivity {
             if (intent != null) {
 
                 final String action = intent.getAction();
+                if (action == null)
+                    return;
+
                 switch (action) {
                     case AmbulanceForegroundService.BroadcastActions.LOCATION_UPDATE_CHANGE:
 
@@ -138,19 +134,6 @@ public class MainActivity extends AppCompatActivity {
                             trackingIcon.setAlpha(enabledAlpha);
                         else {
                             trackingIcon.setAlpha(disabledAlpha);
-
-//                            // Alert then prompt for new ambulance
-//                            new org.emstrack.ambulance.dialogs.AlertDialog(MainActivity.this,
-//                                    getResources()
-//                                            .getString(R.string.anotherClientIsStreamingLocations))
-//                                    .alert(getString(R.string.pleaseChooseAnotherAmbulance),
-//                                            (dialog, which) -> {
-//
-//                                                // Invoke ambulance selection
-//                                                ambulanceSelectionButton.performClick();
-//
-//                                            });
-
                         }
 
                         break;
@@ -229,6 +212,7 @@ public class MainActivity extends AppCompatActivity {
                         String username = intent.getStringExtra(AmbulanceForegroundService.BroadcastExtras.WEBRTC_CLIENT_USERNAME);
                         String clientId = intent.getStringExtra(AmbulanceForegroundService.BroadcastExtras.WEBRTC_CLIENT_ID);
 
+                        assert type != null;
                         if (type.equals("call")) {
 
                             promptVideoCallAccept(username, clientId);
@@ -260,7 +244,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * @param savedInstanceState
+     * @param savedInstanceState the saved instance state
      */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -272,7 +256,7 @@ public class MainActivity extends AppCompatActivity {
         // Create custom tab service
         CustomTabsClient.bindCustomTabsService(this, "com.android.chrome", new CustomTabsServiceConnection() {
             @Override
-            public void onCustomTabsServiceConnected(ComponentName name, CustomTabsClient client) {
+            public void onCustomTabsServiceConnected(@NonNull ComponentName name, @NonNull CustomTabsClient client) {
                 // mClient is now valid.
                 Log.d(TAG, "Got valid customTabsClient");
                 customTabsClient = client;
@@ -382,10 +366,6 @@ public class MainActivity extends AppCompatActivity {
                 });
         tabLayoutMediator.attach();
 
-        // LinearLayout tabStrip = ((LinearLayout)tabLayout.getChildAt(0));
-        // equipmentTabLayout = tabStrip.getChildAt(3);
-        // equipmentTabLayout.setEnabled(false); //disable tab
-
         // Online icon
         onlineIcon = findViewById(R.id.onlineIcon);
         if (AmbulanceForegroundService.isOnline())
@@ -402,25 +382,13 @@ public class MainActivity extends AppCompatActivity {
             trackingIcon.setAlpha(disabledAlpha);
         }
 
-        ambulancePermissions = new ArrayList<>();
         hospitalPermissions = new ArrayList<>();
         Profile profile = appData.getProfile();
         if (profile != null) {
-            ambulancePermissions = profile.getAmbulances();
             hospitalPermissions = profile.getHospitals();
         }
         bases = appData.getBases();
         otherLocations = appData.getOtherLocations();
-
-        // Creates list of ambulance names
-        ArrayList<String> ambulanceList = new ArrayList<>();
-        for (AmbulancePermission ambulancePermission : ambulancePermissions)
-            ambulanceList.add(ambulancePermission.getAmbulanceIdentifier());
-
-        // Create the adapter
-        ambulanceListAdapter = new ArrayAdapter<>(this,
-                android.R.layout.simple_spinner_dropdown_item, ambulanceList);
-        ambulanceListAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 
         // Creates list of hospital names
         ArrayList<String> hospitalList = new ArrayList<>();
@@ -460,6 +428,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onPostCreate(Bundle savedInstanceState) {
         super.onPostCreate(savedInstanceState);
+
         // Sync the toggle state after onRestoreInstanceState has occurred.
         drawerToggle.syncState();
     }
@@ -470,7 +439,6 @@ public class MainActivity extends AppCompatActivity {
 
         // Pass any configuration change to the drawer toggles
         drawerToggle.onConfigurationChanged(newConfig);
-
     }
 
     @Override
@@ -611,13 +579,14 @@ public class MainActivity extends AppCompatActivity {
 
         } else if (itemId == R.id.settings) {
 
+            // TODO: add settings page
+
         }
 
     }
 
     public boolean panicPopUp() {
         final long DIALOG_DISMISS_TIME = 3000; // miliseconds
-
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setCancelable(true);
@@ -732,18 +701,12 @@ public class MainActivity extends AppCompatActivity {
                 });
 
                 CustomTabsIntent.Builder builder = new CustomTabsIntent.Builder();
+                assert session != null;
                 builder.setSession(session);
                 builder.setCloseButtonIcon(BitmapFactory.decodeResource(getResources(), R.drawable.ic_arrow_back));
-                // builder.setCloseButtonIcon(BitmapUtils.bitmapFromVector(MainActivity.this, R.drawable.ic_arrow_back));
 
                 CustomTabsIntent customTabsIntent = builder.build();
                 customTabsIntent.launchUrl(MainActivity.this, uri);
-
-                /*
-                // open this web page when clicked
-                Intent intent = new Intent(Intent.ACTION_VIEW, uri);
-                startActivity(intent);
-                 */
             }
 
             @Override
@@ -855,7 +818,7 @@ public class MainActivity extends AppCompatActivity {
                 View view = getLayoutInflater().inflate(R.layout.video_new_call_dialog, null);
 
                 // Populate client list
-                ArrayAdapter<String> userNames = new ArrayAdapter<String>(self, android.R.layout.simple_spinner_item);
+                ArrayAdapter<String> userNames = new ArrayAdapter<>(self, android.R.layout.simple_spinner_item);
 
                 // add select server message
                 userNames.add(getString(R.string.select_user));
@@ -909,11 +872,7 @@ public class MainActivity extends AppCompatActivity {
                                     }
 
                                 })
-                        .setNegativeButton(R.string.cancel, (dialog, id) -> {
-
-                            Log.i(TAG, "Video call cancelled");
-
-                        } );
+                        .setNegativeButton(R.string.cancel, (dialog, id) -> Log.i(TAG, "Video call cancelled"));
 
                 // Create the AlertDialog object and display it
                 builder.create().show();
@@ -970,18 +929,18 @@ public class MainActivity extends AppCompatActivity {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
 
         // Build patient list
-        String patientsText = "";
+        StringBuilder patientsText = new StringBuilder();
         List<Patient> patients = call.getPatientSet();
         if (patients != null && patients.size() > 0) {
             for (Patient patient : patients) {
-                if (!patientsText.isEmpty())
-                    patientsText += ", ";
-                patientsText += patient.getName();
+                if (patientsText.length() > 0)
+                    patientsText.append(", ");
+                patientsText.append(patient.getName());
                 if (patient.getAge() != null)
-                    patientsText += " (" + patient.getAge() + ")";
+                    patientsText.append(" (").append(patient.getAge()).append(")");
             }
         } else
-            patientsText = getResources().getString(R.string.noPatientAvailable);
+            patientsText = new StringBuilder(getResources().getString(R.string.noPatientAvailable));
 
         // Get number of waypoints
         int numberOfWaypoints = ambulanceCall.getWaypointSet().size();
@@ -1050,8 +1009,8 @@ public class MainActivity extends AppCompatActivity {
             ((TextView) view.findViewById(R.id.callPrioritySuffix)).setText("");
         } else {
             PriorityCode priorityCode = appData.getPriorityCodes().get(priorityCodeInt);
-            ((TextView) view.findViewById(R.id.callPriorityPrefix)).setText(priorityCode.getPrefix() + "-");
-            ((TextView) view.findViewById(R.id.callPrioritySuffix)).setText("-" + priorityCode.getSuffix());
+            ((TextView) view.findViewById(R.id.callPriorityPrefix)).setText(String.format("%d-", priorityCode.getPrefix()));
+            ((TextView) view.findViewById(R.id.callPrioritySuffix)).setText(String.format("-%s", priorityCode.getSuffix()));
         }
 
         // Set radio code
@@ -1060,12 +1019,12 @@ public class MainActivity extends AppCompatActivity {
             ((TextView) view.findViewById(R.id.callRadioCodeText)).setText(R.string.unavailable);
         } else {
             RadioCode radioCode = appData.getRadioCodes().get(radioCodeInt);
-            ((TextView) view.findViewById(R.id.callRadioCodeText)).setText(radioCode.getId() + ": " + radioCode.getLabel());
+            ((TextView) view.findViewById(R.id.callRadioCodeText)).setText(String.format("%d: %s", radioCode.getId(), radioCode.getLabel()));
         }
 
         ((TextView) view.findViewById(R.id.callDetailsText)).setText(call.getDetails());
 
-        ((TextView) view.findViewById(R.id.callPatientsText)).setText(patientsText);
+        ((TextView) view.findViewById(R.id.callPatientsText)).setText(patientsText.toString());
         ((TextView) view.findViewById(R.id.callNumberWaypointsText)).setText(String.valueOf(numberOfWaypoints));
 
         ((TextView) view.findViewById(R.id.callWaypointTypeText)).setText(waypointType);
@@ -1427,9 +1386,7 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
-
         promptLogout();
-
     }
 
     public Map<String, Integer> getCallPriorityBackgroundColors() {
@@ -1438,13 +1395,6 @@ public class MainActivity extends AppCompatActivity {
 
     public Map<String, Integer> getCallPriorityForegroundColors() {
         return callPriorityForegroundColors;
-    }
-
-    public ImageView createView(int resId) {
-        ImageView imageView = new ImageView(this);
-        imageView.setImageResource(resId);
-        imageView.setPadding(0, 20, 0, 20);
-        return imageView;
     }
 
 }

@@ -17,6 +17,8 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
+
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
@@ -28,6 +30,7 @@ import android.util.SparseArray;
 import android.widget.Toast;
 
 import com.google.android.gms.common.api.ApiException;
+import com.google.android.gms.common.api.ResolvableApiException;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.GeofencingClient;
 import com.google.android.gms.location.GeofencingRequest;
@@ -36,8 +39,11 @@ import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.LocationSettingsRequest;
+import com.google.android.gms.location.LocationSettingsResponse;
 import com.google.android.gms.location.LocationSettingsStatusCodes;
 import com.google.android.gms.location.SettingsClient;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -77,6 +83,7 @@ import org.emstrack.models.api.APIService;
 import org.emstrack.models.api.APIServiceGenerator;
 import org.emstrack.models.api.OnAPICallComplete;
 import org.emstrack.models.util.BroadcastActions;
+import org.emstrack.models.util.BroadcastExtras;
 import org.emstrack.models.util.OnComplete;
 import org.emstrack.models.util.OnServiceComplete;
 import org.emstrack.mqtt.MishandledTopicException;
@@ -85,6 +92,7 @@ import org.emstrack.mqtt.MqttProfileClient;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -179,6 +187,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         public final static String STOP_AMBULANCE = "org.emstrack.ambulance.ambulanceforegroundservice.action.STOP_AMBULANCE";
         public final static String GET_AMBULANCES = "org.emstrack.ambulance.ambulanceforegroundservice.action.GET_AMBULANCES";
         public final static String STOP_AMBULANCES = "org.emstrack.ambulance.ambulanceforegroundservice.action.STOP_AMBULANCES";
+        public final static String CHECK_LOCATION_SETTINGS = "org.emstrack.ambulance.ambulanceforegroundservice.action.CHECK_LOCATION_SETTINGS";
         public final static String START_LOCATION_UPDATES = "org.emstrack.ambulance.ambulanceforegroundservice.action.START_LOCATION_UPDATES";
         public final static String STOP_LOCATION_UPDATES = "org.emstrack.ambulance.ambulanceforegroundservice.action.STOP_LOCATION_UPDATES";
         public final static String UPDATE_AMBULANCE_STATUS = "org.emstrack.ambulance.ambulanceforegroundservice.action.UPDATE_AMBULANCE_STATUS";
@@ -610,6 +619,13 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
             // Stop ambulances
             stopAmbulances(uuid);
+
+        } else if (action.equals(Actions.CHECK_LOCATION_SETTINGS)) {
+
+            Log.i(TAG, "CHECK_LOCATION_SETTINGS Foreground Intent");
+
+            // start location updates
+            checkLocationSettings(uuid);
 
         } else if (action.equals(Actions.START_LOCATION_UPDATES)) {
 
@@ -1055,6 +1071,46 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
         return locationSettingsRequest;
 
+    }
+
+    /**
+     * check location settings and broadcast result
+     */
+    public void checkLocationSettings(final String uuid) {
+
+        // Build settings client
+        SettingsClient settingsClient = LocationServices.getSettingsClient(this);
+
+        // Check if the device has the necessary location settings.
+        settingsClient.checkLocationSettings(AmbulanceForegroundService.getLocationSettingsRequest())
+                .addOnCompleteListener(task -> {
+                    try {
+                        // get response will trigger an exception if it failed
+                        LocationSettingsResponse response = task.getResult(ApiException.class);
+
+                        // otherwise, all location settings are satisfied.
+
+                        // enable location updates
+                        AmbulanceForegroundService.setCanUpdateLocation(true);
+
+                        // broadcast success
+                        Intent localIntent = new Intent(org.emstrack.models.util.BroadcastActions.SUCCESS);
+                        sendBroadcastWithUUID(localIntent, uuid);
+
+                    } catch (ApiException exception) {
+
+                        // It must have failed, disable updates
+                        AmbulanceForegroundService.setCanUpdateLocation(false);
+
+                        // Broadcast failure
+                        int code = exception.getStatusCode();
+
+                        Intent localIntent = new Intent(org.emstrack.models.util.BroadcastActions.FAILURE);
+                        localIntent.putExtra(org.emstrack.models.util.BroadcastExtras.MESSAGE, code);
+                        sendBroadcastWithUUID(localIntent, uuid);
+
+                    }
+                });
     }
 
     /**
@@ -1863,13 +1919,13 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                 username, profileClient.getClientId()), 1,
                 (topic, message) -> {
 
-                    Log.d(TAG, "MQTT error message.");
+                    Log.d(TAG, String.format("MQTT error message: '%1$s'", Arrays.toString(message.getPayload())));
 
                     // Create notification
                     NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(AmbulanceForegroundService.this, PRIMARY_CHANNEL)
                             .setSmallIcon(R.mipmap.ic_launcher)
                             .setContentTitle("EMSTrack")
-                            .setContentText(getString(R.string.serverError, String.valueOf(message.getPayload())))
+                            .setContentText(getString(R.string.serverError, Arrays.toString(message.getPayload())))
                             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
                             .setAutoCancel(true);
 
