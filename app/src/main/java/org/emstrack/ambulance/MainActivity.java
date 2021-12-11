@@ -113,6 +113,7 @@ public class MainActivity extends AppCompatActivity {
 
     private AlertDialog promptVideoCallDialog;
     private CustomTabsClient customTabsClient;
+    private FragmentPager adapter;
 
     public class MainActivityBroadcastReceiver extends BroadcastReceiver {
 
@@ -126,6 +127,20 @@ public class MainActivity extends AppCompatActivity {
                     return;
 
                 switch (action) {
+                    case AmbulanceForegroundService.BroadcastActions.AMBULANCE_UPDATE:
+
+                        Log.i(TAG, "AMBULANCE_UPDATE");
+                        if (AmbulanceForegroundService.getAppData().getAmbulance() == null) {
+                            // no selected ambulance, hide tab
+                            Log.i(TAG, "Will hide equipment tab");
+                            adapter.hideTab(3);
+                        } else {
+                            // selected ambulance, show tab
+                            Log.i(TAG, "Will show equipment tab");
+                            adapter.addTab(3);
+                        }
+
+                        break;
                     case AmbulanceForegroundService.BroadcastActions.LOCATION_UPDATE_CHANGE:
 
                         Log.i(TAG, "LOCATION_UPDATE_CHANGE");
@@ -344,7 +359,7 @@ public class MainActivity extends AppCompatActivity {
         viewPager = findViewById(R.id.pager);
 
         // Setup Adapter for tabLayout
-        FragmentPager adapter = new FragmentPager(
+        adapter = new FragmentPager(
                 getSupportFragmentManager(),
                 getLifecycle(),
                 new Fragment[]{
@@ -352,19 +367,18 @@ public class MainActivity extends AppCompatActivity {
                         new HospitalFragment(),
                         new AmbulanceFragment(),
                         new EquipmentFragment()
-                }
+                },
+                new int[] {R.drawable.ic_globe, R.drawable.ic_hospital, R.drawable.ic_ambulance, R.drawable.ic_briefcase_medical},
+                R.layout.tab_icon
         );
         viewPager.setAdapter(adapter);
 
         TabLayout tabLayout = findViewById(R.id.tab_layout_home);
         tabLayout.setTabGravity(TabLayout.GRAVITY_FILL);
 
-        TabLayoutMediator tabLayoutMediator = new TabLayoutMediator(tabLayout, viewPager,true,
-                (tab, position) -> {
-                    final int[] icons = {R.drawable.ic_globe, R.drawable.ic_hospital, R.drawable.ic_ambulance, R.drawable.ic_briefcase_medical};
-                    tab.setIcon(icons[position]).setCustomView(R.layout.tab_icon);
-                });
-        tabLayoutMediator.attach();
+        adapter.setTabLayoutMediator(tabLayout, viewPager);
+        // hide equipment tab
+        adapter.hideTab(3);
 
         // Online icon
         onlineIcon = findViewById(R.id.onlineIcon);
@@ -466,7 +480,15 @@ public class MainActivity extends AppCompatActivity {
         // Is there a requested call that needs to be prompted for?
         int nextCallId = -1;
         Ambulance ambulance = appData.getAmbulance();
-        if (ambulance != null) {
+        if (ambulance == null) {
+            // no ambulance is selected
+            // hide equipment tab
+            adapter.hideTab(3);
+        } else {
+            // ambulance is selected
+            // show equipment tab
+            adapter.addTab(3);
+            // check calls
             CallStack pendingCalls = appData.getCalls();
             Call call = pendingCalls.getCurrentCall();
             if (call == null) {
@@ -483,6 +505,7 @@ public class MainActivity extends AppCompatActivity {
 
         // Register receiver
         IntentFilter filter = new IntentFilter();
+        filter.addAction(AmbulanceForegroundService.BroadcastActions.AMBULANCE_UPDATE);
         filter.addAction(AmbulanceForegroundService.BroadcastActions.LOCATION_UPDATE_CHANGE);
         filter.addAction(AmbulanceForegroundService.BroadcastActions.CONNECTIVITY_CHANGE);
         filter.addAction(AmbulanceForegroundService.BroadcastActions.PROMPT_CALL_ACCEPT);

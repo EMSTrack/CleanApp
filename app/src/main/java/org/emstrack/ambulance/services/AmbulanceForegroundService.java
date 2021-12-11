@@ -1906,8 +1906,6 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
         notificationManager.notify(notificationId.getAndIncrement(), mBuilder.build());
 
-        return;
-
     }
 
     public void subscribeToError(final String username) throws MqttException {
