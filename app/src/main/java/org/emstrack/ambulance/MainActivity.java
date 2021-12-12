@@ -86,6 +86,8 @@ public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = MainActivity.class.getSimpleName();
 
+    private static final int MAP_TAB = 0;
+    private static final int HOSPITALS_TAB = 1;
     private static final int AMBULANCE_TAB = 2;
     private static final int EQUIPMENT_TAB = 3;
 
@@ -374,7 +376,20 @@ public class MainActivity extends AppCompatActivity {
                 new int[] {R.drawable.ic_globe, R.drawable.ic_hospital, R.drawable.ic_ambulance, R.drawable.ic_briefcase_medical},
                 R.layout.tab_icon
         );
+        adapter.setUserInputEnabled(MAP_TAB, false);
         viewPager.setAdapter(adapter);
+        viewPager.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
+            @Override
+            public void onPageSelected(int index) {
+                super.onPageSelected(index);
+                // set input enabled
+                int position = adapter.getPagePosition(index);
+                boolean inputEnabled = adapter.getUserInputEnabled(position);
+                if (inputEnabled != viewPager.isUserInputEnabled()) {
+                    viewPager.setUserInputEnabled(inputEnabled);
+                }
+            }
+        });
 
         TabLayout tabLayout = findViewById(R.id.tab_layout_home);
         tabLayout.setTabGravity(TabLayout.GRAVITY_FILL);

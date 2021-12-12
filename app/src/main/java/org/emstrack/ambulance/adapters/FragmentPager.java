@@ -22,6 +22,7 @@ public class FragmentPager extends FragmentStateAdapter {
     private final int[] icons;
     private final int customViewId;
     private final Fragment[] fragments;
+    private final boolean[] userInputEnabled;
     private final List<Integer> visibleTabs;
 
     public FragmentPager(FragmentManager fm,
@@ -37,11 +38,26 @@ public class FragmentPager extends FragmentStateAdapter {
         this.icons = icons;
         this.customViewId = customViewId;
 
-        // create visibility indices
+        // create visibility indices and user input enabled
         this.visibleTabs = new ArrayList<>();
         int numberOfTabs = fragments.length;
-        for (int i = 0; i < numberOfTabs; i++)
+        this.userInputEnabled = new boolean[numberOfTabs];
+        for (int i = 0; i < numberOfTabs; i++) {
             this.visibleTabs.add(i);
+            this.userInputEnabled[i] = true;
+        }
+    }
+
+    public void setUserInputEnabled(int position, boolean value) {
+        this.userInputEnabled[position] = value;
+    }
+
+    public boolean getUserInputEnabled(int position) {
+        return this.userInputEnabled[position];
+    }
+
+    public int getPagePosition(int index) {
+        return this.visibleTabs.get(index);
     }
 
     public void setIcons(TabLayout.Tab tab, int index) {
