@@ -6,6 +6,6 @@
     <dimen name="app_bar_height">180dp</dimen>
     <dimen name="design_fab_image_size" tools:override="true">56dp</dimen>
     <dimen name="statusTextSize">16dp</dimen>
-    <dimen name="tab_icon_size">60dp</dimen>
+    <dimen name="tab_icon_size">45dp</dimen>
 
 </resources>

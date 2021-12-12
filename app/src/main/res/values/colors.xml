@@ -33,4 +33,6 @@
     <color name="bootstrapDark">#ff343a40</color>
     <color name="bootstrapYellow">#ffF5E234</color>
 
+    <color name="tabBackground">#CFCFCF</color>
+
 </resources>

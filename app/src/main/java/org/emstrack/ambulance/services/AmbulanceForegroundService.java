@@ -96,10 +96,12 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -144,6 +146,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
     public final static String PREFERENCES_MQTT_SERVER = "MQTT_SERVER";
     public final static String PREFERENCES_API_SERVER = "API_SERVER";
     private static final String PREFERENCES_UNIQUE_ID = "UNIQUE_ID";
+    public final static String PREFERENCES_SERVERS = "SERVERS";
 
     // Server URI
     private static String _serverUri = "ssl://cruzroja.ucsd.edu:8883";
@@ -2435,6 +2438,14 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
                 /* Log.d(TAG, "Successfully retrieved servers list"); */
                 getAppData().setServersList(serversList);
+
+                // Save server list in preferences
+                SharedPreferences.Editor editor = sharedPreferences.edit();
+
+                // Save credentials
+                Log.d(TAG, "Storing servers");
+                editor.putStringSet(PREFERENCES_SERVERS, new HashSet<String>(serversList));
+                editor.apply();
 
                 // Broadcast success
                 broadcastSuccess("Successfully retrieved servers list", uuid);

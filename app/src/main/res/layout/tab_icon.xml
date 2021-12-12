@@ -7,7 +7,7 @@ android:layout_height="match_parent">
         android:id="@android:id/icon"
         android:layout_width="@dimen/tab_icon_size"
         android:layout_height="@dimen/tab_icon_size"
-        android:paddingVertical="10dp"
+        android:paddingVertical="5dp"
         android:layout_centerInParent="true"/>
 
 </RelativeLayout>

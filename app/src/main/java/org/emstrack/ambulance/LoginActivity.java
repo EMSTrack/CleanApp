@@ -25,6 +25,8 @@ import org.emstrack.models.util.OnServiceComplete;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class LoginActivity extends AppCompatActivity implements View.OnClickListener {
 
@@ -32,7 +34,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
     public static final String LOGOUT = "org.emstrack.ambulance.LoginActivity.LOGOUT";
 
-    private SharedPreferences sharedPreferences;
+    // private SharedPreferences sharedPreferences;
     private Button loginSubmitButton;
     private TextView usernameField;
     private TextView passwordField;
@@ -77,7 +79,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         serverField.setAdapter(serverNames);
 
         // Retrieving credentials
-        sharedPreferences = getSharedPreferences(AmbulanceForegroundService.PREFERENCES_NAME, MODE_PRIVATE);
+        SharedPreferences sharedPreferences = getSharedPreferences(AmbulanceForegroundService.PREFERENCES_NAME, MODE_PRIVATE);
 
         // Retrieve past credentials
         usernameField.setText(sharedPreferences.getString(AmbulanceForegroundService.PREFERENCES_USERNAME, null));
@@ -96,6 +98,60 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
         // enable login
         enableLogin();
+
+    }
+
+    public void setServers(List<String> serverList) {
+
+        Log.i(TAG, "Setting server list");
+
+        // Populate server list
+        // Log.d(TAG, "Populating server list");
+        serverNames = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item);
+        serverMqttURIs = new ArrayList<>();
+        serverAPIURIs = new ArrayList<>();
+
+        // add select server message
+        serverNames.add(getString(R.string.server_select));
+        serverMqttURIs.add("");
+        serverAPIURIs.add("");
+
+        for (String server: serverList) {
+            try {
+                String[] splits = server.split(":", 3);
+                serverNames.add(splits[0]);
+                if (!splits[1].isEmpty()) {
+                    serverMqttURIs.add("ssl://" + splits[1] + ":" + splits[2]);
+                    serverAPIURIs.add("https://" + splits[1]);
+                } else {
+                    serverMqttURIs.add("");
+                    serverAPIURIs.add("");
+                }
+            } catch (Exception e) {
+                Log.d(TAG, "Malformed server string. Skipping.");
+            }
+        }
+        // Log.d(TAG, serverMqttURIs.toString());
+
+        // Create server spinner
+        serverField = findViewById(R.id.spinnerServer);
+        serverNames.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        serverField.setAdapter(serverNames);
+
+        // Retrieving credentials
+        SharedPreferences sharedPreferences = getSharedPreferences(AmbulanceForegroundService.PREFERENCES_NAME, MODE_PRIVATE);
+
+        // Retrieve past credentials
+        String serverMqttUri = sharedPreferences.getString(AmbulanceForegroundService.PREFERENCES_MQTT_SERVER, null);
+
+        // set server item
+        int serverPos = 0;
+        if (serverMqttUri != null) {
+            serverPos = serverMqttURIs.indexOf(serverMqttUri);
+        }
+        if (serverPos < 0)
+            serverPos = 0;
+        serverField.setSelection(serverPos);
 
     }
 
@@ -197,59 +253,42 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                                     List<String> serverList = appData.getServersList();
                                     Log.d(TAG, "Servers = " + serverList);
 
-                                    // Populate server list
-                                    // Log.d(TAG, "Populating server list");
-                                    serverNames = new ArrayAdapter<>(self, android.R.layout.simple_spinner_item);
-                                    serverMqttURIs = new ArrayList<>();
-                                    serverAPIURIs = new ArrayList<>();
-
-                                    // add select server message
-                                    serverNames.add(self.getString(R.string.server_select));
-                                    serverMqttURIs.add("");
-                                    serverAPIURIs.add("");
-
-                                    for (String server: serverList) {
-                                        try {
-                                            String[] splits = server.split(":", 3);
-                                            serverNames.add(splits[0]);
-                                            if (!splits[1].isEmpty()) {
-                                                serverMqttURIs.add("ssl://" + splits[1] + ":" + splits[2]);
-                                                serverAPIURIs.add("https://" + splits[1]);
-                                            } else {
-                                                serverMqttURIs.add("");
-                                                serverAPIURIs.add("");
-                                            }
-                                        } catch (Exception e) {
-                                            Log.d(TAG, "Malformed server string. Skipping.");
-                                        }
-                                    }
-                                    // Log.d(TAG, serverMqttURIs.toString());
-
-                                    // Create server spinner
-                                    serverField = findViewById(R.id.spinnerServer);
-                                    serverNames.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-                                    serverField.setAdapter(serverNames);
-
-                                    // Retrieving credentials
-                                    sharedPreferences = getSharedPreferences(AmbulanceForegroundService.PREFERENCES_NAME, MODE_PRIVATE);
-
-                                    // Retrieve past credentials
-                                    String serverMqttUri = sharedPreferences.getString(AmbulanceForegroundService.PREFERENCES_MQTT_SERVER, null);
-
-                                    // set server item
-                                    int serverPos = 0;
-                                    if (serverMqttUri != null) {
-                                        serverPos = serverMqttURIs.indexOf(serverMqttUri);
-                                    }
-                                    if (serverPos < 0)
-                                        serverPos = 0;
-                                    serverField.setSelection(serverPos);
+                                    setServers(serverList);
 
                                     Log.d(TAG, "Will enable login button");
 
                                     // Enable login button
                                     loginSubmitButton.setOnClickListener(self);
 
+                                }
+
+                                @Override
+                                public void onFailure(Bundle extras) {
+                                    super.onFailure(extras);
+
+                                    // Retrieve past servers
+                                    SharedPreferences sharedPreferences = getSharedPreferences(AmbulanceForegroundService.PREFERENCES_NAME, MODE_PRIVATE);
+                                    Set<String> serversSet = sharedPreferences.getStringSet(AmbulanceForegroundService.PREFERENCES_SERVERS, null);
+                                    ArrayList<String> serverList = null;
+                                    if (serversSet != null) {
+
+                                        new AlertSnackbar(LoginActivity.this)
+                                                .alert("Could not retrieve servers. List of servers may be outdated.");
+
+                                        serverList = new ArrayList<>(serversSet);
+                                        setServers(serverList);
+
+                                        Log.d(TAG, "Will enable login button");
+
+                                        // Enable login button
+                                        loginSubmitButton.setOnClickListener(self);
+
+                                    } else {
+
+                                        new AlertSnackbar(LoginActivity.this)
+                                                .alert("Could not retrieve servers. Check your internet connection.");
+
+                                    }
                                 }
 
                             })

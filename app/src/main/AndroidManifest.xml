@@ -25,7 +25,7 @@
         tools:ignore="GoogleAppIndexingWarning">
 
         <activity android:name="org.emstrack.ambulance.LoginActivity"
-            android:screenOrientation="nosensor"
+            android:screenOrientation="sensor"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -35,7 +35,7 @@
 
         <activity android:name="org.emstrack.ambulance.MainActivity"
             android:parentActivityName=".LoginActivity"
-            android:screenOrientation="nosensor"
+            android:screenOrientation="sensor"
             android:exported="true">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"

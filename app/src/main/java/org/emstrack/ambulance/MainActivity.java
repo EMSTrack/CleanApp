@@ -86,6 +86,9 @@ public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = MainActivity.class.getSimpleName();
 
+    private static final int AMBULANCE_TAB = 2;
+    private static final int EQUIPMENT_TAB = 3;
+
     private static final DecimalFormat df = new DecimalFormat();
 
     private static final float enabledAlpha = 1.0f;
@@ -133,11 +136,11 @@ public class MainActivity extends AppCompatActivity {
                         if (AmbulanceForegroundService.getAppData().getAmbulance() == null) {
                             // no selected ambulance, hide tab
                             Log.i(TAG, "Will hide equipment tab");
-                            adapter.hideTab(3);
+                            adapter.hideTab(EQUIPMENT_TAB);
                         } else {
                             // selected ambulance, show tab
                             Log.i(TAG, "Will show equipment tab");
-                            adapter.addTab(3);
+                            adapter.addTab(EQUIPMENT_TAB);
                         }
 
                         break;
@@ -198,9 +201,9 @@ public class MainActivity extends AppCompatActivity {
                         int myVectorColor = ContextCompat.getColor(MainActivity.this, R.color.colorRed);
                         trackingIcon.setColorFilter(myVectorColor, PorterDuff.Mode.SRC_IN);
 
-                        if (viewPager.getCurrentItem() != 0) {
-                            // set current pager got ambulance
-                            viewPager.setCurrentItem(0);
+                        if (viewPager.getCurrentItem() != AMBULANCE_TAB) {
+                            // set current pager to ambulance
+                            viewPager.setCurrentItem(AMBULANCE_TAB);
                         }
 
                         break;
@@ -378,7 +381,7 @@ public class MainActivity extends AppCompatActivity {
 
         adapter.setTabLayoutMediator(tabLayout, viewPager);
         // hide equipment tab
-        adapter.hideTab(3);
+        adapter.hideTab(EQUIPMENT_TAB);
 
         // Online icon
         onlineIcon = findViewById(R.id.onlineIcon);
@@ -483,15 +486,19 @@ public class MainActivity extends AppCompatActivity {
         if (ambulance == null) {
             // no ambulance is selected
             // hide equipment tab
-            adapter.hideTab(3);
+            adapter.hideTab(EQUIPMENT_TAB);
         } else {
             // ambulance is selected
             // show equipment tab
-            adapter.addTab(3);
+            adapter.addTab(EQUIPMENT_TAB);
             // check calls
             CallStack pendingCalls = appData.getCalls();
             Call call = pendingCalls.getCurrentCall();
-            if (call == null) {
+            if (call != null) {
+                // handling call, go to ambulance tab
+                if (viewPager.getCurrentItem() != AMBULANCE_TAB)
+                    viewPager.setCurrentItem(AMBULANCE_TAB);
+            } else {
                 Log.d(TAG, "No calls being handled right now.");
                 call = pendingCalls.getNextCall(ambulance.getId());
                 if (call != null &&
