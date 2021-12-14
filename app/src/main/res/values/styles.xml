@@ -1,13 +1,36 @@
 <resources>
 
     <!-- Base application theme. -->
-    <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
+    <style name="AppTheme" parent="Theme.MaterialComponents.Light">
         <!-- Customize your theme here. -->
+        <!--
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
+        -->
+
+        <item name="colorPrimary">@color/bootstrapPrimary</item>
+        <item name="colorPrimaryVariant">@color/bootstrapSecondary</item>
+        <item name="colorOnPrimary">#FFFFFF</item>
+        <item name="colorSecondary">#2962FF</item>
+        <item name="colorSecondaryVariant">#0039CB</item>
+        <item name="colorOnSecondary">#FFFFFF</item>
+        <item name="colorError">@color/bootstrapDanger</item>
+        <item name="colorOnError">#FFFFFF</item>
+        <item name="colorSurface">#FFFFFF</item>
+        <item name="colorOnSurface">#212121</item>
+
     </style>
 
+    <style name="primary.Button" parent="Widget.MaterialComponents.Button">
+        <item name="backgroundTint">?attr/colorPrimary</item>
+    </style>
+
+    <style name="secondary.Button" parent="Widget.AppCompat.Button.Colored">
+        <item name="backgroundTint">?attr/colorSecondary</item>
+    </style>
+
+    <!--
     <style name="CustomTabLayoutStyle" parent="Base.Widget.Design.TabLayout">
         <item name="tabTextAppearance">@style/CustomTabTextStyle</item>
         <item name="tabSelectedTextColor">@color/colorPrimaryDark</item>
@@ -23,8 +46,9 @@
     <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
 
     <style name="drawer_menu_theme">navatormenu
-        <item name="android:textSize">20sp</item><!-- text size in menu-->
-        <item name="android:listPreferredItemHeightSmall">40dp</item><!-- item size in menu-->
+        <item name="android:textSize">20sp</item>
+        <item name="android:listPreferredItemHeightSmall">40dp</item>
     </style>
+    -->
 
 </resources>

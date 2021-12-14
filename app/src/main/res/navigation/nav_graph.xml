@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/app_navigation"
+    app:startDestination="@+id/login">
+
+    <fragment
+        android:id="@+id/login"
+        android:name="org.emstrack.ambulance.fragments.LoginFragment"
+        android:label="Login"
+        tools:layout="@layout/activity_login" >
+        <action
+            android:id="@+id/action_loginFragment_to_mapFragment"
+            app:destination="@id/map" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/map"
+        android:name="org.emstrack.ambulance.fragments.MapFragment"
+        android:label="Login"
+        tools:layout="@layout/fragment_map" >
+        <action
+            android:id="@+id/action_mapFragment_to_hospitalFragment"
+            app:destination="@id/hospitals" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/hospitals"
+        android:name="org.emstrack.ambulance.fragments.HospitalFragment"
+        android:label="Hospitals"
+        tools:layout="@layout/fragment_hospital" >
+        <action
+            android:id="@+id/action_hospitals_to_ambulance"
+            app:destination="@id/ambulance" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/ambulance"
+        android:name="org.emstrack.ambulance.fragments.AmbulanceFragment"
+        android:label="Hospitals"
+        tools:layout="@layout/fragment_ambulance" >
+        <action
+            android:id="@+id/action_ambulance_to_equipment"
+            app:destination="@id/equipment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/equipment"
+        android:name="org.emstrack.ambulance.fragments.EquipmentFragment"
+        android:label="Hospitals"
+        tools:layout="@layout/fragment_equipment" />
+
+</navigation>

@@ -25,6 +25,7 @@ import org.emstrack.models.util.OnServiceComplete;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -49,6 +50,11 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     protected void onCreate(Bundle savedInstanceState) {
 
         super.onCreate(savedInstanceState);
+
+        // suppress action bar
+        Objects.requireNonNull(getSupportActionBar()).hide();
+
+        // set activity layout
         setContentView(R.layout.activity_login);
 
         Log.d(TAG, "onCreate");

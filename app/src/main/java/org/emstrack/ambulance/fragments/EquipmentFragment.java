@@ -1,9 +1,5 @@
 package org.emstrack.ambulance.fragments;
 
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
 import android.graphics.Canvas;
 import android.os.Bundle;
 import androidx.annotation.NonNull;
@@ -12,18 +8,17 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-import android.util.Log;
+
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import org.emstrack.ambulance.MainActivity;
 import org.emstrack.ambulance.R;
 //TODO change hospital imports to equipment imports below
 import org.emstrack.ambulance.adapters.EquipmentRecyclerAdapter;
 import org.emstrack.ambulance.dialogs.AlertDialog;
-import org.emstrack.ambulance.dialogs.AlertSnackbar;
-import org.emstrack.ambulance.models.AmbulanceAppData;
 import org.emstrack.ambulance.services.AmbulanceForegroundService;
 import org.emstrack.ambulance.util.SwipeController;
 import org.emstrack.ambulance.util.SwipeControllerActions;
@@ -32,8 +27,6 @@ import org.emstrack.models.EquipmentItem;
 import org.emstrack.models.api.APIService;
 import org.emstrack.models.api.APIServiceGenerator;
 import org.emstrack.models.api.OnAPICallComplete;
-import org.emstrack.models.util.BroadcastActions;
-import org.emstrack.models.util.OnServiceComplete;
 
 import java.util.List;
 
@@ -49,11 +42,14 @@ public class EquipmentFragment extends Fragment {
     private RecyclerView recyclerView;
     private TextView refreshingData;
     private SwipeController swipeController;
+    private MainActivity activity;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
         rootView = inflater.inflate(R.layout.fragment_equipment, container, false);
+        activity = (MainActivity) requireActivity();
+
         refreshingData = rootView.findViewById(R.id.equipment_refreshing_data);
 
         swipeController = new SwipeController(getContext(), new SwipeControllerActions(){
@@ -86,6 +82,8 @@ public class EquipmentFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
+
+        activity.setupNavigationBar();
 
         // Refresh data
         refreshData();

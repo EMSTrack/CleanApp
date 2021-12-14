@@ -8,25 +8,26 @@ import android.content.IntentFilter;
 import android.content.res.Configuration;
 import android.graphics.BitmapFactory;
 import android.graphics.PorterDuff;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.util.Log;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemSelectedListener;
 import android.widget.ArrayAdapter;
-import android.widget.ImageButton;
-import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
 import androidx.browser.customtabs.CustomTabsCallback;
 import androidx.browser.customtabs.CustomTabsClient;
 import androidx.browser.customtabs.CustomTabsIntent;
@@ -34,22 +35,18 @@ import androidx.browser.customtabs.CustomTabsServiceConnection;
 import androidx.browser.customtabs.CustomTabsSession;
 import androidx.core.content.ContextCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
-import androidx.fragment.app.Fragment;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
-import androidx.viewpager2.widget.ViewPager2;
+import androidx.navigation.NavController;
+import androidx.navigation.NavDestination;
+import androidx.navigation.fragment.NavHostFragment;
+import androidx.navigation.ui.NavigationUI;
 
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationView;
-import com.google.android.material.tabs.TabLayout;
-import com.google.android.material.tabs.TabLayoutMediator;
+import com.google.android.material.navigationrail.NavigationRailView;
 
-import org.emstrack.ambulance.adapters.FragmentPager;
 import org.emstrack.ambulance.dialogs.AboutDialog;
 import org.emstrack.ambulance.dialogs.AlertSnackbar;
-import org.emstrack.ambulance.dialogs.LogoutDialog;
-import org.emstrack.ambulance.fragments.AmbulanceFragment;
-import org.emstrack.ambulance.fragments.EquipmentFragment;
-import org.emstrack.ambulance.fragments.HospitalFragment;
-import org.emstrack.ambulance.fragments.MapFragment;
 import org.emstrack.ambulance.models.AmbulanceAppData;
 import org.emstrack.ambulance.services.AmbulanceForegroundService;
 import org.emstrack.models.Ambulance;
@@ -71,30 +68,28 @@ import org.emstrack.models.Waypoint;
 import org.emstrack.models.api.APIService;
 import org.emstrack.models.api.APIServiceGenerator;
 import org.emstrack.models.api.OnAPICallComplete;
+import org.emstrack.models.util.BroadcastActions;
+import org.emstrack.models.util.OnServiceComplete;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 
 /**
- * This is the main activity -- the default screen
+ * This is the main activity
  */
 public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = MainActivity.class.getSimpleName();
 
-    private static final int MAP_TAB = 0;
-    private static final int HOSPITALS_TAB = 1;
-    private static final int AMBULANCE_TAB = 2;
-    private static final int EQUIPMENT_TAB = 3;
-
     private static final DecimalFormat df = new DecimalFormat();
 
-    private static final float enabledAlpha = 1.0f;
-    private static final float disabledAlpha = 0.25f;
+    private static final int enabledAlpha = 255;
+    private static final int disabledAlpha = 255/4;
 
     private List<HospitalPermission> hospitalPermissions;
     private List<Location> bases;
@@ -104,21 +99,21 @@ public class MainActivity extends AppCompatActivity {
     private ArrayAdapter<String> baseListAdapter;
     private ArrayAdapter<String> othersListAdapter;
 
-    private DrawerLayout mDrawer;
-    private ActionBarDrawerToggle drawerToggle;
-    private Toolbar toolbar;
-    private ImageView onlineIcon;
-    private ImageView trackingIcon;
+    private Drawable onlineIcon;
+    private Drawable trackingIcon;
     private MainActivityBroadcastReceiver receiver;
     private Map<String, Integer> callPriorityBackgroundColors;
     private Map<String, Integer> callPriorityForegroundColors;
 
     private boolean logoutAfterFinish;
-    private ViewPager2 viewPager;
 
     private AlertDialog promptVideoCallDialog;
     private CustomTabsClient customTabsClient;
-    private FragmentPager adapter;
+
+    private NavHostFragment navHostFragment;
+    private BottomNavigationView bottomNavigationView;
+    private NavigationRailView navigationRailView;
+    private Menu actionBarMenu;
 
     public class MainActivityBroadcastReceiver extends BroadcastReceiver {
 
@@ -135,15 +130,7 @@ public class MainActivity extends AppCompatActivity {
                     case AmbulanceForegroundService.BroadcastActions.AMBULANCE_UPDATE:
 
                         Log.i(TAG, "AMBULANCE_UPDATE");
-                        if (AmbulanceForegroundService.getAppData().getAmbulance() == null) {
-                            // no selected ambulance, hide tab
-                            Log.i(TAG, "Will hide equipment tab");
-                            adapter.hideTab(EQUIPMENT_TAB);
-                        } else {
-                            // selected ambulance, show tab
-                            Log.i(TAG, "Will show equipment tab");
-                            adapter.addTab(EQUIPMENT_TAB);
-                        }
+                        setupNavigationBar();
 
                         break;
                     case AmbulanceForegroundService.BroadcastActions.LOCATION_UPDATE_CHANGE:
@@ -202,11 +189,7 @@ public class MainActivity extends AppCompatActivity {
                         // change button color to red
                         int myVectorColor = ContextCompat.getColor(MainActivity.this, R.color.colorRed);
                         trackingIcon.setColorFilter(myVectorColor, PorterDuff.Mode.SRC_IN);
-
-                        if (viewPager.getCurrentItem() != AMBULANCE_TAB) {
-                            // set current pager to ambulance
-                            viewPager.setCurrentItem(AMBULANCE_TAB);
-                        }
+                        navigate(R.id.ambulance);
 
                         break;
                     case AmbulanceForegroundService.BroadcastActions.CALL_COMPLETED:
@@ -220,7 +203,7 @@ public class MainActivity extends AppCompatActivity {
                         // Logout?
                         if (logoutAfterFinish) {
                             logoutAfterFinish = false;
-                            LogoutDialog.newInstance(MainActivity.this).show();
+                            promptLogout();
                         }
 
                         break;
@@ -263,6 +246,36 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+
+        // Inflate the action bar menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.action_bar, menu);
+
+        // save menu
+        this.actionBarMenu = menu;
+
+        // Hide video button if video is not enabled
+        hideVideoCallButton();
+
+        // Online icon
+        onlineIcon = menu.findItem(R.id.onlineIcon).getIcon();
+        if (AmbulanceForegroundService.isOnline())
+            onlineIcon.setAlpha(enabledAlpha);
+        else
+            onlineIcon.setAlpha(disabledAlpha);
+
+        // Tracking icon
+        trackingIcon = menu.findItem(R.id.trackingIcon).getIcon();
+        if (AmbulanceForegroundService.isUpdatingLocation()) {
+            trackingIcon.setAlpha(enabledAlpha);
+        } else {
+            trackingIcon.setAlpha(disabledAlpha);
+        }
+
+        return super.onCreateOptionsMenu(menu);
+    }
+
     /**
      * @param savedInstanceState the saved instance state
      */
@@ -289,9 +302,6 @@ public class MainActivity extends AppCompatActivity {
                 customTabsClient = null;
             }
         });
-
-        // Get appData
-        AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
 
         // Do not logout
         logoutAfterFinish = false;
@@ -324,95 +334,18 @@ public class MainActivity extends AppCompatActivity {
         df.setMaximumFractionDigits(3);
 
         // set content view
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.nav_host);
+        bottomNavigationView = findViewById(R.id.bottomNavigationBar);
+        navigationRailView = findViewById(R.id.navigationRail);
+        navHostFragment = (NavHostFragment) getSupportFragmentManager().findFragmentById(R.id.nav_host_fragment);
 
-        // Panic button
-        ImageButton panicButton = findViewById(R.id.panicButton);
-        panicButton.setOnLongClickListener(
-                v -> panicPopUp());
+        setUpNavigation();
+    }
 
-        // Video Call button
-        ImageButton videoCallButton = findViewById(R.id.videoCallButton);
-        videoCallButton.setOnClickListener(v -> promptVideoCallNew());
+    public void initialize() {
 
-        // Hide video button if video is not enabled
-        Settings settings = appData.getSettings();
-        if (!settings.isEnableVideo()) {
-            videoCallButton.setVisibility(View.GONE);
-        }
-
-        // Set a Toolbar to replace the ActionBar.
-        toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-        // getSupportActionBar().setDisplayShowTitleEnabled(false);
-
-        // Find our drawer view
-        mDrawer = findViewById(R.id.drawer_layout);
-        drawerToggle = setupDrawerToggle();
-        mDrawer.addDrawerListener(drawerToggle);
-
-        // set hamburger color to be black
-        drawerToggle.getDrawerArrowDrawable().setColor(getResources().getColor(R.color.colorBlack));
-
-        // Find our drawer view
-        NavigationView nvDrawer = findViewById(R.id.nvView);
-
-        // Setup drawer view
-        setupDrawerContent(nvDrawer);
-
-        // pager
-        viewPager = findViewById(R.id.pager);
-
-        // Setup Adapter for tabLayout
-        adapter = new FragmentPager(
-                getSupportFragmentManager(),
-                getLifecycle(),
-                new Fragment[]{
-                        new MapFragment(),
-                        new HospitalFragment(),
-                        new AmbulanceFragment(),
-                        new EquipmentFragment()
-                },
-                new int[] {R.drawable.ic_globe, R.drawable.ic_hospital, R.drawable.ic_ambulance, R.drawable.ic_briefcase_medical},
-                R.layout.tab_icon
-        );
-        adapter.setUserInputEnabled(MAP_TAB, false);
-        viewPager.setAdapter(adapter);
-        viewPager.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
-            @Override
-            public void onPageSelected(int index) {
-                super.onPageSelected(index);
-                // set input enabled
-                int position = adapter.getPagePosition(index);
-                boolean inputEnabled = adapter.getUserInputEnabled(position);
-                if (inputEnabled != viewPager.isUserInputEnabled()) {
-                    viewPager.setUserInputEnabled(inputEnabled);
-                }
-            }
-        });
-
-        TabLayout tabLayout = findViewById(R.id.tab_layout_home);
-        tabLayout.setTabGravity(TabLayout.GRAVITY_FILL);
-
-        adapter.setTabLayoutMediator(tabLayout, viewPager);
-        // hide equipment tab
-        adapter.hideTab(EQUIPMENT_TAB);
-
-        // Online icon
-        onlineIcon = findViewById(R.id.onlineIcon);
-        if (AmbulanceForegroundService.isOnline())
-            onlineIcon.setAlpha(enabledAlpha);
-        else
-            onlineIcon.setAlpha(disabledAlpha);
-
-        // Tracking icon
-        trackingIcon = findViewById(R.id.trackingIcon);
-
-        if (AmbulanceForegroundService.isUpdatingLocation()) {
-            trackingIcon.setAlpha(enabledAlpha);
-        } else {
-            trackingIcon.setAlpha(disabledAlpha);
-        }
+        // Get appData
+        AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
 
         hospitalPermissions = new ArrayList<>();
         Profile profile = appData.getProfile();
@@ -457,20 +390,150 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    @Override
-    protected void onPostCreate(Bundle savedInstanceState) {
-        super.onPostCreate(savedInstanceState);
+     public void setUpNavigation() {
+         Log.i(TAG, "setupNavigation");
+         int orientation = getResources().getConfiguration().orientation;
+         if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
+             // In landscape
+             navigationRailView.setVisibility(View.VISIBLE);
+             bottomNavigationView.setVisibility(View.GONE);
+             navigationRailView.setOnItemSelectedListener(item -> {
+                 navigate(item.getItemId());
+                 return true;
+             });
+         } else {
+             // In portrait
+             bottomNavigationView.setVisibility(View.VISIBLE);
+             navigationRailView.setVisibility(View.GONE);
+             NavigationUI.setupWithNavController(bottomNavigationView, navHostFragment.getNavController());
+         }
+    }
 
-        // Sync the toggle state after onRestoreInstanceState has occurred.
-        drawerToggle.syncState();
+    public void setupNavigationBar() {
+        Log.i(TAG, "setupNavigationBar");
+
+        // get menu
+        int orientation = getResources().getConfiguration().orientation;
+        Menu menu;
+        if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            // In landscape
+            menu = navigationRailView.getMenu();
+        } else {
+            // In portrait
+            menu = bottomNavigationView.getMenu();
+        }
+
+        AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
+        if (appData != null && appData.getAmbulance() != null) {
+            // show equipment
+            if (menu.size() == 3) {
+                menu.add(Menu.NONE, R.id.equipment, 3, getString(R.string.equipment))
+                        .setIcon(R.drawable.ic_briefcase_medical)
+                        .setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
+            }
+        } else {
+            // hide equipment
+            if (menu.size() == 4) {
+                menu.removeItem(R.id.equipment);
+            }
+        }
+
+        NavController navController = navHostFragment.getNavController();
+        NavDestination destination = navController.getCurrentDestination();
+        if (destination != null ) {
+            int selectedItemId = destination.getId();
+            if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
+                // In landscape
+                if (navigationRailView.getSelectedItemId() != selectedItemId) {
+                    navigationRailView.setSelectedItemId(selectedItemId);
+                }
+            } else {
+                // In portrait
+                if (bottomNavigationView.getSelectedItemId() != selectedItemId) {
+                    bottomNavigationView.setSelectedItemId(selectedItemId);
+                }
+            }
+        }
+    }
+
+    public void setVideoCallButtonVisibility(boolean visible) {
+        AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
+        Settings settings = appData.getSettings();
+        if (settings != null && !settings.isEnableVideo()) {
+            actionBarMenu.findItem(R.id.videoCallButton).setVisible(visible);
+        }
+    }
+
+    public void hideVideoCallButton() {
+        this.setVideoCallButtonVisibility(false);
+    }
+
+    public void showVideoCallButton() {
+        this.setVideoCallButtonVisibility(true);
+    }
+
+    public void hideActionBar() {
+        // hide action bar
+        Objects.requireNonNull(getSupportActionBar()).hide();
+    }
+
+    public void showActionBar() {
+        // show action bar
+        Objects.requireNonNull(getSupportActionBar()).show();
+    }
+
+    public void showBottomNavigationBar() {
+        // show bottom navigation bar
+        bottomNavigationView.setVisibility(View.VISIBLE);
+    }
+
+    public void hideBottomNavigationBar() {
+        // show bottom navigation bar
+        bottomNavigationView.setVisibility(View.GONE);
+    }
+
+    public void showNavigationRail() {
+        // show navigation rail
+        navigationRailView.setVisibility(View.VISIBLE);
+    }
+
+    public void hideNavigationRail() {
+        // show navigation rail
+        navigationRailView.setVisibility(View.GONE);
+    }
+
+    public void hideBottomNavigationBarItem(int id) {
+        bottomNavigationView.findViewById(id).setVisibility(View.GONE);
+    }
+
+    public void showBottomNavigationBarItem(int id) {
+        bottomNavigationView.findViewById(id).setVisibility(View.VISIBLE);
+    }
+
+    public void navigate(int id) {
+        // navigate
+        NavController navController = navHostFragment.getNavController();
+        NavDestination destination = navController.getCurrentDestination();
+        if (destination != null && destination.getId() != id) {
+            navController.navigate(id);
+        }
     }
 
     @Override
-    public void onConfigurationChanged(@NonNull Configuration newConfig) {
-        super.onConfigurationChanged(newConfig);
-
-        // Pass any configuration change to the drawer toggles
-        drawerToggle.onConfigurationChanged(newConfig);
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        Log.d(TAG, String.format("onOptionsItemsSelected: $1%d", item.getItemId()));
+        int itemId = item.getItemId();
+        if (itemId == R.id.panicButton) {
+            panicPopUp();
+            return true;
+        } else if (itemId == R.id.videoCallButton) {
+            promptVideoCallNew();
+            return true;
+        } else if (itemId == R.id.trackingIcon || itemId == R.id.onlineIcon) {
+            return false;
+        } else {
+            return super.onOptionsItemSelected(item);
+        }
     }
 
     @Override
@@ -479,50 +542,51 @@ public class MainActivity extends AppCompatActivity {
 
         Log.d(TAG, "onResume");
 
-        // Get app data
         AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
-
-        // Update location icon
-        if (AmbulanceForegroundService.isUpdatingLocation())
-            trackingIcon.setAlpha(enabledAlpha);
-        else
-            trackingIcon.setAlpha(disabledAlpha);
-
-        // Online icon
-        onlineIcon = findViewById(R.id.onlineIcon);
-        if (AmbulanceForegroundService.isOnline())
-            onlineIcon.setAlpha(enabledAlpha);
-        else
-            onlineIcon.setAlpha(disabledAlpha);
-
-        // Is there a requested call that needs to be prompted for?
         int nextCallId = -1;
-        Ambulance ambulance = appData.getAmbulance();
-        if (ambulance == null) {
-            // no ambulance is selected
-            // hide equipment tab
-            adapter.hideTab(EQUIPMENT_TAB);
-        } else {
-            // ambulance is selected
-            // show equipment tab
-            adapter.addTab(EQUIPMENT_TAB);
-            // check calls
-            CallStack pendingCalls = appData.getCalls();
-            Call call = pendingCalls.getCurrentCall();
-            if (call != null) {
-                // handling call, go to ambulance tab
-                if (viewPager.getCurrentItem() != AMBULANCE_TAB)
-                    viewPager.setCurrentItem(AMBULANCE_TAB);
-            } else {
-                Log.d(TAG, "No calls being handled right now.");
-                call = pendingCalls.getNextCall(ambulance.getId());
-                if (call != null &&
-                        AmbulanceCall.STATUS_REQUESTED.equals(call.getAmbulanceCall(ambulance.getId()).getStatus())) {
-                    // next call is requested, prompt user!
-                    // promptNextCall = true;
-                    nextCallId = call.getId();
+        if (appData != null && appData.getProfile() != null) {
+
+            // already logged in, initialize
+            initialize();
+
+            // Is there a requested call that needs to be prompted for?
+            Ambulance ambulance = appData.getAmbulance();
+            if (ambulance != null) {
+                // ambulance is selected
+                navigate(R.id.ambulance);
+                // check calls
+                CallStack pendingCalls = appData.getCalls();
+                Call call = pendingCalls.getCurrentCall();
+                if (call == null) {
+                    Log.d(TAG, "No calls being handled right now.");
+                    call = pendingCalls.getNextCall(ambulance.getId());
+                    if (call != null &&
+                            AmbulanceCall.STATUS_REQUESTED.equals(call.getAmbulanceCall(ambulance.getId()).getStatus())) {
+                        // next call is requested, prompt user!
+                        // promptNextCall = true;
+                        nextCallId = call.getId();
+                    }
                 }
             }
+        }
+
+        // setup bottom navigation bar
+        setupNavigationBar();
+
+        // Update location icon
+        if (trackingIcon != null) {
+            if (AmbulanceForegroundService.isUpdatingLocation())
+                trackingIcon.setAlpha(enabledAlpha);
+            else
+                trackingIcon.setAlpha(disabledAlpha);
+        }
+
+        if (onlineIcon != null) {
+            // Online icon
+            if (AmbulanceForegroundService.isOnline())
+                onlineIcon.setAlpha(enabledAlpha);
+            else
+                onlineIcon.setAlpha(disabledAlpha);
         }
 
         // Register receiver
@@ -538,7 +602,7 @@ public class MainActivity extends AppCompatActivity {
         filter.addAction(AmbulanceForegroundService.BroadcastActions.CALL_COMPLETED);
 
         // Enable video
-        if (appData.getSettings().isEnableVideo())
+        if (appData != null && appData.getSettings() != null && appData.getSettings().isEnableVideo())
             filter.addAction(AmbulanceForegroundService.BroadcastActions.WEBRTC_MESSAGE);
 
         receiver = new MainActivityBroadcastReceiver();
@@ -588,50 +652,31 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    // Hamburger Menu setup
-    private ActionBarDrawerToggle setupDrawerToggle() {
-        return new ActionBarDrawerToggle(this, mDrawer, toolbar,
-                R.string.drawer_open,
-                R.string.drawer_close);
-    }
-
-    // Hamburger Menu Listener
-    private void setupDrawerContent(NavigationView navigationView) {
-        navigationView.setNavigationItemSelectedListener(
-                menuItem -> {
-                    selectDrawerItem(menuItem);
-                    return true;
-                });
-    }
-
-    // Start selected activity in Hamburger
-    public void selectDrawerItem(MenuItem menuItem) {
-
-        // Close drawer
-        mDrawer.closeDrawers();
-
-        // Get menuitem
-        int itemId = menuItem.getItemId();
-
-        // Actions
-        if (itemId == R.id.logout) {
-
-            promptLogout();
-
-        } else if (itemId == R.id.about) {
-
-            AboutDialog.newInstance(this).show();
-
-        } else if (itemId == R.id.settings) {
-
-            // TODO: add settings page
-
-        }
-
-    }
+//    // Start selected activity in Hamburger
+//    public void selectDrawerItem(MenuItem menuItem) {
+//
+//        // Get menuitem
+//        int itemId = menuItem.getItemId();
+//
+//        // Actions
+//        if (itemId == R.id.logout) {
+//
+//            promptLogout();
+//
+//        } else if (itemId == R.id.about) {
+//
+//            AboutDialog.newInstance(this).show();
+//
+//        } else if (itemId == R.id.settings) {
+//
+//            // TODO: add settings page
+//
+//        }
+//
+//    }
 
     public boolean panicPopUp() {
-        final long DIALOG_DISMISS_TIME = 3000; // miliseconds
+        final long DIALOG_DISMISS_TIME = 3000; // milliseconds
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setCancelable(true);
@@ -646,7 +691,7 @@ public class MainActivity extends AppCompatActivity {
 
         AlertDialog alertDialog = builder.create();
 
-        //timer to dismiss dialog after DIALOG_DISMISS_TIME ms
+        // timer to dismiss dialog after DIALOG_DISMISS_TIME ms
         final CountDownTimer timer = new CountDownTimer(DIALOG_DISMISS_TIME, 1000) {
             @Override
             public void onTick(long l) {
@@ -1281,7 +1326,7 @@ public class MainActivity extends AppCompatActivity {
 
         // Set spinner click listeners to make sure only base or hospital are selected
         hospitalSpinner.setOnItemSelectedListener(
-                new AdapterView.OnItemSelectedListener() {
+                new OnItemSelectedListener() {
                     @Override
                     public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                         if (position > 0 && baseSpinner.getSelectedItemPosition() > 0) {
@@ -1300,7 +1345,7 @@ public class MainActivity extends AppCompatActivity {
         );
 
         baseSpinner.setOnItemSelectedListener(
-                new AdapterView.OnItemSelectedListener() {
+                new OnItemSelectedListener() {
                     @Override
                     public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                         if (position > 0 && hospitalSpinner.getSelectedItemPosition() > 0) {
@@ -1319,7 +1364,7 @@ public class MainActivity extends AppCompatActivity {
         );
 
         othersSpinner.setOnItemSelectedListener(
-                new AdapterView.OnItemSelectedListener() {
+                new OnItemSelectedListener() {
                     @Override
                     public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                         if (position > 0 && hospitalSpinner.getSelectedItemPosition() > 0) {
@@ -1409,15 +1454,68 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    public void logout() {
+
+        Log.d(TAG,"Logout");
+
+        // Create stop foreground service intent
+        Intent stopIntent = new Intent(this, AmbulanceForegroundService.class);
+        stopIntent.setAction(AmbulanceForegroundService.Actions.STOP_SERVICE);
+
+        // Chain services
+        new OnServiceComplete(this,
+                BroadcastActions.SUCCESS,
+                BroadcastActions.FAILURE,
+                stopIntent) {
+
+            @Override
+            public void onSuccess(Bundle extras) {
+                Log.i(TAG, "onSuccess");
+
+                // navigate to login
+                navigate(R.id.login);
+
+            }
+
+            @Override
+            public void onFailure(Bundle extras) {
+                super.onFailure(extras);
+            }
+        }
+                .setFailureMessage(getString(R.string.couldNotLogout))
+                .setAlert(new AlertSnackbar(this))
+                .start();
+
+    }
+
     public void promptLogout() {
 
         Call call = AmbulanceForegroundService.getAppData().getCalls().getCurrentCall();
-        if (call == null)
+        if (call == null) {
 
             // Go straight to dialog
-            LogoutDialog.newInstance(this).show();
+            // LogoutDialog.newInstance(this).show();
 
-        else {
+            // Logout dialog
+            new AlertDialog.Builder(this)
+                    .setTitle(R.string.logout)
+                    .setMessage(R.string.logout_confirm)
+                    .setNegativeButton(R.string.cancel,
+                            (dialog, which) -> {
+                                /* do nothing */
+                            })
+                    .setPositiveButton(
+                            R.string.ok,
+                            (dialog, which) -> {
+
+                                Log.i(TAG, "LogoutDialog: OK Button Clicked");
+                                logout();
+
+                            })
+                    .create()
+                    .show();
+
+        } else {
 
             // Will ask to logout
             logoutAfterFinish = true;

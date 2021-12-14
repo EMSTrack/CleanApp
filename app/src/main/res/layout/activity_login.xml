@@ -13,47 +13,8 @@
         android:layout_marginTop="20dp"
         app:srcCompat="@drawable/ambulancelogo" />
 
-    <EditText
-        android:id="@+id/editUserName"
+    <include layout="@layout/login_prompt"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
-        android:layout_marginBottom="20dp"
-        android:layout_marginLeft="30dp"
-        android:layout_marginRight="30dp"
-        android:hint="@string/enterUsername"
-        android:inputType="text" />
-
-    <EditText
-        android:id="@+id/editPassword"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="20dp"
-        android:layout_marginLeft="30dp"
-        android:layout_marginRight="30dp"
-        android:fontFamily="sans-serif"
-        android:hint="@string/enterPassword"
-        android:inputType="textPassword" />
-
-    <Spinner
-        android:id="@+id/spinnerServer"
-        android:layout_width="match_parent"
-        android:layout_height="40dp"
-        android:layout_marginLeft="30dp"
-        android:layout_marginRight="30dp"
-        android:layout_marginBottom="20dp"
-        android:fontFamily="sans-serif"
-        android:textAlignment="center" />
-
-    <Button
-        android:id="@+id/buttonLogin"
-        android:layout_width="match_parent"
-        android:layout_height="50dp"
-        android:layout_marginLeft="30dp"
-        android:layout_marginRight="30dp"
-        android:layout_marginBottom="120dp"
-        android:background="@color/colorAccent"
-        android:text="@string/signIn"
-        android:textColor="@color/common_google_signin_btn_text_dark_default" />
+        android:layout_height="wrap_content"/>
 
 </LinearLayout>

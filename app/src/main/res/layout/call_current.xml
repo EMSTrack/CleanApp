@@ -21,9 +21,8 @@
             android:layout_marginTop="10dp"
             android:layout_marginEnd="5dp"
             android:layout_weight="1"
-            android:background="@color/bootstrapSecondary"
-            android:text="@string/skip"
-            android:textColor="@color/colorWhite" />
+            android:backgroundTint="@color/bootstrapSecondary"
+            android:text="@string/skip" />
 
         <Button
             android:id="@+id/callVisitingWaypointButton"
@@ -32,9 +31,8 @@
             android:layout_marginTop="10dp"
             android:layout_marginStart="5dp"
             android:layout_weight="1"
-            android:background="@color/bootstrapPrimary"
-            android:text="@string/markAsVisiting"
-            android:textColor="@color/colorWhite" />
+            android:backgroundTint="@color/bootstrapPrimary"
+            android:text="@string/markAsVisiting" />
 
     </LinearLayout>
 
@@ -51,9 +49,8 @@
             android:layout_marginTop="10dp"
             android:layout_marginEnd="5dp"
             android:layout_weight="1"
-            android:background="@color/bootstrapSuccess"
-            android:text="@string/addWaypoint"
-            android:textColor="@color/colorWhite" />
+            android:backgroundTint="@color/bootstrapSuccess"
+            android:text="@string/addWaypoint" />
 
         <Button
             android:id="@+id/callEndButton"
@@ -62,9 +59,8 @@
             android:layout_marginTop="10dp"
             android:layout_marginStart="5dp"
             android:layout_weight="1"
-            android:background="@color/colorAccent"
-            android:text="@string/endCall"
-            android:textColor="@color/colorWhite" />
+            android:backgroundTint="@color/colorAccent"
+            android:text="@string/endCall" />
 
     </LinearLayout>
 
@@ -90,8 +86,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="5dp"
         android:layout_marginHorizontal="0dp"
-        android:background="@color/bootstrapSuccess"
-        android:text="@string/addCallNote"
-        android:textColor="@color/colorWhite" />
+        android:backgroundTint="@color/bootstrapPrimary"
+        android:text="@string/addCallNote" />
 
 </LinearLayout>

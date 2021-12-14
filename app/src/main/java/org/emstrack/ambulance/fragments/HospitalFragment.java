@@ -16,6 +16,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import org.emstrack.ambulance.MainActivity;
 import org.emstrack.ambulance.R;
 import org.emstrack.ambulance.adapters.HospitalRecyclerAdapter;
 import org.emstrack.ambulance.models.AmbulanceAppData;
@@ -29,6 +30,7 @@ public class HospitalFragment extends Fragment {
     View rootView;
     RecyclerView recyclerView;
     HospitalsUpdateBroadcastReceiver receiver;
+    private MainActivity activity;
 
     public class HospitalsUpdateBroadcastReceiver extends BroadcastReceiver {
 
@@ -36,12 +38,14 @@ public class HospitalFragment extends Fragment {
         public void onReceive(Context context, Intent intent ) {
             if (intent != null) {
                 final String action = intent.getAction();
-                if (action.equals(AmbulanceForegroundService.BroadcastActions.HOSPITALS_UPDATE)) {
+                if (action != null) {
+                    if (action.equals(AmbulanceForegroundService.BroadcastActions.HOSPITALS_UPDATE)) {
 
-                    Log.i(TAG, "HOSPITALS_UPDATE");
-                    AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
-                    update(appData.getHospitals());
+                        Log.i(TAG, "HOSPITALS_UPDATE");
+                        AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
+                        update(appData.getHospitals());
 
+                    }
                 }
             }
         }
@@ -51,6 +55,8 @@ public class HospitalFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
         rootView = inflater.inflate(R.layout.fragment_hospital, container, false);
+        activity = (MainActivity) requireActivity();
+
         recyclerView = rootView.findViewById(R.id.hospital_recycler_view);
 
         AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
@@ -62,6 +68,8 @@ public class HospitalFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
+
+        activity.setupNavigationBar();
 
         // Register receiver
         IntentFilter filter = new IntentFilter();
@@ -103,7 +111,7 @@ public class HospitalFragment extends Fragment {
         Log.i(TAG,"Updating hospitals UI.");
 
         // Install adapter
-        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getContext());
+        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(requireContext());
         HospitalRecyclerAdapter adapter =
                 new HospitalRecyclerAdapter(getActivity(), hospitals);
         recyclerView.setLayoutManager(linearLayoutManager);
@@ -117,7 +125,7 @@ public class HospitalFragment extends Fragment {
      * @return the LocalBroadcastManager
      */
     private LocalBroadcastManager getLocalBroadcastManager() {
-        return LocalBroadcastManager.getInstance(getContext());
+        return LocalBroadcastManager.getInstance(requireContext());
     }
 
 }

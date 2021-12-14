@@ -4,18 +4,19 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/activity_main"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:context="org.emstrack.ambulance.MainActivity">
+    android:layout_height="match_parent">
 
     <androidx.drawerlayout.widget.DrawerLayout
         android:id="@+id/drawer_layout"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <RelativeLayout
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
+            android:layout_height="match_parent"
+            android:orientation="vertical">
 
+            <!--
             <androidx.appcompat.widget.Toolbar
                 android:id="@+id/toolbar"
                 android:layout_width="match_parent"
@@ -82,37 +83,44 @@
                     android:text="@string/EMSTrack"/>
 
             </androidx.appcompat.widget.Toolbar>
+            -->
 
-            <com.google.android.material.tabs.TabLayout
-                android:id="@+id/tab_layout_home"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_below="@+id/toolbar"
-                android:layout_alignParentStart="true"
-                android:background="@color/tabBackground"
-                app:tabMode="fixed" />
-
-            <androidx.viewpager2.widget.ViewPager2
-                android:id="@+id/pager"
-                android:layout_width="match_parent"
+            <LinearLayout
                 android:layout_height="match_parent"
-                android:layout_below="@+id/tab_layout_home"
-                android:layout_alignParentStart="true"
-                android:layout_alignParentBottom="true" />
+                android:layout_width="match_parent"
+                android:orientation="horizontal">
 
-        </RelativeLayout>
+                <com.google.android.material.navigationrail.NavigationRailView
+                    android:layout_width="100dp"
+                    android:layout_height="match_parent"
+                    app:menu="@menu/landscape_navigation_bar"/>
+
+                <com.google.android.material.tabs.TabLayout
+                    android:id="@+id/tab_layout_home"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@color/tabBackground"
+                    app:tabMode="fixed" />
+
+                <androidx.viewpager2.widget.ViewPager2
+                    android:id="@+id/pager"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent" />
+
+            </LinearLayout>
+
+        </LinearLayout>
 
         <!-- The navigation drawer that comes from the left -->
         <!-- Note that `android:layout_gravity` needs to be set to 'start' -->
 
         <com.google.android.material.navigation.NavigationView
-            android:id="@+id/nvView"
+            android:id="@+id/nav_view"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:layout_gravity="start"
             android:background="@android:color/white"
             app:headerLayout="@layout/nav_header"
-            android:theme="@style/drawer_menu_theme"
             app:menu="@menu/drawer_view" >
 
         </com.google.android.material.navigation.NavigationView>

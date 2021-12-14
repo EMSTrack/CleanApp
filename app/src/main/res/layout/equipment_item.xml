@@ -26,10 +26,8 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="@string/equipment"
-                android:paddingLeft="3dp"
-                android:textSize="20sp"
-                android:textColor="@color/colorAvailable"
-                android:textStyle="bold"/>
+                android:paddingStart="3dp"
+                android:textColor="@color/colorAvailable" />
 
             <TextView
                 android:id="@+id/equipment_value"
@@ -37,15 +35,14 @@
                 android:layout_height="wrap_content"
                 android:paddingTop="3dp"
                 android:paddingEnd="6dp"
-                android:text="@string/equipment"
-                android:textSize="16sp"/>
+                android:text="@string/equipment" />
 
             <CheckBox
                 android:id="@+id/equipment_checkbox"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="right"
-                android:gravity="right"
+                android:layout_gravity="end"
+                android:gravity="end"
                 android:clickable="false"
                 android:buttonTint="@color/bootstrapSuccess"/>
 
@@ -56,10 +53,9 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="5dp"
-            android:paddingLeft="5dp"
+            android:paddingStart="5dp"
             android:visibility="gone"
-            android:text="@string/equipment"
-            android:textSize="16sp"/>
+            android:text="@string/equipment" />
 
     </LinearLayout>
 

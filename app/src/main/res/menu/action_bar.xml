@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/trackingIcon"
+        android:title="Tracking"
+        app:showAsAction="always"
+        android:icon="@drawable/ic_shipping_fast" />
+
+    <item
+        android:id="@+id/onlineIcon"
+        android:title="Online"
+        app:showAsAction="always"
+        android:icon="@drawable/ic_wifi" />
+
+    <item
+        android:id="@+id/videoCallButton"
+        android:title="Video Call"
+        app:showAsAction="always"
+        android:icon="@drawable/ic_video_call" />
+
+    <item
+        android:id="@+id/panicButton"
+        android:title="Panic Button"
+        app:showAsAction="always"
+        android:icon="@drawable/ic_exclamation_triangle" />
+
+</menu>

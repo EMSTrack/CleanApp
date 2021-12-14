@@ -24,10 +24,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/ambulanceButtonDefaultText"
-            android:background="@color/bootstrapSecondary"
-            android:textColor="@color/colorWhite"
-            android:textAllCaps="false"
-            android:textSize="24sp" />
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
 
         <TextView
             android:id="@+id/ambulanceSelectionMessage"
@@ -55,14 +52,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_alignParentTop="true"
-                android:layout_marginTop="10dp"
-                android:background="@color/bootstrapSuccess"
-                android:fontFamily="sans-serif"
-                android:text="@string/available"
-                android:textAllCaps="false"
-                android:textColor="@color/colorWhite"
-                android:textSize="24sp"
-                android:textStyle="bold" />
+                android:layout_marginTop="5dp"
+                android:text="@string/available" />
 
             <RelativeLayout
                 android:id="@+id/callInformationLayout"
@@ -76,8 +67,7 @@
                     android:layout_width="wrap_content"
                     android:text="@string/callLabel"
                     android:layout_marginTop="10dp"
-                    android:textStyle="bold"
-                    android:textSize="18sp"/>
+                    android:textStyle="bold" />
 
                 <TextView
                     android:id="@+id/callInformationText"
@@ -92,6 +82,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
+                    android:visibility="gone"
                     android:layout_below="@+id/callLabel">
 
                     <Spinner
@@ -104,9 +95,8 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="10dp"
-                        android:background="@color/bootstrapPrimary"
-                        android:text="@string/resumeCalls"
-                        android:textColor="@color/colorWhite" />
+                        android:backgroundTint="@color/bootstrapPrimary"
+                        android:text="@string/resumeCalls" />
 
                 </LinearLayout>
 
@@ -118,6 +108,7 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:layout_marginTop="10dp"
+                android:visibility="gone"
                 android:layout_below="@+id/callInformationLayout">
 
                 <include layout="@layout/call_current"
@@ -132,8 +123,7 @@
                 android:layout_width="wrap_content"
                 android:text="@string/gpsCapabilityLabel"
                 android:textStyle="bold"
-                android:textSize="18sp"
-                android:layout_marginTop="10dp"
+                android:layout_marginTop="5dp"
                 android:layout_below="@+id/callLayout"/>
 
             <TextView
@@ -142,7 +132,7 @@
                 android:layout_width="wrap_content"
                 android:text="@string/unknown"
                 android:layout_alignParentEnd="true"
-                android:layout_marginTop="20dp"
+                android:layout_marginTop="5dp"
                 android:layout_below="@+id/callLayout"/>
 
             <TextView
@@ -151,8 +141,7 @@
                 android:layout_width="wrap_content"
                 android:text="@string/gpsCommentsLabel"
                 android:textStyle="bold"
-                android:textSize="18sp"
-                android:layout_marginTop="10dp"
+                android:layout_marginTop="5dp"
                 android:layout_below="@+id/capabilityText"/>
 
             <TextView
@@ -161,7 +150,8 @@
                 android:layout_width="wrap_content"
                 android:text="@string/unknown"
                 android:layout_alignParentEnd="true"
-                android:layout_below="@+id/commentLabel"/>
+                android:layout_marginTop="5dp"
+                android:layout_below="@+id/capabilityText"/>
 
             <TextView
                 android:id="@+id/updatedOnLabel"
@@ -169,8 +159,7 @@
                 android:layout_width="wrap_content"
                 android:text="@string/gpsLastUpdatedOnLabel"
                 android:textStyle="bold"
-                android:textSize="18sp"
-                android:layout_marginTop="10dp"
+                android:layout_marginTop="5dp"
                 android:layout_below="@+id/commentText"/>
 
             <TextView
@@ -179,20 +168,18 @@
                 android:layout_width="wrap_content"
                 android:text="@string/unknown"
                 android:layout_alignParentEnd="true"
-                android:layout_below="@+id/updatedOnLabel"/>
+                android:layout_marginTop="5dp"
+                android:layout_below="@+id/commentText"/>
 
             <Button
                 android:id="@+id/amublanceReleaseButton"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_below="@+id/updatedOnText"
-                android:background="@color/bootstrapDanger"
-                android:fontFamily="sans-serif"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:textColor="@color/bootstrapDanger"
                 android:text="@string/release"
-                android:textStyle="bold"
-                android:textColor="@color/colorWhite"
-                android:layout_marginTop="20dp"
-                android:textSize="20sp"/>
+                android:layout_marginTop="10dp" />
 
         </RelativeLayout>
 

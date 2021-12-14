@@ -24,6 +24,7 @@
         android:theme="@style/AppTheme"
         tools:ignore="GoogleAppIndexingWarning">
 
+        <!--
         <activity android:name="org.emstrack.ambulance.LoginActivity"
             android:screenOrientation="sensor"
             android:exported="true">
@@ -40,6 +41,16 @@
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".LoginActivity" />
+        </activity>
+        -->
+
+        <activity android:name="org.emstrack.ambulance.MainActivity"
+            android:screenOrientation="sensor"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
         </activity>
 
         <service android:name="org.eclipse.paho.android.service.MqttService"/>

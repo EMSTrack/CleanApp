@@ -29,6 +29,7 @@ import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
+import org.emstrack.ambulance.MainActivity;
 import org.emstrack.ambulance.dialogs.AlertSnackbar;
 import org.emstrack.ambulance.models.AmbulanceAppData;
 import org.emstrack.ambulance.services.AmbulanceForegroundService;
@@ -90,6 +91,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
     private GPSLocation defaultLocation;
 
     private boolean centerAtDefault;
+    private MainActivity activity;
 
     static int degreesToRotation(int degrees) {
         if (degrees > 315 || degrees < 45)
@@ -152,6 +154,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
         rootView = inflater.inflate(R.layout.fragment_map, container, false);
+        activity = (MainActivity) requireActivity();
 
         // Retrieve location button
         showLocationButton = rootView.findViewById(R.id.showLocationButton);
@@ -422,7 +425,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
                     }
                 }
                         .setFailureMessage(getString(R.string.couldNotRetrieveAmbulances))
-                        .setAlert(new AlertSnackbar(getActivity()))
+                        .setAlert(new AlertSnackbar(requireActivity()))
                         .start();
 
             }
@@ -504,10 +507,10 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
 
     @Override
     public void onResume() {
+        super.onResume();
 
         Log.d(TAG, "onResume");
-
-        super.onResume();
+        activity.setupNavigationBar();
 
         // Enable orientation listener
         if (orientationListener.canDetectOrientation())
@@ -567,7 +570,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
     }
 
     @Override
-    public void onMapReady(GoogleMap googleMap) {
+    public void onMapReady(@NonNull GoogleMap googleMap) {
 
         Log.d(TAG, "onMapReady");
 
@@ -906,7 +909,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
      * @return the LocalBroadcastManager
      */
     private LocalBroadcastManager getLocalBroadcastManager() {
-        return LocalBroadcastManager.getInstance(getContext());
+        return LocalBroadcastManager.getInstance(requireContext());
     }
 
 }

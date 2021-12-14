@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/map"
+        android:icon="@drawable/ic_globe"
+        android:title="@string/map" />
+
+    <item
+        android:id="@+id/hospitals"
+        android:icon="@drawable/ic_hospital"
+        android:title="@string/hospitals" />
+
+    <item
+        android:id="@+id/ambulance"
+        android:icon="@drawable/ic_ambulance"
+        android:title="@string/ambulance" />
+
+    <item
+        android:id="@+id/equipment"
+        android:icon="@drawable/ic_briefcase_medical"
+        android:title="@string/equipment" />
+
+</menu>

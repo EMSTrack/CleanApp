@@ -29,6 +29,8 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.material.button.MaterialButton;
+
 import org.emstrack.ambulance.BuildConfig;
 import org.emstrack.ambulance.MainActivity;
 import org.emstrack.ambulance.R;
@@ -67,7 +69,7 @@ public class AmbulanceFragment extends Fragment {
 
     private View view;
 
-    private Button statusButton;
+    private MaterialButton statusButton;
     private View releaseButton;
 
     private TextView capabilityText;
@@ -123,6 +125,7 @@ public class AmbulanceFragment extends Fragment {
 
     private ArrayList<String> ambulanceList;
     private List<AmbulancePermission> ambulancePermissions;
+    private MainActivity activity;
 
     public class AmbulancesUpdateBroadcastReceiver extends BroadcastReceiver {
 
@@ -279,7 +282,7 @@ public class AmbulanceFragment extends Fragment {
 
                     // create permission helper
                     RequestPermissionHelper requestPermissionHelper = new RequestPermissionHelper(
-                            requireContext(), requireActivity(), this.permissions);
+                            requireContext(), activity, this.permissions);
 
                     // fire request, permissions will be denied and processed by user
                     this.promptIfNotGranted = false;
@@ -314,7 +317,7 @@ public class AmbulanceFragment extends Fragment {
                 // dismiss first, then go to settings
                 // Build intent that displays the App settings screen.
                 // intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                new AlertDialog.Builder(requireActivity())
+                new AlertDialog.Builder(activity)
                         .setTitle(R.string.needPermissions)
                         .setMessage(getString(R.string.locationPermissionMessage) + "\n\n" + getString(R.string.locationPermissionSettingsMessage, message))
                         .setPositiveButton(android.R.string.ok,
@@ -330,7 +333,7 @@ public class AmbulanceFragment extends Fragment {
 
                                 })
                         .setNegativeButton(android.R.string.cancel,
-                                (dialog, which) -> new AlertSnackbar(requireActivity())
+                                (dialog, which) -> new AlertSnackbar(activity)
                                         .alert(getString(R.string.expectLimitedFuncionality)))
                         .create()
                         .show();
@@ -341,7 +344,7 @@ public class AmbulanceFragment extends Fragment {
         private void selectAmbulance() {
             Log.i(TAG, "Location settings satisfied, select ambulance");
 
-            new AlertDialog.Builder(requireActivity())
+            new AlertDialog.Builder(activity)
                     .setTitle(R.string.selectAmbulance)
                     .setAdapter(ambulanceListAdapter,
                             (dialog, which) -> {
@@ -402,7 +405,7 @@ public class AmbulanceFragment extends Fragment {
 
             }
                     .setFailureMessage(getString(R.string.expectLimitedFuncionality))
-                    .setAlert(new AlertSnackbar(requireActivity()))
+                    .setAlert(new AlertSnackbar(activity))
                     .start();
         }
 
@@ -421,7 +424,7 @@ public class AmbulanceFragment extends Fragment {
 
                 // create permission helper
                 RequestPermissionHelper requestPermissionHelper = new RequestPermissionHelper(requireContext(),
-                        requireActivity(), this.permissions);
+                        activity, this.permissions);
 
                 // fire request
                 this.promptIfNotGranted = true;
@@ -468,8 +471,7 @@ public class AmbulanceFragment extends Fragment {
             if (!enabled)
                 return;
 
-            new AlertDialog.Builder(
-                    requireActivity())
+            new AlertDialog.Builder(activity)
                     .setTitle(R.string.selectAmbulanceStatus)
                     .setAdapter(ambulanceStatusListAdapter,
                             (dialog, which) -> {
@@ -495,7 +497,7 @@ public class AmbulanceFragment extends Fragment {
             if (call == null || !call.getCurrentAmbulanceCall().getStatus().equals(AmbulanceCall.STATUS_ACCEPTED))
 
                 // no calls, ask for confirmation
-                new AlertDialog.Builder(requireActivity())
+                new AlertDialog.Builder(activity)
                         .setTitle(getString(R.string.releaseAmbulance))
                         .setMessage(R.string.confirmAmbulanceReleaseMessage)
                         .setPositiveButton( android.R.string.ok,
@@ -518,7 +520,7 @@ public class AmbulanceFragment extends Fragment {
 
                                     }
                                             .setFailureMessage(getString(R.string.couldNotReleaseAmbulance))
-                                            .setAlert(new AlertSnackbar(requireActivity()))
+                                            .setAlert(new AlertSnackbar(activity))
                                             .start();
 
                                 } )
@@ -552,7 +554,7 @@ public class AmbulanceFragment extends Fragment {
         }
 
         // Use the Builder class for convenient dialog construction
-        AlertDialog.Builder builder = new AlertDialog.Builder(requireActivity());
+        AlertDialog.Builder builder = new AlertDialog.Builder(activity);
         builder.setTitle(R.string.currentlyHandlingCall)
                 .setMessage(R.string.whatDoYouWantToDo)
                 .setNegativeButton(R.string.toContinue,
@@ -587,14 +589,14 @@ public class AmbulanceFragment extends Fragment {
 
                             }
                                     .setFailureMessage(getString(R.string.couldNotSuspendCall))
-                                    .setAlert(new AlertSnackbar(requireActivity()))
+                                    .setAlert(new AlertSnackbar(activity))
                                     .start();
 
                         })
                 .setPositiveButton(R.string.end,
                         (dialog, id) -> {
 
-                            Toast.makeText(requireActivity(),
+                            Toast.makeText(activity,
                                     R.string.endingCall,
                                     Toast.LENGTH_SHORT).show();
 
@@ -620,7 +622,7 @@ public class AmbulanceFragment extends Fragment {
 
                             }
                                     .setFailureMessage(getString(R.string.couldNotFinishCall))
-                                    .setAlert(new AlertSnackbar(requireActivity()))
+                                    .setAlert(new AlertSnackbar(activity))
                                     .start();
 
                         });
@@ -638,6 +640,7 @@ public class AmbulanceFragment extends Fragment {
 
         // inflate view
         view = inflater.inflate(R.layout.fragment_ambulance, container, false);
+        activity = (MainActivity) requireActivity();
 
         // retrieve ambulanceMessage
         View ambulanceSelectionLayout = view.findViewById(R.id.ambulanceSelectionLayout);
@@ -791,6 +794,7 @@ public class AmbulanceFragment extends Fragment {
         super.onResume();
 
         Log.d(TAG, "onResume");
+        activity.setupNavigationBar();
 
         // Set auxiliary panels gone
         callLayout.setVisibility(View.GONE);
@@ -867,14 +871,14 @@ public class AmbulanceFragment extends Fragment {
                 callEndButton.setOnClickListener(
                         v -> {
                             // Prompt end of call
-                            ((MainActivity) requireActivity()).promptEndCallDialog(call.getId());
+                            activity.promptEndCallDialog(call.getId());
                         }
                 );
 
                 callAddWaypointButton.setOnClickListener(
                         v -> {
                             // Prompt add new waypoint
-                            ((MainActivity) requireActivity()).promptNextWaypointDialog(call.getId());
+                            activity.promptNextWaypointDialog(call.getId());
                         }
                 );
 
@@ -901,12 +905,10 @@ public class AmbulanceFragment extends Fragment {
 
             // set priority
             callPriorityTextView.setText(call.getPriority());
-            callPriorityTextView.setBackgroundColor(
-                    ((MainActivity) requireActivity())
+            callPriorityTextView.setBackgroundColor(activity
                             .getCallPriorityBackgroundColors()
                             .get(call.getPriority()));
-            callPriorityTextView.setTextColor(
-                    ((MainActivity) requireActivity())
+            callPriorityTextView.setTextColor(activity
                             .getCallPriorityForegroundColors()
                             .get(call.getPriority()));
 
@@ -1003,10 +1005,10 @@ public class AmbulanceFragment extends Fragment {
                     toMapsButton.setOnClickListener(v -> {
 
                         //checks if google maps or any other map app is installed
-                        if ( mapIntent.resolveActivity(requireActivity().getPackageManager()) != null) {
+                        if ( mapIntent.resolveActivity(activity.getPackageManager()) != null) {
 
                             // Alert before opening in google maps
-                            new AlertDialog.Builder(requireActivity())
+                            new AlertDialog.Builder(activity)
                                     .setTitle(getString(R.string.directions))
                                     .setMessage(R.string.wouldYouLikeToGoogleMaps)
                                     .setPositiveButton( android.R.string.ok,
@@ -1120,7 +1122,7 @@ public class AmbulanceFragment extends Fragment {
         // equipmentTabLayout.setEnabled(false); //disable clicking
 
         // Retrieve ambulance
-        Intent ambulanceIntent = new Intent(requireActivity(), AmbulanceForegroundService.class);
+        Intent ambulanceIntent = new Intent(activity, AmbulanceForegroundService.class);
         ambulanceIntent.setAction(AmbulanceForegroundService.Actions.GET_AMBULANCE);
         ambulanceIntent.putExtra(AmbulanceForegroundService.BroadcastExtras.AMBULANCE_ID,
                 selectedAmbulance.getAmbulanceId());
@@ -1148,7 +1150,7 @@ public class AmbulanceFragment extends Fragment {
         }
                 .setFailureMessage(getResources().getString(R.string.couldNotRetrieveAmbulance,
                         selectedAmbulance.getAmbulanceIdentifier()))
-                .setAlert(new org.emstrack.ambulance.dialogs.AlertDialog(requireActivity(),
+                .setAlert(new org.emstrack.ambulance.dialogs.AlertDialog(activity,
                         getResources().getString(R.string.couldNotStartLocationUpdates),
                         (dialog, which) -> ambulanceSelectionButton.callOnClick()))
                 .start();
@@ -1254,7 +1256,7 @@ public class AmbulanceFragment extends Fragment {
 
                         // prompt user
                         Log.d(TAG,"Will prompt user to accept call");
-                        ((MainActivity) requireActivity()).promptCallAccept(call.getId());
+                        activity.promptCallAccept(call.getId());
 
                     });
 
@@ -1333,7 +1335,7 @@ public class AmbulanceFragment extends Fragment {
 
         try {
 
-            if (!((MainActivity) requireActivity()).canWrite()) {
+            if (!activity.canWrite()) {
 
                 // Toast to warn user
                 Toast.makeText(getContext(),
@@ -1375,7 +1377,7 @@ public class AmbulanceFragment extends Fragment {
             bundle.putInt(AmbulanceForegroundService.BroadcastExtras.AMBULANCE_ID, ambulance.getId());
             bundle.putString(AmbulanceForegroundService.BroadcastExtras.AMBULANCE_STATUS, statusCode);
             intent.putExtras(bundle);
-            requireActivity().startService(intent);
+            activity.startService(intent);
 
         } catch (Exception e) {
 
@@ -1421,7 +1423,7 @@ public class AmbulanceFragment extends Fragment {
                             bundle.putInt(AmbulanceForegroundService.BroadcastExtras.AMBULANCE_ID, ambulanceId);
                             bundle.putInt(AmbulanceForegroundService.BroadcastExtras.CALL_ID, callId);
                             intent.putExtras(bundle);
-                            requireActivity().startService(intent);
+                            activity.startService(intent);
 
                         });
 
@@ -1456,7 +1458,7 @@ public class AmbulanceFragment extends Fragment {
                             bundle.putString(AmbulanceForegroundService.BroadcastExtras.CALLNOTE_COMMENT, editText.getText().toString());
                             bundle.putInt(AmbulanceForegroundService.BroadcastExtras.CALL_ID, callId);
                             intent.putExtras(bundle);
-                            requireActivity().startService(intent);
+                            activity.startService(intent);
 
 
                         });

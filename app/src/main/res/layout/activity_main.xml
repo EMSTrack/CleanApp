@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/activity_main"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:context="org.emstrack.ambulance.MainActivity">
+    android:layout_height="match_parent">
 
     <androidx.drawerlayout.widget.DrawerLayout
         android:id="@+id/drawer_layout"
@@ -16,6 +16,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent">
 
+            <!--
             <androidx.appcompat.widget.Toolbar
                 android:id="@+id/toolbar"
                 android:layout_width="match_parent"
@@ -82,12 +83,12 @@
                     android:text="@string/EMSTrack"/>
 
             </androidx.appcompat.widget.Toolbar>
+            -->
 
             <com.google.android.material.tabs.TabLayout
                 android:id="@+id/tab_layout_home"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_below="@+id/toolbar"
                 android:layout_alignParentStart="true"
                 android:background="@color/tabBackground"
                 app:tabMode="fixed" />
@@ -106,13 +107,12 @@
         <!-- Note that `android:layout_gravity` needs to be set to 'start' -->
 
         <com.google.android.material.navigation.NavigationView
-            android:id="@+id/nvView"
+            android:id="@+id/nav_view"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:layout_gravity="start"
             android:background="@android:color/white"
             app:headerLayout="@layout/nav_header"
-            android:theme="@style/drawer_menu_theme"
             app:menu="@menu/drawer_view" >
 
         </com.google.android.material.navigation.NavigationView>

@@ -23,7 +23,7 @@ import java.util.List;
 public class EquipmentRecyclerAdapter extends RecyclerView.Adapter<EquipmentRecyclerViewViewHolder> {
 
     private static final String TAG = EquipmentRecyclerAdapter.class.getSimpleName();
-    private Context context;
+    private final Context context;
     List<EquipmentItem> equipments;
 
     public EquipmentRecyclerAdapter(Context context, List<EquipmentItem> equipments) {

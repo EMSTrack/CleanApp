@@ -54,6 +54,7 @@ import com.google.gson.JsonParser;
 import org.eclipse.paho.android.service.MqttAndroidClient;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.emstrack.ambulance.LoginActivity;
+import org.emstrack.ambulance.MainActivity;
 import org.emstrack.ambulance.R;
 import org.emstrack.ambulance.models.AmbulanceAppData;
 import org.emstrack.ambulance.util.AmbulanceUpdate;
@@ -369,15 +370,14 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
             // Create notification
 
             // Login intent
-            Intent notificationIntent = new Intent(AmbulanceForegroundService.this, LoginActivity.class);
+            Intent notificationIntent = new Intent(AmbulanceForegroundService.this, MainActivity.class);
             notificationIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-            PendingIntent pendingIntent = PendingIntent.getActivity(AmbulanceForegroundService.this, 0,
+            PendingIntent loginPendingIntent = PendingIntent.getActivity(AmbulanceForegroundService.this, 0,
                     notificationIntent, 0);
 
-            // Restart intent
-            Intent restartServiceIntent = new Intent(AmbulanceForegroundService.this, LoginActivity.class);
-            restartServiceIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-            restartServiceIntent.setAction(LoginActivity.LOGOUT);
+            // Logout intent
+            Intent restartServiceIntent = new Intent(AmbulanceForegroundService.this, AmbulanceForegroundService.class);
+            restartServiceIntent.setAction(Actions.LOGOUT);
             PendingIntent restartServicePendingIntent = PendingIntent.getActivity(AmbulanceForegroundService.this, 0,
                     restartServiceIntent, 0);
 
@@ -399,12 +399,12 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                 notificationBuilder = new Notification.Builder(AmbulanceForegroundService.this);
 
             notificationBuilder
-                    .setContentTitle("EMSTrack")
+                    .setContentTitle(getString(R.string.EMSTrack))
                     .setTicker(getString(R.string.pleaseLogin))
                     .setContentText(getString(R.string.pleaseLogin))
                     .setSmallIcon(R.mipmap.ic_launcher)
                     .setLargeIcon(Bitmap.createScaledBitmap(icon, 128, 128, false))
-                    .setContentIntent(pendingIntent)
+                    .setContentIntent(loginPendingIntent)
                     .setOngoing(true)
                     .addAction(android.R.drawable.ic_menu_close_clear_cancel, getString(R.string.restartText), restartServicePendingIntent);
 
@@ -1391,17 +1391,20 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         // Create notification
 
         // Login intent
-        Intent notificationIntent = new Intent(AmbulanceForegroundService.this,
-                LoginActivity.class);
+        Intent notificationIntent = new Intent(AmbulanceForegroundService.this, MainActivity.class);
         notificationIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         PendingIntent pendingIntent = PendingIntent.getActivity(AmbulanceForegroundService.this, 0,
                 notificationIntent, 0);
 
+        // Logout intent
+        Intent logoutServiceIntent = new Intent(AmbulanceForegroundService.this, AmbulanceForegroundService.class);
+        logoutServiceIntent.setAction(Actions.LOGOUT);
+        PendingIntent logoutServicePendingIntent = PendingIntent.getActivity(AmbulanceForegroundService.this, 0,
+                logoutServiceIntent, 0);
+
         // Stop intent
-        Intent stopServiceIntent = new Intent(AmbulanceForegroundService.this,
-                LoginActivity.class);
-        stopServiceIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-        stopServiceIntent.setAction(LoginActivity.LOGOUT);
+        Intent stopServiceIntent = new Intent(AmbulanceForegroundService.this, AmbulanceForegroundService.class);
+        stopServiceIntent.setAction(Actions.STOP_SERVICE);
         PendingIntent stopServicePendingIntent = PendingIntent.getActivity(AmbulanceForegroundService.this, 0,
                 stopServiceIntent, 0);
 
@@ -1416,8 +1419,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                         .setSmallIcon(R.mipmap.ic_launcher)
                         .setContentIntent(pendingIntent)
                         .setOngoing(true)
-                        .addAction(android.R.drawable.ic_menu_close_clear_cancel,
-                                getString(R.string.restartText), stopServicePendingIntent)
+                        .addAction(android.R.drawable.ic_menu_close_clear_cancel, getString(R.string.restartText), stopServicePendingIntent)
                         .build();
 
         NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
@@ -3134,7 +3136,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                             Log.d(TAG, "Got webrtc message: type=" + type + ", client=" + client);
 
                             // Login intent
-                            Intent notificationIntent = new Intent(AmbulanceForegroundService.this, LoginActivity.class);
+                            Intent notificationIntent = new Intent(AmbulanceForegroundService.this, MainActivity.class);
                             notificationIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                             PendingIntent pendingIntent = PendingIntent.getActivity(AmbulanceForegroundService.this, 0,
                                     notificationIntent, 0);
@@ -4470,7 +4472,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                 calls.setPendingCall(true);
 
                 // Login intent
-                Intent notificationIntent = new Intent(AmbulanceForegroundService.this, LoginActivity.class);
+                Intent notificationIntent = new Intent(AmbulanceForegroundService.this, MainActivity.class);
                 notificationIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                 PendingIntent pendingIntent = PendingIntent.getActivity(AmbulanceForegroundService.this, 0,
                         notificationIntent, 0);
