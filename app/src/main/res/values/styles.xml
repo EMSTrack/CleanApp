@@ -2,12 +2,6 @@
 
     <!-- Base application theme. -->
     <style name="AppTheme" parent="Theme.MaterialComponents.Light">
-        <!-- Customize your theme here. -->
-        <!--
-        <item name="colorPrimary">@color/colorPrimary</item>
-        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
-        <item name="colorAccent">@color/colorAccent</item>
-        -->
 
         <item name="colorPrimary">@color/bootstrapPrimary</item>
         <item name="colorPrimaryVariant">@color/bootstrapSecondary</item>
@@ -20,6 +14,9 @@
         <item name="colorSurface">#FFFFFF</item>
         <item name="colorOnSurface">#212121</item>
 
+        <item name="android:actionButtonStyle">@style/ActionButtonStyle</item>
+        <item name="preferenceTheme">@style/AppPreferenceTheme</item>
+
     </style>
 
     <style name="primary.Button" parent="Widget.MaterialComponents.Button">
@@ -30,25 +27,25 @@
         <item name="backgroundTint">?attr/colorSecondary</item>
     </style>
 
-    <!--
-    <style name="CustomTabLayoutStyle" parent="Base.Widget.Design.TabLayout">
-        <item name="tabTextAppearance">@style/CustomTabTextStyle</item>
-        <item name="tabSelectedTextColor">@color/colorPrimaryDark</item>
+    <!-- action bar button style -->
+    <style name="ActionButtonStyle" parent="Widget.AppCompat.ActionButton">
+        <item name="android:minWidth">0dip</item>
+        <item name="android:paddingStart">3dip</item>
+        <item name="android:paddingEnd">3dip</item>
     </style>
 
-    <style name="CustomTabTextStyle" parent="TextAppearance.Design.Tab">
-        <item name="android:textSize">14sp</item>
-        <item name="android:textColor">@color/colorAccent</item>
+    <!-- https://github.com/jakobulbrich/preferences-demo -->
+    <style name="AppPreferenceTheme"
+        parent="@style/PreferenceThemeOverlay.v14.Material">
+    <item name="preferenceFragmentCompatStyle">
+        @style/AppPreferenceFragmentCompatStyle
+    </item>
+
     </style>
-
-    <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
-
-    <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
-
-    <style name="drawer_menu_theme">navatormenu
-        <item name="android:textSize">20sp</item>
-        <item name="android:listPreferredItemHeightSmall">40dp</item>
+    <!-- Custom Style for PreferenceFragmentCompat -->
+    <style name="AppPreferenceFragmentCompatStyle"
+        parent="@style/PreferenceFragment.Material">
+        <item name="android:layout">@layout/pref_screen</item>
     </style>
-    -->
 
 </resources>

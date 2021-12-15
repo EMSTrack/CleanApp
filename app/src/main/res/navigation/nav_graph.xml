@@ -9,7 +9,7 @@
         android:id="@+id/login"
         android:name="org.emstrack.ambulance.fragments.LoginFragment"
         android:label="Login"
-        tools:layout="@layout/activity_login" >
+        tools:layout="@layout/fragment_login" >
         <action
             android:id="@+id/action_loginFragment_to_mapFragment"
             app:destination="@id/map" />
@@ -18,11 +18,14 @@
     <fragment
         android:id="@+id/map"
         android:name="org.emstrack.ambulance.fragments.MapFragment"
-        android:label="Login"
+        android:label="Map"
         tools:layout="@layout/fragment_map" >
         <action
             android:id="@+id/action_mapFragment_to_hospitalFragment"
             app:destination="@id/hospitals" />
+        <action
+            android:id="@+id/action_map_to_settings"
+            app:destination="@id/settings" />
     </fragment>
 
     <fragment
@@ -38,7 +41,7 @@
     <fragment
         android:id="@+id/ambulance"
         android:name="org.emstrack.ambulance.fragments.AmbulanceFragment"
-        android:label="Hospitals"
+        android:label="Vehicle"
         tools:layout="@layout/fragment_ambulance" >
         <action
             android:id="@+id/action_ambulance_to_equipment"
@@ -48,7 +51,12 @@
     <fragment
         android:id="@+id/equipment"
         android:name="org.emstrack.ambulance.fragments.EquipmentFragment"
-        android:label="Hospitals"
+        android:label="Equipment"
         tools:layout="@layout/fragment_equipment" />
+
+    <fragment
+        android:id="@+id/settings"
+        android:name="org.emstrack.ambulance.fragments.SettingsFragment"
+        android:label="@string/settings" />
 
 </navigation>

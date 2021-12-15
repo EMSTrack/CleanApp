@@ -25,7 +25,6 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBar;
-import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.browser.customtabs.CustomTabsCallback;
@@ -34,7 +33,7 @@ import androidx.browser.customtabs.CustomTabsIntent;
 import androidx.browser.customtabs.CustomTabsServiceConnection;
 import androidx.browser.customtabs.CustomTabsSession;
 import androidx.core.content.ContextCompat;
-import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.fragment.app.Fragment;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.navigation.NavController;
 import androidx.navigation.NavDestination;
@@ -42,11 +41,10 @@ import androidx.navigation.fragment.NavHostFragment;
 import androidx.navigation.ui.NavigationUI;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
-import com.google.android.material.navigation.NavigationView;
 import com.google.android.material.navigationrail.NavigationRailView;
 
-import org.emstrack.ambulance.dialogs.AboutDialog;
 import org.emstrack.ambulance.dialogs.AlertSnackbar;
+import org.emstrack.ambulance.fragments.SettingsFragment;
 import org.emstrack.ambulance.models.AmbulanceAppData;
 import org.emstrack.ambulance.services.AmbulanceForegroundService;
 import org.emstrack.models.Ambulance;
@@ -334,7 +332,7 @@ public class MainActivity extends AppCompatActivity {
         df.setMaximumFractionDigits(3);
 
         // set content view
-        setContentView(R.layout.nav_host);
+        setContentView(R.layout.activity_main);
         bottomNavigationView = findViewById(R.id.bottomNavigationBar);
         navigationRailView = findViewById(R.id.navigationRail);
         navHostFragment = (NavHostFragment) getSupportFragmentManager().findFragmentById(R.id.nav_host_fragment);
@@ -410,47 +408,77 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void setupNavigationBar() {
+        setupNavigationBar(null);
+    }
+
+    public void setupNavigationBar(Fragment fragment) {
         Log.i(TAG, "setupNavigationBar");
 
-        // get menu
-        int orientation = getResources().getConfiguration().orientation;
-        Menu menu;
-        if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
-            // In landscape
-            menu = navigationRailView.getMenu();
-        } else {
-            // In portrait
-            menu = bottomNavigationView.getMenu();
-        }
+        ActionBar actionBar = getSupportActionBar();
+        if (fragment != null && fragment.getClass().equals(SettingsFragment.class)) {
 
-        AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
-        if (appData != null && appData.getAmbulance() != null) {
-            // show equipment
-            if (menu.size() == 3) {
-                menu.add(Menu.NONE, R.id.equipment, 3, getString(R.string.equipment))
-                        .setIcon(R.drawable.ic_briefcase_medical)
-                        .setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
-            }
-        } else {
-            // hide equipment
-            if (menu.size() == 4) {
-                menu.removeItem(R.id.equipment);
-            }
-        }
+            // hide action bar and bottom navigation bar
+            hideBottomNavigationBar();
+            hideNavigationRail();
 
-        NavController navController = navHostFragment.getNavController();
-        NavDestination destination = navController.getCurrentDestination();
-        if (destination != null ) {
-            int selectedItemId = destination.getId();
+            // set title
+            if (actionBar != null) {
+                actionBar.setTitle(R.string.settings);
+                actionBar.setDisplayHomeAsUpEnabled(true);
+            }
+
+        } else {
+
+            // set title
+            if (actionBar != null) {
+                actionBar.setTitle(R.string.EMSTrack);
+                actionBar.setDisplayHomeAsUpEnabled(false);
+            }
+
+            // get menu
+            int orientation = getResources().getConfiguration().orientation;
+            Menu menu;
             if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
                 // In landscape
-                if (navigationRailView.getSelectedItemId() != selectedItemId) {
-                    navigationRailView.setSelectedItemId(selectedItemId);
-                }
+                menu = navigationRailView.getMenu();
+                hideBottomNavigationBar();
+                showNavigationRail();
             } else {
                 // In portrait
-                if (bottomNavigationView.getSelectedItemId() != selectedItemId) {
-                    bottomNavigationView.setSelectedItemId(selectedItemId);
+                menu = bottomNavigationView.getMenu();
+                showBottomNavigationBar();
+                hideNavigationRail();
+            }
+
+            AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
+            if (appData != null && appData.getAmbulance() != null) {
+                // show equipment
+                if (menu.size() == 3) {
+                    menu.add(Menu.NONE, R.id.equipment, 3, getString(R.string.equipment))
+                            .setIcon(R.drawable.ic_briefcase_medical)
+                            .setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
+                }
+            } else {
+                // hide equipment
+                if (menu.size() == 4) {
+                    menu.removeItem(R.id.equipment);
+                }
+            }
+
+            NavController navController = navHostFragment.getNavController();
+            NavDestination destination = navController.getCurrentDestination();
+            if (destination != null) {
+                int selectedItemId = destination.getId();
+                if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
+                    // In landscape
+                    if (navigationRailView.getSelectedItemId() != selectedItemId) {
+                        navigationRailView.setSelectedItemId(selectedItemId);
+                    }
+                } else {
+                    // In portrait
+                    if (bottomNavigationView.getSelectedItemId() != selectedItemId) {
+                        bottomNavigationView.setSelectedItemId(selectedItemId);
+                    }
                 }
             }
         }
@@ -510,6 +538,16 @@ public class MainActivity extends AppCompatActivity {
         bottomNavigationView.findViewById(id).setVisibility(View.VISIBLE);
     }
 
+    public void navigateUp() {
+        NavController navController = navHostFragment.getNavController();
+        navController.navigateUp();
+    }
+
+    public void navigatePopBackStack() {
+        NavController navController = navHostFragment.getNavController();
+        navController.popBackStack();
+    }
+
     public void navigate(int id) {
         // navigate
         NavController navController = navHostFragment.getNavController();
@@ -521,9 +559,12 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-        Log.d(TAG, String.format("onOptionsItemsSelected: $1%d", item.getItemId()));
+        Log.d(TAG, String.format("onOptionsItemsSelected: %1$d", item.getItemId()));
         int itemId = item.getItemId();
-        if (itemId == R.id.panicButton) {
+        if (itemId == R.id.settings) {
+            navigate(R.id.settings);
+            return true;
+        } else if (itemId == R.id.panicButton) {
             panicPopUp();
             return true;
         } else if (itemId == R.id.videoCallButton) {
@@ -531,6 +572,10 @@ public class MainActivity extends AppCompatActivity {
             return true;
         } else if (itemId == R.id.trackingIcon || itemId == R.id.onlineIcon) {
             return false;
+        } else if (itemId == android.R.id.home) {
+            // navigateUp();
+            navigatePopBackStack();
+            return true;
         } else {
             return super.onOptionsItemSelected(item);
         }

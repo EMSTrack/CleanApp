@@ -292,5 +292,9 @@
     <string name="locationPermissionMessageVersionRMessage2">¡Felicitaciones, su ubicación en primer plano se ha habilitado correctamente!</string>
     <string name="login_as_demo">Sesión de Demostración</string>
     <string name="demoLoginMessage">"Se le han proporcionado credenciales para que pueda hacer una demostración de la aplicación.\n\nPara mas informacion contacte\n\nemstrack.org"</string>
+    <string name="tracking">Seguimiento</string>
+    <string name="online">En línea</string>
+    <string name="panic">Pánico</string>
+    <string name="preferences_build_version">Versión %1$s</string>
 
 </resources>

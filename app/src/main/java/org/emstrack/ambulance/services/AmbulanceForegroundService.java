@@ -18,7 +18,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
@@ -30,7 +29,6 @@ import android.util.SparseArray;
 import android.widget.Toast;
 
 import com.google.android.gms.common.api.ApiException;
-import com.google.android.gms.common.api.ResolvableApiException;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.GeofencingClient;
 import com.google.android.gms.location.GeofencingRequest;
@@ -42,8 +40,6 @@ import com.google.android.gms.location.LocationSettingsRequest;
 import com.google.android.gms.location.LocationSettingsResponse;
 import com.google.android.gms.location.LocationSettingsStatusCodes;
 import com.google.android.gms.location.SettingsClient;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -53,7 +49,6 @@ import com.google.gson.JsonParser;
 
 import org.eclipse.paho.android.service.MqttAndroidClient;
 import org.eclipse.paho.client.mqttv3.MqttException;
-import org.emstrack.ambulance.LoginActivity;
 import org.emstrack.ambulance.MainActivity;
 import org.emstrack.ambulance.R;
 import org.emstrack.ambulance.models.AmbulanceAppData;
@@ -83,17 +78,17 @@ import org.emstrack.models.api.APIError;
 import org.emstrack.models.api.APIService;
 import org.emstrack.models.api.APIServiceGenerator;
 import org.emstrack.models.api.OnAPICallComplete;
-import org.emstrack.models.util.BroadcastActions;
-import org.emstrack.models.util.BroadcastExtras;
 import org.emstrack.models.util.OnComplete;
 import org.emstrack.models.util.OnServiceComplete;
 import org.emstrack.mqtt.MishandledTopicException;
 import org.emstrack.mqtt.MqttProfileCallback;
 import org.emstrack.mqtt.MqttProfileClient;
+import org.json.JSONException;
+import org.json.JSONObject;
 
+import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -102,11 +97,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
-
-import javax.xml.transform.sax.TransformerHandler;
 
 import static org.emstrack.models.util.BroadcastExtras.ERROR_CODE;
 
@@ -1921,13 +1913,24 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                 username, profileClient.getClientId()), 1,
                 (topic, message) -> {
 
-                    Log.d(TAG, String.format("MQTT error message: '%1$s'", Arrays.toString(message.getPayload())));
+                    String errorMessage = new String(message.getPayload(), StandardCharsets.UTF_8);
+                    Log.d(TAG, String.format("MQTT error message: '%1$s'", errorMessage));
+
+                    JSONObject error;
+                    try {
+                        error = new JSONObject(errorMessage);
+                        errorMessage = error.getString("error");
+                    } catch (JSONException e) {
+                        // Oops
+                        Log.d(TAG, "Could not parse JSON error object");
+                    }
+                    Log.d(TAG, String.format("MQTT parsed error message: '%1$s'", errorMessage));
 
                     // Create notification
                     NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(AmbulanceForegroundService.this, PRIMARY_CHANNEL)
                             .setSmallIcon(R.mipmap.ic_launcher)
                             .setContentTitle("EMSTrack")
-                            .setContentText(getString(R.string.serverError, Arrays.toString(message.getPayload())))
+                            .setContentText(errorMessage)
                             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
                             .setAutoCancel(true);
 

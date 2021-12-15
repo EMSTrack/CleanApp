@@ -1,122 +1,46 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.coordinatorlayout.widget.CoordinatorLayout
+<androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/activity_main"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    tools:context=".MainActivity">
 
-    <androidx.drawerlayout.widget.DrawerLayout
-        android:id="@+id/drawer_layout"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/toolbar"
+            app:layout_constraintTop_toTopOf="parent"
+            android:layout_height="wrap_content"
+            android:layout_width="match_parent"/>
 
-        <RelativeLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
-
-            <!--
-            <androidx.appcompat.widget.Toolbar
-                android:id="@+id/toolbar"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_alignParentStart="true"
-                android:layout_alignParentTop="true"
-                android:background="@color/colorPrimary"
-                android:textColor="@android:color/black"
-                android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar">
-
-                <ImageButton
-                    android:id="@+id/panicButton"
-                    android:layout_width="30dp"
-                    android:layout_height="30dp"
-                    android:layout_gravity="end"
-                    android:layout_marginEnd="10dp"
-                    android:adjustViewBounds="true"
-                    android:background="@drawable/button_states"
-                    android:scaleType="fitCenter"
-                    app:srcCompat="@drawable/ic_exclamation_triangle" />
-
-                <ImageButton
-                    android:id="@+id/videoCallButton"
-                    android:layout_width="30dp"
-                    android:layout_height="30dp"
-                    android:layout_gravity="end"
-                    android:layout_marginEnd="10dp"
-                    android:adjustViewBounds="true"
-                    android:background="@drawable/button_states"
-                    android:scaleType="fitCenter"
-                    android:scaleX="1.5"
-                    android:scaleY="1.5"
-                    app:srcCompat="@drawable/ic_video_call" />
-
-                <ImageView
-                    android:id="@+id/onlineIcon"
-                    android:layout_width="30dp"
-                    android:layout_height="30dp"
-                    android:layout_gravity="end"
-                    android:layout_marginEnd="10dp"
-                    android:adjustViewBounds="true"
-                    android:background="@drawable/button_states"
-                    android:scaleType="fitCenter"
-                    app:srcCompat="@drawable/ic_wifi" />
-
-                <ImageView
-                    android:id="@+id/trackingIcon"
-                    android:layout_width="30dp"
-                    android:layout_height="30dp"
-                    android:layout_gravity="end"
-                    android:layout_marginEnd="10dp"
-                    android:adjustViewBounds="true"
-                    android:background="@drawable/button_states"
-                    android:scaleType="fitCenter"
-                    app:srcCompat="@drawable/ic_shipping_fast" />
-
-                <TextView
-                    android:id="@+id/emstrack_name"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="10dp"
-                    android:textColor="@android:color/black"
-                    android:textSize="25sp"
-                    android:text="@string/EMSTrack"/>
-
-            </androidx.appcompat.widget.Toolbar>
-            -->
-
-            <com.google.android.material.tabs.TabLayout
-                android:id="@+id/tab_layout_home"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_alignParentStart="true"
-                android:background="@color/tabBackground"
-                app:tabMode="fixed" />
-
-            <androidx.viewpager2.widget.ViewPager2
-                android:id="@+id/pager"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_below="@+id/tab_layout_home"
-                android:layout_alignParentStart="true"
-                android:layout_alignParentBottom="true" />
-
-        </RelativeLayout>
-
-        <!-- The navigation drawer that comes from the left -->
-        <!-- Note that `android:layout_gravity` needs to be set to 'start' -->
-
-        <com.google.android.material.navigation.NavigationView
-            android:id="@+id/nav_view"
+        <androidx.fragment.app.FragmentContainerView
+            android:id="@+id/nav_host_fragment"
+            android:name="androidx.navigation.fragment.NavHostFragment"
+            app:defaultNavHost="true"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            android:layout_gravity="start"
-            android:background="@android:color/white"
-            app:headerLayout="@layout/nav_header"
-            app:menu="@menu/drawer_view" >
+            app:layout_constrainedWidth="true"
+            app:layout_constrainedHeight="true"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toTopOf="@id/bottomNavigationBar"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/navigationRail"
+            app:navGraph="@navigation/nav_graph" />
 
-        </com.google.android.material.navigation.NavigationView>
+        <com.google.android.material.navigationrail.NavigationRailView
+            android:id="@+id/navigationRail"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:visibility="gone"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/toolbar"
+            app:menu="@menu/bottom_navigation_bar" />
 
-    </androidx.drawerlayout.widget.DrawerLayout>
+        <com.google.android.material.bottomnavigation.BottomNavigationView
+            android:id="@+id/bottomNavigationBar"
+            app:layout_constraintBottom_toBottomOf="parent"
+            android:layout_height="wrap_content"
+            android:layout_width="match_parent"
+            app:menu="@menu/bottom_navigation_bar" />
 
-</androidx.coordinatorlayout.widget.CoordinatorLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

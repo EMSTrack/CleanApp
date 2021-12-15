@@ -4,26 +4,32 @@
 
     <item
         android:id="@+id/trackingIcon"
-        android:title="Tracking"
+        android:title="@string/tracking"
         app:showAsAction="always"
         android:icon="@drawable/ic_shipping_fast" />
 
     <item
         android:id="@+id/onlineIcon"
-        android:title="Online"
+        android:title="@string/online"
         app:showAsAction="always"
         android:icon="@drawable/ic_wifi" />
 
     <item
         android:id="@+id/videoCallButton"
-        android:title="Video Call"
+        android:title="@string/video_call"
         app:showAsAction="always"
         android:icon="@drawable/ic_video_call" />
 
     <item
         android:id="@+id/panicButton"
-        android:title="Panic Button"
+        android:title="@string/panic"
         app:showAsAction="always"
         android:icon="@drawable/ic_exclamation_triangle" />
+
+    <item
+        android:id="@+id/settings"
+        android:title="@string/settings"
+        app:showAsAction="always"
+        android:icon="@drawable/ic_cog_solid" />
 
 </menu>

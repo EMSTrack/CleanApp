@@ -314,6 +314,10 @@
     <string name="demoPassword" translatable="false">testuser</string>
     <string name="demoServer" translatable="false">ssl://cruzroja.ucsd.edu:8883</string>
     <string name="demoLoginMessage">"Credentials have been provided for you to demo the application.\n\nFor more information contact\n\nemstrack.org</string>
+    <string name="tracking">Tracking</string>
+    <string name="online">Online</string>
+    <string name="panic">Panic</string>
+    <string name="preferences_build_version">Version %1$s</string>
     <string-array name="spinner_list_item_array_server">
         <item>@string/server_select</item>
         <item>Tijuana Red Cross:tijuana.emstrack.org:8883</item>

@@ -1,10 +1,8 @@
 package org.emstrack.ambulance.fragments;
 
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.text.Html;
 import android.text.SpannableString;
 import android.text.method.LinkMovementMethod;
 import android.text.util.Linkify;
@@ -39,7 +37,7 @@ import java.util.Set;
 
 public class LoginFragment extends Fragment {
 
-    private static final String TAG = AmbulanceFragment.class.getSimpleName();
+    private static final String TAG = LoginFragment.class.getSimpleName();
 
     private Button loginSubmitButton;
     private TextView usernameField;
@@ -57,9 +55,9 @@ public class LoginFragment extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
-        View rootView = inflater.inflate(R.layout.activity_login, container, false);
+        View rootView = inflater.inflate(R.layout.fragment_login, container, false);
 
-        // suppress action bar
+        // get activity
         activity = (MainActivity) requireActivity();
 
         // Find username and password from layout
