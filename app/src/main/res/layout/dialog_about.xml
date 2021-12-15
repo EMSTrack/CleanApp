@@ -15,35 +15,30 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/about"
-        android:textSize="18dp"
         android:textStyle="bold" />
 
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/app_descrip"
-        android:textSize="16dp" />
+        android:text="@string/app_descrip" />
 
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="20dp"
         android:text="@string/build_version"
-        android:textSize="18dp"
         android:textStyle="bold" />
 
     <TextView
         android:id="@+id/buildVersion"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:textSize="16dp" />
+        android:layout_height="wrap_content" />
 
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="20dp"
         android:text="@string/build_date"
-        android:textSize="18dp"
         android:textStyle="bold" />
 
     <TextView
@@ -57,14 +52,12 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="20dp"
         android:text="@string/credits"
-        android:textSize="18dp"
         android:textStyle="bold" />
 
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/app_credits"
-        android:textSize="16dp" />
+        android:text="@string/app_credits" />
 
     </LinearLayout>
 

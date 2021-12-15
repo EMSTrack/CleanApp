@@ -23,7 +23,7 @@ public class AboutDialog {
     public static AlertDialog newInstance(final Activity activity) {
 
         // Inflate the about message contents
-        View messageView = activity.getLayoutInflater().inflate(R.layout.about, null, false);
+        View messageView = activity.getLayoutInflater().inflate(R.layout.dialog_about, null, false);
 
         // Set build date
         TextView buildDate = messageView.findViewById(R.id.buildDate);
@@ -31,7 +31,7 @@ public class AboutDialog {
 
         // Set build version
         TextView buildVersion = messageView.findViewById(R.id.buildVersion);
-        buildVersion.setText(R.string.app_version);
+        buildVersion.setText(activity.getString(R.string.app_version).replace('_','.'));
 
         // Logout dialog
         AlertDialog.Builder builder = new AlertDialog.Builder(activity);
