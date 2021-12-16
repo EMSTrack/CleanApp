@@ -201,6 +201,20 @@ public class LoginFragment extends Fragment {
 
     }
 
+    private void doEnableLogin(List<String> serverList) {
+
+        Log.d(TAG, "Servers = " + serverList);
+
+        setServers(serverList);
+
+        Log.d(TAG, "Will enable login button");
+
+        // Enable login button
+        loginSubmitButton.setEnabled(true);
+        loginAsDemoButton.setEnabled(true);
+
+    }
+
     public void enableLogin() {
 
         Log.d(TAG, "enableLogin");
@@ -250,78 +264,93 @@ public class LoginFragment extends Fragment {
                     AmbulanceForegroundService.class);
             serverIntent.setAction(AmbulanceForegroundService.Actions.GET_SERVERS);
 
-            new OnServiceComplete(activity,
-                    BroadcastActions.SUCCESS,
-                    BroadcastActions.FAILURE,
-                    intent) {
+            if (appData != null && appData.getServersList().size() > 0) {
 
-                @Override
-                public void onSuccess(Bundle extras) {
-                    Log.i(TAG, "Successfully started service");
+                new OnServiceComplete(activity,
+                        BroadcastActions.SUCCESS,
+                        BroadcastActions.FAILURE,
+                        intent) {
+
+                    @Override
+                    public void onSuccess(Bundle extras) {
+
+                        Log.i(TAG, "Successfully started service");
+
+                        // already has servers
+                        List<String> serverList = appData.getServersList();
+                        doEnableLogin(serverList);
+
+                    }
+
                 }
+                        .setFailureMessage(getString(R.string.couldNotStartService))
+                        .setAlert(new AlertSnackbar(activity))
+                        .start();
 
-            }
-                    .setNext(new OnServiceComplete(activity,
-                            BroadcastActions.SUCCESS,
-                            BroadcastActions.FAILURE,
-                            serverIntent) {
+            } else {
 
-                        @Override
-                        public void onSuccess(Bundle extras) {
+                new OnServiceComplete(activity,
+                        BroadcastActions.SUCCESS,
+                        BroadcastActions.FAILURE,
+                        intent) {
 
-                            Log.d(TAG, "Will set servers dropdown");
+                    @Override
+                    public void onSuccess(Bundle extras) {
 
-                            // Retrieve list of servers
-                            AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
-                            List<String> serverList = appData.getServersList();
-                            Log.d(TAG, "Servers = " + serverList);
+                        Log.i(TAG, "Successfully started service");
 
-                            setServers(serverList);
+                    }
 
-                            Log.d(TAG, "Will enable login button");
+                }
+                        .setNext(new OnServiceComplete(activity,
+                                BroadcastActions.SUCCESS,
+                                BroadcastActions.FAILURE,
+                                serverIntent) {
 
-                            // Enable login button
-                            loginSubmitButton.setEnabled(true);
-                            loginAsDemoButton.setEnabled(true);
+                            @Override
+                            public void onSuccess(Bundle extras) {
 
-                        }
+                                Log.d(TAG, "Will set servers dropdown");
 
-                        @Override
-                        public void onFailure(Bundle extras) {
-                            super.onFailure(extras);
+                                // Retrieve list of servers
+                                AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
+                                List<String> serverList = appData.getServersList();
 
-                            // Retrieve past servers
-                            SharedPreferences sharedPreferences = activity.getSharedPreferences(
-                                    AmbulanceForegroundService.PREFERENCES_NAME, AppCompatActivity.MODE_PRIVATE);
-                            Set<String> serversSet = sharedPreferences.getStringSet(AmbulanceForegroundService.PREFERENCES_SERVERS, null);
-                            ArrayList<String> serverList = null;
-                            if (serversSet != null) {
-
-                                new AlertSnackbar(activity)
-                                        .alert("Could not retrieve servers. List of servers may be outdated.");
-
-                                serverList = new ArrayList<>(serversSet);
-                                setServers(serverList);
-
-                                Log.d(TAG, "Will enable login button");
-
-                                // Enable login button
-                                loginSubmitButton.setEnabled(true);
-                                loginAsDemoButton.setEnabled(true);
-
-                            } else {
-
-                                new AlertSnackbar(activity)
-                                        .alert("Could not retrieve servers. Check your internet connection.");
+                                doEnableLogin(serverList);
 
                             }
-                        }
 
-                    })
-                    .setFailureMessage(getString(R.string.couldNotStartService))
-                    .setAlert(new AlertSnackbar(activity))
-                    .start();
+                            @Override
+                            public void onFailure(Bundle extras) {
+                                super.onFailure(extras);
 
+                                // Retrieve past servers
+                                SharedPreferences sharedPreferences = activity.getSharedPreferences(
+                                        AmbulanceForegroundService.PREFERENCES_NAME, AppCompatActivity.MODE_PRIVATE);
+                                Set<String> serversSet = sharedPreferences.getStringSet(AmbulanceForegroundService.PREFERENCES_SERVERS, null);
+                                ArrayList<String> serverList = null;
+                                if (serversSet != null) {
+
+                                    new AlertSnackbar(activity)
+                                            .alert("Could not retrieve servers. List of servers may be outdated.");
+
+                                    serverList = new ArrayList<>(serversSet);
+
+                                    doEnableLogin(serverList);
+
+                                } else {
+
+                                    new AlertSnackbar(activity)
+                                            .alert("Could not retrieve servers. Check your internet connection.");
+
+                                }
+                            }
+
+                        })
+                        .setFailureMessage(getString(R.string.couldNotStartService))
+                        .setAlert(new AlertSnackbar(activity))
+                        .start();
+            }
         }
 
     }
