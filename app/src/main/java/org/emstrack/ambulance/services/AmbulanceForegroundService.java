@@ -1105,6 +1105,8 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
                     } catch (ApiException exception) {
 
+                        Log.d(TAG, "CHECK_LOCATION_SETTINGS. Error = " + exception);
+
                         // It must have failed, disable updates
                         AmbulanceForegroundService.setCanUpdateLocation(false);
 
@@ -1112,7 +1114,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                         int code = exception.getStatusCode();
 
                         Intent localIntent = new Intent(org.emstrack.models.util.BroadcastActions.FAILURE);
-                        localIntent.putExtra(org.emstrack.models.util.BroadcastExtras.MESSAGE, code);
+                        localIntent.putExtra(org.emstrack.models.util.BroadcastExtras.MESSAGE, exception.toString());
                         sendBroadcastWithUUID(localIntent, uuid);
 
                     }

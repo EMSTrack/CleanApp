@@ -307,7 +307,7 @@
     <string name="couldNotReleaseAmbulance">Could not release vehicle</string>
     <string name="versionRPermissionOption">" by selecting the \'(%1$s)\' option"</string>
     <string name="locationPermissionMessage">Access to this device\'s precise location is necessary to enable vehicle tracking and call dispatching.\n\nIt is also necessary to access the device\'s location in the background for the application to be able to receive calls."</string>
-    <string name="locationPermissionMessageVersionRMessage1">You will be required to enable locations twice in this process, one time to enable foreground location, and a second time to enable background location in the application\'s settings page."</string>
+    <string name="locationPermissionMessageVersionRMessage1">You will be asked to enable locations twice, one time to enable foreground location, and a second time to enable background location in the application\'s settings page."</string>
     <string name="locationPermissionMessageVersionRMessage2">Congratulations, your foreground location has been successfully enabled!"</string>
     <string name="locationPermissionSettingsMessage">After clicking \'OK\' you will be taken to the application\'s settings page where you can enable background location for this device%1$s in the \'Permissions\' settings.</string>
     <string name="needPermissions">Need permissions</string>

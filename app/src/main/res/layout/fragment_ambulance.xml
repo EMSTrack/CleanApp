@@ -6,10 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="fill_parent"
     android:gravity="top"
-    android:paddingBottom="@dimen/activity_vertical_margin"
-    android:paddingLeft="@dimen/activity_horizontal_margin"
-    android:paddingRight="@dimen/activity_horizontal_margin"
-    android:paddingTop="@dimen/activity_vertical_margin"
+    android:paddingHorizontal="5dp"
     android:orientation="vertical"
     tools:context="org.emstrack.ambulance.fragments.AmbulanceFragment">
 
@@ -30,7 +27,7 @@
             android:id="@+id/ambulanceSelectionMessage"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
+            android:layout_marginTop="10dp"
             android:text="@string/noAmbulanceMessage">
         </TextView>
 
