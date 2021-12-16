@@ -15,7 +15,6 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.fragment.app.Fragment;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.appcompat.app.AlertDialog;
-import androidx.preference.Preference;
 import androidx.preference.PreferenceManager;
 
 import android.util.Log;
@@ -1125,7 +1124,7 @@ public class AmbulanceFragment extends Fragment {
         // Disable equipment tab
         // equipmentTabLayout.setEnabled(false); //disable clicking
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(requireActivity());
-        boolean useApproximateLocationAccuracy= sharedPreferences.getBoolean(getString(R.string.useApproximateLocationAccuracy),
+        boolean useApproximateLocationAccuracy= sharedPreferences.getBoolean(getString(R.string.useApproximateLocationAccuracyKey),
                 getResources().getBoolean(R.bool.useApproximateLocationAccuracyDefault));
 
         // Retrieve ambulance

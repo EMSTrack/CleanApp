@@ -14,11 +14,12 @@
         android:id="@+id/showLocationButton"
         android:layout_width="40dp"
         android:layout_height="36dp"
-        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
         android:layout_gravity="center_horizontal"
-        android:layout_marginRight="12dp"
+        android:layout_marginEnd="12dp"
         android:layout_marginTop="20dp"
         android:background="@color/mapButtonOff"
+        app:tint="@color/iconColorDark"
         android:padding="5dp"
         app:srcCompat="@drawable/ic_location_arrow" />
 
@@ -26,11 +27,12 @@
         android:id="@+id/showAmbulancesButton"
         android:layout_width="40dp"
         android:layout_height="36dp"
-        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
         android:layout_gravity="center_horizontal"
-        android:layout_marginRight="12dp"
+        android:layout_marginEnd="12dp"
         android:layout_marginTop="60dp"
         android:background="@color/mapButtonOff"
+        app:tint="@color/iconColorDark"
         android:padding="5dp"
         app:srcCompat="@drawable/ic_ambulance" />
 
@@ -38,11 +40,12 @@
         android:id="@+id/showHospitalsButton"
         android:layout_width="40dp"
         android:layout_height="36dp"
-        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
         android:layout_gravity="center_horizontal"
-        android:layout_marginRight="12dp"
+        android:layout_marginEnd="12dp"
         android:layout_marginTop="100dp"
         android:background="@color/mapButtonOff"
+        app:tint="@color/iconColorDark"
         android:padding="5dp"
         app:srcCompat="@drawable/ic_hospital" />
 
@@ -50,11 +53,12 @@
         android:id="@+id/showWaypointsButton"
         android:layout_width="40dp"
         android:layout_height="36dp"
-        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
         android:layout_gravity="center_horizontal"
-        android:layout_marginRight="12dp"
+        android:layout_marginEnd="12dp"
         android:layout_marginTop="140dp"
         android:background="@color/mapButtonOff"
+        app:tint="@color/iconColorDark"
         android:padding="5dp"
         app:srcCompat="@drawable/ic_map_marker" />
 

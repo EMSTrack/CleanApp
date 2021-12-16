@@ -195,7 +195,7 @@ public class MainActivity extends AppCompatActivity {
                         Log.i(TAG, "CALL_ACCEPTED");
 
                         // change button color to red
-                        int myVectorColor = ContextCompat.getColor(MainActivity.this, R.color.colorRed);
+                        int myVectorColor = ContextCompat.getColor(MainActivity.this, R.color.iconCallAccepted);
                         trackingIcon.setColorFilter(myVectorColor, PorterDuff.Mode.SRC_IN);
                         navigate(R.id.ambulance);
 
@@ -205,7 +205,7 @@ public class MainActivity extends AppCompatActivity {
                         Log.i(TAG, "CALL_COMPLETED");
 
                         // change button color to black
-                        myVectorColor = ContextCompat.getColor(MainActivity.this, R.color.colorBlack);
+                        myVectorColor = ContextCompat.getColor(MainActivity.this, R.color.iconColor);
                         trackingIcon.setColorFilter(myVectorColor, PorterDuff.Mode.SRC_IN);
 
                         // Logout?
@@ -351,8 +351,8 @@ public class MainActivity extends AppCompatActivity {
         backButtonMode = BackButtonMode.UP;
 
         // setup action bar color
-        ActionBar actionBar = getSupportActionBar();
-        Objects.requireNonNull(actionBar).setBackgroundDrawable(new ColorDrawable(Color.parseColor("#A9CCE3")));
+//        ActionBar actionBar = getSupportActionBar();
+//        Objects.requireNonNull(actionBar).setBackgroundDrawable(new ColorDrawable(Color.parseColor("#A9CCE3")));
 
         // setup navigation
         setUpNavigation();
@@ -731,29 +731,6 @@ public class MainActivity extends AppCompatActivity {
         return canWrite;
 
     }
-
-//    // Start selected activity in Hamburger
-//    public void selectDrawerItem(MenuItem menuItem) {
-//
-//        // Get menuitem
-//        int itemId = menuItem.getItemId();
-//
-//        // Actions
-//        if (itemId == R.id.logout) {
-//
-//            promptLogout();
-//
-//        } else if (itemId == R.id.about) {
-//
-//            AboutDialog.newInstance(this).show();
-//
-//        } else if (itemId == R.id.settings) {
-//
-//            // TODO: add settings page
-//
-//        }
-//
-//    }
 
     public boolean panicPopUp() {
         final long DIALOG_DISMISS_TIME = 3000; // milliseconds

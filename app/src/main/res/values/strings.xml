@@ -2,7 +2,7 @@
 <resources>
 
     <string name="app_name">EMSTrack</string>
-    <string name="app_version" translatable="false">0_7_0</string>
+    <string name="app_version" translatable="false">0_8_0</string>
     <string name="client_name" translatable="false">AndroidClient</string>
 
     <string name="drawer_open">Open navigation drawer</string>
@@ -124,6 +124,8 @@
     <string name="stopedStreamingLocation">Stopped streaming updates.</string>
     <string name="app_descrip">Use this app to track emergency resources using the EMSTrack system.\n\nVisit emstrack.org for details.</string>
     <string name="app_credits">The following open source projects were used to build this app:</string>
+    <string name="app_credits_icons">Icons:</string>
+    <string name="app_credits_servers">Our servers are powered by:</string>
     <string name="credits">Credits:</string>
     <string name="build_date">Build date:</string>
     <string name="build_version">Build version:</string>
@@ -318,9 +320,11 @@
     <string name="online">Online</string>
     <string name="panic">Panic</string>
     <string name="preferences_build_version">Version %1$s</string>
-    <string name="open_source" translatable="false">- Retrofit (square.github.io/retrofit)\n- Eclipse Paho (www.eclipse.org/paho)\n\nIcons from:\n\n- FontAwesome (fontawesome.com)\n\nOur servers are powered by:\n\n- Django (www.djangoproject.com)\n- Eclipse Mosquitto (mosquitto.org)\n- PostgreSQL (www.postgresql.org)</string>
-    <string name="version" translatable="false">version</string>
-    <string name="useApproximateLocationAccuracy" translatable="false">use_approximate_location_accuracy</string>
+    <string name="open_source" translatable="false">- Retrofit (square.github.io/retrofit)\n- Eclipse Paho (www.eclipse.org/paho)</string>
+    <string name="open_source_icons" translatable="false">- FontAwesome (fontawesome.com)</string>
+    <string name="open_source_servers" translatable="false">- Django (www.djangoproject.com)\n- Eclipse Mosquitto (mosquitto.org)\n- PostgreSQL (www.postgresql.org)</string>
+    <string name="versionKey" translatable="false">version</string>
+    <string name="useApproximateLocationAccuracyKey" translatable="false">use_approximate_location_accuracy</string>
     <string-array name="spinner_list_item_array_server">
         <item>@string/server_select</item>
         <item>Tijuana Red Cross:tijuana.emstrack.org:8883</item>
@@ -337,5 +341,10 @@
         <item>O:@color/bootstrapSecondary:@color/bootstrapLight</item>
     </string-array>
     <string name="useApproximateLocationAccuracyDefault" translatable="false">true</string>
+    <string name="updatingServers">Updating servers…</string>
+    <string name="aboutLabel">About</string>
+    <string name="version">Version</string>
+    <string name="approximateLocation">Approximate location</string>
+    <string name="approximateLocationExplanation">Use coarse location while vehicle is not in a call to save battery.</string>
 
 </resources>

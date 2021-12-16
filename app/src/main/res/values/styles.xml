@@ -1,7 +1,7 @@
 <resources>
 
     <!-- Base application theme. -->
-    <style name="AppTheme" parent="Theme.MaterialComponents.Light">
+    <style name="AppTheme" parent="Theme.MaterialComponents.Light.DarkActionBar">
 
         <item name="colorPrimary">@color/bootstrapPrimary</item>
         <item name="colorPrimaryVariant">@color/bootstrapSecondary</item>
@@ -11,6 +11,7 @@
         <item name="colorOnSecondary">#FFFFFF</item>
         <item name="colorError">@color/bootstrapDanger</item>
         <item name="colorOnError">#FFFFFF</item>
+
         <item name="colorSurface">#FFFFFF</item>
         <item name="colorOnSurface">#212121</item>
 
@@ -30,18 +31,19 @@
     <!-- action bar button style -->
     <style name="ActionButtonStyle" parent="Widget.AppCompat.ActionButton">
         <item name="android:minWidth">0dip</item>
-        <item name="android:paddingStart">3dip</item>
+        <item name="android:paddingStart">0dip</item>
         <item name="android:paddingEnd">3dip</item>
+        <item name="colorControlNormal">@color/bootstrapDark</item>
     </style>
 
     <!-- https://github.com/jakobulbrich/preferences-demo -->
     <style name="AppPreferenceTheme"
         parent="@style/PreferenceThemeOverlay.v14.Material">
-    <item name="preferenceFragmentCompatStyle">
-        @style/AppPreferenceFragmentCompatStyle
-    </item>
-
+        <item name="preferenceFragmentCompatStyle">
+            @style/AppPreferenceFragmentCompatStyle
+        </item>
     </style>
+
     <!-- Custom Style for PreferenceFragmentCompat -->
     <style name="AppPreferenceFragmentCompatStyle"
         parent="@style/PreferenceFragment.Material">

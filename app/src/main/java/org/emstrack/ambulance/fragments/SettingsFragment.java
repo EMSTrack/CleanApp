@@ -36,7 +36,7 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         activity = (MainActivity) requireActivity();
 
         // Find preference by key
-        Preference pref = findPreference("version");
+        Preference pref = findPreference(getString(R.string.versionKey));
         if (pref != null) {
             // set version label
             pref.setSummary(getString(R.string.preferences_build_version,

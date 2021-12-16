@@ -117,7 +117,7 @@
     <string name="build_date">La fecha de construcción:</string>
     <string name="credits">Créditos:</string>
     <string name="build_version">Versión de compilación:</string>
-    <string name="about">Acerca de:</string>
+    <string name="about">Acerca de la aplicación:</string>
     <string name="failedToAddGeofence">Error al agregar geofence.</string>
     <string name="failedToRemoveGeofence">Error al eliminar geofence.</string>
     <string name="couldNotSubscribeToCalls">No se ha podido suscribir a las llamadas.</string>
@@ -291,10 +291,17 @@
     <string name="locationPermissionMessageVersionRMessage1">Se le pedirá que habilite las ubicaciones dos veces en este proceso, una vez para habilitar la ubicación en primer plano y una segunda vez para habilitar la ubicación en segundo plano en la página de configuración de la aplicación.</string>
     <string name="locationPermissionMessageVersionRMessage2">¡Felicitaciones, su ubicación en primer plano se ha habilitado correctamente!</string>
     <string name="login_as_demo">Sesión de Demostración</string>
-    <string name="demoLoginMessage">"Se le han proporcionado credenciales para que pueda hacer una demostración de la aplicación.\n\nPara mas informacion contacte\n\nemstrack.org"</string>
+    <string name="demoLoginMessage">"Se le han proporcionado credenciales para que pueda hacer una demostración de la aplicación.\n\nPara más informacion contacte\n\nemstrack.org"</string>
     <string name="tracking">Seguimiento</string>
     <string name="online">En línea</string>
     <string name="panic">Pánico</string>
     <string name="preferences_build_version">Versión %1$s</string>
+    <string name="updatingServers">Actualizando servidores…</string>
+    <string name="aboutLabel">Acerca de la aplicación</string>
+    <string name="version">"Versión "</string>
+    <string name="approximateLocation">Ubicacion aproximada</string>
+    <string name="approximateLocationExplanation">Utilizar ubicación aproximada cuando el vehículo no esté en una llamada para ahorrar batería.</string>
+    <string name="app_credits_icons">Iconos:</string>
+    <string name="app_credits_servers">En nuestros servidores utilizamos:</string>
 
 </resources>

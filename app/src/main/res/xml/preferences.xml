@@ -3,14 +3,16 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <SwitchPreference
-        android:key="@string/useApproximateLocationAccuracy"
-        android:title="Approximate location"
-        android:summary="When on, precise location is only used if the vehicle is in a call. Turning this option off will increase battery consumption."
+        android:icon="@drawable/ic_location_arrow"
+        android:key="@string/useApproximateLocationAccuracyKey"
+        android:title="@string/approximateLocation"
+        android:summary="@string/approximateLocationExplanation"
         android:defaultValue="true" />
 
     <Preference
-        android:key="@string/version"
-        android:title="About"
-        android:summary="Version" />
+        android:icon="@drawable/ic_info_circle"
+        android:key="@string/versionKey"
+        android:title="@string/aboutLabel"
+        android:summary="@string/version" />
 
 </PreferenceScreen>

@@ -138,14 +138,9 @@ public class LoginFragment extends Fragment {
         loginSubmitButton.setEnabled(false);
         loginAsDemoButton.setEnabled(false);
 
-    }
-
-    @Override
-    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
-
         // enable login
         enableLogin();
+
     }
 
     public void setServers(List<String> serverList) {
@@ -154,7 +149,7 @@ public class LoginFragment extends Fragment {
 
         // Populate server list
         // Log.d(TAG, "Populating server list");
-        serverNames = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_item);
+        serverNames.clear();
         serverMqttURIs = new ArrayList<>();
         serverAPIURIs = new ArrayList<>();
 
@@ -298,6 +293,11 @@ public class LoginFragment extends Fragment {
                     public void onSuccess(Bundle extras) {
 
                         Log.i(TAG, "Successfully started service");
+
+                        // Toast
+                        Toast.makeText(activity,
+                                getString(R.string.updatingServers),
+                                Toast.LENGTH_SHORT).show();
 
                     }
 
