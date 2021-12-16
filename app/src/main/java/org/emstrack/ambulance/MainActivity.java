@@ -7,7 +7,9 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.res.Configuration;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.graphics.PorterDuff;
+import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
@@ -347,6 +349,10 @@ public class MainActivity extends AppCompatActivity {
 
         // set back as UP
         backButtonMode = BackButtonMode.UP;
+
+        // setup action bar color
+        ActionBar actionBar = getSupportActionBar();
+        Objects.requireNonNull(actionBar).setBackgroundDrawable(new ColorDrawable(Color.parseColor("#A9CCE3")));
 
         // setup navigation
         setUpNavigation();
