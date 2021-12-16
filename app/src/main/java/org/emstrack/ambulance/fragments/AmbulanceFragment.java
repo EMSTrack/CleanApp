@@ -5,6 +5,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -14,6 +15,9 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.fragment.app.Fragment;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.appcompat.app.AlertDialog;
+import androidx.preference.Preference;
+import androidx.preference.PreferenceManager;
+
 import android.util.Log;
 import android.util.Pair;
 import android.view.LayoutInflater;
@@ -1120,12 +1124,17 @@ public class AmbulanceFragment extends Fragment {
 
         // Disable equipment tab
         // equipmentTabLayout.setEnabled(false); //disable clicking
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(requireActivity());
+        boolean useApproximateLocationAccuracy= sharedPreferences.getBoolean(getString(R.string.useApproximateLocationAccuracy),
+                getResources().getBoolean(R.bool.useApproximateLocationAccuracyDefault));
 
         // Retrieve ambulance
         Intent ambulanceIntent = new Intent(activity, AmbulanceForegroundService.class);
         ambulanceIntent.setAction(AmbulanceForegroundService.Actions.GET_AMBULANCE);
         ambulanceIntent.putExtra(AmbulanceForegroundService.BroadcastExtras.AMBULANCE_ID,
                 selectedAmbulance.getAmbulanceId());
+        ambulanceIntent.putExtra(AmbulanceForegroundService.BroadcastExtras.PRECISE_LOCATION,
+                !useApproximateLocationAccuracy);
 
         // What to do when GET_AMBULANCE service completes?
         new OnServiceComplete(requireContext(),

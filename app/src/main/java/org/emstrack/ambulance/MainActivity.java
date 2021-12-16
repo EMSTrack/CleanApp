@@ -23,6 +23,7 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.IdRes;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
@@ -86,6 +87,12 @@ public class MainActivity extends AppCompatActivity {
 
     private static final DecimalFormat df = new DecimalFormat();
 
+    public enum BackButtonMode {
+        UP,
+        FINISH,
+        LOGOUT
+    }
+
     private static final int enabledAlpha = 255;
     private static final int disabledAlpha = 255/4;
 
@@ -112,6 +119,7 @@ public class MainActivity extends AppCompatActivity {
     private BottomNavigationView bottomNavigationView;
     private NavigationRailView navigationRailView;
     private Menu actionBarMenu;
+    private BackButtonMode backButtonMode;
 
     public class MainActivityBroadcastReceiver extends BroadcastReceiver {
 
@@ -337,6 +345,10 @@ public class MainActivity extends AppCompatActivity {
         navigationRailView = findViewById(R.id.navigationRail);
         navHostFragment = (NavHostFragment) getSupportFragmentManager().findFragmentById(R.id.nav_host_fragment);
 
+        // set back as UP
+        backButtonMode = BackButtonMode.UP;
+
+        // setup navigation
         setUpNavigation();
     }
 
@@ -411,23 +423,36 @@ public class MainActivity extends AppCompatActivity {
         setupNavigationBar(null);
     }
 
+    public void setBackButtonMode(BackButtonMode backButtonMode) {
+        this.backButtonMode = backButtonMode;
+    }
+
     public void setupNavigationBar(Fragment fragment) {
         Log.i(TAG, "setupNavigationBar");
 
         ActionBar actionBar = getSupportActionBar();
-        if (fragment != null && fragment.getClass().equals(SettingsFragment.class)) {
+        if (fragment != null) {
 
-            // hide action bar and bottom navigation bar
-            hideBottomNavigationBar();
-            hideNavigationRail();
+            if (fragment.getClass().equals(SettingsFragment.class)) {
 
-            // set title
-            if (actionBar != null) {
-                actionBar.setTitle(R.string.settings);
-                actionBar.setDisplayHomeAsUpEnabled(true);
+                // hide action bar and bottom navigation bar
+                hideBottomNavigationBar();
+                hideNavigationRail();
+
+                // set title
+                if (actionBar != null) {
+                    actionBar.setTitle(R.string.settings);
+                    actionBar.setDisplayHomeAsUpEnabled(true);
+                }
+
+                // set back button as up
+                setBackButtonMode(BackButtonMode.UP);
             }
 
         } else {
+
+            // set back button as logout
+            setBackButtonMode(BackButtonMode.LOGOUT);
 
             // set title
             if (actionBar != null) {
@@ -543,6 +568,11 @@ public class MainActivity extends AppCompatActivity {
         navController.navigateUp();
     }
 
+    public void navigatePopBackStack(@IdRes int destinationId, boolean inclusive) {
+        NavController navController = navHostFragment.getNavController();
+        navController.popBackStack(destinationId, inclusive);
+    }
+
     public void navigatePopBackStack() {
         NavController navController = navHostFragment.getNavController();
         navController.popBackStack();
@@ -573,7 +603,6 @@ public class MainActivity extends AppCompatActivity {
         } else if (itemId == R.id.trackingIcon || itemId == R.id.onlineIcon) {
             return false;
         } else if (itemId == android.R.id.home) {
-            // navigateUp();
             navigatePopBackStack();
             return true;
         } else {
@@ -1518,7 +1547,7 @@ public class MainActivity extends AppCompatActivity {
                 Log.i(TAG, "onSuccess");
 
                 // navigate to login
-                navigate(R.id.login);
+                navigatePopBackStack(R.id.login, false);
 
             }
 
@@ -1539,9 +1568,6 @@ public class MainActivity extends AppCompatActivity {
         if (call == null) {
 
             // Go straight to dialog
-            // LogoutDialog.newInstance(this).show();
-
-            // Logout dialog
             new AlertDialog.Builder(this)
                     .setTitle(R.string.logout)
                     .setMessage(R.string.logout_confirm)
@@ -1574,7 +1600,21 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
-        promptLogout();
+        Log.d(TAG, "Back button pressed with mode = " + backButtonMode);
+        if (backButtonMode == BackButtonMode.LOGOUT) {
+            promptLogout();
+        } else if (backButtonMode == BackButtonMode.UP){
+            navigatePopBackStack();
+        } else if (backButtonMode == BackButtonMode.FINISH) {
+            finish();
+        }
+    }
+
+    @Override
+    public void supportNavigateUpTo(@NonNull Intent upIntent) {
+        NavController navController = navHostFragment.getNavController();
+        if ( !navController.navigateUp() )
+            super.supportNavigateUpTo(upIntent);
     }
 
     public Map<String, Integer> getCallPriorityBackgroundColors() {

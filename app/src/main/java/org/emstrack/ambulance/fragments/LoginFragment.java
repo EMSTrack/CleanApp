@@ -17,6 +17,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
@@ -130,13 +131,21 @@ public class LoginFragment extends Fragment {
         activity.hideBottomNavigationBar();
         activity.hideNavigationRail();
 
+        // set back button as finish
+        activity.setBackButtonMode(MainActivity.BackButtonMode.FINISH);
+
         // disable login buttons
         loginSubmitButton.setEnabled(false);
         loginAsDemoButton.setEnabled(false);
 
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+
         // enable login
         enableLogin();
-
     }
 
     public void setServers(List<String> serverList) {
@@ -400,7 +409,7 @@ public class LoginFragment extends Fragment {
         activity.initialize();
 
         // navigate to map fragment
-        activity.navigate(R.id.action_loginFragment_to_mapFragment);
+        activity.navigate(R.id.map);
 
         // show action bar and bottom navigation bar
         activity.showActionBar();

@@ -112,7 +112,7 @@
     <string name="serverError">Error del servidor: %1$s.</string>
     <string name="stopText">Detener.</string>
     <string name="stopedStreamingLocation">Se detuvieron las actualizaciones de transmisión.</string>
-    <string name="app_descrip">Utilice esta aplicación para rastrear recursos de emergencia usando el sistema EMSTrack.</string>
+    <string name="app_descrip">Utilice esta aplicación para rastrear recursos de emergencia usando el sistema EMSTrack.\n\nVisite emstrack.org para obtener más detalles.</string>
     <string name="app_credits">Los siguientes proyectos de código abierto se usaron para construir esta aplicación:</string>
     <string name="build_date">La fecha de construcción:</string>
     <string name="credits">Créditos:</string>

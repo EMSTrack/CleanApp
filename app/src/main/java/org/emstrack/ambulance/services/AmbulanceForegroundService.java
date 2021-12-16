@@ -110,14 +110,6 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
     final static String TAG = AmbulanceForegroundService.class.getSimpleName();
 
-    // Rate at which locations should be pulled in
-    // @ 70 mph gives an accuracy of about 30m
-    private final static long UPDATE_INTERVAL = 1 * 1000;
-    private final static long FASTEST_UPDATE_INTERVAL = UPDATE_INTERVAL / 2;
-
-    // Group all updates to be done every minute
-    private final static long MAX_WAIT_TIME = 60 * 1000;
-
     // Notification channel
     public final static int NOTIFICATION_ID = 101;
     public final static String PRIMARY_CHANNEL = "default";
@@ -152,6 +144,8 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
     private static Date _lastServerUpdate;
     private static boolean _updatingLocation = false;
     private static boolean _canUpdateLocation = false;
+    private static boolean _isLocationPrecise = true;
+    private static boolean _isCurrentLocationPrecise = false;
     private static ArrayList<Pair<String, String>> _MQTTMessageBuffer = new ArrayList<>();
     private static boolean _reconnecting = false;
     private static boolean _online = false;
@@ -175,7 +169,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
     private GeofencingClient fenceClient;
     private PendingIntent geofenceIntent;
 
-    public class Actions {
+    public static class Actions {
         public final static String START_SERVICE = "org.emstrack.ambulance.ambulanceforegroundservice.action.START_SERVICE";
         public final static String LOGIN = "org.emstrack.ambulance.ambulanceforegroundservice.action.LOGIN";
         public final static String GET_SERVERS = "org.emstrack.ambulance.ambulanceforegroundservice.action.GET_SERVERS";
@@ -207,7 +201,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         public final static String WEBRTC_MESSAGE = "org.emstrack.ambulance.ambulanceforegroundservice.action.WEBRTC_DECLINE";
     }
 
-    public class BroadcastExtras {
+    public static class BroadcastExtras {
         public final static String CALL_ID = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastextras.CALL_ID";
         public final static String CALLNOTE_COMMENT = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastextras.CALLNOTE_COMMENT";
         public final static String AMBULANCE_ID = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastextras.AMBULANCE_ID";
@@ -229,9 +223,10 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         public final static String WEBRTC_TYPE = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastextras.WEBRTC_TYPE";
         public final static String WEBRTC_CLIENT_USERNAME = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastextras.WEBRTC_CLIENT_USERNAME";
         public final static String WEBRTC_CLIENT_ID = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastextras.WEBRTC_CLIENT_ID";
+        public final static String PRECISE_LOCATION = "org.emstrack.ambulance.ambulanceforegroundservice.broadcastextras.PRECISE_LOCATION";
     }
 
-    public class ErrorCodes {
+    public static class ErrorCodes {
         public final static byte UNDEFINED = -1;
         public final static byte OK = 0;
         public final static byte APP_VERSION_BELOW_MINIMUM = 1;
@@ -592,7 +587,8 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
             // Retrieve ambulance
             int ambulanceId = intent.getIntExtra(AmbulanceForegroundService.BroadcastExtras.AMBULANCE_ID, -1);
-            retrieveAmbulance(ambulanceId, uuid);
+            boolean isPrecise = intent.getBooleanExtra(AmbulanceForegroundService.BroadcastExtras.PRECISE_LOCATION, true);
+            retrieveAmbulance(ambulanceId, isPrecise, uuid);
 
         } else if (action.equals(Actions.STOP_AMBULANCE)) {
 
@@ -620,14 +616,16 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
             Log.i(TAG, "CHECK_LOCATION_SETTINGS Foreground Intent");
 
             // start location updates
-            checkLocationSettings(uuid);
+            boolean isPrecise = intent.getBooleanExtra(AmbulanceForegroundService.BroadcastExtras.PRECISE_LOCATION, true);
+            checkLocationSettings(uuid, isPrecise);
 
         } else if (action.equals(Actions.START_LOCATION_UPDATES)) {
 
             Log.i(TAG, "START_LOCATION_UPDATES Foreground Intent");
 
             // start location updates
-            startLocationUpdates(uuid);
+            boolean isPrecise = intent.getBooleanExtra(AmbulanceForegroundService.BroadcastExtras.PRECISE_LOCATION, true);
+            startLocationUpdates(isPrecise, uuid);
 
         } else if (action.equals(Actions.STOP_LOCATION_UPDATES)) {
 
@@ -813,6 +811,9 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
             // get the ambulance that accepted the call and the call id
             int callId = intent.getIntExtra(AmbulanceForegroundService.BroadcastExtras.CALL_ID, -1);
+
+            // do we need to upgrade location precision
+
 
             // next steps to publish information to server (steps 3, 4)
             setAmbulanceCallStatus(callId, AmbulanceCall.STATUS_ACCEPTED, uuid);
@@ -1033,16 +1034,26 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
     /**
      * @return the location request
      */
-    public static LocationRequest getLocationRequest() {
+    public static LocationRequest getLocationRequest(boolean isPrecise) {
 
         if (locationRequest == null) {
 
             // Create request for location updates
-            locationRequest = LocationRequest.create()
-                    .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
-                    .setInterval(UPDATE_INTERVAL)
-                    .setFastestInterval(FASTEST_UPDATE_INTERVAL)
-                    .setMaxWaitTime(MAX_WAIT_TIME);
+            locationRequest = LocationRequest.create();
+
+            if (isPrecise) {
+                // Rate at which locations should be pulled in
+                // @ 70 mph gives an accuracy of about 30m
+                locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
+                        .setInterval(1000) // 1,000 ms = 1s
+                        .setFastestInterval(500) // 500 ms = 0.5s
+                        .setMaxWaitTime(60 * 1000); // 60,000 ms = 60s = 1min
+            } else {
+                locationRequest.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY)
+                        .setInterval(60 * 1000) // 60,000 ms = 60s = 1min
+                        .setFastestInterval(10 * 1000) // 10,000 ms = 10s
+                        .setMaxWaitTime(10 * 60 * 1000); // 600,000 ms = 600s = 10min
+            }
 
         }
 
@@ -1053,13 +1064,13 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
     /**
      * @return the location settings request
      */
-    public static LocationSettingsRequest getLocationSettingsRequest() {
+    public static LocationSettingsRequest getLocationSettingsRequest(boolean isPrecise) {
 
         if (locationSettingsRequest == null) {
 
             // Build location setting request
             LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder();
-            builder.addLocationRequest(getLocationRequest());
+            builder.addLocationRequest(getLocationRequest(isPrecise));
             locationSettingsRequest = builder.build();
 
         }
@@ -1071,13 +1082,13 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
     /**
      * check location settings and broadcast result
      */
-    public void checkLocationSettings(final String uuid) {
+    public void checkLocationSettings(final String uuid, boolean isPrecise) {
 
         // Build settings client
         SettingsClient settingsClient = LocationServices.getSettingsClient(this);
 
         // Check if the device has the necessary location settings.
-        settingsClient.checkLocationSettings(AmbulanceForegroundService.getLocationSettingsRequest())
+        settingsClient.checkLocationSettings(AmbulanceForegroundService.getLocationSettingsRequest(isPrecise))
                 .addOnCompleteListener(task -> {
                     try {
                         // get response will trigger an exception if it failed
@@ -1695,6 +1706,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
             Intent locationUpdatesIntent = new Intent(AmbulanceForegroundService.this,
                     AmbulanceForegroundService.class);
             locationUpdatesIntent.setAction(Actions.START_LOCATION_UPDATES);
+            locationUpdatesIntent.putExtra(BroadcastExtras.PRECISE_LOCATION, _isLocationPrecise);
 
             // Retrieve ambulance data
             APIService service = APIServiceGenerator.createService(APIService.class);
@@ -2476,7 +2488,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
      *
      * @param ambulanceId the ambulance id
      */
-    public void retrieveAmbulance(final int ambulanceId, final String uuid) {
+    public void retrieveAmbulance(final int ambulanceId, final boolean isPrecise, final String uuid) {
 
         Log.d(TAG, "retrieveAmbulance");
 
@@ -2509,6 +2521,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         Intent locationUpdatesIntent = new Intent(AmbulanceForegroundService.this,
                 AmbulanceForegroundService.class);
         locationUpdatesIntent.setAction(Actions.START_LOCATION_UPDATES);
+        locationUpdatesIntent.putExtra(BroadcastExtras.PRECISE_LOCATION, isPrecise);
 
         // Retrieve ambulance data API call
         APIService service = APIServiceGenerator.createService(APIService.class);
@@ -2630,6 +2643,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
             public void onSuccess(Bundle extras) {
 
                 Log.d(TAG, "Started location updates");
+                _isLocationPrecise = isPrecise;
 
             }
 
@@ -3438,7 +3452,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
      *
      * @param uuid the unique identifier
      */
-    private void startLocationUpdates(final String uuid) {
+    private void startLocationUpdates(boolean isPrecise, final String uuid) {
 
         // Ambulance logged in?
         Ambulance ambulance = AmbulanceForegroundService.getAppData().getAmbulance();
@@ -3460,14 +3474,59 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
         // Already streaming?
         if (_updatingLocation && clientId.equals(ambulanceClientId)) {
-            Log.i(TAG, "Already requesting location updates. Skipping.");
+            Log.i(TAG, "Already requesting location updates.");
 
-            Log.i(TAG, "Consume buffer.");
-            consumeMQTTBuffer();
+            if (_isCurrentLocationPrecise == isPrecise) {
 
-            // Broadcast success and return
-            broadcastSuccess("Already requesting location updates", uuid);
-            return;
+                Log.i(TAG, "Current location updates are with same precision. Skipping...");
+
+                Log.i(TAG, "Consume buffer.");
+                consumeMQTTBuffer();
+
+                // Broadcast success and return
+                broadcastSuccess("Already requesting location updates", uuid);
+                return;
+
+            } else {
+
+                Log.i(TAG, "Location updates are with different precision. Stopping to restart.");
+
+                new OnServiceComplete(this,
+                        org.emstrack.models.util.BroadcastActions.SUCCESS,
+                        org.emstrack.models.util.BroadcastActions.FAILURE,
+                        null) {
+
+                    @Override
+                    public void run() {
+
+                        // stop location updates
+                        stopLocationUpdates(getUuid());
+
+                    }
+
+                    @Override
+                    public void onSuccess(Bundle extras) {
+
+                        Log.d(TAG, "Successfully stopped call updates");
+
+                        // Start again with right permissions
+                        startLocationUpdates(isPrecise, uuid);
+
+                    }
+
+                    @Override
+                    public void onFailure(Bundle extras) {
+                        super.onFailure(extras);
+
+                        // broadcast failure
+                        broadcastFailure("Failed to stop location updates", uuid);
+
+                    }
+
+                }
+                        .start();
+                return;
+            }
 
         }
 
@@ -3489,7 +3548,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
             SettingsClient settingsClient = LocationServices.getSettingsClient(this);
 
             // Check if the device has the necessary location settings.
-            settingsClient.checkLocationSettings(getLocationSettingsRequest())
+            settingsClient.checkLocationSettings(getLocationSettingsRequest(isPrecise))
                     .addOnSuccessListener(
                             locationSettingsResponse -> {
 
@@ -3499,7 +3558,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                                 consumeMQTTBuffer();
 
                                 Log.i(TAG, "Starting location updates.");
-                                beginLocationUpdates(uuid);
+                                beginLocationUpdates(isPrecise, uuid);
 
                                 // Broadcast success
                                 broadcastSuccess("Successfully started location updates", uuid);
@@ -3539,7 +3598,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
                     // Try again with right permissions
                     // TODO: This could potentially lead to a loop, add counter to prevent infinite recursion
-                    startLocationUpdates(uuid);
+                    startLocationUpdates(isPrecise, uuid);
 
                 }
 
@@ -3554,49 +3613,6 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
             }
                     .start();
-
-            /*
-            // Update location_client on server, listening to updates already
-            String payload = String.format("{\"location_client_id\":\"%1$s\"}", clientId);
-            Intent intent = new Intent(this, AmbulanceForegroundService.class);
-            intent.setAction(Actions.UPDATE_AMBULANCE);
-            Bundle bundle = new Bundle();
-            bundle.putInt(AmbulanceForegroundService.BroadcastExtras.AMBULANCE_ID, ambulance.getId());
-            bundle.putString(AmbulanceForegroundService.BroadcastExtras.AMBULANCE_UPDATE, payload);
-            intent.putExtras(bundle);
-
-            // What to do when service completes?
-            new OnServiceComplete(this,
-                    BroadcastActions.AMBULANCE_UPDATE,
-                    org.emstrack.models.util.BroadcastActions.FAILURE,
-                    intent) {
-
-                @Override
-                public void onSuccess(Bundle extras) {
-
-                    Log.i(TAG, "onSuccess");
-
-                    // Try again with right permissions
-                    // TODO: This could potentially lead to a loop, add counter to prevent infinite recursion
-                    startLocationUpdates(uuid);
-
-                }
-
-                @Override
-                public void onFailure(Bundle extras) {
-                    super.onFailure(extras);
-
-                    Log.i(TAG, "onFailure");
-
-                    // Broadcast failure
-                    broadcastFailure(extras, uuid);
-
-                }
-
-            }
-                    .setSuccessIdCheck(false) // AMBULANCE_UPDATE will have a different UUID
-                    .start();
-            */
 
         } else {
 
@@ -3693,7 +3709,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
     /**
      * Start of location updates.
      */
-    public void beginLocationUpdates(final String uuid) {
+    public void beginLocationUpdates(final boolean isPrecise, final String uuid) {
 
         // Create location callback
         locationCallback = new LocationCallback() {
@@ -3710,12 +3726,13 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
         try {
 
-            fusedLocationClient.requestLocationUpdates(getLocationRequest(), locationCallback, null)
+            fusedLocationClient.requestLocationUpdates(getLocationRequest(isPrecise), locationCallback, null)
                     .addOnSuccessListener(
                             aVoid -> {
 
                                 Log.i(TAG, "Starting location updates");
                                 _updatingLocation = true;
+                                _isCurrentLocationPrecise = isPrecise;
 
                                 // Broadcast success
                                 Intent localIntent = new Intent(org.emstrack.models.util.BroadcastActions.SUCCESS);
@@ -3912,6 +3929,82 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
     }
 
     /**
+     * Accept call
+     *
+     * @param call
+     */
+    public void acceptCall(final Call call) {
+
+        Log.d(TAG, "Accepting call");
+
+        if (!_isCurrentLocationPrecise) {
+
+            // needs to upgrade precision
+            Log.d(TAG, "Location updates are not precise. Upgrading first...");
+
+            // Create start location update intent
+            Intent locationUpdatesIntent = new Intent(AmbulanceForegroundService.this,
+                    AmbulanceForegroundService.class);
+            locationUpdatesIntent.setAction(Actions.START_LOCATION_UPDATES);
+            locationUpdatesIntent.putExtra(BroadcastExtras.PRECISE_LOCATION, true);
+
+            new OnServiceComplete(AmbulanceForegroundService.this,
+                    org.emstrack.models.util.BroadcastActions.SUCCESS,
+                    org.emstrack.models.util.BroadcastActions.FAILURE,
+                    locationUpdatesIntent
+            ) {
+
+                @Override
+                public void onSuccess(Bundle extras) {
+
+                    acceptCall(call);
+
+                }
+
+                @Override
+                public void onFailure(Bundle extras) {
+                    super.onFailure(extras);
+
+                    // Broadcast could not update location
+                    Intent callIntent;
+                    callIntent = new Intent(BroadcastActions.CANNOT_UPDATE_LOCATION);
+                    callIntent.putExtra(AmbulanceForegroundService.BroadcastExtras.CALL_ID, call.getId());
+                    callIntent.putExtras(extras);
+                    getLocalBroadcastManager().sendBroadcast(callIntent);
+
+                }
+            }
+                    .start();
+
+
+        } else {
+
+            // needs to upgrade precision
+            Log.d(TAG, "Location updates are already precise. Accepting call");
+
+            // accept call
+            try {
+
+                // set current call
+                setOrUpdateCurrentCall(call);
+
+                // Broadcast call accepted or update
+                Intent callIntent;
+                callIntent = new Intent(BroadcastActions.CALL_ACCEPTED);
+                callIntent.putExtra(AmbulanceForegroundService.BroadcastExtras.CALL_ID, call.getId());
+                getLocalBroadcastManager().sendBroadcast(callIntent);
+
+            } catch (AmbulanceForegroundServiceException | CallStack.CallStackException | Call.CallException e) {
+
+                String message = "Exception in acceptCall: " + e.toString();
+                Log.e(TAG, message);
+
+            }
+        }
+
+    }
+
+    /**
      * Update call
      *
      * @param call the call
@@ -4026,23 +4119,24 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                     if (newStatus.equalsIgnoreCase(AmbulanceCall.STATUS_ACCEPTED)) {
 
                         // accept call
-                        try {
-
-                            // set current call
-                            setOrUpdateCurrentCall(call);
-
-                            // Broadcast call accepted or update
-                            Intent callIntent;
-                            callIntent = new Intent(BroadcastActions.CALL_ACCEPTED);
-                            callIntent.putExtra(AmbulanceForegroundService.BroadcastExtras.CALL_ID, callId);
-                            getLocalBroadcastManager().sendBroadcast(callIntent);
-
-                        } catch (AmbulanceForegroundServiceException | CallStack.CallStackException | Call.CallException e) {
-
-                            String message = "Exception in updateCall: " + e.toString();
-                            Log.e(TAG, message);
-
-                        }
+//                        try {
+//
+//                            // set current call
+//                            setOrUpdateCurrentCall(call);
+//
+//                            // Broadcast call accepted or update
+//                            Intent callIntent;
+//                            callIntent = new Intent(BroadcastActions.CALL_ACCEPTED);
+//                            callIntent.putExtra(AmbulanceForegroundService.BroadcastExtras.CALL_ID, callId);
+//                            getLocalBroadcastManager().sendBroadcast(callIntent);
+//
+//                        } catch (AmbulanceForegroundServiceException | CallStack.CallStackException | Call.CallException e) {
+//
+//                            String message = "Exception in updateCall: " + e.toString();
+//                            Log.e(TAG, message);
+//
+//                        }
+                        acceptCall(call);
 
                     } else if (newStatus.equalsIgnoreCase(AmbulanceCall.STATUS_REQUESTED)) {
 
@@ -4504,23 +4598,24 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
             } else if (status.equals(AmbulanceCall.STATUS_ACCEPTED)) {
 
                 // accept call
-                try {
-
-                    // set current call
-                    setOrUpdateCurrentCall(nextCall);
-
-                    // Broadcast call accepted or update
-                    Intent callIntent;
-                    callIntent = new Intent(BroadcastActions.CALL_ACCEPTED);
-                    callIntent.putExtra(AmbulanceForegroundService.BroadcastExtras.CALL_ID, nextCall.getId());
-                    getLocalBroadcastManager().sendBroadcast(callIntent);
-
-                } catch (AmbulanceForegroundServiceException | CallStack.CallStackException | Call.CallException e) {
-
-                    String message = "Exception in processNextCall: " + e.toString();
-                    Log.e(TAG, message);
-
-                }
+//                try {
+//
+//                    // set current call
+//                    setOrUpdateCurrentCall(nextCall);
+//
+//                    // Broadcast call accepted or update
+//                    Intent callIntent;
+//                    callIntent = new Intent(BroadcastActions.CALL_ACCEPTED);
+//                    callIntent.putExtra(AmbulanceForegroundService.BroadcastExtras.CALL_ID, nextCall.getId());
+//                    getLocalBroadcastManager().sendBroadcast(callIntent);
+//
+//                } catch (AmbulanceForegroundServiceException | CallStack.CallStackException | Call.CallException e) {
+//
+//                    String message = "Exception in processNextCall: " + e.toString();
+//                    Log.e(TAG, message);
+//
+//                }
+                acceptCall(nextCall);
 
             }
 
@@ -4528,7 +4623,94 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
             Log.d(TAG, "No more pending or suspended calls");
 
+            if (_isCurrentLocationPrecise != _isLocationPrecise) {
+
+                Log.i(TAG, "Location updates are with different precision.");
+
+                new OnServiceComplete(this,
+                        org.emstrack.models.util.BroadcastActions.SUCCESS,
+                        org.emstrack.models.util.BroadcastActions.FAILURE,
+                        null) {
+
+                    @Override
+                    public void run() {
+
+                        Log.i(TAG, "Will restart location updates.");
+
+                        // stop location updates
+                        restartLocationUpdates(_isLocationPrecise, getUuid());
+
+                    }
+
+                    @Override
+                    public void onSuccess(Bundle extras) {
+
+                        Log.d(TAG, "Successfully restarted updates");
+
+                    }
+
+                    @Override
+                    public void onFailure(Bundle extras) {
+                        super.onFailure(extras);
+
+                        // broadcast failure
+                        broadcastFailure("Failed to restart updates");
+
+                    }
+
+                }
+                        .start();
+
+            }
         }
+
+    }
+
+    /**
+     * Restart location services
+     *
+     * @param isPrecise true if location update are to be procise
+     * @param uuid unique id
+     */
+    public void restartLocationUpdates(boolean isPrecise, final String uuid) {
+
+        new OnServiceComplete(this,
+                org.emstrack.models.util.BroadcastActions.SUCCESS,
+                org.emstrack.models.util.BroadcastActions.FAILURE,
+                null) {
+
+            @Override
+            public void run() {
+
+                Log.d(TAG, "Will stop location updates");
+
+                // stop location updates
+                stopLocationUpdates(getUuid());
+
+            }
+
+            @Override
+            public void onSuccess(Bundle extras) {
+
+                Log.d(TAG, "Successfully stopped location updates");
+                Log.d(TAG, "Will start location updates");
+
+                // Start again with right permissions
+                startLocationUpdates(isPrecise, uuid);
+
+            }
+
+            @Override
+            public void onFailure(Bundle extras) {
+                super.onFailure(extras);
+
+                // broadcast failure
+                broadcastFailure("Failed to restart location updates", uuid);
+
+            }
+
+        }
+                .start();
 
     }
 
@@ -5120,7 +5302,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         SettingsClient settingsClient = LocationServices.getSettingsClient(this);
 
         // Check if the device has the necessary location settings.
-        settingsClient.checkLocationSettings(getLocationSettingsRequest())
+        settingsClient.checkLocationSettings(getLocationSettingsRequest(true)) // isPrecise is set to TRUE here
                 .addOnSuccessListener(
                         locationSettingsResponse -> {
 
