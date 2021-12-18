@@ -346,5 +346,9 @@
     <string name="version">Version</string>
     <string name="approximateLocation">Approximate location</string>
     <string name="approximateLocationExplanation">Use coarse location while vehicle is not in a call to save battery.</string>
+    <string name="selectVehicleFirst">Select a vehicle first to enable this functionality.</string>
+    <string name="message">Message</string>
+    <string name="ambulances">Vehicles</string>
+    <string name="messages">Messages</string>
 
 </resources>

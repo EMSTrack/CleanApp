@@ -303,5 +303,6 @@
     <string name="approximateLocationExplanation">Utilizar ubicación aproximada cuando el vehículo no esté en una llamada para ahorrar batería.</string>
     <string name="app_credits_icons">Iconos:</string>
     <string name="app_credits_servers">En nuestros servidores utilizamos:</string>
+    <string name="selectVehicleFirst">Primero seleccione un vehículo para habilitar esta función.</string>
 
 </resources>

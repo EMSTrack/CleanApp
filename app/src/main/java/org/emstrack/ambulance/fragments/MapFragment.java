@@ -10,6 +10,8 @@ import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+
+import android.os.Parcelable;
 import android.util.Log;
 import android.util.SparseArray;
 import android.view.LayoutInflater;
@@ -92,6 +94,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
 
     private boolean centerAtDefault;
     private MainActivity activity;
+    private LatLng centerLatLng;
 
     static int degreesToRotation(int degrees) {
         if (degrees > 315 || degrees < 45)
@@ -158,169 +161,154 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
 
         // Retrieve location button
         showLocationButton = rootView.findViewById(R.id.showLocationButton);
-        showLocationButton.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View v) {
+        showLocationButton.setOnLongClickListener(v -> {
 
-                // toggle show ambulances
-                centerAmbulances = !centerAmbulances;
+            // toggle show ambulances
+            centerAmbulances = !centerAmbulances;
 
-                // Switch color
-                if (centerAmbulances)
-                    showLocationButton.setBackgroundColor(getResources().getColor(R.color.mapButtonOn));
-                else
-                    showLocationButton.setBackgroundColor(getResources().getColor(R.color.mapButtonOff));
+            // Switch color
+            if (centerAmbulances)
+                showLocationButton.setBackgroundColor(getResources().getColor(R.color.mapButtonOn));
+            else
+                showLocationButton.setBackgroundColor(getResources().getColor(R.color.mapButtonOff));
 
-                Log.i(TAG, "Toggle center ambulances: " + (centerAmbulances ? "ON" : "OFF"));
+            Log.i(TAG, "Toggle center ambulances: " + (centerAmbulances ? "ON" : "OFF"));
 
-                return true;
+            return true;
 
-            }
         });
-        showLocationButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
+        showLocationButton.setOnClickListener(v -> {
 
-                if (googleMap != null) {
+            if (googleMap != null) {
 
-                    // center ambulances
-                    centerAmbulances();
-
-                }
+                // center ambulances
+                centerAmbulances();
 
             }
+
         });
 
         // Retrieve ambulance button
         showAmbulancesButton = rootView.findViewById(R.id.showAmbulancesButton);
-        showAmbulancesButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
+        showAmbulancesButton.setOnClickListener(v -> {
 
-                // toggle show ambulances
-                showAmbulances = !showAmbulances;
+            // toggle show ambulances
+            showAmbulances = !showAmbulances;
 
-                // Switch color
+            // Switch color
+            if (showAmbulances)
+                showAmbulancesButton.setBackgroundColor(getResources().getColor(R.color.mapButtonOn));
+            else
+                showAmbulancesButton.setBackgroundColor(getResources().getColor(R.color.mapButtonOff));
+
+            Log.i(TAG, "Toggle show ambulances: " + (showAmbulances ? "ON" : "OFF"));
+
+            if (googleMap != null) {
+
                 if (showAmbulances)
-                    showAmbulancesButton.setBackgroundColor(getResources().getColor(R.color.mapButtonOn));
-                else
-                    showAmbulancesButton.setBackgroundColor(getResources().getColor(R.color.mapButtonOff));
 
-                Log.i(TAG, "Toggle show ambulances: " + (showAmbulances ? "ON" : "OFF"));
+                    // retrieve ambulances
+                    retrieveAmbulances();
 
-                if (googleMap != null) {
+                else {
 
-                    if (showAmbulances)
+                    // forget ambulances
+                    forgetAmbulances();
 
-                        // retrieve ambulances
-                        retrieveAmbulances();
-
-                    else {
-
-                        // forget ambulances
-                        forgetAmbulances();
-
-                        // updateAmbulance markers without centering
-                        updateMarkers();
-
-                    }
-
-                }
-
-
-            }
-        });
-
-        // Retrieve hospitals button
-        showHospitalsButton = rootView.findViewById(R.id.showHospitalsButton);
-        showHospitalsButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-                // toggle show hospitals
-                showHospitals = !showHospitals;
-
-                // Switch color
-                if (showHospitals)
-                    showHospitalsButton.setBackgroundColor(getResources().getColor(R.color.mapButtonOn));
-                else
-                    showHospitalsButton.setBackgroundColor(getResources().getColor(R.color.mapButtonOff));
-
-                Log.i(TAG, "Toggle show hospitals: " + (showHospitals ? "ON" : "OFF"));
-
-                if (googleMap != null) {
-
-                    if (!showHospitals) {
-
-                        // Clear markers
-                        Iterator<Map.Entry<Integer,Marker>> iter = hospitalMarkers.entrySet().iterator();
-                        while (iter.hasNext())
-                        {
-                            // retrieveObject entry
-                            Map.Entry<Integer,Marker> entry = iter.next();
-
-                            // remove from map
-                            entry.getValue().remove();
-
-                            // remove from collection
-                            iter.remove();
-
-                        }
-
-                    }
-
-                    // update markers without centering
+                    // updateAmbulance markers without centering
                     updateMarkers();
 
                 }
 
             }
+
+
+        });
+
+        // Retrieve hospitals button
+        showHospitalsButton = rootView.findViewById(R.id.showHospitalsButton);
+        showHospitalsButton.setOnClickListener(v -> {
+
+            // toggle show hospitals
+            showHospitals = !showHospitals;
+
+            // Switch color
+            if (showHospitals)
+                showHospitalsButton.setBackgroundColor(getResources().getColor(R.color.mapButtonOn));
+            else
+                showHospitalsButton.setBackgroundColor(getResources().getColor(R.color.mapButtonOff));
+
+            Log.i(TAG, "Toggle show hospitals: " + (showHospitals ? "ON" : "OFF"));
+
+            if (googleMap != null) {
+
+                if (!showHospitals) {
+
+                    // Clear markers
+                    Iterator<Map.Entry<Integer,Marker>> iter = hospitalMarkers.entrySet().iterator();
+                    while (iter.hasNext())
+                    {
+                        // retrieveObject entry
+                        Map.Entry<Integer,Marker> entry = iter.next();
+
+                        // remove from map
+                        entry.getValue().remove();
+
+                        // remove from collection
+                        iter.remove();
+
+                    }
+
+                }
+
+                // update markers without centering
+                updateMarkers();
+
+            }
+
         });
 
         // Retrieve waypoints button
         showWaypointsButton = rootView.findViewById(R.id.showWaypointsButton);
-        showWaypointsButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
+        showWaypointsButton.setOnClickListener(v -> {
 
-                // toggle show waypoints
-                showWaypoints = !showWaypoints;
+            // toggle show waypoints
+            showWaypoints = !showWaypoints;
 
-                // Switch color
-                if (showWaypoints)
-                    showWaypointsButton.setBackgroundColor(getResources().getColor(R.color.mapButtonOn));
-                else
-                    showWaypointsButton.setBackgroundColor(getResources().getColor(R.color.mapButtonOff));
+            // Switch color
+            if (showWaypoints)
+                showWaypointsButton.setBackgroundColor(getResources().getColor(R.color.mapButtonOn));
+            else
+                showWaypointsButton.setBackgroundColor(getResources().getColor(R.color.mapButtonOff));
 
-                Log.i(TAG, "Toggle show waypoints: " + (showWaypoints ? "ON" : "OFF"));
+            Log.i(TAG, "Toggle show waypoints: " + (showWaypoints ? "ON" : "OFF"));
 
-                if (googleMap != null) {
+            if (googleMap != null) {
 
-                    if (!showWaypoints) {
+                if (!showWaypoints) {
 
-                        // Clear markers
-                        Iterator<Map.Entry<Integer,Marker>> iter = waypointMarkers.entrySet().iterator();
-                        while (iter.hasNext())
-                        {
-                            // retrieveObject entry
-                            Map.Entry<Integer,Marker> entry = iter.next();
+                    // Clear markers
+                    Iterator<Map.Entry<Integer,Marker>> iter = waypointMarkers.entrySet().iterator();
+                    while (iter.hasNext())
+                    {
+                        // retrieveObject entry
+                        Map.Entry<Integer,Marker> entry = iter.next();
 
-                            // remove from map
-                            entry.getValue().remove();
+                        // remove from map
+                        entry.getValue().remove();
 
-                            // remove from collection
-                            iter.remove();
-
-                        }
+                        // remove from collection
+                        iter.remove();
 
                     }
 
-                    // update markers and center
-                    centerMap(updateMarkers());
-
                 }
 
+                // update markers and center
+                centerMap(updateMarkers());
+
             }
+
         });
 
         // Initialize markers maps
@@ -380,11 +368,21 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
         else
             orientationListener.disable();
 
+        // get arguments
+        Bundle arguments = getArguments();
+        if (arguments != null) {
+            centerLatLng = (LatLng) getArguments().getParcelable("latLng");
+        }
+
         return rootView;
 
     }
 
     public void retrieveAmbulances() {
+        retrieveAmbulances(true);
+    }
+
+    public void retrieveAmbulances(boolean doCenterMap) {
 
         // Get ambulances
         AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
@@ -417,7 +415,10 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
                         Log.i(TAG,"Got them all. Updating markers.");
 
                         // updateAmbulance markers and center bounds
-                        centerMap(updateMarkers());
+                        LatLngBounds bounds = updateMarkers();
+                        if (doCenterMap) {
+                            centerMap(bounds);
+                        }
 
                         // Enable button
                         showAmbulancesButton.setEnabled(true);
@@ -437,7 +438,10 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
             // Already have ambulances
 
             // updateAmbulance markers and center bounds
-            centerMap(updateMarkers());
+            LatLngBounds bounds = updateMarkers();
+            if (doCenterMap) {
+                centerMap(bounds);
+            }
 
         }
 
@@ -604,15 +608,38 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
         if (showAmbulances) {
 
             // retrieve ambulances
-            retrieveAmbulances();
+            if (centerLatLng == null) {
+                retrieveAmbulances(false);
+            } else {
+                retrieveAmbulances(true);
+                centerMap(centerLatLng, true);
+            }
 
         } else {
             
             // Update markers and center map
-            centerMap(updateMarkers());
+            LatLngBounds bounds = updateMarkers();
+            if (centerLatLng == null) {
+                centerMap(bounds);
+            } else {
+                centerMap(centerLatLng, true);
+            }
             
         }
                 
+    }
+
+    public void centerMap(LatLng latLng) {
+        centerMap(latLng, false);
+    }
+
+    public void centerMap(LatLng latLng, boolean dropMarker) {
+
+        if (dropMarker) {
+            googleMap.addMarker(new MarkerOptions().position(latLng));
+        }
+        googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, zoomLevel));
+
     }
 
     public void centerMap(LatLngBounds bounds) {
@@ -645,9 +672,9 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
                     GPSLocation location = ambulance.getLocation();
                     LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
 
-                    googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, zoomLevel));
-
                     Log.d(TAG, "center at own ambulance");
+                    // googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, zoomLevel));
+                    centerMap(latLng);
 
                     return;
                 }
@@ -671,7 +698,8 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
         // Otherwise center at default location
         LatLng latLng = new LatLng(defaultLocation.getLatitude(), defaultLocation.getLongitude());
 
-        googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, zoomLevel));
+        // googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, zoomLevel));
+        centerMap(latLng);
 
     }
 
@@ -898,6 +926,10 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
                     .zoom(zoomLevel)
                     .build();
             googleMap.animateCamera(CameraUpdateFactory.newCameraPosition(currentPlace));
+
+        } else {
+
+            new AlertSnackbar(activity).alert(getString(R.string.selectVehicleFirst));
 
         }
 

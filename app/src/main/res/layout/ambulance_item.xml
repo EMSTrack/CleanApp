@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/equipment_card"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:focusable="true"
+    android:clickable="true"
+    android:layout_margin="4dp"
+    android:background="?android:attr/selectableItemBackground">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingVertical="6dp"
+        android:paddingHorizontal="2dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <ImageView
+                android:id="@+id/ambulanceThumbnail"
+                android:layout_height="@dimen/ambulanceToolbarIconHeight"
+                android:layout_width="@dimen/ambulanceToolbarIconWidth"
+                android:layout_marginStart="4dp"
+                android:scaleType="fitCenter"
+                app:srcCompat="@drawable/ic_car_solid" />
+
+            <TextView
+                android:id="@+id/ambulance_name"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:text="@string/ambulance"
+                android:layout_weight="1"/>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/ambulance_detail"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginStart="39dp"
+            android:visibility="gone" >
+
+            <include layout="@layout/ambulance_detail"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginTop="10dp">
+
+                <View
+                    android:layout_height="0dp"
+                    android:layout_width="0dp"
+                    android:layout_weight="1" />
+
+                <ImageView
+                    android:id="@+id/ambulanceSelect"
+                    android:layout_height="@dimen/ambulanceToolbarIconHeight"
+                    android:layout_width="@dimen/ambulanceToolbarIconWidth"
+                    app:srcCompat="@drawable/ic_sign_in_alt_solid"
+                    app:tint="@color/iconColorDark"
+                    android:layout_marginEnd="10dp" />
+
+                <ImageView
+                    android:id="@+id/ambulanceLocation"
+                    android:layout_height="@dimen/ambulanceToolbarIconHeight"
+                    android:layout_width="@dimen/ambulanceToolbarIconWidth"
+                    app:srcCompat="@drawable/ic_location_arrow"
+                    app:tint="@color/iconColorDark"
+                    android:layout_marginEnd="10dp" />
+
+                <ImageView
+                    android:id="@+id/ambulanceEquipment"
+                    android:layout_height="@dimen/ambulanceToolbarIconHeight"
+                    android:layout_width="@dimen/ambulanceToolbarIconWidth"
+                    app:srcCompat="@drawable/ic_briefcase_medical"
+                    app:tint="@color/iconColorDark"
+                    android:layout_marginEnd="10dp" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</androidx.cardview.widget.CardView>

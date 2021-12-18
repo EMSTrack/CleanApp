@@ -12,13 +12,20 @@
         android:title="@string/hospitals" />
 
     <item
+        android:id="@+id/ambulances"
+        android:icon="@drawable/ic_cars_solid"
+        android:title="@string/ambulances" />
+
+    <item
         android:id="@+id/ambulance"
-        android:icon="@drawable/ic_ambulance"
+        android:icon="@drawable/ic_car_solid"
         android:title="@string/ambulance" />
 
+    <!--
     <item
         android:id="@+id/equipment"
         android:icon="@drawable/ic_briefcase_medical"
         android:title="@string/equipment" />
+    -->
 
 </menu>

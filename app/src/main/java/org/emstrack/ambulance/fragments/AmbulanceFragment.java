@@ -39,7 +39,9 @@ import org.emstrack.ambulance.MainActivity;
 import org.emstrack.ambulance.R;
 import org.emstrack.ambulance.dialogs.AlertSnackbar;
 import org.emstrack.ambulance.models.AmbulanceAppData;
+import org.emstrack.ambulance.models.EquipmentType;
 import org.emstrack.ambulance.services.AmbulanceForegroundService;
+import org.emstrack.ambulance.util.RequestPermission;
 import org.emstrack.ambulance.util.RequestPermissionHelper;
 import org.emstrack.models.Ambulance;
 import org.emstrack.models.AmbulanceCall;
@@ -105,6 +107,7 @@ public class AmbulanceFragment extends Fragment {
     private LinearLayout callResumeLayout;
     private Spinner callResumeSpinner;
     private Button callResumeButton;
+    private Button equipmentButton;
 
     private View callSkipLayout;
     private Button callSkipWaypointButton;
@@ -129,6 +132,7 @@ public class AmbulanceFragment extends Fragment {
     private ArrayList<String> ambulanceList;
     private List<AmbulancePermission> ambulancePermissions;
     private MainActivity activity;
+    private int ambulanceId;
 
     public class AmbulancesUpdateBroadcastReceiver extends BroadcastReceiver {
 
@@ -198,248 +202,6 @@ public class AmbulanceFragment extends Fragment {
 
             }
         }
-    }
-
-    private class CheckPermissionsClickListener implements View.OnClickListener {
-
-        private final ActivityResultLauncher<String[]> activityResultLauncher;
-        private String[] permissions;
-        private final ArrayAdapter<String> ambulanceListAdapter;
-        private boolean promptIfNotGranted;
-
-        public CheckPermissionsClickListener() {
-            // Build permissions
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                Log.i(TAG, "Permissions version >= R");
-                if (RequestPermissionHelper.checkPermissions(requireContext(), new String[] {Manifest.permission.ACCESS_COARSE_LOCATION})
-                        || RequestPermissionHelper.checkPermissions(requireContext(), new String[] {Manifest.permission.ACCESS_FINE_LOCATION})) {
-                    // has coarse or fine location, ask for all
-                    Log.i(TAG, "Will ask for BACKGROUND LOCATION first");
-                    this.permissions = new String[]{
-                            Manifest.permission.ACCESS_COARSE_LOCATION,
-                            Manifest.permission.ACCESS_FINE_LOCATION,
-                            Manifest.permission.ACCESS_BACKGROUND_LOCATION
-                    };
-                } else {
-                    Log.i(TAG, "Will ask for FOREGROUND LOCATION");
-                    // does not have foreground location, start with foreground first
-                    this.permissions = new String[]{
-                            Manifest.permission.ACCESS_COARSE_LOCATION,
-                            Manifest.permission.ACCESS_FINE_LOCATION
-                    };
-                }
-            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                Log.i(TAG, "Permissions version >= Q");
-                this.permissions = new String[]{
-                        Manifest.permission.ACCESS_FINE_LOCATION,
-                        Manifest.permission.ACCESS_BACKGROUND_LOCATION
-                };
-            } else {
-                Log.i(TAG, "Permissions version < Q");
-                this.permissions = new String[]{
-                        Manifest.permission.ACCESS_FINE_LOCATION
-                };
-            }
-
-            // register laucher
-            activityResultLauncher =
-                    registerForActivityResult(new ActivityResultContracts.RequestMultiplePermissions(),
-                        isGrantedMap -> {
-
-                            Log.i(TAG, "Permissions results:");
-                            Log.i(TAG, isGrantedMap.toString());
-
-                            // check all permissions
-                            boolean granted = true;
-                            for (String permission: this.permissions) {
-                                //noinspection ConstantConditions
-                                if (isGrantedMap.containsKey(permission) && isGrantedMap.get(permission)) {
-                                    continue;
-                                }
-                                granted = false;
-                                break;
-                            }
-                            this.action(granted);
-                        }
-                );
-
-            // Create the ambulance list adapter
-            this.ambulanceListAdapter =
-                    new ArrayAdapter<>(AmbulanceFragment.this.requireContext(),
-                            android.R.layout.simple_spinner_dropdown_item, ambulanceList);
-            ambulanceListAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-
-            this.promptIfNotGranted = true;
-        }
-
-        private void action(boolean granted) {
-            if (granted) {
-                Log.i(TAG, "Permissions granted");
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && !Arrays.asList(this.permissions).contains(Manifest.permission.ACCESS_BACKGROUND_LOCATION)) {
-                    Log.i(TAG, "Permissions version >= R, need to ask for BACKGROUND LOCATION");
-                    this.permissions = new String[]{
-                            Manifest.permission.ACCESS_COARSE_LOCATION,
-                            Manifest.permission.ACCESS_FINE_LOCATION,
-                            Manifest.permission.ACCESS_BACKGROUND_LOCATION
-                    };
-
-                    // create permission helper
-                    RequestPermissionHelper requestPermissionHelper = new RequestPermissionHelper(
-                            requireContext(), activity, this.permissions);
-
-                    // fire request, permissions will be denied and processed by user
-                    this.promptIfNotGranted = false;
-                    requestPermissionHelper.checkAndRequest(activityResultLauncher,
-                            getString(R.string.locationPermissionMessageVersionRMessage2)
-                                    + "\n\n" +
-                                    getString(R.string.locationPermissionSettingsMessage,
-                                            getString(R.string.versionRPermissionOption, requireContext().getPackageManager().getBackgroundPermissionOptionLabel()))
-                                    + "\n\n" +
-                                    getString(R.string.locationPermissionMessage)
-                    );
-
-                } else {
-                    Log.i(TAG, "Check settings");
-                    checkLocationSettings();
-                }
-
-            } else if (this.promptIfNotGranted) {
-                Log.i(TAG, "Permissions have not been granted, will launch prompt.");
-                // Notify the user via a SnackBar that they have rejected a core permission for the
-                // app, which makes the Activity useless.
-
-                // Additionally, it is important to remember that a permission might have been
-                // rejected without asking the user for permission (device policy or "Never ask
-                // again" prompts). Therefore, a user interface affordance is typically implemented
-                // when permissions are denied. Otherwise, your app could appear unresponsive to
-                // touches or interactions which have required permissions.
-                final String message = android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R ?
-                        getString(R.string.versionRPermissionOption, requireContext().getPackageManager().getBackgroundPermissionOptionLabel()) :
-                        "";
-
-                // dismiss first, then go to settings
-                // Build intent that displays the App settings screen.
-                // intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                new AlertDialog.Builder(activity)
-                        .setTitle(R.string.needPermissions)
-                        .setMessage(getString(R.string.locationPermissionMessage) + "\n\n" + getString(R.string.locationPermissionSettingsMessage, message))
-                        .setPositiveButton(android.R.string.ok,
-                                (dialog, which) -> {
-
-                                    // Build intent that displays the App settings screen.
-                                    Intent intent = new Intent();
-                                    intent.setAction(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
-                                    Uri uri = Uri.fromParts("package", BuildConfig.APPLICATION_ID, null);
-                                    intent.setData(uri);
-                                    // intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                                    startActivity(intent);
-
-                                })
-                        .setNegativeButton(android.R.string.cancel,
-                                (dialog, which) -> new AlertSnackbar(activity)
-                                        .alert(getString(R.string.expectLimitedFuncionality)))
-                        .create()
-                        .show();
-
-            }
-        }
-
-        private void selectAmbulance() {
-            Log.i(TAG, "Location settings satisfied, select ambulance");
-
-            new AlertDialog.Builder(activity)
-                    .setTitle(R.string.selectAmbulance)
-                    .setAdapter(ambulanceListAdapter,
-                            (dialog, which) -> {
-
-                                // Get selected status
-                                Log.i(TAG, "Ambulance at position '" + which + "' selected.");
-
-                                // get selected ambulance
-                                AmbulancePermission selectedAmbulance = ambulancePermissions.get(which);
-                                Log.d(TAG, "Selected ambulance " + selectedAmbulance.getAmbulanceIdentifier());
-
-                                // If currently handling ambulance
-                                Ambulance ambulance = AmbulanceForegroundService.getAppData().getAmbulance();
-                                if (ambulance != null) {
-
-                                    Log.d(TAG, "Current ambulance " + ambulance.getIdentifier());
-                                    Log.d(TAG, "Requesting location updates? " +
-                                            (AmbulanceForegroundService.isUpdatingLocation() ? "TRUE" : "FALSE"));
-
-                                    if (ambulance.getId() != selectedAmbulance.getAmbulanceId())
-                                        // If another ambulance, confirm first
-                                        switchAmbulanceDialog(selectedAmbulance);
-
-                                    else if (!AmbulanceForegroundService.isUpdatingLocation())
-                                        // else, if current ambulance is not updating location,
-                                        // retrieve again
-                                        retrieveAmbulance(selectedAmbulance);
-
-                                    // otherwise do nothing
-
-                                } else {
-
-                                    // otherwise go ahead!
-                                    retrieveAmbulance(selectedAmbulance);
-                                    // dialog.dismiss();
-
-                                }
-
-                            })
-                    .create()
-                    .show();
-        }
-
-        private void checkLocationSettings() {
-            // check location settings
-            Intent intent = new Intent(getActivity(), AmbulanceForegroundService.class);
-            intent.setAction(AmbulanceForegroundService.Actions.CHECK_LOCATION_SETTINGS);
-
-            new OnServiceComplete(getActivity(),
-                    BroadcastActions.SUCCESS,
-                    BroadcastActions.FAILURE,
-                    intent) {
-
-                @Override
-                public void onSuccess(Bundle extras) {
-                    selectAmbulance();
-                }
-
-            }
-                    .setFailureMessage(getString(R.string.expectLimitedFuncionality))
-                    .setAlert(new AlertSnackbar(activity))
-                    .start();
-        }
-
-        @Override
-        public void onClick(View view) {
-            Log.i(TAG, "Clicked on select ambulances.");
-
-            if (AmbulanceForegroundService.canUpdateLocation()) {
-                selectAmbulance();
-            } else {
-                Log.i(TAG, "Location settings not satisfied, checking for permission");
-
-                String message = Build.VERSION.SDK_INT >= Build.VERSION_CODES.R ?
-                        getString(R.string.locationPermissionMessage) + "\n\n" + getString(R.string.locationPermissionMessageVersionRMessage1) :
-                        getString(R.string.locationPermissionMessage);
-
-                // create permission helper
-                RequestPermissionHelper requestPermissionHelper = new RequestPermissionHelper(requireContext(),
-                        activity, this.permissions);
-
-                // fire request
-                this.promptIfNotGranted = true;
-                if ( requestPermissionHelper.checkAndRequest(activityResultLauncher, message) ) {
-                    Log.i(TAG, "Permissions granted but not checked; checking location settings");
-                    checkLocationSettings();
-                } else {
-                    Log.i(TAG, "Permissions denied, interacting with user.");
-                }
-            }
-        }
-
     }
 
     public class StatusButtonClickListener implements View.OnClickListener {
@@ -519,6 +281,9 @@ public class AmbulanceFragment extends Fragment {
                                         @Override
                                         public void onSuccess(Bundle extras) {
                                             Log.i(TAG, "ambulance released");
+
+                                            // navigate to ambulances
+                                            activity.navigate(R.id.ambulances);
                                         }
 
                                     }
@@ -540,6 +305,240 @@ public class AmbulanceFragment extends Fragment {
             }
 
         }
+    }
+
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+
+        Log.d(TAG, "onCreateView");
+
+        // set formatter
+        df.setMaximumFractionDigits(3);
+
+        // inflate view
+        view = inflater.inflate(R.layout.fragment_ambulance, container, false);
+        activity = (MainActivity) requireActivity();
+
+        // retrieve ambulanceMessage
+        View ambulanceSelectionLayout = view.findViewById(R.id.ambulanceSelectionLayout);
+
+        // retrieve ambulance selection button and message
+        ambulanceSelectionButton = ambulanceSelectionLayout.findViewById(R.id.ambulanceSelectionButton);
+        ambulanceSelectionMessage = ambulanceSelectionLayout.findViewById(R.id.ambulanceSelectionMessage);
+
+        // retrieve ambulanceFragmentLayout
+        ambulanceFragmentLayout = view.findViewById(R.id.ambulanceFragmentLayout);
+
+        // retrieveObject callInformationLayout
+        callInformationLayout = view.findViewById(R.id.callInformationLayout);
+
+        // Retrieve callInformationLayout parts
+        callInformationText = callInformationLayout.findViewById(R.id.callInformationText);
+
+        // retrieveObject callResumeLayout
+        callResumeLayout = view.findViewById(R.id.callResumeLayout);
+
+        // Retrieve callResumeLayout parts
+        callResumeSpinner = callResumeLayout.findViewById(R.id.callResumeSpinner);
+        callResumeButton= callResumeLayout.findViewById(R.id.callResumeButton);
+        
+        // setup callLayout
+        callLayout = view.findViewById(R.id.callLayout);
+
+        // Retrieve callLayout parts
+        callPriorityTextView = callLayout.findViewById(R.id.callPriorityTextView);
+        callPriorityPrefixTextView = callLayout.findViewById(R.id.callPriorityPrefix);
+        callPrioritySuffixTextView = callLayout.findViewById(R.id.callPrioritySuffix);
+        callRadioCodeTextView = callLayout.findViewById(R.id.callRadioCodeText);
+        callDescriptionTextView = callLayout.findViewById(R.id.callDetailsText);
+        callPatientsTextView = callLayout.findViewById(R.id.callPatientsText);
+        callNumberWaypointsView = callLayout.findViewById(R.id.callNumberWaypointsText);
+
+        callEndButton = callLayout.findViewById(R.id.callEndButton);
+        callAddWaypointButton = callLayout.findViewById(R.id.callAddWaypointButton);
+
+        toMapsButton = callLayout.findViewById(R.id.toMapsButton);
+        toMapsButton.setVisibility(View.VISIBLE);
+
+        // Get appData
+        AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
+
+        // ambulance permissions
+        ambulancePermissions = new ArrayList<>();
+        Profile profile = appData.getProfile();
+        if (profile != null) {
+            ambulancePermissions = profile.getAmbulances();
+        }
+
+        // Creates list of ambulance names
+        ambulanceList = new ArrayList<>();
+        for (AmbulancePermission ambulancePermission : ambulancePermissions)
+            ambulanceList.add(ambulancePermission.getAmbulanceIdentifier());
+
+        // setup callNextWaypointLayout
+        callNextWaypointLayout = callLayout.findViewById(R.id.callNextWaypointLayout);
+
+        // Retrieve callNextWaypointLayout parts
+        callDistanceTextView = callLayout.findViewById(R.id.callDistanceText);
+        callNextWaypointTypeTextView = callLayout.findViewById(R.id.callWaypointTypeText);
+        callAddressTextView = callLayout.findViewById(R.id.callAddressText);
+
+        // setup callSkipLayout
+        callSkipLayout = callLayout.findViewById(R.id.callSkipLayout);
+
+        callSkipWaypointButton = callSkipLayout.findViewById(R.id.callSkipWaypointButton);
+        callVisitingWaypointButton = callSkipLayout.findViewById(R.id.callVisitingWaypointButton);
+
+        addCallNoteButton = callLayout.findViewById(R.id.addCallNoteButton);
+
+        Settings settings = appData.getSettings();
+        if (settings != null) {
+
+            // Get settings, status and capabilities
+            ambulanceStatus = settings.getAmbulanceStatus();
+            ambulanceStatusList = new ArrayList<>();
+            for (String status : settings.getAmbulanceStatusOrder())
+                ambulanceStatusList.add(ambulanceStatus.get(status));
+            // Collections.sort(ambulanceStatusList);
+
+            ambulanceStatusBackgroundColorList = new ArrayList<>();
+            ambulanceStatusTextColorList = new ArrayList<>();
+            for (String value : ambulanceStatusList)
+                for (Map.Entry<String,String> entry : ambulanceStatus.entrySet())
+                    if (value.equals(entry.getValue())) {
+                        ambulanceStatusBackgroundColorList
+                                .add(getResources()
+                                        .getColor(Ambulance
+                                                .statusBackgroundColorMap.get(entry.getKey())));
+                        ambulanceStatusTextColorList
+                                .add(getResources()
+                                        .getColor(Ambulance
+                                                .statusTextColorMap.get(entry.getKey())));
+                    }
+
+            ambulanceCapabilities = settings.getAmbulanceCapability();
+            ambulanceCapabilityList = new ArrayList<>();
+            for (String status : settings.getAmbulanceCapabilityOrder())
+                ambulanceCapabilityList.add(ambulanceCapabilities.get(status));
+            // Collections.sort(ambulanceCapabilityList);
+
+        } else {
+            
+            ambulanceStatusList = new ArrayList<>();
+            ambulanceCapabilityList = new ArrayList<>();
+        }
+
+        // Other text
+        capabilityText = view.findViewById(R.id.capabilityText);
+        callNotesText = view.findViewById(R.id.callNotesText);
+        updatedOnText = view.findViewById(R.id.updatedOnText);
+
+        commentText = view.findViewById(R.id.commentText);
+
+        // get ambulance
+        Ambulance ambulance = appData.getAmbulance();
+        ambulanceId = appData.getAmbulanceId();
+
+        // Set release button
+        releaseButton = view.findViewById(R.id.amublanceReleaseButton);
+        ReleaseButtonClickListener releaseButtonClickListener = new ReleaseButtonClickListener();
+        releaseButton.setOnClickListener(releaseButtonClickListener);
+
+        // Set status button
+        statusButton = view.findViewById(R.id.statusButton);
+        statusButtonClickListener = new StatusButtonClickListener();
+        statusButton.setOnClickListener(statusButtonClickListener);
+
+        // Set equipment button
+        equipmentButton = view.findViewById(R.id.amublanceEquipmentButton);
+        equipmentButton.setOnClickListener(view -> {
+            Bundle bundle = new Bundle();
+            bundle.putSerializable("type", EquipmentType.AMBULANCE);
+            bundle.putInt("id", ambulanceId);
+            activity.navigate(R.id.action_ambulance_to_equipment, bundle);
+        });
+
+        // get arguments
+        Bundle arguments = getArguments();
+        final int newAmbulanceId = arguments == null ? -1 : arguments.getInt("id", -1);
+        if (newAmbulanceId != -1) {
+
+            // There is a new ambulance
+            currentCallId = -1;
+            RequestPermission requestPermission = new RequestPermission(this);
+            requestPermission.setOnPermissionGranted(granted -> {
+                selectAmbulance(newAmbulanceId);
+            });
+            requestPermission.check();
+
+        } else {
+
+            // Update ambulance
+            updateAmbulance(ambulance);
+
+            // Is there a current call?
+            currentCallId = -1;
+            Call call = appData.getCalls().getCurrentCall();
+            if (call != null) {
+                Log.d(TAG, String.format("Is currently handling call '%1$d'", call.getId()));
+                updateCall(ambulance, call);
+            } else {
+                Log.d(TAG, "Is currently not handling any call");
+                callResumeLayout.setVisibility(View.GONE);
+            }
+
+        }
+
+        return view;
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+
+        Log.d(TAG, "onResume");
+        activity.setupNavigationBar();
+
+        // Set auxiliary panels gone
+        callLayout.setVisibility(View.GONE);
+        callResumeLayout.setVisibility(View.GONE);
+
+        // Get app data
+        AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
+
+        // Update ambulance
+        Ambulance ambulance = appData.getAmbulance();
+        updateAmbulance(ambulance);
+
+        // Are there any call been currently handled?
+        currentCallId = -1;
+        Call call = appData.getCalls().getCurrentCall();
+        if (call != null) {
+            Log.d(TAG, String.format("Is currently handling call '%1$d'", call.getId()));
+            updateCall(ambulance, call);
+        }
+
+        // Register receiver
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(AmbulanceForegroundService.BroadcastActions.AMBULANCE_UPDATE);
+        filter.addAction(AmbulanceForegroundService.BroadcastActions.CALL_UPDATE);
+        filter.addAction(AmbulanceForegroundService.BroadcastActions.CALL_ACCEPTED);
+        filter.addAction(AmbulanceForegroundService.BroadcastActions.CALL_COMPLETED);
+        filter.addAction(AmbulanceForegroundService.BroadcastActions.CALL_DECLINED);
+        receiver = new AmbulanceFragment.AmbulancesUpdateBroadcastReceiver();
+        getLocalBroadcastManager().registerReceiver(receiver, filter);
+
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+
+        // Unregister receiver
+        if (receiver != null) {
+            getLocalBroadcastManager().unregisterReceiver(receiver);
+            receiver = null;
+        }
+
     }
 
     public void promptEndCallDialog() {
@@ -634,210 +633,43 @@ public class AmbulanceFragment extends Fragment {
         builder.create().show();
     }
 
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+    public void selectAmbulance(int ambulanceId) {
 
-        Log.d(TAG, "onCreateView");
+        Log.i(TAG, "Location settings satisfied, select ambulance");
 
-        // set formatter
-        df.setMaximumFractionDigits(3);
+        if (ambulanceId == -1) {
 
-        // inflate view
-        view = inflater.inflate(R.layout.fragment_ambulance, container, false);
-        activity = (MainActivity) requireActivity();
-
-        // retrieve ambulanceMessage
-        View ambulanceSelectionLayout = view.findViewById(R.id.ambulanceSelectionLayout);
-
-        // retrieve ambulance selection button and message
-        ambulanceSelectionButton = ambulanceSelectionLayout.findViewById(R.id.ambulanceSelectionButton);
-        ambulanceSelectionMessage = ambulanceSelectionLayout.findViewById(R.id.ambulanceSelectionMessage);
-
-        // retrieve ambulanceFragmentLayout
-        ambulanceFragmentLayout = view.findViewById(R.id.ambulanceFragmentLayout);
-
-        // retrieveObject callInformationLayout
-        callInformationLayout = view.findViewById(R.id.callInformationLayout);
-
-        // Retrieve callInformationLayout parts
-        callInformationText = callInformationLayout.findViewById(R.id.callInformationText);
-
-        // retrieveObject callResumeLayout
-        callResumeLayout = view.findViewById(R.id.callResumeLayout);
-
-        // Retrieve callResumeLayout parts
-        callResumeSpinner = callResumeLayout.findViewById(R.id.callResumeSpinner);
-        callResumeButton= callResumeLayout.findViewById(R.id.callResumeButton);
-        
-        // setup callLayout
-        callLayout = view.findViewById(R.id.callLayout);
-
-        // Retrieve callLayout parts
-        callPriorityTextView = callLayout.findViewById(R.id.callPriorityTextView);
-        callPriorityPrefixTextView = callLayout.findViewById(R.id.callPriorityPrefix);
-        callPrioritySuffixTextView = callLayout.findViewById(R.id.callPrioritySuffix);
-        callRadioCodeTextView = callLayout.findViewById(R.id.callRadioCodeText);
-        callDescriptionTextView = callLayout.findViewById(R.id.callDetailsText);
-        callPatientsTextView = callLayout.findViewById(R.id.callPatientsText);
-        callNumberWaypointsView = callLayout.findViewById(R.id.callNumberWaypointsText);
-
-        callEndButton = callLayout.findViewById(R.id.callEndButton);
-        callAddWaypointButton = callLayout.findViewById(R.id.callAddWaypointButton);
-
-        toMapsButton = callLayout.findViewById(R.id.toMapsButton);
-        toMapsButton.setVisibility(View.VISIBLE);
-
-        // Get appData
-        AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
-
-        // ambulance permissions
-        ambulancePermissions = new ArrayList<>();
-        Profile profile = appData.getProfile();
-        if (profile != null) {
-            ambulancePermissions = profile.getAmbulances();
-        }
-
-        // Creates list of ambulance names
-        ambulanceList = new ArrayList<>();
-        for (AmbulancePermission ambulancePermission : ambulancePermissions)
-            ambulanceList.add(ambulancePermission.getAmbulanceIdentifier());
-
-        // Set the ambulance button's adapter
-        ambulanceSelectionButton.setOnClickListener(new CheckPermissionsClickListener());
-
-        // setup callNextWaypointLayout
-        callNextWaypointLayout = callLayout.findViewById(R.id.callNextWaypointLayout);
-
-        // Retrieve callNextWaypointLayout parts
-        callDistanceTextView = callLayout.findViewById(R.id.callDistanceText);
-        callNextWaypointTypeTextView = callLayout.findViewById(R.id.callWaypointTypeText);
-        callAddressTextView = callLayout.findViewById(R.id.callAddressText);
-
-        // setup callSkipLayout
-        callSkipLayout = callLayout.findViewById(R.id.callSkipLayout);
-
-        callSkipWaypointButton = callSkipLayout.findViewById(R.id.callSkipWaypointButton);
-        callVisitingWaypointButton = callSkipLayout.findViewById(R.id.callVisitingWaypointButton);
-
-        addCallNoteButton = callLayout.findViewById(R.id.addCallNoteButton);
-
-        Settings settings = appData.getSettings();
-        if (settings != null) {
-
-            // Get settings, status and capabilities
-            ambulanceStatus = settings.getAmbulanceStatus();
-            ambulanceStatusList = new ArrayList<>();
-            for (String status : settings.getAmbulanceStatusOrder())
-                ambulanceStatusList.add(ambulanceStatus.get(status));
-            // Collections.sort(ambulanceStatusList);
-
-            ambulanceStatusBackgroundColorList = new ArrayList<>();
-            ambulanceStatusTextColorList = new ArrayList<>();
-            for (String value : ambulanceStatusList)
-                for (Map.Entry<String,String> entry : ambulanceStatus.entrySet())
-                    if (value.equals(entry.getValue())) {
-                        ambulanceStatusBackgroundColorList
-                                .add(getResources()
-                                        .getColor(Ambulance
-                                                .statusBackgroundColorMap.get(entry.getKey())));
-                        ambulanceStatusTextColorList
-                                .add(getResources()
-                                        .getColor(Ambulance
-                                                .statusTextColorMap.get(entry.getKey())));
-                    }
-
-            ambulanceCapabilities = settings.getAmbulanceCapability();
-            ambulanceCapabilityList = new ArrayList<>();
-            for (String status : settings.getAmbulanceCapabilityOrder())
-                ambulanceCapabilityList.add(ambulanceCapabilities.get(status));
-            // Collections.sort(ambulanceCapabilityList);
+            Log.d(TAG, "No ambulance selected");
 
         } else {
-            
-            ambulanceStatusList = new ArrayList<>();
-            ambulanceCapabilityList = new ArrayList<>();
-        }
 
-        // Other text
-        capabilityText = view.findViewById(R.id.capabilityText);
-        callNotesText = view.findViewById(R.id.callNotesText);
-        updatedOnText = view.findViewById(R.id.updatedOnText);
+            // If currently handling ambulance
+            Ambulance ambulance = AmbulanceForegroundService.getAppData().getAmbulance();
+            if (ambulance != null) {
 
-        commentText = view.findViewById(R.id.commentText);
+                Log.d(TAG, "Current ambulance " + ambulance.getIdentifier());
+                Log.d(TAG, "Requesting location updates? " +
+                        (AmbulanceForegroundService.isUpdatingLocation() ? "TRUE" : "FALSE"));
 
-        // Set release button
-        releaseButton = view.findViewById(R.id.amublanceReleaseButton);
-        ReleaseButtonClickListener releaseButtonClickListener = new ReleaseButtonClickListener();
-        releaseButton.setOnClickListener(releaseButtonClickListener);
+                if (ambulance.getId() != ambulanceId)
+                    // If another ambulance, confirm first
+                    switchAmbulanceDialog(ambulanceId);
 
-        // Set status button
-        statusButton = view.findViewById(R.id.statusButton);
-        statusButtonClickListener = new StatusButtonClickListener();
-        statusButton.setOnClickListener(statusButtonClickListener);
+                else if (!AmbulanceForegroundService.isUpdatingLocation())
+                    // else, if current ambulance is not updating location,
+                    // retrieve again
+                    retrieveAmbulance(ambulanceId);
 
-        // Update ambulance
-        Ambulance ambulance = appData.getAmbulance();
-        updateAmbulance(ambulance);
+                // otherwise do nothing
 
-        // Is there a current call?
-        currentCallId = -1;
-        Call call = appData.getCalls().getCurrentCall();
-        if (call != null) {
-            Log.d(TAG, String.format("Is currently handling call '%1$d'", call.getId()));
-            updateCall(ambulance, call);
-        } else {
-            Log.d(TAG, "Is currently not handling any call");
-            callResumeLayout.setVisibility(View.GONE);
-        }
+            } else {
 
-        return view;
-    }
+                // otherwise go ahead!
+                retrieveAmbulance(ambulanceId);
+                // dialog.dismiss();
 
-    @Override
-    public void onResume() {
-        super.onResume();
+            }
 
-        Log.d(TAG, "onResume");
-        activity.setupNavigationBar();
-
-        // Set auxiliary panels gone
-        callLayout.setVisibility(View.GONE);
-        callResumeLayout.setVisibility(View.GONE);
-
-        // Get app data
-        AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
-
-        // Update ambulance
-        Ambulance ambulance = appData.getAmbulance();
-        updateAmbulance(ambulance);
-
-        // Are there any call been currently handled?
-        currentCallId = -1;
-        Call call = appData.getCalls().getCurrentCall();
-        if (call != null) {
-            Log.d(TAG, String.format("Is currently handling call '%1$d'", call.getId()));
-            updateCall(ambulance, call);
-        }
-
-        // Register receiver
-        IntentFilter filter = new IntentFilter();
-        filter.addAction(AmbulanceForegroundService.BroadcastActions.AMBULANCE_UPDATE);
-        filter.addAction(AmbulanceForegroundService.BroadcastActions.CALL_UPDATE);
-        filter.addAction(AmbulanceForegroundService.BroadcastActions.CALL_ACCEPTED);
-        filter.addAction(AmbulanceForegroundService.BroadcastActions.CALL_COMPLETED);
-        filter.addAction(AmbulanceForegroundService.BroadcastActions.CALL_DECLINED);
-        receiver = new AmbulanceFragment.AmbulancesUpdateBroadcastReceiver();
-        getLocalBroadcastManager().registerReceiver(receiver, filter);
-
-    }
-
-    @Override
-    public void onPause() {
-        super.onPause();
-
-        // Unregister receiver
-        if (receiver != null) {
-            getLocalBroadcastManager().unregisterReceiver(receiver);
-            receiver = null;
         }
 
     }
@@ -1119,7 +951,7 @@ public class AmbulanceFragment extends Fragment {
 
     }
 
-    public void retrieveAmbulance(final AmbulancePermission selectedAmbulance) {
+    public void retrieveAmbulance(int ambulanceId) {
 
         // Disable equipment tab
         // equipmentTabLayout.setEnabled(false); //disable clicking
@@ -1130,8 +962,7 @@ public class AmbulanceFragment extends Fragment {
         // Retrieve ambulance
         Intent ambulanceIntent = new Intent(activity, AmbulanceForegroundService.class);
         ambulanceIntent.setAction(AmbulanceForegroundService.Actions.GET_AMBULANCE);
-        ambulanceIntent.putExtra(AmbulanceForegroundService.BroadcastExtras.AMBULANCE_ID,
-                selectedAmbulance.getAmbulanceId());
+        ambulanceIntent.putExtra(AmbulanceForegroundService.BroadcastExtras.AMBULANCE_ID, ambulanceId);
         ambulanceIntent.putExtra(AmbulanceForegroundService.BroadcastExtras.PRECISE_LOCATION,
                 !useApproximateLocationAccuracy);
 
@@ -1144,8 +975,11 @@ public class AmbulanceFragment extends Fragment {
             @Override
             public void onSuccess(Bundle extras) {
 
+                // get ambulance
+                Ambulance ambulance = AmbulanceForegroundService.getAppData().getAmbulance();
+
                 // set ambulance button text
-                ambulanceSelectionButton.setText(selectedAmbulance.getAmbulanceIdentifier());
+                ambulanceSelectionButton.setText(ambulance.getIdentifier());
 
                 // Enable equipment tab
                 // equipmentTabLayout.setEnabled(true); // enable clicking
@@ -1157,7 +991,7 @@ public class AmbulanceFragment extends Fragment {
 
         }
                 .setFailureMessage(getResources().getString(R.string.couldNotRetrieveAmbulance,
-                        selectedAmbulance.getAmbulanceIdentifier()))
+                        String.format("id = %d", ambulanceId)))
                 .setAlert(new org.emstrack.ambulance.dialogs.AlertDialog(activity,
                         getResources().getString(R.string.couldNotStartLocationUpdates),
                         (dialog, which) -> ambulanceSelectionButton.callOnClick()))
@@ -1175,8 +1009,15 @@ public class AmbulanceFragment extends Fragment {
             // set message visible
             ambulanceSelectionMessage.setVisibility(View.VISIBLE);
             ambulanceFragmentLayout.setVisibility(View.GONE);
+
+            // set ambulanceId
+            ambulanceId = -1;
+
             return;
         }
+
+        // set ambulanceId
+        ambulanceId = ambulance.getId();
 
         // set message visibility
         ambulanceSelectionMessage.setVisibility(View.GONE);
@@ -1475,23 +1316,49 @@ public class AmbulanceFragment extends Fragment {
         builder.create().show();
     }
 
-    private void switchAmbulanceDialog(final AmbulancePermission newAmbulance) {
+    private void switchAmbulanceDialog(final int ambulanceId) {
+        String ambulanceIdentifier = "";
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            AmbulancePermission newAmbulance = ambulancePermissions
+                    .stream()
+                    .filter(ambulancePermission -> ambulancePermission.getAmbulanceId() == ambulanceId)
+                    .findAny()
+                    .orElse(null);
+            if (newAmbulance != null)
+                ambulanceIdentifier = newAmbulance.getAmbulanceIdentifier();
+        } else {
+            for (AmbulancePermission ambulancePermission: ambulancePermissions) {
+                if (ambulancePermission.getAmbulanceId() == ambulanceId) {
+                    ambulanceIdentifier = ambulancePermission.getAmbulanceIdentifier();
+                    break;
+                }
+            }
+        }
+        switchAmbulanceDialog(ambulanceId, ambulanceIdentifier);
+    }
+
+    private void switchAmbulanceDialog(final int ambulanceId, final String ambulanceIdentifier) {
+
+        if (ambulanceId == -1) {
+            Log.i(TAG, "ambulanceId was -1");
+            return;
+        }
 
         Log.i(TAG, "Creating switch ambulance dialog");
 
         // Use the Builder class for convenient dialog construction
         AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
         builder.setTitle(R.string.switchAmbulance)
-                .setMessage(String.format(getString(R.string.switchToAmbulance), newAmbulance.getAmbulanceIdentifier()))
+                .setMessage(String.format(getString(R.string.switchToAmbulance), ambulanceIdentifier))
                 .setNegativeButton(R.string.no,
                         (dialog, id) -> Log.i(TAG, "Continue with same ambulance"))
                 .setPositiveButton(R.string.yes,
                         (dialog, id) -> {
 
-                            Log.d(TAG, String.format("Switching to ambulance %1$s", newAmbulance.getAmbulanceIdentifier()));
+                            Log.d(TAG, String.format("Switching to ambulance %1$s", ambulanceIdentifier));
 
                             // retrieve new ambulance
-                            retrieveAmbulance(newAmbulance);
+                            retrieveAmbulance(ambulanceId);
 
                         });
 

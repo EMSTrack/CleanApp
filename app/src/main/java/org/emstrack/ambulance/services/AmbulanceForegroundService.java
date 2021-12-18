@@ -2292,13 +2292,40 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                                     public void run() {
 
                                         // Retrieve hospitals
+                                        retrieveOtherAmbulances(getUuid());
+
+                                    }
+
+                                    @Override
+                                    public void onSuccess(Bundle extras) {
+                                        Log.d(TAG, "Got ambulances");
+                                    }
+
+                                    @Override
+                                    public void onFailure(Bundle extras) {
+                                        super.onFailure(extras);
+
+                                        // Broadcast failure
+                                        broadcastFailure("Could not retrieve ambulances", uuid);
+
+                                    }
+
+                                }.setNext(new OnServiceComplete(AmbulanceForegroundService.this,
+                                        org.emstrack.models.util.BroadcastActions.SUCCESS,
+                                        org.emstrack.models.util.BroadcastActions.FAILURE,
+                                        null) {
+
+                                    @Override
+                                    public void run() {
+
+                                        // Retrieve hospitals
                                         retrieveHospitals(getUuid());
 
                                     }
 
                                     @Override
                                     public void onSuccess(Bundle extras) {
-
+                                        Log.d(TAG, "Got hospitals");
                                     }
 
                                     @Override
@@ -2330,7 +2357,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
                                     }
 
-                                })))))))))
+                                }))))))))))
                                         .start();
 
                             }
@@ -2698,7 +2725,34 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
             }
 
-        }))))
+        }.setNext(new OnServiceComplete(AmbulanceForegroundService.this,
+                org.emstrack.models.util.BroadcastActions.SUCCESS,
+                org.emstrack.models.util.BroadcastActions.FAILURE,
+                null) {
+
+            @Override
+            public void run() {
+
+                // Retrieve hospitals
+                retrieveOtherAmbulances(getUuid());
+
+            }
+
+            @Override
+            public void onSuccess(Bundle extras) {
+                Log.d(TAG, "Got ambulances");
+            }
+
+            @Override
+            public void onFailure(Bundle extras) {
+                super.onFailure(extras);
+
+                // Broadcast failure
+                broadcastFailure("Could not retrieve ambulances", uuid);
+
+            }
+
+        })))))
                 .start();
 
     }
@@ -3430,8 +3484,39 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
      */
     public void stopAmbulance(final String uuid) {
 
-        // Remove current ambulance map
-        removeAmbulance(uuid);
+        new OnServiceComplete(AmbulanceForegroundService.this,
+                org.emstrack.models.util.BroadcastActions.SUCCESS,
+                org.emstrack.models.util.BroadcastActions.FAILURE,
+                null) {
+
+            @Override
+            public void run() {
+
+                // Remove current ambulance map
+                removeAmbulance(getUuid());
+
+            }
+
+            @Override
+            public void onSuccess(Bundle extras) {
+                Log.d(TAG, "Got ambulances");
+
+                // Retrieve hospitals
+                retrieveOtherAmbulances(uuid);
+
+            }
+
+            @Override
+            public void onFailure(Bundle extras) {
+                super.onFailure(extras);
+
+                // Broadcast failure
+                broadcastFailure("Could not retrieve ambulances", uuid);
+
+            }
+
+        }
+                .start();
 
     }
 

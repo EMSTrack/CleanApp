@@ -19,10 +19,9 @@ import org.emstrack.ambulance.R;
 //TODO change hospital imports to equipment imports below
 import org.emstrack.ambulance.adapters.EquipmentRecyclerAdapter;
 import org.emstrack.ambulance.dialogs.AlertDialog;
-import org.emstrack.ambulance.services.AmbulanceForegroundService;
+import org.emstrack.ambulance.models.EquipmentType;
 import org.emstrack.ambulance.util.SwipeController;
 import org.emstrack.ambulance.util.SwipeControllerActions;
-import org.emstrack.models.Ambulance;
 import org.emstrack.models.EquipmentItem;
 import org.emstrack.models.api.APIService;
 import org.emstrack.models.api.APIServiceGenerator;
@@ -38,16 +37,18 @@ public class EquipmentFragment extends Fragment {
 
     private static final String TAG = EquipmentFragment.class.getSimpleName();
 
-    private View rootView;
     private RecyclerView recyclerView;
     private TextView refreshingData;
     private SwipeController swipeController;
     private MainActivity activity;
 
+    private EquipmentType type;
+    private int id;
+
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
-        rootView = inflater.inflate(R.layout.fragment_equipment, container, false);
+        View rootView = inflater.inflate(R.layout.fragment_equipment, container, false);
         activity = (MainActivity) requireActivity();
 
         refreshingData = rootView.findViewById(R.id.equipment_refreshing_data);
@@ -72,6 +73,15 @@ public class EquipmentFragment extends Fragment {
         ItemTouchHelper itemTouchhelper = new ItemTouchHelper(swipeController);
         itemTouchhelper.attachToRecyclerView(recyclerView);
 
+        // get arguments
+        Bundle arguments = getArguments();
+        if (arguments != null) {
+            type = (EquipmentType) arguments.getSerializable("type");
+            id = getArguments().getInt("id", -1);
+        } else {
+            type = EquipmentType.AMBULANCE;
+            id = -1;
+        }
 
         // Refresh data
         refreshData();
@@ -83,7 +93,8 @@ public class EquipmentFragment extends Fragment {
     public void onResume() {
         super.onResume();
 
-        activity.setupNavigationBar();
+        // setup navigation
+        activity.setupNavigationBar(this);
 
         // Refresh data
         refreshData();
@@ -101,20 +112,23 @@ public class EquipmentFragment extends Fragment {
      */
     public void refreshData() {
 
-        // retrieve hospital equipment
-        Ambulance ambulance = AmbulanceForegroundService.getAppData().getAmbulance();
-
+        // retrieve equipment
         refreshingData.setVisibility(View.VISIBLE);
         recyclerView.setVisibility(View.GONE);
 
-        if (ambulance == null) {
+        if (id == -1) {
 
             refreshingData.setText(R.string.equipmentNotAvailable);
 
         } else {
 
             APIService service = APIServiceGenerator.createService(APIService.class);
-            retrofit2.Call<List<EquipmentItem>> callAmbulanceEquipment = service.getAmbulanceEquipment(ambulance.getId());
+            retrofit2.Call<List<EquipmentItem>> callAmbulanceEquipment;
+            if (type == EquipmentType.AMBULANCE) {
+                callAmbulanceEquipment = service.getAmbulanceEquipment(id);
+            } else { // if (type == EquipmentType.HOSPITAL)
+                callAmbulanceEquipment = service.getHospitalEquipment(id);
+            }
 
             refreshingData.setText(R.string.refreshingData);
 

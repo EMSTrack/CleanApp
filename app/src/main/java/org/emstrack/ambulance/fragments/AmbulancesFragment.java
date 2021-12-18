@@ -5,43 +5,46 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
-import androidx.annotation.NonNull;
-import androidx.fragment.app.Fragment;
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
 import android.util.Log;
 import android.util.SparseArray;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import androidx.annotation.NonNull;
+import androidx.fragment.app.Fragment;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
 import org.emstrack.ambulance.MainActivity;
 import org.emstrack.ambulance.R;
-import org.emstrack.ambulance.adapters.HospitalRecyclerAdapter;
+import org.emstrack.ambulance.adapters.AmbulancesRecyclerAdapter;
 import org.emstrack.ambulance.models.AmbulanceAppData;
 import org.emstrack.ambulance.services.AmbulanceForegroundService;
-import org.emstrack.models.Hospital;
+import org.emstrack.models.Ambulance;
 
-public class HospitalFragment extends Fragment {
+public class AmbulancesFragment extends Fragment {
 
-    private static final String TAG = HospitalFragment.class.getSimpleName();
+    private static final String TAG = AmbulanceFragment.class.getSimpleName();
     private MainActivity activity;
     private RecyclerView recyclerView;
-    private HospitalsUpdateBroadcastReceiver receiver;
+    private AmbulancesUpdateBroadcastReceiver receiver;
 
-    public class HospitalsUpdateBroadcastReceiver extends BroadcastReceiver {
+    public class AmbulancesUpdateBroadcastReceiver extends BroadcastReceiver {
 
         @Override
         public void onReceive(Context context, Intent intent ) {
             if (intent != null) {
                 final String action = intent.getAction();
                 if (action != null) {
-                    if (action.equals(AmbulanceForegroundService.BroadcastActions.HOSPITALS_UPDATE)) {
+                    if (action.equals(AmbulanceForegroundService.BroadcastActions.OTHER_AMBULANCES_UPDATE)) {
 
-                        Log.i(TAG, "HOSPITALS_UPDATE");
+                        // TODO: update only what changed
+
+                        Log.i(TAG, "AMBULANCES_UPDATE");
                         AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
-                        update(appData.getHospitals());
+                        update(appData.getAmbulances());
 
                     }
                 }
@@ -52,13 +55,13 @@ public class HospitalFragment extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
-        View rootView = inflater.inflate(R.layout.fragment_hospital, container, false);
+        View rootView = inflater.inflate(R.layout.fragment_ambulances, container, false);
         activity = (MainActivity) requireActivity();
 
-        recyclerView = rootView.findViewById(R.id.hospital_recycler_view);
+        recyclerView = rootView.findViewById(R.id.ambulances_recycler_view);
 
         AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
-        update(appData.getHospitals());
+        update(appData.getAmbulances());
 
         return rootView;
     }
@@ -71,15 +74,15 @@ public class HospitalFragment extends Fragment {
 
         // Register receiver
         IntentFilter filter = new IntentFilter();
-        filter.addAction(AmbulanceForegroundService.BroadcastActions.HOSPITALS_UPDATE);
-        receiver = new HospitalsUpdateBroadcastReceiver();
+        filter.addAction(AmbulanceForegroundService.BroadcastActions.OTHER_AMBULANCES_UPDATE);
+        receiver = new AmbulancesUpdateBroadcastReceiver();
         getLocalBroadcastManager().registerReceiver(receiver, filter);
 
         // Get app data
         AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
 
         // updateAmbulance UI
-        update(appData.getHospitals());
+        update(appData.getAmbulances());
 
     }
 
@@ -95,23 +98,18 @@ public class HospitalFragment extends Fragment {
 
     }
 
-    /**
-     * Update hospital list
-     *
-     * @param hospitals list of hospitals
-     */
-    public void update(SparseArray<Hospital> hospitals) {
+    private void update(SparseArray<Ambulance> ambulances) {
 
-        // fast return if no hospitals
-        if (hospitals == null)
+        // fast return if no ambulances
+        if (ambulances == null)
             return;
 
-        Log.i(TAG,"Updating hospitals UI.");
+        Log.i(TAG,"Updating ambulances UI.");
 
         // Install adapter
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(requireContext());
-        HospitalRecyclerAdapter adapter =
-                new HospitalRecyclerAdapter(getActivity(), hospitals);
+        AmbulancesRecyclerAdapter adapter =
+                new AmbulancesRecyclerAdapter(getActivity(), ambulances);
         recyclerView.setLayoutManager(linearLayoutManager);
         recyclerView.setAdapter(adapter);
 

@@ -15,6 +15,12 @@
         android:icon="@drawable/ic_wifi" />
 
     <item
+        android:id="@+id/messages"
+        app:showAsAction="always"
+        android:icon="@drawable/ic_inbox_solid"
+        android:title="@string/messages" />
+
+    <item
         android:id="@+id/videoCallButton"
         android:title="@string/video_call"
         app:showAsAction="always"

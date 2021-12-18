@@ -47,6 +47,8 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigationrail.NavigationRailView;
 
 import org.emstrack.ambulance.dialogs.AlertSnackbar;
+import org.emstrack.ambulance.fragments.EquipmentFragment;
+import org.emstrack.ambulance.fragments.MessagesFragment;
 import org.emstrack.ambulance.fragments.SettingsFragment;
 import org.emstrack.ambulance.models.AmbulanceAppData;
 import org.emstrack.ambulance.services.AmbulanceForegroundService;
@@ -425,12 +427,12 @@ public class MainActivity extends AppCompatActivity {
          }
     }
 
-    public void setupNavigationBar() {
-        setupNavigationBar(null);
-    }
-
     public void setBackButtonMode(BackButtonMode backButtonMode) {
         this.backButtonMode = backButtonMode;
+    }
+
+    public void setupNavigationBar() {
+        setupNavigationBar(null);
     }
 
     public void setupNavigationBar(Fragment fragment) {
@@ -439,20 +441,29 @@ public class MainActivity extends AppCompatActivity {
         ActionBar actionBar = getSupportActionBar();
         if (fragment != null) {
 
-            if (fragment.getClass().equals(SettingsFragment.class)) {
+            if (fragment.getClass().equals(SettingsFragment.class) ||
+                    fragment.getClass().equals(EquipmentFragment.class) ||
+                    fragment.getClass().equals(MessagesFragment.class)) {
 
                 // hide action bar and bottom navigation bar
                 hideBottomNavigationBar();
                 hideNavigationRail();
 
+                // set back button as up
+                setBackButtonMode(BackButtonMode.UP);
+
                 // set title
                 if (actionBar != null) {
-                    actionBar.setTitle(R.string.settings);
+                    if (fragment.getClass().equals(SettingsFragment.class)) {
+                        actionBar.setTitle(R.string.settings);
+                    } else if (fragment.getClass().equals(MessagesFragment.class)) {
+                        actionBar.setTitle(R.string.messages);
+                    } else {
+                        actionBar.setTitle(R.string.equipment);
+                    }
                     actionBar.setDisplayHomeAsUpEnabled(true);
                 }
 
-                // set back button as up
-                setBackButtonMode(BackButtonMode.UP);
             }
 
         } else {
@@ -483,16 +494,16 @@ public class MainActivity extends AppCompatActivity {
 
             AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
             if (appData != null && appData.getAmbulance() != null) {
-                // show equipment
+                // show ambulance
                 if (menu.size() == 3) {
-                    menu.add(Menu.NONE, R.id.equipment, 3, getString(R.string.equipment))
-                            .setIcon(R.drawable.ic_briefcase_medical)
+                    menu.add(Menu.NONE, R.id.ambulance, 3, getString(R.string.ambulance))
+                            .setIcon(R.drawable.ic_car_solid)
                             .setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
                 }
             } else {
-                // hide equipment
+                // hide ambulance
                 if (menu.size() == 4) {
-                    menu.removeItem(R.id.equipment);
+                    menu.removeItem(R.id.ambulance);
                 }
             }
 
@@ -584,6 +595,15 @@ public class MainActivity extends AppCompatActivity {
         navController.popBackStack();
     }
 
+    public void navigate(int id, Bundle bundle) {
+        // navigate
+        NavController navController = navHostFragment.getNavController();
+        NavDestination destination = navController.getCurrentDestination();
+        if (destination != null && destination.getId() != id) {
+            navController.navigate(id, bundle);
+        }
+    }
+
     public void navigate(int id) {
         // navigate
         NavController navController = navHostFragment.getNavController();
@@ -597,7 +617,10 @@ public class MainActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         Log.d(TAG, String.format("onOptionsItemsSelected: %1$d", item.getItemId()));
         int itemId = item.getItemId();
-        if (itemId == R.id.settings) {
+        if (itemId == R.id.messages) {
+            navigate(R.id.messages);
+            return true;
+        } else if (itemId == R.id.settings) {
             navigate(R.id.settings);
             return true;
         } else if (itemId == R.id.panicButton) {
