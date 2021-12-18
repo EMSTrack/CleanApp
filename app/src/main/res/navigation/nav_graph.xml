@@ -60,6 +60,9 @@
         <action
             android:id="@+id/action_ambulance_to_equipment"
             app:destination="@id/equipment" />
+        <action
+            android:id="@+id/action_ambulance_to_map"
+            app:destination="@id/map" />
     </fragment>
 
     <fragment

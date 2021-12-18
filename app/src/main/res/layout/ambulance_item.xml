@@ -38,58 +38,20 @@
                 android:text="@string/ambulance"
                 android:layout_weight="1"/>
 
+            <TextView
+                android:id="@+id/statusText"
+                android:layout_height="wrap_content"
+                android:layout_width="wrap_content"
+                android:text="@string/unknown"
+                android:layout_marginTop="5dp" />
+
         </LinearLayout>
 
-        <LinearLayout
-            android:id="@+id/ambulance_detail"
+        <include layout="@layout/ambulance_detail"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
             android:layout_marginStart="39dp"
-            android:visibility="gone" >
-
-            <include layout="@layout/ambulance_detail"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_marginTop="10dp">
-
-                <View
-                    android:layout_height="0dp"
-                    android:layout_width="0dp"
-                    android:layout_weight="1" />
-
-                <ImageView
-                    android:id="@+id/ambulanceSelect"
-                    android:layout_height="@dimen/ambulanceToolbarIconHeight"
-                    android:layout_width="@dimen/ambulanceToolbarIconWidth"
-                    app:srcCompat="@drawable/ic_sign_in_alt_solid"
-                    app:tint="@color/iconColorDark"
-                    android:layout_marginEnd="10dp" />
-
-                <ImageView
-                    android:id="@+id/ambulanceLocation"
-                    android:layout_height="@dimen/ambulanceToolbarIconHeight"
-                    android:layout_width="@dimen/ambulanceToolbarIconWidth"
-                    app:srcCompat="@drawable/ic_location_arrow"
-                    app:tint="@color/iconColorDark"
-                    android:layout_marginEnd="10dp" />
-
-                <ImageView
-                    android:id="@+id/ambulanceEquipment"
-                    android:layout_height="@dimen/ambulanceToolbarIconHeight"
-                    android:layout_width="@dimen/ambulanceToolbarIconWidth"
-                    app:srcCompat="@drawable/ic_briefcase_medical"
-                    app:tint="@color/iconColorDark"
-                    android:layout_marginEnd="10dp" />
-
-            </LinearLayout>
-
-        </LinearLayout>
+            android:visibility="gone"/>
 
     </LinearLayout>
 

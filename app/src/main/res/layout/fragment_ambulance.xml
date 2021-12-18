@@ -10,52 +10,41 @@
     android:orientation="vertical"
     tools:context="org.emstrack.ambulance.fragments.AmbulanceFragment">
 
-    <LinearLayout
-        android:id="@+id/ambulanceSelectionLayout"
+    <TextView
+        android:id="@+id/ambulanceSelectionMessage"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical">
-
-        <Button
-            android:id="@+id/ambulanceSelectionButton"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/ambulanceButtonDefaultText"
-            style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
-
-        <TextView
-            android:id="@+id/ambulanceSelectionMessage"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:text="@string/noAmbulanceMessage">
-        </TextView>
-
-    </LinearLayout>
+        android:layout_marginTop="10dp"
+        android:text="@string/noAmbulanceMessage">
+    </TextView>
 
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
-        <RelativeLayout
+        <LinearLayout
             android:id="@+id/ambulanceFragmentLayout"
-            android:background="?android:windowBackground"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/ambulanceLabel"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/ambulanceButtonDefaultText"
+                style="@style/Widget.MaterialComponents.Button.TextButton" />
 
             <Button
                 android:id="@+id/statusButton"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_alignParentTop="true"
-                android:layout_marginTop="5dp"
                 android:text="@string/available" />
 
             <RelativeLayout
                 android:id="@+id/callInformationLayout"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_below="@+id/statusButton">
+                android:layout_height="wrap_content" >
 
                 <TextView
                     android:id="@+id/callLabel"
@@ -104,8 +93,7 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:layout_marginTop="10dp"
-                android:visibility="gone"
-                android:layout_below="@+id/callInformationLayout">
+                android:visibility="gone">
 
                 <include layout="@layout/call_current"
                     android:layout_width="match_parent"
@@ -116,30 +104,9 @@
             <include layout="@layout/ambulance_detail"
                 android:id="@+id/ambulanceDetail"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_below="@id/callLayout"/>
+                android:layout_height="wrap_content" />
 
-            <Button
-                android:id="@+id/amublanceEquipmentButton"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_below="@+id/ambulanceDetail"
-                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                android:textColor="@color/bootstrapPrimary"
-                android:text="@string/equipment"
-                android:layout_marginTop="5dp" />
-
-            <Button
-                android:id="@+id/amublanceReleaseButton"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_below="@+id/amublanceEquipmentButton"
-                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                android:textColor="@color/bootstrapDanger"
-                android:text="@string/release"
-                android:layout_marginTop="5dp" />
-
-        </RelativeLayout>
+        </LinearLayout>
 
     </ScrollView>
 

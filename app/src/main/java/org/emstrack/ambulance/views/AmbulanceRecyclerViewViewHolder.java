@@ -32,16 +32,20 @@ import java.util.Map;
 public class AmbulanceRecyclerViewViewHolder extends RecyclerView.ViewHolder {
 
     private static final String TAG = AmbulanceRecyclerViewViewHolder.class.getSimpleName();
-    private final Map<String, String> ambulanceCapabilities;
+    private final Map<String, String> ambulanceCapabilitiesMap;
+    private final Map<String, String> ambulanceStatusMap;
 
     private final View ambulanceDetailView;
     private final TextView ambulanceName;
 
     private final ImageView ambulanceEquipmentImageView;
     private final ImageView ambulanceLocationImageView;
-    private final ImageView ambulanceSelectImageView;
+    private final ImageView ambulanceLoginImageView;
     private final ImageView ambulanceThumbnail;
-
+    private final TextView ambulanceStatusText;
+    private final TextView ambulanceCapabilityText;
+    private final TextView ambulanceCommentText;
+    private final TextView ambulanceUpdatedOnText;
 
     public AmbulanceRecyclerViewViewHolder(Context context, View view) {
         super(view);
@@ -49,16 +53,25 @@ public class AmbulanceRecyclerViewViewHolder extends RecyclerView.ViewHolder {
         ambulanceName = view.findViewById(R.id.ambulance_name);
 
         ambulanceThumbnail = view.findViewById(R.id.ambulanceThumbnail);
-
-        ambulanceEquipmentImageView = view.findViewById(R.id.ambulanceEquipment);
-        ambulanceLocationImageView = view.findViewById(R.id.ambulanceLocation);
-        ambulanceSelectImageView = view.findViewById(R.id.ambulanceSelect);
+        ambulanceStatusText = view.findViewById(R.id.statusText);
 
         ambulanceDetailView = view.findViewById(R.id.ambulance_detail);
 
+        ambulanceEquipmentImageView = ambulanceDetailView.findViewById(R.id.ambulanceEquipment);
+        ambulanceLocationImageView = ambulanceDetailView.findViewById(R.id.ambulanceLocation);
+        ambulanceLoginImageView = ambulanceDetailView.findViewById(R.id.ambulanceLogin);
+
+        ambulanceCapabilityText = ambulanceDetailView.findViewById(R.id.capabilityText);
+        ambulanceCommentText = ambulanceDetailView.findViewById(R.id.commentText);
+        ambulanceUpdatedOnText = ambulanceDetailView.findViewById(R.id.updatedOnText);
+
+        // disable logout
+        ambulanceDetailView.findViewById(R.id.ambulanceLogout).setVisibility(View.GONE);
+
         // set ambulanceCapabilities
         Settings settings = AmbulanceForegroundService.getAppData().getSettings();
-        ambulanceCapabilities = settings.getAmbulanceCapability();
+        ambulanceCapabilitiesMap = settings.getAmbulanceCapability();
+        ambulanceStatusMap = settings.getAmbulanceStatus();
 
         // set click action
         view.setOnClickListener(view1 -> {
@@ -79,24 +92,31 @@ public class AmbulanceRecyclerViewViewHolder extends RecyclerView.ViewHolder {
 
     public void setAmbulance(Ambulance ambulance, Activity activity) {
 
+        MainActivity mainActivity = (MainActivity) activity;
+
         int ambulanceId = ambulance.getId();
         ambulanceName.setText(ambulance.getIdentifier());
         int vectorColor;
         if (ambulance.getClientId() != null) {
             // online
-            ambulanceSelectImageView.setVisibility(View.GONE);
+            ambulanceLoginImageView.setVisibility(View.GONE);
             vectorColor = ContextCompat.getColor(activity, R.color.bootstrapSuccess);
         } else {
             // not online
-            ambulanceSelectImageView.setVisibility(View.VISIBLE);
+            ambulanceLoginImageView.setVisibility(View.VISIBLE);
             vectorColor = ContextCompat.getColor(activity, R.color.iconColorDark);
         }
         ambulanceThumbnail.setColorFilter(vectorColor, PorterDuff.Mode.SRC_IN);
 
+        // set status
+        String status = ambulance.getStatus();
+        ambulanceStatusText.setText(ambulanceStatusMap.get(status));
+        ambulanceStatusText.setTextColor(mainActivity.getAmbulanceStatusBackgroundColorMap().get(status));
+
         // set detail
-        ((TextView) ambulanceDetailView.findViewById(R.id.capabilityText)).setText(ambulanceCapabilities.get(ambulance.getCapability()));
-        ((TextView) ambulanceDetailView.findViewById(R.id.commentText)).setText(ambulance.getComment());
-        ((TextView) ambulanceDetailView.findViewById(R.id.updatedOnText)).setText(ambulance.getUpdatedOn().toString());
+        ambulanceCapabilityText.setText(ambulanceCapabilitiesMap.get(ambulance.getCapability()));
+        ambulanceCommentText.setText(ambulance.getComment());
+        ambulanceUpdatedOnText.setText(ambulance.getUpdatedOn().toString());
 
         // set equipment click response
         ambulanceEquipmentImageView.setOnClickListener(view -> {
@@ -116,7 +136,7 @@ public class AmbulanceRecyclerViewViewHolder extends RecyclerView.ViewHolder {
         });
 
         // set select click response
-        ambulanceSelectImageView.setOnClickListener(view -> {
+        ambulanceLoginImageView.setOnClickListener(view -> {
             Bundle bundle = new Bundle();
             bundle.putInt("id", ambulanceId);
             ((MainActivity) activity).navigate(R.id.action_ambulances_to_ambulance, bundle);

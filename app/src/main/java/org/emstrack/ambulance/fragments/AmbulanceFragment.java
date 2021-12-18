@@ -1,6 +1,5 @@
 package org.emstrack.ambulance.fragments;
 
-import android.Manifest;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -10,8 +9,6 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 
-import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.fragment.app.Fragment;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.appcompat.app.AlertDialog;
@@ -26,6 +23,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.Spinner;
@@ -34,7 +32,6 @@ import android.widget.Toast;
 
 import com.google.android.material.button.MaterialButton;
 
-import org.emstrack.ambulance.BuildConfig;
 import org.emstrack.ambulance.MainActivity;
 import org.emstrack.ambulance.R;
 import org.emstrack.ambulance.dialogs.AlertSnackbar;
@@ -42,7 +39,6 @@ import org.emstrack.ambulance.models.AmbulanceAppData;
 import org.emstrack.ambulance.models.EquipmentType;
 import org.emstrack.ambulance.services.AmbulanceForegroundService;
 import org.emstrack.ambulance.util.RequestPermission;
-import org.emstrack.ambulance.util.RequestPermissionHelper;
 import org.emstrack.models.Ambulance;
 import org.emstrack.models.AmbulanceCall;
 import org.emstrack.models.AmbulancePermission;
@@ -62,7 +58,6 @@ import org.emstrack.models.util.OnServiceComplete;
 import java.net.URLEncoder;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -75,7 +70,6 @@ public class AmbulanceFragment extends Fragment {
     private View view;
 
     private MaterialButton statusButton;
-    private View releaseButton;
 
     private TextView capabilityText;
     private TextView callNotesText;
@@ -107,7 +101,6 @@ public class AmbulanceFragment extends Fragment {
     private LinearLayout callResumeLayout;
     private Spinner callResumeSpinner;
     private Button callResumeButton;
-    private Button equipmentButton;
 
     private View callSkipLayout;
     private Button callSkipWaypointButton;
@@ -126,13 +119,13 @@ public class AmbulanceFragment extends Fragment {
     private View callNextWaypointLayout;
     private StatusButtonClickListener statusButtonClickListener;
 
-    private Button ambulanceSelectionButton;
+    private TextView ambulanceLabel;
     private TextView ambulanceSelectionMessage;
 
-    private ArrayList<String> ambulanceList;
     private List<AmbulancePermission> ambulancePermissions;
     private MainActivity activity;
-    private int ambulanceId;
+
+    private ImageView ambulanceLogoutButton;
 
     public class AmbulancesUpdateBroadcastReceiver extends BroadcastReceiver {
 
@@ -318,18 +311,17 @@ public class AmbulanceFragment extends Fragment {
         view = inflater.inflate(R.layout.fragment_ambulance, container, false);
         activity = (MainActivity) requireActivity();
 
-        // retrieve ambulanceMessage
-        View ambulanceSelectionLayout = view.findViewById(R.id.ambulanceSelectionLayout);
-
-        // retrieve ambulance selection button and message
-        ambulanceSelectionButton = ambulanceSelectionLayout.findViewById(R.id.ambulanceSelectionButton);
-        ambulanceSelectionMessage = ambulanceSelectionLayout.findViewById(R.id.ambulanceSelectionMessage);
+        // retrieve ambulance selection message
+        ambulanceSelectionMessage = view.findViewById(R.id.ambulanceSelectionMessage);
 
         // retrieve ambulanceFragmentLayout
         ambulanceFragmentLayout = view.findViewById(R.id.ambulanceFragmentLayout);
 
+        // retrieve ambulance selection button
+        ambulanceLabel = ambulanceFragmentLayout.findViewById(R.id.ambulanceLabel);
+
         // retrieveObject callInformationLayout
-        callInformationLayout = view.findViewById(R.id.callInformationLayout);
+        callInformationLayout = ambulanceFragmentLayout.findViewById(R.id.callInformationLayout);
 
         // Retrieve callInformationLayout parts
         callInformationText = callInformationLayout.findViewById(R.id.callInformationText);
@@ -368,11 +360,6 @@ public class AmbulanceFragment extends Fragment {
         if (profile != null) {
             ambulancePermissions = profile.getAmbulances();
         }
-
-        // Creates list of ambulance names
-        ambulanceList = new ArrayList<>();
-        for (AmbulancePermission ambulancePermission : ambulancePermissions)
-            ambulanceList.add(ambulancePermission.getAmbulanceIdentifier());
 
         // setup callNextWaypointLayout
         callNextWaypointLayout = callLayout.findViewById(R.id.callNextWaypointLayout);
@@ -436,26 +423,34 @@ public class AmbulanceFragment extends Fragment {
 
         // get ambulance
         Ambulance ambulance = appData.getAmbulance();
-        ambulanceId = appData.getAmbulanceId();
 
-        // Set release button
-        releaseButton = view.findViewById(R.id.amublanceReleaseButton);
-        ReleaseButtonClickListener releaseButtonClickListener = new ReleaseButtonClickListener();
-        releaseButton.setOnClickListener(releaseButtonClickListener);
+        // Set login button
+        view.findViewById(R.id.ambulanceLogin).setVisibility(View.GONE);
 
-        // Set status button
-        statusButton = view.findViewById(R.id.statusButton);
-        statusButtonClickListener = new StatusButtonClickListener();
-        statusButton.setOnClickListener(statusButtonClickListener);
+        // Set logout button
+        ambulanceLogoutButton = view.findViewById(R.id.ambulanceLogout);
+        ambulanceLogoutButton.setOnClickListener(new ReleaseButtonClickListener());
+
+        // Set location button
+        ImageView ambulanceLocationButton = view.findViewById(R.id.ambulanceLocation);
+        ambulanceLocationButton.setOnClickListener(view -> {
+            ((MainActivity) activity).navigate(R.id.action_ambulance_to_map);
+        });
 
         // Set equipment button
-        equipmentButton = view.findViewById(R.id.amublanceEquipmentButton);
-        equipmentButton.setOnClickListener(view -> {
+        ImageView ambulanceEquipmentButton = view.findViewById(R.id.ambulanceEquipment);
+        ambulanceEquipmentButton.setOnClickListener(view -> {
+            int ambulanceId = AmbulanceForegroundService.getAppData().getAmbulanceId();
             Bundle bundle = new Bundle();
             bundle.putSerializable("type", EquipmentType.AMBULANCE);
             bundle.putInt("id", ambulanceId);
             activity.navigate(R.id.action_ambulance_to_equipment, bundle);
         });
+
+        // Set status button
+        statusButton = view.findViewById(R.id.statusButton);
+        statusButtonClickListener = new StatusButtonClickListener();
+        statusButton.setOnClickListener(statusButtonClickListener);
 
         // get arguments
         Bundle arguments = getArguments();
@@ -585,7 +580,7 @@ public class AmbulanceFragment extends Fragment {
                                 public void onSuccess(Bundle extras) {
                                     Log.i(TAG, "fire ambulance release dialog");
 
-                                    releaseButton.performClick();
+                                    ambulanceLogoutButton.performClick();
 
                                 }
 
@@ -618,7 +613,7 @@ public class AmbulanceFragment extends Fragment {
                                 public void onSuccess(Bundle extras) {
                                     Log.i(TAG, "fire ambulance release dialog");
 
-                                    releaseButton.performClick();
+                                    ambulanceLogoutButton.performClick();
 
                                 }
 
@@ -979,7 +974,7 @@ public class AmbulanceFragment extends Fragment {
                 Ambulance ambulance = AmbulanceForegroundService.getAppData().getAmbulance();
 
                 // set ambulance button text
-                ambulanceSelectionButton.setText(ambulance.getIdentifier());
+                ambulanceLabel.setText(ambulance.getIdentifier());
 
                 // Enable equipment tab
                 // equipmentTabLayout.setEnabled(true); // enable clicking
@@ -993,9 +988,10 @@ public class AmbulanceFragment extends Fragment {
                 .setFailureMessage(getResources().getString(R.string.couldNotRetrieveAmbulance,
                         String.format("id = %d", ambulanceId)))
                 .setAlert(new org.emstrack.ambulance.dialogs.AlertDialog(activity,
-                        getResources().getString(R.string.couldNotStartLocationUpdates),
-                        (dialog, which) -> ambulanceSelectionButton.callOnClick()))
+                        getResources().getString(R.string.couldNotStartLocationUpdates)))
                 .start();
+
+        // TODO: WHAT SHOULD WE DO HERE?
 
     }
 
@@ -1003,21 +999,13 @@ public class AmbulanceFragment extends Fragment {
 
         // quick return if null
         if (ambulance == null) {
-            // set selection button label
-            ambulanceSelectionButton.setText(R.string.ambulanceButtonDefaultText);
 
             // set message visible
             ambulanceSelectionMessage.setVisibility(View.VISIBLE);
             ambulanceFragmentLayout.setVisibility(View.GONE);
 
-            // set ambulanceId
-            ambulanceId = -1;
-
             return;
         }
-
-        // set ambulanceId
-        ambulanceId = ambulance.getId();
 
         // set message visibility
         ambulanceSelectionMessage.setVisibility(View.GONE);
@@ -1026,7 +1014,7 @@ public class AmbulanceFragment extends Fragment {
         ambulanceFragmentLayout.setVisibility(View.VISIBLE);
 
         // set selection button label
-        ambulanceSelectionButton.setText(ambulance.getIdentifier());
+        ambulanceLabel.setText(ambulance.getIdentifier());
 
         // set status button
         setStatusButton(ambulanceStatusList.indexOf(ambulanceStatus.get(ambulance.getStatus())));

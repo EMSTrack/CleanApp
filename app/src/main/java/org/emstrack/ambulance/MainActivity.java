@@ -7,13 +7,12 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.res.Configuration;
 import android.graphics.BitmapFactory;
-import android.graphics.Color;
 import android.graphics.PorterDuff;
-import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.CountDownTimer;
+import android.util.ArrayMap;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -90,6 +89,14 @@ public class MainActivity extends AppCompatActivity {
     private static final String TAG = MainActivity.class.getSimpleName();
 
     private static final DecimalFormat df = new DecimalFormat();
+
+    private ArrayList<String> ambulanceStatusList;
+    private Map<String, String> ambulanceStatusMap;
+    private HashMap<String, Integer> ambulanceStatusBackgroundColorMap;
+    private HashMap<String, Integer> ambulanceStatusTextColorMap;
+
+    private Map<String, String> ambulanceCapabilitiesMap;
+    private ArrayList<String> ambulanceCapabilityList;
 
     public enum BackButtonMode {
         UP,
@@ -406,9 +413,34 @@ public class MainActivity extends AppCompatActivity {
                 android.R.layout.simple_spinner_dropdown_item, othersList);
         othersListAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 
+        // get settings
+        Settings settings = appData.getSettings();
+
+        // Get settings, status and capabilities
+        ambulanceStatusMap = settings.getAmbulanceStatus();
+        ambulanceStatusBackgroundColorMap = new HashMap<>();
+        ambulanceStatusTextColorMap = new HashMap<>();
+        for (Map.Entry<String,String> entry : ambulanceStatusMap.entrySet()) {
+            ambulanceStatusBackgroundColorMap
+                    .put(entry.getKey(), getResources().getColor(Ambulance
+                            .statusBackgroundColorMap.get(entry.getKey())));
+            ambulanceStatusTextColorMap
+                    .put(entry.getKey(), getResources().getColor(Ambulance
+                            .statusTextColorMap.get(entry.getKey())));
+        }
+
+        ambulanceCapabilitiesMap = settings.getAmbulanceCapability();
     }
 
-     public void setUpNavigation() {
+    public HashMap<String, Integer> getAmbulanceStatusBackgroundColorMap() {
+        return ambulanceStatusBackgroundColorMap;
+    }
+
+    public HashMap<String, Integer> getAmbulanceStatusTextColorMap() {
+        return ambulanceStatusTextColorMap;
+    }
+
+    public void setUpNavigation() {
          Log.i(TAG, "setupNavigation");
          int orientation = getResources().getConfiguration().orientation;
          if (orientation == Configuration.ORIENTATION_LANDSCAPE) {

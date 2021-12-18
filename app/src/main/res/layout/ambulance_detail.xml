@@ -1,59 +1,117 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/ambulanceDetail"
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/ambulance_detail"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
 
-    <TextView
-        android:id="@+id/capabilityLabel"
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <TextView
+            android:id="@+id/capabilityLabel"
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
+            android:text="@string/ambulanceCapabilityLabel"
+            android:textStyle="bold"
+            android:layout_marginTop="5dp" />
+
+        <TextView
+            android:id="@+id/capabilityText"
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
+            android:text="@string/unknown"
+            android:layout_alignParentEnd="true"
+            android:layout_marginTop="5dp" />
+
+        <TextView
+            android:id="@+id/commentLabel"
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
+            android:text="@string/gpsCommentsLabel"
+            android:textStyle="bold"
+            android:layout_marginTop="5dp"
+            android:layout_below="@+id/capabilityText"/>
+
+        <TextView
+            android:id="@+id/commentText"
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
+            android:text="@string/unknown"
+            android:layout_alignParentEnd="true"
+            android:layout_marginTop="5dp"
+            android:layout_below="@+id/capabilityText"/>
+
+        <TextView
+            android:id="@+id/updatedOnLabel"
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
+            android:text="@string/gpsLastUpdatedOnLabel"
+            android:textStyle="bold"
+            android:layout_marginTop="5dp"
+            android:layout_below="@+id/commentText"/>
+
+        <TextView
+            android:id="@+id/updatedOnText"
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
+            android:text="@string/unknown"
+            android:layout_alignParentEnd="true"
+            android:layout_marginTop="5dp"
+            android:layout_below="@+id/commentText"/>
+
+    </RelativeLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_width="wrap_content"
-        android:text="@string/gpsCapabilityLabel"
-        android:textStyle="bold"
-        android:layout_marginTop="5dp" />
+        android:orientation="horizontal"
+        android:layout_marginTop="10dp">
 
-    <TextView
-        android:id="@+id/capabilityText"
-        android:layout_height="wrap_content"
-        android:layout_width="wrap_content"
-        android:text="@string/unknown"
-        android:layout_alignParentEnd="true"
-        android:layout_marginTop="5dp" />
+        <View
+            android:layout_height="0dp"
+            android:layout_width="0dp"
+            android:layout_weight="1" />
 
-    <TextView
-        android:id="@+id/commentLabel"
-        android:layout_height="wrap_content"
-        android:layout_width="wrap_content"
-        android:text="@string/gpsCommentsLabel"
-        android:textStyle="bold"
-        android:layout_marginTop="5dp"
-        android:layout_below="@+id/capabilityText"/>
+        <ImageView
+            android:id="@+id/ambulanceLogout"
+            android:layout_height="@dimen/ambulanceToolbarIconHeight"
+            android:layout_width="@dimen/ambulanceToolbarIconWidth"
+            app:srcCompat="@drawable/ic_sign_out_alt"
+            app:tint="@color/iconColorDark"
+            android:layout_marginEnd="10dp" />
 
-    <TextView
-        android:id="@+id/commentText"
-        android:layout_height="wrap_content"
-        android:layout_width="wrap_content"
-        android:text="@string/unknown"
-        android:layout_alignParentEnd="true"
-        android:layout_marginTop="5dp"
-        android:layout_below="@+id/capabilityText"/>
+        <ImageView
+            android:id="@+id/ambulanceLogin"
+            android:layout_height="@dimen/ambulanceToolbarIconHeight"
+            android:layout_width="@dimen/ambulanceToolbarIconWidth"
+            app:srcCompat="@drawable/ic_sign_in_alt_solid"
+            app:tint="@color/iconColorDark"
+            android:layout_marginEnd="10dp" />
 
-    <TextView
-        android:id="@+id/updatedOnLabel"
-        android:layout_height="wrap_content"
-        android:layout_width="wrap_content"
-        android:text="@string/gpsLastUpdatedOnLabel"
-        android:textStyle="bold"
-        android:layout_marginTop="5dp"
-        android:layout_below="@+id/commentText"/>
+        <ImageView
+            android:id="@+id/ambulanceLocation"
+            android:layout_height="@dimen/ambulanceToolbarIconHeight"
+            android:layout_width="@dimen/ambulanceToolbarIconWidth"
+            app:srcCompat="@drawable/ic_location_arrow"
+            app:tint="@color/iconColorDark"
+            android:layout_marginEnd="10dp" />
 
-    <TextView
-        android:id="@+id/updatedOnText"
-        android:layout_height="wrap_content"
-        android:layout_width="wrap_content"
-        android:text="@string/unknown"
-        android:layout_alignParentEnd="true"
-        android:layout_marginTop="5dp"
-        android:layout_below="@+id/commentText"/>
+        <ImageView
+            android:id="@+id/ambulanceEquipment"
+            android:layout_height="@dimen/ambulanceToolbarIconHeight"
+            android:layout_width="@dimen/ambulanceToolbarIconWidth"
+            app:srcCompat="@drawable/ic_briefcase_medical"
+            app:tint="@color/iconColorDark"
+            android:layout_marginEnd="10dp" />
 
-</RelativeLayout>
+    </LinearLayout>
+
+</LinearLayout>
+
+
+
+

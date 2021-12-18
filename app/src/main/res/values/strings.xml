@@ -70,9 +70,9 @@
     <string name="gpsTimestampLabel">Timestamp:</string>
     <string name="gpsOrientationLabel">Orientation:</string>
     <string name="degrees">deg</string>
-    <string name="gpsStatusLabel">Status:</string>
+    <string name="ambulanceStatusLabel">Status:</string>
     <string name="gpsIdentifierLabel">Identifier:</string>
-    <string name="gpsCapabilityLabel">Capability:</string>
+    <string name="ambulanceCapabilityLabel">Capability:</string>
     <string name="callNotesLabel">Notes:</string>
     <string name="gpsLastUpdatedOnLabel">Last update:</string>
     <string name="gpsCommentsLabel">Comments:</string>
@@ -300,7 +300,7 @@
     <string name="EDIT">EDIT</string>
     <string name="editEquipment">Edit equipment</string>
     <string name="equipmentNotAvailable">List of equipment is only available if vehicle is selected</string>
-    <string name="noAmbulanceMessage">Select vehicle to start tracking this device\'s location and being able to receive call alerts.\n\nThis feature requires access to precise background location.</string>
+    <string name="noAmbulanceMessage">Loading vehicle…</string>
     <string name="release">Release</string>
     <string name="releaseAmbulance">Release vehicle</string>
     <string name="confirmAmbulanceReleaseMessage">Are you sure that you want to release the current vehicle?</string>

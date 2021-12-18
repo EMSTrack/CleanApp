@@ -61,9 +61,9 @@
     <string name="gpsTimestampLabel">Hora:</string>
     <string name="gpsOrientationLabel">Orientación:</string>
     <string name="degrees">°</string>
-    <string name="gpsStatusLabel">Estado:</string>
+    <string name="ambulanceStatusLabel">Estado:</string>
     <string name="gpsIdentifierLabel">Identificador:</string>
-    <string name="gpsCapabilityLabel">Capacidad:</string>
+    <string name="ambulanceCapabilityLabel">Capacidad:</string>
     <string name="gpsCommentsLabel">Commentarios:</string>
     <string name="gpsLastUpdatedOnLabel">Actualizado en:</string>
     <string name="equipment_string_button_negative_text">Cancelar</string>
@@ -279,7 +279,7 @@
     <string name="EDIT">EDITAR</string>
     <string name="editEquipment">Editar equipo</string>
     <string name="equipmentNotAvailable">La lista de equipos solo está disponible si se selecciona vehículo.</string>
-    <string name="noAmbulanceMessage">Seleccione vehículo para comenzar a rastrear su ubicación y recibir llamadas.\n\nEsta función requiere acceso a la ubicación de este dispositivo en proceso de fondo.</string>
+    <string name="noAmbulanceMessage">Cargando vehículo…</string>
     <string name="release">Liberar</string>
     <string name="releaseAmbulance">Liberar el vehículo</string>
     <string name="confirmAmbulanceReleaseMessage">¿Estás seguro de que quieres liberar el vehículo?</string>
@@ -299,10 +299,13 @@
     <string name="updatingServers">Actualizando servidores…</string>
     <string name="aboutLabel">Acerca de la aplicación</string>
     <string name="version">"Versión "</string>
-    <string name="approximateLocation">Ubicacion aproximada</string>
+    <string name="approximateLocation">Ubicación aproximada</string>
     <string name="approximateLocationExplanation">Utilizar ubicación aproximada cuando el vehículo no esté en una llamada para ahorrar batería.</string>
     <string name="app_credits_icons">Iconos:</string>
     <string name="app_credits_servers">En nuestros servidores utilizamos:</string>
     <string name="selectVehicleFirst">Primero seleccione un vehículo para habilitar esta función.</string>
+    <string name="message">Mensaje</string>
+    <string name="ambulances">Vehículos</string>
+    <string name="messages">Mensajes</string>
 
 </resources>
