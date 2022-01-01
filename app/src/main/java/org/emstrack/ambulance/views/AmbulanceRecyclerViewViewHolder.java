@@ -46,6 +46,7 @@ public class AmbulanceRecyclerViewViewHolder extends RecyclerView.ViewHolder {
     private final TextView ambulanceCapabilityText;
     private final TextView ambulanceCommentText;
     private final TextView ambulanceUpdatedOnText;
+    private final View ambulanceCommentLabel;
 
     public AmbulanceRecyclerViewViewHolder(Context context, View view) {
         super(view);
@@ -62,6 +63,7 @@ public class AmbulanceRecyclerViewViewHolder extends RecyclerView.ViewHolder {
         ambulanceLoginImageView = ambulanceDetailView.findViewById(R.id.ambulanceLogin);
 
         ambulanceCapabilityText = ambulanceDetailView.findViewById(R.id.capabilityText);
+        ambulanceCommentLabel = ambulanceDetailView.findViewById(R.id.commentLabel);
         ambulanceCommentText = ambulanceDetailView.findViewById(R.id.commentText);
         ambulanceUpdatedOnText = ambulanceDetailView.findViewById(R.id.updatedOnText);
 
@@ -115,8 +117,18 @@ public class AmbulanceRecyclerViewViewHolder extends RecyclerView.ViewHolder {
 
         // set detail
         ambulanceCapabilityText.setText(ambulanceCapabilitiesMap.get(ambulance.getCapability()));
-        ambulanceCommentText.setText(ambulance.getComment());
         ambulanceUpdatedOnText.setText(ambulance.getUpdatedOn().toString());
+
+        // set comment
+        String comment = ambulance.getComment();
+        if (comment != null && !comment.equals("")) {
+            ambulanceCommentText.setText(comment);
+            ambulanceCommentText.setVisibility(View.VISIBLE);
+            ambulanceCommentLabel.setVisibility(View.VISIBLE);
+        } else {
+            ambulanceCommentText.setVisibility(View.GONE);
+            ambulanceCommentLabel.setVisibility(View.GONE);
+        }
 
         // set equipment click response
         ambulanceEquipmentImageView.setOnClickListener(view -> {

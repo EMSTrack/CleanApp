@@ -5,50 +5,67 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_marginHorizontal="10dp">
 
-    <TextView
-        android:id="@+id/callPrioritySuffix"
-        android:layout_width="wrap_content"
-        android:layout_height="40dp"
-        android:paddingTop="0dp"
-        android:paddingBottom="4dp"
-        android:layout_alignParentRight="true"
-        android:text="-suffix"
-        android:textSize="18sp"
-        android:textStyle="bold" />
+    <ImageView
+        android:id="@+id/callEndButton"
+        android:layout_height="@dimen/ambulanceToolbarIconHeight"
+        android:layout_width="@dimen/ambulanceToolbarIconWidth"
+        android:layout_alignParentEnd="true"
+        app:srcCompat="@drawable/ic_times_circle_solid"
+        app:tint="@color/iconColorDark" />
 
-    <TextView
-        android:id="@+id/callPriorityTextView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:paddingTop="0dp"
-        android:paddingBottom="4dp"
-        android:paddingHorizontal="6dp"
-        android:layout_toLeftOf="@id/callPrioritySuffix"
-        android:text="B"
-        android:background="@color/bootstrapPrimary"
-        android:textSize="18sp"
-        android:textStyle="bold" />
-
-    <TextView
-        android:id="@+id/callPriorityPrefix"
-        android:layout_width="wrap_content"
-        android:layout_height="40dp"
-        android:paddingTop="0dp"
-        android:paddingBottom="4dp"
-        android:layout_toLeftOf="@id/callPriorityTextView"
-        android:text="prefix-"
-        android:textSize="18sp"
-        android:textStyle="bold" />
+    <ImageView
+        android:id="@+id/callMessageButton"
+        android:layout_width="@dimen/ambulanceToolbarIconWidth"
+        android:layout_height="@dimen/ambulanceToolbarIconHeight"
+        android:layout_marginEnd="10dp"
+        android:layout_toStartOf="@id/callEndButton"
+        app:srcCompat="@drawable/ic_envelope_solid"
+        app:tint="@color/iconColorDark" />
 
     <TextView
         android:id="@+id/callPriorityLabel"
-        android:layout_width="fill_parent"
+        android:layout_width="wrap_content"
         android:layout_height="40dp"
-        android:layout_toLeftOf="@id/callPriorityPrefix"
+        android:layout_alignParentStart="true"
         android:gravity="top"
         android:text="@string/currentCall"
+        android:layout_marginEnd="5pt"
         android:textSize="18sp"
         android:textStyle="bold" />
+
+    <LinearLayout
+        android:id="@+id/callPriorityLayout"
+        android:layout_toEndOf="@id/callPriorityLabel"
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:background="@color/bootstrapPrimary" >
+
+        <TextView
+            android:id="@+id/callPriorityPrefix"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="prefix-"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/callPriorityTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingHorizontal="6dp"
+            android:text="B"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/callPrioritySuffix"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="-suffix"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+    </LinearLayout>
 
     <TextView
         android:id="@+id/callRadioCodeLabel"
@@ -118,84 +135,11 @@
         android:gravity="right"
         android:text="0" />
 
-    <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-        android:id="@+id/callNextWaypointLayout"
-        android:layout_width="match_parent"
+    <include layout="@layout/waypoint_browser"
+        android:layout_below="@id/callNumberWaypointsText"
         android:layout_height="wrap_content"
-        android:layout_below="@id/callNumberWaypointsLabel">
-
-        <TextView
-            android:id="@+id/callNextWaypointLabel"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/nextWaypoint"
-            android:layout_marginTop="10dp"
-            android:textStyle="bold" />
-
-        <ImageButton
-            android:id="@+id/toMapsButton"
-            android:layout_width="30dp"
-            android:layout_height="30dp"
-            android:layout_alignParentEnd="true"
-            android:adjustViewBounds="true"
-            android:background="@drawable/button_states"
-            android:scaleType="fitCenter"
-            android:visibility="gone"
-            app:srcCompat="@drawable/ic_map"
-            android:contentDescription="@string/link_to_google_maps" />
-
-        <TextView
-            android:id="@+id/callWaypointTypeLabel"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/type"
-            android:layout_below="@id/callNextWaypointLabel"
-            android:textStyle="italic" />
-
-        <TextView
-            android:id="@+id/callWaypointTypeText"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/callNextWaypointLabel"
-            android:layout_toRightOf="@id/callWaypointTypeLabel"
-            android:gravity="right"
-            android:text="@string/waypointType"
-            android:textStyle="bold" />
-
-        <TextView
-            android:id="@+id/callDistanceLabel"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/callWaypointTypeLabel"
-            android:text="@string/distance"
-            android:textStyle="italic" />
-
-        <TextView
-            android:id="@+id/callDistanceText"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/callWaypointTypeLabel"
-            android:layout_toRightOf="@id/callDistanceLabel"
-            android:gravity="right"
-            android:text="@string/noDistanceInformationAvailable" />
-
-        <TextView
-            android:id="@+id/callAddressLabel"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/callDistanceLabel"
-            android:text="@string/address"
-            android:textStyle="italic"/>
-
-        <TextView
-            android:id="@+id/callAddressText"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/callDistanceText"
-            android:layout_toRightOf="@id/callAddressLabel"
-            android:gravity="right"
-            android:text="@string/addressText" />
-
-    </RelativeLayout>
+        android:layout_width="match_parent"
+        android:layout_marginTop="10dp"
+        android:id="@+id/callWaypointBrowser"/>
 
 </RelativeLayout>

@@ -12,7 +12,6 @@ import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.CountDownTimer;
-import android.util.ArrayMap;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -97,6 +96,7 @@ public class MainActivity extends AppCompatActivity {
 
     private Map<String, String> ambulanceCapabilitiesMap;
     private ArrayList<String> ambulanceCapabilityList;
+    private boolean promptingNextWaypoint;
 
     public enum BackButtonMode {
         UP,
@@ -359,9 +359,8 @@ public class MainActivity extends AppCompatActivity {
         // set back as UP
         backButtonMode = BackButtonMode.UP;
 
-        // setup action bar color
-//        ActionBar actionBar = getSupportActionBar();
-//        Objects.requireNonNull(actionBar).setBackgroundDrawable(new ColorDrawable(Color.parseColor("#A9CCE3")));
+        // not prompting next waypoint
+        promptingNextWaypoint = false;
 
         // setup navigation
         setUpNavigation();
@@ -474,7 +473,7 @@ public class MainActivity extends AppCompatActivity {
         if (fragment != null) {
 
             if (fragment.getClass().equals(SettingsFragment.class) ||
-                    fragment.getClass().equals(EquipmentFragment.class) ||
+                    fragment.getClass().equals(EquipmentFragment.class)||
                     fragment.getClass().equals(MessagesFragment.class)) {
 
                 // hide action bar and bottom navigation bar
@@ -489,7 +488,7 @@ public class MainActivity extends AppCompatActivity {
                     if (fragment.getClass().equals(SettingsFragment.class)) {
                         actionBar.setTitle(R.string.settings);
                     } else if (fragment.getClass().equals(MessagesFragment.class)) {
-                        actionBar.setTitle(R.string.messages);
+                            actionBar.setTitle(R.string.messages);
                     } else {
                         actionBar.setTitle(R.string.equipment);
                     }
@@ -1199,6 +1198,13 @@ public class MainActivity extends AppCompatActivity {
 
         ((TextView) view.findViewById(R.id.callPriorityLabel)).setText(R.string.nextCall);
 
+        // hide buttons
+        view.findViewById(R.id.waypointBrowserToolbar).setVisibility(View.GONE);
+//        view.findViewById(R.id.callEndButton).setVisibility(View.GONE);
+//        view.findViewById(R.id.callMessageButton).setVisibility(View.GONE);
+//        view.findViewById(R.id.callNextWaypointLocationButton).setVisibility(View.GONE);
+//        view.findViewById(R.id.callNextWaypointToMapsButton).setVisibility(View.GONE);
+
         // Set priority
         TextView callPriorityTextView = view.findViewById(R.id.callPriorityTextView);
         callPriorityTextView.setText(call.getPriority());
@@ -1229,18 +1235,19 @@ public class MainActivity extends AppCompatActivity {
         ((TextView) view.findViewById(R.id.callPatientsText)).setText(patientsText.toString());
         ((TextView) view.findViewById(R.id.callNumberWaypointsText)).setText(String.valueOf(numberOfWaypoints));
 
-        ((TextView) view.findViewById(R.id.callWaypointTypeText)).setText(waypointType);
-        ((TextView) view.findViewById(R.id.callDistanceText)).setText(distanceText);
-        ((TextView) view.findViewById(R.id.callAddressText)).setText(address);
+//        ((TextView) view.findViewById(R.id.callWaypointTypeText)).setText(waypointType);
+//        ((TextView) view.findViewById(R.id.callDistanceText)).setText(distanceText);
+//        ((TextView) view.findViewById(R.id.callAddressText)).setText(address);
 
-        if (waypoint == null)
-
-            // Make callNextWaypointLayout invisible
-            view.findViewById(R.id.callNextWaypointLayout).setVisibility(View.GONE);
-
-        else
-            // Make callNextWaypointLayout visible
-            view.findViewById(R.id.callNextWaypointLayout).setVisibility(View.VISIBLE);
+        // TODO: DISPLAY NEXT WAYPOINT ON DIALOG
+//        if (waypoint == null)
+//
+//            // Make callNextWaypointLayout invisible
+//            view.findViewById(R.id.waypointBrowserToolbar).setVisibility(View.GONE);
+//
+//        else
+//            // Make callNextWaypointLayout visible
+//            view.findViewById(R.id.waypointBrowserToolbar).setVisibility(View.VISIBLE);
 
         // build dialog
         builder.setTitle(R.string.acceptCall)
@@ -1380,6 +1387,11 @@ public class MainActivity extends AppCompatActivity {
 
     public void promptNextWaypointDialog(final int callId) {
 
+        if (this.promptingNextWaypoint) {
+            Log.i(TAG, "Already prompting next waypoint. Returning...");
+            return;
+        }
+
         Log.i(TAG, "Creating next waypoint dialog");
 
         // Get app data
@@ -1495,6 +1507,7 @@ public class MainActivity extends AppCompatActivity {
         );
 
         // build dialog
+        promptingNextWaypoint = true;
         builder.setTitle(R.string.selectNextWaypoint)
                 .setView(view)
                 .setCancelable(false)
@@ -1538,6 +1551,7 @@ public class MainActivity extends AppCompatActivity {
                                 startService(serviceIntent);
                             }
 
+                            promptingNextWaypoint = false;
                         })
                 .setNegativeButton(R.string.cancel,
                         (dialog, id) -> {
@@ -1551,14 +1565,15 @@ public class MainActivity extends AppCompatActivity {
                             startService(serviceIntent);
                             */
 
+                            promptingNextWaypoint = false;
                         })
                 .setNeutralButton(R.string.endCall,
                         (dialog, id) -> {
 
                             Log.i(TAG, "Ending call");
 
+                            promptingNextWaypoint = false;
                             promptEndCallDialog(callId);
-
                         });
 
         // Create the AlertDialog object and display it

@@ -6,6 +6,14 @@
     android:layout_height="match_parent"
     tools:context="org.emstrack.ambulance.fragments.MessagesFragment">
 
+    <TextView
+        android:id="@+id/message_refreshing_data"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="5dp"
+        android:text="@string/refreshingData">
+    </TextView>
+
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/messages_recycler_view"
         android:layout_width="match_parent"

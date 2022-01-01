@@ -117,6 +117,7 @@ import android.util.Log;
 public abstract class OnServiceComplete extends BroadcastReceiver implements StartableTask<OnServiceComplete> {
 
     protected final String TAG = OnServiceComplete.class.getSimpleName();
+    private static final int DEFAULT_TIMEOUT = 20000; // 20s
 
     private final Context context;
     private final String successAction;
@@ -217,7 +218,7 @@ public abstract class OnServiceComplete extends BroadcastReceiver implements Sta
                              final String failureAction,
                              Intent intent,
                              StartableTask next) {
-        this(context, successAction, failureAction, intent, 10000, next);
+        this(context, successAction, failureAction, intent, DEFAULT_TIMEOUT, next);
     }
 
     /**
@@ -233,7 +234,7 @@ public abstract class OnServiceComplete extends BroadcastReceiver implements Sta
                              final String failureAction,
                              Intent intent) {
 
-        this(context, successAction, failureAction, intent, 10000);
+        this(context, successAction, failureAction, intent, DEFAULT_TIMEOUT);
     }
 
     /**
@@ -272,7 +273,7 @@ public abstract class OnServiceComplete extends BroadcastReceiver implements Sta
                 Bundle bundle = new Bundle();
                 bundle.putString(BroadcastExtras.UUID, uuid);
                 bundle.putString(org.emstrack.models.util.BroadcastExtras.MESSAGE,
-                        "Timed out without completing service.");
+                        String.format("Timed out without completing service in %d seconds.", this.timeout/1000));
 
                 // Call failure
                 onFailure(bundle);

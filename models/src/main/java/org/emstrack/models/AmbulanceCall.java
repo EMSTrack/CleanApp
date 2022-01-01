@@ -137,6 +137,31 @@ public class AmbulanceCall {
         return null;
     }
 
+    public int getNextWaypointPosition() {
+        return getNextWaypointPosition(null);
+    }
+
+    public int getNextWaypointPosition(String type) {
+        // Sort first
+        sortWaypoints();
+
+        // Find first non-visited waypoint
+        int position = 0;
+        for (Waypoint waypoint : this.waypointSet) {
+            if ((type == null || waypoint.getLocation().getType().equals(type))
+                    && !(waypoint.isSkipped() || waypoint.isVisited()))
+                return position;
+            position++;
+        }
+
+        // Otherwise return last
+        if (position == waypointSet.size()) {
+            // go to last if they are all visited or skipped
+            position--;
+        }
+        return position;
+    }
+
     public Waypoint getWaypoint(int id) {
         // Find waypoint
         for (Waypoint waypoint : this.waypointSet)

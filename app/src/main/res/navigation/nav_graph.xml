@@ -30,9 +30,6 @@
         <action
             android:id="@+id/action_map_to_settings"
             app:destination="@id/settings" />
-        <action
-            android:id="@+id/action_map_to_messages"
-            app:destination="@id/messages" />
     </fragment>
 
     <fragment
@@ -63,6 +60,9 @@
         <action
             android:id="@+id/action_ambulance_to_map"
             app:destination="@id/map" />
+        <action
+            android:id="@+id/action_ambulance_to_messages"
+            app:destination="@id/messages" />
     </fragment>
 
     <fragment
@@ -99,12 +99,24 @@
         <action
             android:id="@+id/action_ambulances_to_map"
             app:destination="@id/map" />
+        <action
+            android:id="@+id/action_ambulances_to_messages"
+            app:destination="@id/messages" />
     </fragment>
 
     <fragment
         android:id="@+id/messages"
         android:name="org.emstrack.ambulance.fragments.MessagesFragment"
         android:label="@string/messages"
-        tools:layout="@layout/fragment_messages" />
+        tools:layout="@layout/fragment_messages">
+        <argument
+            android:name="type"
+            app:argType=".models.MessageType"
+            android:defaultValue="CALL_NOTE" />
+        <argument
+            android:name="id"
+            app:argType="integer"
+            android:defaultValue="-1" />
+    </fragment>
 
 </navigation>

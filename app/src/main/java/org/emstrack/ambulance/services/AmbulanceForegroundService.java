@@ -497,13 +497,15 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                 public void onSuccess(Bundle extras) {
 
                     // Log
-                    Log.d(TAG, "Successfully logged out, try to login");
+                    Log.d(TAG, "Successfully logged out, will try to login");
 
                 }
 
                 @Override
                 public void onFailure(Bundle extras) {
                     super.onFailure(extras);
+
+                    Log.d(TAG, "Failed to logout");
 
                     // Create notification
                     NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(AmbulanceForegroundService.this, PRIMARY_CHANNEL)
@@ -547,6 +549,9 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                 @Override
                 public void onFailure(Bundle extras) {
                     super.onFailure(extras);
+
+                    // abort login
+                    forceLogout();
 
                     // Create notification
                     NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(AmbulanceForegroundService.this, PRIMARY_CHANNEL)
@@ -1438,7 +1443,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
      */
     public void logout(final String uuid) {
 
-        // does it need to logout
+        // does it need to logout?
         if (appData.getProfile() == null) {
 
             // not logged in, broadcast success and return
@@ -1956,6 +1961,22 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
     }
 
     /**
+     * Abort login
+     *
+     */
+    public void forceLogout() {
+
+        Log.d(TAG, "Forcing logout...");
+
+        // reinitialize AmbulanceAppData
+        appData = new AmbulanceAppData();
+
+        // invalidate credentials
+        APIServiceGenerator.setToken(null);
+
+    }
+
+    /**
      * Login user
      *
      * @param username Username
@@ -1995,6 +2016,8 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
             @Override
             public void onSuccess(Bundle extras) {
 
+                Log.d(TAG, "Was able to logout, will not try to connect to MQTT");
+
                 // Initialize credentials
                 Credentials credentials = new Credentials(username, password, serverApi, serverURI);
 
@@ -2027,6 +2050,8 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
                     @Override
                     public void onSuccess() {
+
+                        Log.d(TAG, "Connected to MQTT");
 
                         // Set online
                         setOnline(true);
@@ -2122,6 +2147,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
                                     @Override
                                     public void onFailure(Throwable t) {
+                                        super.onFailure(t);
 
                                         // Broadcast failure
                                         broadcastFailure("Could not retrieve version", uuid, t);
@@ -2156,12 +2182,10 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
                                     @Override
                                     public void onSuccess(Settings settings) {
-
                                         Log.d(TAG, "Got settings");
 
                                         // save profile
                                         appData.setSettings(settings);
-
                                     }
 
                                     @Override
@@ -2176,7 +2200,6 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
                                     @Override
                                     public void onSuccess(List<Location> locations) {
-
                                         Log.d(TAG, String.format("Got %1$d bases", locations.size()));
 
                                         // sort bases
@@ -2224,7 +2247,6 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
                                     @Override
                                     public void onSuccess(List<PriorityCode> codes) {
-
                                         Log.d(TAG, String.format("Got %1$d priority codes", codes.size()));
 
                                         // save bases
@@ -2245,12 +2267,10 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
                                     @Override
                                     public void onSuccess(List<PriorityClassification> classifications) {
-
                                         Log.d(TAG, String.format("Got %1$d priority classifications", classifications.size()));
 
                                         // save bases
                                         appData.setPriorityClassifications(classifications);
-
                                     }
 
                                     @Override
@@ -2259,19 +2279,16 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
                                         // Broadcast failure
                                         broadcastFailure("Could not retrieve priority classifications", uuid, t);
-
                                     }
 
                                 }.setNext(new OnAPICallComplete<List<RadioCode>>(radioCodesCall) {
 
                                     @Override
                                     public void onSuccess(List<RadioCode> codes) {
-
                                         Log.d(TAG, String.format("Got %1$d radio codes", codes.size()));
 
                                         // save bases
                                         appData.setRadioCodes(codes);
-
                                     }
 
                                     @Override
@@ -2280,7 +2297,6 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
                                         // Broadcast failure
                                         broadcastFailure("Could not retrieve radio codes", uuid, t);
-
                                     }
 
                                 }.setNext(new OnServiceComplete(AmbulanceForegroundService.this,
@@ -2307,7 +2323,6 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
                                         // Broadcast failure
                                         broadcastFailure("Could not retrieve ambulances", uuid);
-
                                     }
 
                                 }.setNext(new OnServiceComplete(AmbulanceForegroundService.this,
@@ -2334,7 +2349,6 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
                                         // Broadcast failure
                                         broadcastFailure("Could not retrieve hospitals", uuid);
-
                                     }
 
                                 }.setNext(new OnComplete() {
@@ -2368,7 +2382,6 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
                                 // Broadcast failure
                                 broadcastFailure("Could not retrieve API token", uuid, t);
-
                             }
 
                         }.start();
@@ -2380,6 +2393,8 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
                     @Override
                     public void onFailure(Throwable t) {
+
+                        Log.d(TAG, "Failed to connect to MQTT");
 
                         // Broadcast failure
                         broadcastFailure("Failed to retrieve profile", uuid, t);
@@ -2411,6 +2426,8 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
                         @Override
                         public void onFailure(Throwable t) {
+
+                            Log.d(TAG, "Failed to connected to broker.");
 
                             String message = getString(R.string.failedToConnectToBrocker);
 
@@ -2451,6 +2468,8 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
             @Override
             public void onFailure(Bundle extras) {
                 super.onFailure(extras);
+
+                Log.d(TAG, "Could not logout");
 
                 // Broadcast failure
                 Intent localIntent = new Intent(org.emstrack.models.util.BroadcastActions.FAILURE);
@@ -2813,6 +2832,8 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
             @Override
             public void onSuccess(Bundle extras) {
 
+                Log.d(TAG, "Call updates stopped");
+
                 // get ambulance id
                 int ambulanceId = ambulance.getId();
 
@@ -2832,6 +2853,8 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
             @Override
             public void onFailure(Bundle extras) {
                 super.onFailure(extras);
+
+                Log.d(TAG, "Failed to stop call updates");
 
                 // broadcast failure
                 broadcastFailure(extras, uuid);
@@ -2854,11 +2877,15 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
             @Override
             public void onSuccess(Bundle extras) {
 
+                Log.d(TAG, "Stopped location updates");
+
             }
 
             @Override
             public void onFailure(Bundle extras) {
                 super.onFailure(extras);
+
+                Log.d(TAG, "Failed to stopped location updates");
 
                 // broadcast failure
                 broadcastFailure(extras, uuid);
@@ -3785,9 +3812,10 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                         message);
                 startService(notificationIntent);
 
-            } else
-
-                Log.d(TAG, "Got updates but no ambulance!");
+            } else {
+                Log.d(TAG, "Got updates but no ambulance, stopping location updates");
+                stopLocationUpdates(java.util.UUID.randomUUID().toString());
+            }
 
         }
 
@@ -4900,7 +4928,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
             updateAmbulanceNextWaypointStatus(ambulanceCall, call);
 
         // Add geofence
-        Log.i(TAG, "Will set waypoints");
+        Log.i(TAG, "Will set waypoint geofences");
 
         // Sort waypoints
         ambulanceCall.sortWaypoints();

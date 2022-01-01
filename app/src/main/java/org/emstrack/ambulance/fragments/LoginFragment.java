@@ -17,10 +17,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import org.emstrack.ambulance.MainActivity;
 import org.emstrack.ambulance.R;
@@ -44,7 +42,6 @@ public class LoginFragment extends Fragment {
     private TextView usernameField;
     private TextView passwordField;
     private Spinner serverField;
-    private boolean logout;
 
     private ArrayAdapter<CharSequence> serverNames;
     private List<String> serverMqttURIs;
@@ -412,15 +409,8 @@ public class LoginFragment extends Fragment {
 
                         // navigate to map fragment
                         navigateToMap();
-
                     }
 
-                    @Override
-                    public void onFailure(Bundle extras) {
-                        super.onFailure(extras);
-                        loginSubmitButton.setEnabled(true);
-                        loginAsDemoButton.setEnabled(true);
-                    }
                 }
                         .setFailureMessage(null)
                         .setAlert(new AlertDialog(activity,
@@ -444,15 +434,6 @@ public class LoginFragment extends Fragment {
         activity.showActionBar();
         activity.showBottomNavigationBar();
 
-    }
-
-    /**
-     * Get the LocalBroadcastManager
-     *
-     * @return The system LocalBroadcastManager
-     */
-    private LocalBroadcastManager getLocalBroadcastManager() {
-        return LocalBroadcastManager.getInstance(requireContext());
     }
 
 }

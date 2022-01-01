@@ -76,7 +76,6 @@
     <string name="callNotesLabel">Notes:</string>
     <string name="gpsLastUpdatedOnLabel">Last update:</string>
     <string name="gpsCommentsLabel">Comments:</string>
-    <string name="access_token" translatable="false">pk.eyJ1IjoieWFuZ2Y5NiIsImEiOiJjaXltYTNmbTcwMDJzMzNwZnpzM3Z6ZW9kIn0.gjEwLiCIbYhVFUGud9B56w</string>
     <string name="failedToConnectToBrocker">Failed to connected to broker.</string>
     <string name="Exception">Exception:</string>
     <string name="loginSuccessMessage">User \'%1$s\' successfully logged in.</string>
@@ -186,7 +185,7 @@
     <string name="skip">Skip</string>
     <string name="markAsVisiting">Visiting</string>
     <string name="markAsVisited">Visited</string>
-    <string name="addWaypoint">Add Waypoint</string>
+    <string name="addWaypoint">Waypoint</string>
     <string name="details">Details:</string>
     <string name="detailsText">Details</string>
     <string name="patients">Patients:</string>
@@ -350,5 +349,12 @@
     <string name="message">Message</string>
     <string name="ambulances">Vehicles</string>
     <string name="messages">Messages</string>
+    <string name="skipped">skipped</string>
+    <string name="Hospital">Hospital</string>
+    <string name="Incident">Incident</string>
+    <string name="Base">Base</string>
+    <string name="WaypointNumber">Waypoint #%d</string>
+    <string name="Location">Location</string>
+    <string name="Waypoint">Waypoint</string>
 
 </resources>

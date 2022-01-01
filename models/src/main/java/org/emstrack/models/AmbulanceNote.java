@@ -5,13 +5,13 @@ import java.util.Date;
 /**
  * A class representing an ambulance call note.
  */
-public class CallNote extends Note {
+public class AmbulanceNote extends Note {
 
-    public CallNote(String comment, int updatedBy, Date updatedOn) {
+    public AmbulanceNote(String comment, int updatedBy, Date updatedOn) {
         super(comment, updatedBy, updatedOn);
     }
 
-    public CallNote(String comment) {
+    public AmbulanceNote(String comment) {
         super(comment);
     }
 

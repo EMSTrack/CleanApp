@@ -307,5 +307,12 @@
     <string name="message">Mensaje</string>
     <string name="ambulances">Vehículos</string>
     <string name="messages">Mensajes</string>
+    <string name="skipped">saltado</string>
+    <string name="Hospital">Hospital</string>
+    <string name="Incident">Incidente</string>
+    <string name="Base">Base</string>
+    <string name="WaypointNumber">Punto de ruta #%d</string>
+    <string name="Location">Ubicación</string>
+    <string name="Waypoint">Punto de ruta</string>
 
 </resources>
