@@ -356,5 +356,11 @@
     <string name="WaypointNumber">Waypoint #%d</string>
     <string name="Location">Location</string>
     <string name="Waypoint">Waypoint</string>
+    <string name="messageNotAvailable">There are no messages</string>
+    <string name="couldNotRetrieveMessages">Could not retrieve messages. %1$s messages may not be supported by your server yet.</string>
+    <string name="couldNotSendMessage">Could not send message</string>
+    <string name="linkToMap">Link to map</string>
+    <string name="message_type">Message Type</string>
+    <string name="call_messages">Call Messages</string>
 
 </resources>

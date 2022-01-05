@@ -9,5 +9,7 @@
     <dimen name="tab_icon_size">45dp</dimen>
     <dimen name="ambulanceToolbarIconHeight">25dp</dimen>
     <dimen name="ambulanceToolbarIconWidth">25dp</dimen>
+    <dimen name="messageSendBarHeight">35dp</dimen>
+    <dimen name="messageMargin">40dp</dimen>
 
 </resources>

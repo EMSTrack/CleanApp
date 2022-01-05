@@ -112,7 +112,7 @@
         <argument
             android:name="type"
             app:argType=".models.MessageType"
-            android:defaultValue="CALL_NOTE" />
+            android:defaultValue="CALL" />
         <argument
             android:name="id"
             app:argType="integer"

@@ -2,6 +2,7 @@ package org.emstrack.models;
 
 import org.emstrack.models.gson.Exclude;
 
+import java.util.Calendar;
 import java.util.Date;
 
 /**
@@ -11,20 +12,24 @@ public class Note {
 
     private String comment;
     @Exclude
+    private String updatedByUsername;
+    @Exclude
     private int updatedBy;
     @Exclude
-    private Date updatedOn;
+    private Calendar updatedOn;
 
-    public Note(String comment, int updatedBy, Date updatedOn) {
+    public Note(String comment, String updatedByUsername, int updatedBy, Calendar updatedOn) {
         this.comment = comment;
         this.updatedBy = updatedBy;
+        this.updatedByUsername = updatedByUsername;
         this.updatedOn = updatedOn;
     }
 
     public Note(String comment) {
         this.comment = comment;
+        this.updatedByUsername = "";
         this.updatedBy = -1;
-        this.updatedOn = new Date();
+        this.updatedOn = Calendar.getInstance();
     }
 
     public String getComment() {
@@ -35,19 +40,27 @@ public class Note {
         this.comment = comment;
     }
 
-    public int getUpdatedBy() {
-        return updatedBy;
+    public String getUpdatedByUsername() {
+        return updatedByUsername;
+    }
+
+    public void setUpdatedByUsername(String updatedByUsername) {
+        this.updatedByUsername = updatedByUsername;
+    }
+
+    public Calendar getUpdatedOn() {
+        return updatedOn;
     }
 
     public void setUpdatedBy(int updatedBy) {
         this.updatedBy = updatedBy;
     }
 
-    public Date getUpdatedOn() {
-        return updatedOn;
+    public int getUpdatedBy() {
+        return updatedBy;
     }
 
-    public void setUpdatedOn(Date updatedOn) {
+    public void setUpdatedOn(Calendar updatedOn) {
         this.updatedOn = updatedOn;
     }
 

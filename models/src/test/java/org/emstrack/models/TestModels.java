@@ -3,13 +3,16 @@ package org.emstrack.models;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.FieldNamingPolicy;
+import com.google.gson.JsonSerializer;
 
 import org.emstrack.models.gson.ExcludeAnnotationExclusionStrategy;
+import org.emstrack.models.util.CalendarDateTypeAdapter;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 
 import java.text.DateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.text.SimpleDateFormat;
 import java.util.HashMap;
@@ -907,9 +910,9 @@ public class TestModels {
         ambulanceCallSet.add(ambulanceCall);
 
         List<CallNote> callNoteSet = new ArrayList<>();
-        CallNote callNote = new CallNote("new note after call", 1, new Date());
+        CallNote callNote = new CallNote("new note after call", "user", 1, Calendar.getInstance());
         callNoteSet.add(callNote);
-        CallNote secondCallNote = new CallNote("note made after creation of call", 1, new Date());
+        CallNote secondCallNote = new CallNote("note made after creation of call", "user", 1, Calendar.getInstance());
         callNoteSet.add(secondCallNote);
 
         Call call = new Call(
@@ -922,6 +925,7 @@ public class TestModels {
         double epsilon = 1e-4;
 
         GsonBuilder gsonBuilder = new GsonBuilder();
+        gsonBuilder.registerTypeHierarchyAdapter(Calendar.class, new CalendarDateTypeAdapter());
         gsonBuilder.setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES);
         Gson gson = gsonBuilder.create();
 
@@ -982,12 +986,12 @@ public class TestModels {
                 "        {\n" +
                 "            \"comment\": \"new note after call\",\n" +
                 "            \"updated_by\": 1,\n" +
-                "            \"updated_on\": \"" + df.format(callNote.getUpdatedOn()) + "\"\n" +
+                "            \"updated_on\": \"" + df.format(callNote.getUpdatedOn().getTime()) + "\"\n" +
                 "        },\n" +
                 "        {\n" +
                 "            \"comment\": \"note made after creation of call\",\n" +
                 "            \"updated_by\": 1,\n" +
-                "            \"updated_on\": \"" + df.format(secondCallNote.getUpdatedOn()) + "\"\n" +
+                "            \"updated_on\": \"" + df.format(secondCallNote.getUpdatedOn().getTime()) + "\"\n" +
                 "        }\n" +
                 "    ]}";
 
@@ -1009,9 +1013,9 @@ public class TestModels {
         answerId = answerCallNote.getUpdatedBy();
         assertEquals(expectedId, answerId);
 
-        Date expectedDate = expectedCallNote.getUpdatedOn();
-        Date answerDate = answerCallNote.getUpdatedOn();
-        assertEquals(df.format(expectedDate), df.format(answerDate));
+        Calendar expectedDate = expectedCallNote.getUpdatedOn();
+        Calendar answerDate = answerCallNote.getUpdatedOn();
+        assertEquals(df.format(expectedDate.getTime()), df.format(answerDate.getTime()));
 
         // call note 1
         expectedCallNote = call.getCallnoteSet().get(1);
@@ -1027,7 +1031,7 @@ public class TestModels {
 
         expectedDate = expectedCallNote.getUpdatedOn();
         answerDate = answerCallNote.getUpdatedOn();
-        assertEquals(df.format(expectedDate), df.format(answerDate));
+        assertEquals(df.format(expectedDate.getTime()), df.format(answerDate.getTime()));
 
         // test call
 

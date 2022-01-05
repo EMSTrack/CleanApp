@@ -43,7 +43,7 @@
         android:layout_height="wrap_content"
         android:layout_marginEnd="5dp"
         android:backgroundTint="@color/bootstrapSecondary"
-        app:icon="@drawable/ic_step_forward_solid"
+        app:icon="@drawable/ic_times_circle_solid"
         app:iconSize="20dp" />
 
     <com.google.android.material.button.MaterialButton

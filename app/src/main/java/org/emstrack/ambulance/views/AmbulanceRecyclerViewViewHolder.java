@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.graphics.PorterDuff;
 import android.location.Location;
+import android.media.Image;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageView;
@@ -17,6 +18,7 @@ import com.google.android.gms.maps.model.LatLng;
 import org.emstrack.ambulance.MainActivity;
 import org.emstrack.ambulance.R;
 import org.emstrack.ambulance.models.EquipmentType;
+import org.emstrack.ambulance.models.MessageType;
 import org.emstrack.ambulance.services.AmbulanceForegroundService;
 import org.emstrack.models.Ambulance;
 import org.emstrack.models.Settings;
@@ -24,7 +26,7 @@ import org.emstrack.models.Settings;
 import java.util.Map;
 
 /**
- * Holds the hospital data
+ * Holds the ambulance data
  * @author Mauricio de Oliveira
  * @since 7/07/2020
  */
@@ -38,6 +40,7 @@ public class AmbulanceRecyclerViewViewHolder extends RecyclerView.ViewHolder {
     private final View ambulanceDetailView;
     private final TextView ambulanceName;
 
+    private final ImageView ambulanceMessageImageView;
     private final ImageView ambulanceEquipmentImageView;
     private final ImageView ambulanceLocationImageView;
     private final ImageView ambulanceLoginImageView;
@@ -60,6 +63,7 @@ public class AmbulanceRecyclerViewViewHolder extends RecyclerView.ViewHolder {
 
         ambulanceEquipmentImageView = ambulanceDetailView.findViewById(R.id.ambulanceEquipment);
         ambulanceLocationImageView = ambulanceDetailView.findViewById(R.id.ambulanceLocation);
+        ambulanceMessageImageView = ambulanceDetailView.findViewById(R.id.ambulanceMessage);
         ambulanceLoginImageView = ambulanceDetailView.findViewById(R.id.ambulanceLogin);
 
         ambulanceCapabilityText = ambulanceDetailView.findViewById(R.id.capabilityText);
@@ -130,8 +134,16 @@ public class AmbulanceRecyclerViewViewHolder extends RecyclerView.ViewHolder {
             ambulanceCommentLabel.setVisibility(View.GONE);
         }
 
+        // set message click response
+        ambulanceMessageImageView.setOnClickListener(v -> {
+            Bundle bundle = new Bundle();
+            bundle.putSerializable("type", MessageType.AMBULANCE);
+            bundle.putInt("id", ambulanceId);
+            ((MainActivity) activity).navigate(R.id.action_ambulances_to_messages, bundle);
+        });
+
         // set equipment click response
-        ambulanceEquipmentImageView.setOnClickListener(view -> {
+        ambulanceEquipmentImageView.setOnClickListener(v -> {
             Bundle bundle = new Bundle();
             bundle.putSerializable("type", EquipmentType.AMBULANCE);
             bundle.putInt("id", ambulanceId);
@@ -139,7 +151,7 @@ public class AmbulanceRecyclerViewViewHolder extends RecyclerView.ViewHolder {
         });
 
         // set location click response
-        ambulanceLocationImageView.setOnClickListener(view -> {
+        ambulanceLocationImageView.setOnClickListener(v -> {
             Bundle bundle = new Bundle();
             Location location = ambulance.getLocation().toLocation();
             LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
@@ -148,7 +160,7 @@ public class AmbulanceRecyclerViewViewHolder extends RecyclerView.ViewHolder {
         });
 
         // set select click response
-        ambulanceLoginImageView.setOnClickListener(view -> {
+        ambulanceLoginImageView.setOnClickListener(v -> {
             Bundle bundle = new Bundle();
             bundle.putInt("id", ambulanceId);
             ((MainActivity) activity).navigate(R.id.action_ambulances_to_ambulance, bundle);

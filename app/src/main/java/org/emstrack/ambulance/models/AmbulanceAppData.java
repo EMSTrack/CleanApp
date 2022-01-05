@@ -5,7 +5,6 @@ import android.util.SparseArray;
 import org.emstrack.models.Ambulance;
 import org.emstrack.models.CallStack;
 import org.emstrack.models.Credentials;
-import org.emstrack.models.EquipmentItem;
 import org.emstrack.models.Hospital;
 import org.emstrack.models.Location;
 import org.emstrack.models.PriorityClassification;
@@ -252,6 +251,16 @@ public class AmbulanceAppData {
      */
     public SparseArray<Ambulance> getAmbulances() {
         return ambulances;
+    }
+
+    public Ambulance getAmbulanceById(int id) {
+        if (ambulance != null && ambulance.getId() == id) {
+            return ambulance;
+        } else if (ambulances != null) {
+            // search in array
+            return ambulances.get(id);
+        }
+        return null;
     }
 
     /**

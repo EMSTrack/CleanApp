@@ -314,5 +314,10 @@
     <string name="WaypointNumber">Punto de ruta #%d</string>
     <string name="Location">Ubicación</string>
     <string name="Waypoint">Punto de ruta</string>
-
+    <string name="messageNotAvailable">No hay mensajes</string>
+    <string name="couldNotRetrieveMessages">No se pudieron recuperar los mensajes. Es posible que su servidor aún no admita los mensajes de %1$s.</string>
+    <string name="couldNotSendMessage">No se pudo enviar el mensaje</string>
+    <string name="linkToMap">Enlace al mapa</string>
+    <string name="message_type">Tipo de mensaje</string>
+    <string name="call_messages">Mensajes de la llamada</string>
 </resources>

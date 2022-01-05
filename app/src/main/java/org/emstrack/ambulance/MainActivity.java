@@ -40,10 +40,15 @@ import androidx.navigation.NavController;
 import androidx.navigation.NavDestination;
 import androidx.navigation.fragment.NavHostFragment;
 import androidx.navigation.ui.NavigationUI;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.LinearSnapHelper;
+import androidx.recyclerview.widget.RecyclerView;
+import androidx.recyclerview.widget.SnapHelper;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigationrail.NavigationRailView;
 
+import org.emstrack.ambulance.adapters.WaypointInfoRecyclerAdapter;
 import org.emstrack.ambulance.dialogs.AlertSnackbar;
 import org.emstrack.ambulance.fragments.EquipmentFragment;
 import org.emstrack.ambulance.fragments.MessagesFragment;
@@ -147,7 +152,7 @@ public class MainActivity extends AppCompatActivity {
                     case AmbulanceForegroundService.BroadcastActions.AMBULANCE_UPDATE:
 
                         Log.i(TAG, "AMBULANCE_UPDATE");
-                        setupNavigationBar();
+                        // setupNavigationBar();
 
                         break;
                     case AmbulanceForegroundService.BroadcastActions.LOCATION_UPDATE_CHANGE:
@@ -648,10 +653,7 @@ public class MainActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         Log.d(TAG, String.format("onOptionsItemsSelected: %1$d", item.getItemId()));
         int itemId = item.getItemId();
-        if (itemId == R.id.messages) {
-            navigate(R.id.messages);
-            return true;
-        } else if (itemId == R.id.settings) {
+        if (itemId == R.id.settings) {
             navigate(R.id.settings);
             return true;
         } else if (itemId == R.id.panicButton) {
@@ -687,7 +689,7 @@ public class MainActivity extends AppCompatActivity {
             Ambulance ambulance = appData.getAmbulance();
             if (ambulance != null) {
                 // ambulance is selected
-                navigate(R.id.ambulance);
+                // navigate(R.id.ambulance);
                 // check calls
                 CallStack pendingCalls = appData.getCalls();
                 Call call = pendingCalls.getCurrentCall();
@@ -1146,64 +1148,39 @@ public class MainActivity extends AppCompatActivity {
         // Get number of waypoints
         int numberOfWaypoints = ambulanceCall.getWaypointSet().size();
 
-        // Get next incident waypoint
-        Waypoint waypoint = ambulanceCall.getNextWaypoint();
-        String distanceText;
-        String address;
-        String waypointType;
-        if (waypoint == null) {
-
-            Log.d(TAG,"No next waypoint available");
-
-            // No upcoming waypoint
-            distanceText = getString(R.string.nextWaypointNotAvailable);
-            address = "---";
-            waypointType = "---";
-
-        } else {
-
-            // Get location
-            Location location = waypoint.getLocation();
-            address = waypoint.getLocation().toAddress();
-            waypointType = appData.getSettings().getLocationType().get(location.getType());
-
-            Log.d(TAG,"Will calculate distance");
-
-            if (AmbulanceForegroundService.hasLastLocation()) {
-
-                // Get current location
-                android.location.Location lastLocation = AmbulanceForegroundService.getLastLocation();
-
-                // Calculate distance to next waypoint
-                float distance = -1;
-                if (lastLocation != null && location != null) {
-                    Log.d(TAG, "location = " + lastLocation);
-                    distance = lastLocation.distanceTo(location.getLocation().toLocation()) / 1000;
-                }
-                distanceText = getString(R.string.noDistanceAvailable);
-                Log.d(TAG, "Distance = " + distance);
-                if (distance > 0)
-                    distanceText = df.format(distance) + " km";
-
-            } else {
-
-                distanceText = "---";
-
-            }
-
-        }
-
         // Create call view
         View view = getLayoutInflater().inflate(R.layout.call_dialog, null);
 
         ((TextView) view.findViewById(R.id.callPriorityLabel)).setText(R.string.nextCall);
 
-        // hide buttons
-        view.findViewById(R.id.waypointBrowserToolbar).setVisibility(View.GONE);
-//        view.findViewById(R.id.callEndButton).setVisibility(View.GONE);
-//        view.findViewById(R.id.callMessageButton).setVisibility(View.GONE);
-//        view.findViewById(R.id.callNextWaypointLocationButton).setVisibility(View.GONE);
-//        view.findViewById(R.id.callNextWaypointToMapsButton).setVisibility(View.GONE);
+        // hide browser buttons
+        view.findViewById(R.id.callEndButton).setVisibility(View.GONE);
+        view.findViewById(R.id.callMessageButton).setVisibility(View.GONE);
+
+        // waypoint browser
+        View waypointBrowser = view.findViewById(R.id.callWaypointBrowser);
+        waypointBrowser.findViewById(R.id.waypointBrowserToolbar).setVisibility(View.GONE);
+        RecyclerView waypointBrowserRecyclerView = waypointBrowser.findViewById(R.id.waypointBrowserRecyclerView);
+
+        // initialize recylcer view
+        LinearLayoutManager waypointLinearLayoutManager = new LinearLayoutManager(this,
+                LinearLayoutManager.HORIZONTAL, false);
+        waypointBrowserRecyclerView.setLayoutManager(waypointLinearLayoutManager);
+
+        // attach snap helper
+        SnapHelper snapHelper = new LinearSnapHelper();
+        snapHelper.attachToRecyclerView(waypointBrowserRecyclerView);
+
+        // Install adapter
+        WaypointInfoRecyclerAdapter adapter =
+                new WaypointInfoRecyclerAdapter(this, ambulanceCall.getWaypointSet(), true);
+        waypointBrowserRecyclerView.setAdapter(adapter);
+
+        // go to next waypoint
+        int position = ambulanceCall.getNextWaypointPosition();
+        if (position != -1) {
+            waypointLinearLayoutManager.scrollToPosition(position);
+        }
 
         // Set priority
         TextView callPriorityTextView = view.findViewById(R.id.callPriorityTextView);
@@ -1234,20 +1211,6 @@ public class MainActivity extends AppCompatActivity {
 
         ((TextView) view.findViewById(R.id.callPatientsText)).setText(patientsText.toString());
         ((TextView) view.findViewById(R.id.callNumberWaypointsText)).setText(String.valueOf(numberOfWaypoints));
-
-//        ((TextView) view.findViewById(R.id.callWaypointTypeText)).setText(waypointType);
-//        ((TextView) view.findViewById(R.id.callDistanceText)).setText(distanceText);
-//        ((TextView) view.findViewById(R.id.callAddressText)).setText(address);
-
-        // TODO: DISPLAY NEXT WAYPOINT ON DIALOG
-//        if (waypoint == null)
-//
-//            // Make callNextWaypointLayout invisible
-//            view.findViewById(R.id.waypointBrowserToolbar).setVisibility(View.GONE);
-//
-//        else
-//            // Make callNextWaypointLayout visible
-//            view.findViewById(R.id.waypointBrowserToolbar).setVisibility(View.VISIBLE);
 
         // build dialog
         builder.setTitle(R.string.acceptCall)

@@ -1,22 +1,71 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/messages_fragment"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context="org.emstrack.ambulance.fragments.MessagesFragment">
 
-    <TextView
-        android:id="@+id/message_refreshing_data"
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:padding="5dp"
-        android:text="@string/refreshingData">
-    </TextView>
+        android:layout_height="match_parent"
+        android:orientation="vertical">
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/messages_recycler_view"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
+        <TextView
+            android:id="@+id/message_refreshing_data"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="5dp"
+            android:layout_weight="1"
+            android:text="@string/refreshingData" />
+
+        <TextView
+            android:id="@+id/message_type"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/message_type"
+            android:visibility="gone"
+            style="@style/Widget.MaterialComponents.Button.TextButton" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/messages_recycler_view"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"/>
+
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:cardBackgroundColor="@color/bootstrapLight">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingStart="10dp"
+                android:orientation="horizontal">
+
+                <EditText
+                    android:id="@+id/message_send_text"
+                    android:layout_width="0dp"
+                    android:layout_height="@dimen/messageSendBarHeight"
+                    android:layout_weight="1"
+                    android:background="@drawable/rounded_edittext"
+                    android:inputType="textAutoCorrect"
+                    android:importantForAutofill="no" />
+
+                <ImageView
+                    android:id="@+id/message_send_icon"
+                    android:layout_width="@dimen/messageSendBarHeight"
+                    android:layout_height="match_parent"
+                    android:layout_marginStart="10dp"
+                    android:layout_marginEnd="5dp"
+                    app:srcCompat="@drawable/ic_paper_plane_solid"
+                    app:tint="@color/iconColorDark" />
+
+            </LinearLayout>
+
+        </androidx.cardview.widget.CardView>
+    </LinearLayout>
 
 </RelativeLayout>

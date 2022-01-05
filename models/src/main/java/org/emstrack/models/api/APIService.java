@@ -1,6 +1,7 @@
 package org.emstrack.models.api;
 
 import org.emstrack.models.Ambulance;
+import org.emstrack.models.AmbulanceNote;
 import org.emstrack.models.CallNote;
 import org.emstrack.models.Client;
 import org.emstrack.models.Credentials;
@@ -138,6 +139,14 @@ public interface APIService {
     Call<List<org.emstrack.models.EquipmentItem>> getAmbulanceEquipment(@Path("id") int id);
 
     /**
+     * Retrieve ambulance's notes
+     *
+     * @return the api call
+     */
+    @GET("ambulance/{id}/note/")
+    Call<List<AmbulanceNote>> getAmbulanceNote(@Path("id") int id);
+
+    /**
      * Retrieve hospital's equipment
      *
      * @return the equipment
@@ -152,6 +161,14 @@ public interface APIService {
      */
     @GET("call/{id}/")
     Call<org.emstrack.models.Call> getCall(@Path("id") int id);
+
+    /**
+     * Retrieve call notes
+     *
+     * @return the api call
+     */
+    @GET("call/{id}/note/")
+    Call<List<CallNote>> getCallNote(@Path("id") int id);
 
     /**
      * Add call note

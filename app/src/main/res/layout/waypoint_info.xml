@@ -18,7 +18,8 @@
         app:srcCompat="@drawable/ic_location_arrow"
         android:layout_alignParentEnd="true"
         android:layout_alignParentTop="true"
-        app:tint="@color/iconColorDark" />
+        app:tint="@color/iconColorDark"
+        android:contentDescription="@string/linkToMap" />
 
     <ImageView
         android:id="@+id/callNextWaypointToMapsButton"

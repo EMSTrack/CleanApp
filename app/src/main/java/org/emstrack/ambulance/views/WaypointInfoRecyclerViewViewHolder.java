@@ -43,13 +43,15 @@ public class WaypointInfoRecyclerViewViewHolder extends RecyclerView.ViewHolder 
     private final View callNextWaypointToMapsButton;
     private final Activity activity;
     private final View waypointInfoLayout;
+    private final boolean hideButtons;
     private Waypoint waypoint;
 
 
-    public WaypointInfoRecyclerViewViewHolder(Activity activity, View view) {
+    public WaypointInfoRecyclerViewViewHolder(Activity activity, View view, boolean hideButtons) {
         super(view);
 
         this.activity = activity;
+        this.hideButtons = hideButtons;
 
         // set formatter
         df.setMaximumFractionDigits(3);
@@ -62,6 +64,10 @@ public class WaypointInfoRecyclerViewViewHolder extends RecyclerView.ViewHolder 
 
         callNextWaypointLocationButton = view.findViewById(R.id.callNextWaypointLocationButton);
         callNextWaypointToMapsButton = view.findViewById(R.id.callNextWaypointToMapsButton);
+        if (hideButtons) {
+            callNextWaypointLocationButton.setVisibility(View.GONE);
+            callNextWaypointToMapsButton.setVisibility(View.GONE);
+        }
     }
 
     public void setAsCurrent() {
@@ -120,56 +126,58 @@ public class WaypointInfoRecyclerViewViewHolder extends RecyclerView.ViewHolder 
         }
         waypointDistance.setText(distanceText);
 
-        // set maps buttons
-        try {
+        if (!hideButtons) {
 
-            String query = URLEncoder.encode(location.toAddress(), "utf-8");
+            // set maps buttons
+            try {
 
-            Uri gmmIntentUri = Uri.parse("google.navigation:q=" + query);
-            Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
-            mapIntent.setPackage("com.google.android.apps.maps");
+                String query = URLEncoder.encode(location.toAddress(), "utf-8");
 
-            callNextWaypointToMapsButton.setOnClickListener(v -> {
+                Uri gmmIntentUri = Uri.parse("google.navigation:q=" + query);
+                Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
+                mapIntent.setPackage("com.google.android.apps.maps");
 
-                //checks if google maps or any other map app is installed
-                if ( mapIntent.resolveActivity(activity.getPackageManager()) != null) {
+                callNextWaypointToMapsButton.setOnClickListener(v -> {
 
-                    // Alert before opening in google maps
-                    new AlertDialog.Builder(activity)
-                            .setTitle(activity.getString(R.string.directions))
-                            .setMessage(R.string.wouldYouLikeToGoogleMaps)
-                            .setPositiveButton( android.R.string.ok,
-                                    (dialog, which) -> activity.startActivity( mapIntent ))
-                            .setNegativeButton( android.R.string.cancel,
-                                    (dialog, which) -> { /* do nothing */ } )
-                            .create()
-                            .show();
+                    //checks if google maps or any other map app is installed
+                    if (mapIntent.resolveActivity(activity.getPackageManager()) != null) {
 
-                } else {
+                        // Alert before opening in google maps
+                        new AlertDialog.Builder(activity)
+                                .setTitle(activity.getString(R.string.directions))
+                                .setMessage(R.string.wouldYouLikeToGoogleMaps)
+                                .setPositiveButton(android.R.string.ok,
+                                        (dialog, which) -> activity.startActivity(mapIntent))
+                                .setNegativeButton(android.R.string.cancel,
+                                        (dialog, which) -> { /* do nothing */ })
+                                .create()
+                                .show();
 
-                    // Alert that it could not open google maps
-                    new org.emstrack.ambulance.dialogs.AlertDialog(activity,
-                            activity.getString(R.string.directions))
-                            .alert(activity.getString(R.string.couldNotOpenGoogleMaps));
+                    } else {
 
-                }
+                        // Alert that it could not open google maps
+                        new org.emstrack.ambulance.dialogs.AlertDialog(activity,
+                                activity.getString(R.string.directions))
+                                .alert(activity.getString(R.string.couldNotOpenGoogleMaps));
 
+                    }
+
+                });
+
+            } catch (java.io.UnsupportedEncodingException e) {
+                Log.d(TAG, "Could not parse location into url for map intent");
+            }
+
+            // set location button
+            callNextWaypointLocationButton.setOnClickListener(v -> {
+                Bundle bundle = new Bundle();
+                GPSLocation gpsLocation = location.getLocation();
+                LatLng latLng = new LatLng(gpsLocation.getLatitude(), gpsLocation.getLongitude());
+                bundle.putParcelable("latLng", latLng);
+                ((MainActivity) activity).navigate(R.id.action_ambulance_to_map, bundle);
             });
-            callNextWaypointToMapsButton.setVisibility(View.VISIBLE);
 
-        } catch (java.io.UnsupportedEncodingException e) {
-            Log.d( TAG, "Could not parse location into url for map intent" );
         }
-
-        // set location button
-        callNextWaypointLocationButton.setOnClickListener(v -> {
-            Bundle bundle = new Bundle();
-            GPSLocation gpsLocation = location.getLocation();
-            LatLng latLng = new LatLng(gpsLocation.getLatitude(), gpsLocation.getLongitude());
-            bundle.putParcelable("latLng", latLng);
-            ((MainActivity) activity).navigate(R.id.action_ambulance_to_map, bundle);
-        });
-
     }
 
 }

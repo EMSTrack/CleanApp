@@ -43,4 +43,15 @@ public class BitmapUtils {
         return bitmapDescriptorFromVector(context, vectorResId, 1);
     }
 
+    /**
+     * This method converts dp unit to equivalent pixels, depending on device density.
+     *
+     * @param dp      A value in dp (density independent pixels) unit. Which we need to convert into pixels
+     * @param context Context to get resources and device specific display metrics
+     * @return A float value to represent px equivalent to dp depending on device density
+     */
+    public static float dpToPixels(Context context, int dp) {
+        return dp * context.getResources().getDisplayMetrics().density;
+    }
+
 }

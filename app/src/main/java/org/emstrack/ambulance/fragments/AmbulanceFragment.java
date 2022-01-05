@@ -5,7 +5,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
-import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
 
@@ -51,7 +50,6 @@ import org.emstrack.models.AmbulanceCall;
 import org.emstrack.models.AmbulancePermission;
 import org.emstrack.models.Call;
 import org.emstrack.models.CallStack;
-import org.emstrack.models.Location;
 import org.emstrack.models.Patient;
 import org.emstrack.models.PriorityCode;
 import org.emstrack.models.Profile;
@@ -71,6 +69,7 @@ public class AmbulanceFragment extends Fragment {
     private static final String TAG = AmbulanceFragment.class.getSimpleName();
 
     private static final DecimalFormat df = new DecimalFormat();
+    private static final int MAX_RETRIES = 10;
 
     private View view;
 
@@ -408,9 +407,6 @@ public class AmbulanceFragment extends Fragment {
         commentText = view.findViewById(R.id.commentText);
         commentLabel = view.findViewById(R.id.commentLabel);
 
-        // get ambulance
-        Ambulance ambulance = appData.getAmbulance();
-
         // Set login button
         view.findViewById(R.id.ambulanceLogin).setVisibility(View.GONE);
 
@@ -439,7 +435,7 @@ public class AmbulanceFragment extends Fragment {
         ambulanceMessageButton.setOnClickListener(view -> {
             int ambulanceId = AmbulanceForegroundService.getAppData().getAmbulanceId();
             Bundle bundle = new Bundle();
-            bundle.putSerializable("type", MessageType.AMBULANCE_NOTE);
+            bundle.putSerializable("type", MessageType.AMBULANCE);
             bundle.putInt("id", ambulanceId);
             activity.navigate(R.id.action_ambulance_to_messages, bundle);
         });
@@ -501,8 +497,10 @@ public class AmbulanceFragment extends Fragment {
                 });
         waypointToolbarSkipButton
                 .setOnClickListener(v -> {
+                    AmbulanceAppData appData_ = AmbulanceForegroundService.getAppData();
+                    Ambulance ambulance = appData_.getAmbulance();
                     int currentPosition = waypointLinearLayoutManager.findFirstVisibleItemPosition();
-                    Call call = AmbulanceForegroundService.getAppData().getCalls().getCurrentCall();
+                    Call call = appData_.getCalls().getCurrentCall();
                     AmbulanceCall ambulanceCall = call.getCurrentAmbulanceCall();
                     try {
                         List<Waypoint> waypointSet = ambulanceCall.getWaypointSet();
@@ -519,6 +517,8 @@ public class AmbulanceFragment extends Fragment {
         waypointToolbarVisitingButton
                 .setOnClickListener(v -> {
                     try {
+                        AmbulanceAppData appData_ = AmbulanceForegroundService.getAppData();
+                        Ambulance ambulance = appData_.getAmbulance();
                         int currentPosition = waypointLinearLayoutManager.findFirstVisibleItemPosition();
                         Call call = AmbulanceForegroundService.getAppData().getCalls().getCurrentCall();
                         AmbulanceCall ambulanceCall = call.getCurrentAmbulanceCall();
@@ -619,17 +619,25 @@ public class AmbulanceFragment extends Fragment {
     }
 
     void configureWaypointEditor(int position) {
+        configureWaypointEditor(position, 0);
+    }
+
+    void configureWaypointEditor(int position, int count) {
 
         // get current position
         int currentPosition = waypointLinearLayoutManager.findFirstVisibleItemPosition();
         Log.d(TAG, String.format("Waypoint editor; position = %d, currentPosition = %d", position, currentPosition));
 
         if (currentPosition == -1) {
-            // configure waypoint after a while
-            new Handler().postDelayed(() -> {
-                Log.d(TAG, "Delaying configuring Waypoint editor");
-                configureWaypointEditor(position);
-            }, 100);
+            if (getContext() != null && count < MAX_RETRIES) {
+                // configure waypoint after a while
+                new Handler().postDelayed(() -> {
+                    Log.d(TAG, "Delaying configuring Waypoint editor");
+                    configureWaypointEditor(position, count + 1);
+                }, 100);
+            } else {
+                Log.d(TAG, "Out of context or MAX_RETRIES exceeded. Giving up configuring waypoint editor. Editor is likely not visible");
+            }
         }
 
         if (currentPosition != position) {
@@ -905,7 +913,7 @@ public class AmbulanceFragment extends Fragment {
 
                 callMessageButton.setOnClickListener(v -> {
                     Bundle bundle = new Bundle();
-                    bundle.putSerializable("type", MessageType.CALL_NOTE);
+                    bundle.putSerializable("type", MessageType.CALL);
                     bundle.putInt("id", call.getId());
                     activity.navigate(R.id.action_ambulance_to_messages, bundle);
                 });

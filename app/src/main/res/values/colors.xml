@@ -38,5 +38,6 @@
     <color name="iconCallAccepted">#f4cccc</color>
 
     <color name="tabBackground">#CFCFCF</color>
+    <color name="messageBackground">#cfcfcf</color>
 
 </resources>

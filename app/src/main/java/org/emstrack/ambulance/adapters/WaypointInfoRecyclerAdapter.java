@@ -12,8 +12,6 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
-import android.widget.ImageView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
@@ -29,17 +27,23 @@ public class WaypointInfoRecyclerAdapter extends RecyclerView.Adapter<WaypointIn
     private static final String TAG = WaypointInfoRecyclerAdapter.class.getSimpleName();
     private final Activity activity;
     private final List<Waypoint> waypoints;
+    private final boolean hideButtons;
 
-    public WaypointInfoRecyclerAdapter(Activity activity, List<Waypoint> waypointList) {
+    public WaypointInfoRecyclerAdapter(Activity activity, List<Waypoint> waypointList, boolean hideButtons) {
         this.activity = activity;
         this.waypoints = waypointList;
+        this.hideButtons = hideButtons;
+    }
+
+    public WaypointInfoRecyclerAdapter(Activity activity, List<Waypoint> waypointList) {
+        this(activity, waypointList, false);
     }
 
     @NonNull
     @Override
     public WaypointInfoRecyclerViewViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.waypoint_info, parent, false);
-        return new WaypointInfoRecyclerViewViewHolder(activity, view);
+        return new WaypointInfoRecyclerViewViewHolder(activity, view, hideButtons);
     }
 
     @Override

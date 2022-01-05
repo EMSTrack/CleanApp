@@ -83,9 +83,6 @@ public class EquipmentFragment extends Fragment {
             id = -1;
         }
 
-        // Refresh data
-        refreshData();
-
         return rootView;
     }
 
@@ -169,7 +166,7 @@ public class EquipmentFragment extends Fragment {
      * @return the LocalBroadcastManager
      */
     private LocalBroadcastManager getLocalBroadcastManager() {
-        return LocalBroadcastManager.getInstance(getContext());
+        return LocalBroadcastManager.getInstance(requireContext());
     }
 
 }

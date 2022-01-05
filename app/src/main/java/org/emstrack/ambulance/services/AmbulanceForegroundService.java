@@ -78,6 +78,7 @@ import org.emstrack.models.api.APIError;
 import org.emstrack.models.api.APIService;
 import org.emstrack.models.api.APIServiceGenerator;
 import org.emstrack.models.api.OnAPICallComplete;
+import org.emstrack.models.util.CalendarDateTypeAdapter;
 import org.emstrack.models.util.OnComplete;
 import org.emstrack.models.util.OnServiceComplete;
 import org.emstrack.mqtt.MishandledTopicException;
@@ -89,6 +90,7 @@ import org.json.JSONObject;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -2936,6 +2938,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
                     // parse ambulance data
                     GsonBuilder gsonBuilder = new GsonBuilder();
+                    gsonBuilder.registerTypeHierarchyAdapter(Calendar.class, new CalendarDateTypeAdapter());
                     gsonBuilder.setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES);
                     Gson gson = gsonBuilder.create();
 
@@ -3008,6 +3011,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
                         // Parse ambulance
                         GsonBuilder gsonBuilder = new GsonBuilder();
+                        gsonBuilder.registerTypeHierarchyAdapter(Calendar.class, new CalendarDateTypeAdapter());
                         gsonBuilder.setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES);
                         Gson gson = gsonBuilder.create();
 
@@ -3127,6 +3131,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
                     // parse call id data
                     GsonBuilder gsonBuilder = new GsonBuilder();
+                    gsonBuilder.registerTypeHierarchyAdapter(Calendar.class, new CalendarDateTypeAdapter());
                     gsonBuilder.setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES);
                     Gson gson = gsonBuilder.create();
 
@@ -3171,6 +3176,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
                         // Parse hospital
                         GsonBuilder gsonBuilder = new GsonBuilder();
+                        gsonBuilder.registerTypeHierarchyAdapter(Calendar.class, new CalendarDateTypeAdapter());
                         gsonBuilder.setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES);
                         Gson gson = gsonBuilder.create();
 
