@@ -2,10 +2,10 @@ package org.emstrack.models;
 
 import android.content.Context;
 
+import androidx.test.annotation.UiThreadTest;
 import androidx.test.core.app.ApplicationProvider;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
-import android.test.UiThreadTest;
 import android.util.Log;
 
 import org.emstrack.models.api.APIService;

@@ -52,6 +52,8 @@
                     android:layout_weight="1"
                     android:background="@drawable/rounded_edittext"
                     android:inputType="textAutoCorrect"
+                    android:focusable="true"
+                    android:focusableInTouchMode="true"
                     android:importantForAutofill="no" />
 
                 <ImageView
