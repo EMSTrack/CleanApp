@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.content.Context;
 import android.graphics.PorterDuff;
 import android.location.Location;
-import android.media.Image;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageView;
@@ -17,6 +16,7 @@ import com.google.android.gms.maps.model.LatLng;
 
 import org.emstrack.ambulance.MainActivity;
 import org.emstrack.ambulance.R;
+import org.emstrack.ambulance.adapters.AmbulanceRecyclerAdapter;
 import org.emstrack.ambulance.models.EquipmentType;
 import org.emstrack.ambulance.models.MessageType;
 import org.emstrack.ambulance.services.AmbulanceForegroundService;
@@ -31,14 +31,14 @@ import java.util.Map;
  * @since 7/07/2020
  */
 
-public class AmbulanceRecyclerViewViewHolder extends RecyclerView.ViewHolder {
+public class AmbulanceViewHolder extends RecyclerView.ViewHolder {
 
-    private static final String TAG = AmbulanceRecyclerViewViewHolder.class.getSimpleName();
+    private static final String TAG = AmbulanceViewHolder.class.getSimpleName();
     private final Map<String, String> ambulanceCapabilitiesMap;
     private final Map<String, String> ambulanceStatusMap;
 
     private final View ambulanceDetailView;
-    private final TextView ambulanceName;
+    private final TextView ambulanceIdentifierText;
 
     private final ImageView ambulanceMessageImageView;
     private final ImageView ambulanceEquipmentImageView;
@@ -51,13 +51,13 @@ public class AmbulanceRecyclerViewViewHolder extends RecyclerView.ViewHolder {
     private final TextView ambulanceUpdatedOnText;
     private final View ambulanceCommentLabel;
 
-    public AmbulanceRecyclerViewViewHolder(Context context, View view) {
+    public AmbulanceViewHolder(Context context, View view) {
         super(view);
 
-        ambulanceName = view.findViewById(R.id.ambulance_name);
+        ambulanceIdentifierText = view.findViewById(R.id.ambulanceIdentifierText);
 
         ambulanceThumbnail = view.findViewById(R.id.ambulanceThumbnail);
-        ambulanceStatusText = view.findViewById(R.id.statusText);
+        ambulanceStatusText = view.findViewById(R.id.ambulanceStatusText);
 
         ambulanceDetailView = view.findViewById(R.id.ambulance_detail);
 
@@ -96,12 +96,12 @@ public class AmbulanceRecyclerViewViewHolder extends RecyclerView.ViewHolder {
 
     }
 
-    public void setAmbulance(Ambulance ambulance, Activity activity) {
+    public void setAmbulance(Ambulance ambulance, Activity activity, AmbulanceRecyclerAdapter.LoginAmbulance loginAmbulance) {
 
         MainActivity mainActivity = (MainActivity) activity;
 
         int ambulanceId = ambulance.getId();
-        ambulanceName.setText(ambulance.getIdentifier());
+        ambulanceIdentifierText.setText(ambulance.getIdentifier());
         int vectorColor;
         if (ambulance.getClientId() != null) {
             // online
@@ -139,7 +139,7 @@ public class AmbulanceRecyclerViewViewHolder extends RecyclerView.ViewHolder {
             Bundle bundle = new Bundle();
             bundle.putSerializable("type", MessageType.AMBULANCE);
             bundle.putInt("id", ambulanceId);
-            ((MainActivity) activity).navigate(R.id.action_ambulances_to_messages, bundle);
+            mainActivity.navigate(R.id.action_ambulances_to_messages, bundle);
         });
 
         // set equipment click response
@@ -147,7 +147,7 @@ public class AmbulanceRecyclerViewViewHolder extends RecyclerView.ViewHolder {
             Bundle bundle = new Bundle();
             bundle.putSerializable("type", EquipmentType.AMBULANCE);
             bundle.putInt("id", ambulanceId);
-            ((MainActivity) activity).navigate(R.id.action_ambulances_to_equipment, bundle);
+            mainActivity.navigate(R.id.action_ambulances_to_equipment, bundle);
         });
 
         // set location click response
@@ -156,14 +156,12 @@ public class AmbulanceRecyclerViewViewHolder extends RecyclerView.ViewHolder {
             Location location = ambulance.getLocation().toLocation();
             LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
             bundle.putParcelable("latLng", latLng);
-            ((MainActivity) activity).navigate(R.id.action_ambulances_to_map, bundle);
+            mainActivity.navigate(R.id.action_ambulances_to_map, bundle);
         });
 
         // set select click response
         ambulanceLoginImageView.setOnClickListener(v -> {
-            Bundle bundle = new Bundle();
-            bundle.putInt("id", ambulanceId);
-            ((MainActivity) activity).navigate(R.id.action_ambulances_to_ambulance, bundle);
+            loginAmbulance.login(ambulanceId);
         });
 
     }

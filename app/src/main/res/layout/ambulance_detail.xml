@@ -16,16 +16,14 @@
             android:layout_height="wrap_content"
             android:layout_width="wrap_content"
             android:text="@string/ambulanceCapabilityLabel"
-            android:textStyle="bold"
-            android:layout_marginTop="5dp" />
+            android:textStyle="bold" />
 
         <TextView
             android:id="@+id/capabilityText"
             android:layout_height="wrap_content"
             android:layout_width="wrap_content"
             android:text="@string/unknown"
-            android:layout_alignParentEnd="true"
-            android:layout_marginTop="5dp" />
+            android:layout_alignParentEnd="true" />
 
         <TextView
             android:id="@+id/commentLabel"
@@ -33,7 +31,6 @@
             android:layout_width="wrap_content"
             android:text="@string/gpsCommentsLabel"
             android:textStyle="bold"
-            android:layout_marginTop="5dp"
             android:layout_below="@+id/capabilityText"/>
 
         <TextView
@@ -42,7 +39,6 @@
             android:layout_width="wrap_content"
             android:text="@string/unknown"
             android:layout_alignParentEnd="true"
-            android:layout_marginTop="5dp"
             android:layout_below="@+id/commentLabel"/>
 
         <TextView
@@ -51,7 +47,6 @@
             android:layout_width="wrap_content"
             android:text="@string/gpsLastUpdatedOnLabel"
             android:textStyle="bold"
-            android:layout_marginTop="5dp"
             android:layout_below="@+id/commentText"/>
 
         <TextView
@@ -60,8 +55,7 @@
             android:layout_width="wrap_content"
             android:text="@string/unknown"
             android:layout_alignParentEnd="true"
-            android:layout_marginTop="5dp"
-            android:layout_below="@+id/updatedOnLabel"/>
+            android:layout_below="@+id/commentText"/>
 
     </RelativeLayout>
 
@@ -69,7 +63,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:layout_marginTop="10dp">
+        android:layout_marginTop="5dp">
 
         <View
             android:layout_height="0dp"
@@ -113,8 +107,7 @@
             android:layout_height="@dimen/ambulanceToolbarIconHeight"
             android:layout_width="@dimen/ambulanceToolbarIconWidth"
             app:srcCompat="@drawable/ic_briefcase_medical"
-            app:tint="@color/iconColorDark"
-            android:layout_marginEnd="10dp" />
+            app:tint="@color/iconColorDark" />
 
     </LinearLayout>
 

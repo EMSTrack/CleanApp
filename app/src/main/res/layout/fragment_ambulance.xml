@@ -1,108 +1,115 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:background="?android:windowBackground"
-    android:id="@+id/equipment_fragment"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/fragment_ambulance"
     android:layout_width="match_parent"
-    android:layout_height="fill_parent"
-    android:gravity="top"
-    android:paddingHorizontal="5dp"
-    android:orientation="vertical"
+    android:layout_height="match_parent"
+    android:paddingHorizontal="10dp"
+    android:paddingVertical="10dp"
     tools:context="org.emstrack.ambulance.fragments.AmbulanceFragment">
 
-    <TextView
-        android:id="@+id/ambulanceSelectionMessage"
+    <LinearLayout
+        android:id="@+id/ambulanceLabelLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
-        android:text="@string/noAmbulanceMessage">
-    </TextView>
+        android:orientation="horizontal">
+
+        <ImageView
+            android:id="@+id/ambulanceThumbnail"
+            android:layout_height="@dimen/ambulanceToolbarIconHeight"
+            android:layout_width="@dimen/ambulanceToolbarIconWidth"
+            app:srcCompat="@drawable/ic_car_solid" />
+
+        <TextView
+            android:id="@+id/ambulanceLabel"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginStart="10dp"
+            android:gravity="center_vertical"
+            android:text="@string/ambulanceButtonDefaultText" />
+
+    </LinearLayout>
 
     <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:layout_below="@id/ambulanceLabelLayout">
 
         <LinearLayout
-            android:id="@+id/ambulanceFragmentLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <TextView
-                android:id="@+id/ambulanceLabel"
+            <include layout="@layout/ambulance_detail"
+                android:id="@+id/ambulanceDetail"
+                android:layout_marginStart="35dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="@string/ambulanceButtonDefaultText"
-                style="@style/Widget.MaterialComponents.Button.TextButton" />
+                android:layout_marginTop="5dp"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:id="@+id/infoThumbnail"
+                    android:layout_height="@dimen/ambulanceToolbarIconHeight"
+                    android:layout_width="@dimen/ambulanceToolbarIconWidth"
+                    app:srcCompat="@drawable/ic_info_circle_solid" />
+
+                <TextView
+                    android:id="@+id/statusLabel"
+                    android:layout_height="wrap_content"
+                    android:layout_width="wrap_content"
+                    android:text="@string/StatusLabel"
+                    android:layout_marginStart="10dp"
+                    android:textStyle="bold" />
+
+            </LinearLayout>
 
             <Button
                 android:id="@+id/statusButton"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginStart="35dp"
                 android:text="@string/available" />
 
-            <RelativeLayout
-                android:id="@+id/callInformationLayout"
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content" >
+                android:layout_height="wrap_content"
+                android:layout_marginTop="5dp"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:id="@+id/callThumbnail"
+                    android:layout_height="@dimen/ambulanceToolbarIconHeight"
+                    android:layout_width="@dimen/ambulanceToolbarIconWidth"
+                    app:srcCompat="@drawable/ic_phone_solid" />
 
                 <TextView
                     android:id="@+id/callLabel"
-                    android:layout_height="wrap_content"
                     android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
                     android:text="@string/callLabel"
-                    android:layout_marginTop="10dp"
+                    android:layout_marginStart="10dp"
                     android:textStyle="bold" />
 
                 <TextView
                     android:id="@+id/callInformationText"
                     android:layout_height="wrap_content"
-                    android:layout_width="fill_parent"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
                     android:gravity="end"
-                    android:layout_marginTop="10dp"
-                    android:layout_toEndOf="@id/callLabel"/>
-
-                <LinearLayout
-                    android:id="@+id/callResumeLayout"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:visibility="gone"
-                    android:layout_below="@+id/callLabel">
-
-                    <Spinner
-                        android:id="@+id/callResumeSpinner"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content" />
-
-                    <Button
-                        android:id="@+id/callResumeButton"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="10dp"
-                        android:backgroundTint="@color/bootstrapPrimary"
-                        android:text="@string/resumeCalls" />
-
-                </LinearLayout>
-
-            </RelativeLayout>
-
-            <LinearLayout
-                android:id="@+id/callLayout"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:layout_marginTop="10dp"
-                android:visibility="gone">
-
-                <include layout="@layout/call_current"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"/>
+                    android:textAlignment="gravity"
+                    android:text="No calls"/>
 
             </LinearLayout>
 
-            <include layout="@layout/ambulance_detail"
-                android:id="@+id/ambulanceDetail"
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/ambulanceCallRecyclerView"
+                android:layout_marginStart="35dp"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content" />
 
@@ -110,6 +117,6 @@
 
     </ScrollView>
 
-</LinearLayout>
+</RelativeLayout>
 
 

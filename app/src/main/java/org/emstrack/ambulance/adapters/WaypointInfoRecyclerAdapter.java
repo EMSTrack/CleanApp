@@ -19,10 +19,10 @@ import androidx.recyclerview.widget.RecyclerView;
 import java.util.List;
 
 import org.emstrack.ambulance.R;
-import org.emstrack.ambulance.views.WaypointInfoRecyclerViewViewHolder;
+import org.emstrack.ambulance.views.WaypointViewHolder;
 import org.emstrack.models.Waypoint;
 
-public class WaypointInfoRecyclerAdapter extends RecyclerView.Adapter<WaypointInfoRecyclerViewViewHolder>{
+public class WaypointInfoRecyclerAdapter extends RecyclerView.Adapter<WaypointViewHolder>{
 
     private static final String TAG = WaypointInfoRecyclerAdapter.class.getSimpleName();
     private final Activity activity;
@@ -41,25 +41,25 @@ public class WaypointInfoRecyclerAdapter extends RecyclerView.Adapter<WaypointIn
 
     @NonNull
     @Override
-    public WaypointInfoRecyclerViewViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+    public WaypointViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.waypoint_info, parent, false);
-        return new WaypointInfoRecyclerViewViewHolder(activity, view, hideButtons);
+        return new WaypointViewHolder(activity, view, hideButtons);
     }
 
     @Override
-    public void onBindViewHolder(WaypointInfoRecyclerViewViewHolder holder, int position) {
+    public void onBindViewHolder(WaypointViewHolder holder, int position) {
         Waypoint waypoint = waypoints.get(position);
         holder.setWaypoint(waypoint, activity, position);
     }
 
     @Override
-    public void onViewAttachedToWindow(@NonNull WaypointInfoRecyclerViewViewHolder holder) {
+    public void onViewAttachedToWindow(@NonNull WaypointViewHolder holder) {
         super.onViewAttachedToWindow(holder);
         Log.d(TAG, "View attached to window!");
     }
 
     @Override
-    public void onViewDetachedFromWindow(@NonNull WaypointInfoRecyclerViewViewHolder holder) {
+    public void onViewDetachedFromWindow(@NonNull WaypointViewHolder holder) {
         super.onViewDetachedFromWindow(holder);
         Log.d(TAG, "View detached from window!");
     }

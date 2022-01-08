@@ -411,6 +411,14 @@ public class LoginFragment extends Fragment {
                         navigateToMap();
                     }
 
+                    @Override
+                    public void onFailure(Bundle extras) {
+                        super.onFailure(extras);
+
+                        // enable login buttons
+                        loginSubmitButton.setEnabled(true);
+                        loginAsDemoButton.setEnabled(true);
+                    }
                 }
                         .setFailureMessage(null)
                         .setAlert(new AlertDialog(activity,
@@ -428,7 +436,7 @@ public class LoginFragment extends Fragment {
         activity.initialize();
 
         // navigate to map fragment
-        activity.navigate(R.id.map);
+        activity.navigate(R.id.mapFragment);
 
         // show action bar and bottom navigation bar
         activity.showActionBar();

@@ -3,12 +3,14 @@ package org.emstrack.ambulance.views;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 
+import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.gms.maps.model.LatLng;
@@ -22,6 +24,7 @@ import org.emstrack.models.Waypoint;
 
 import java.net.URLEncoder;
 import java.text.DecimalFormat;
+import java.util.Locale;
 
 /**
  * Holds the waypoint data
@@ -29,9 +32,9 @@ import java.text.DecimalFormat;
  * @since 7/07/2020
  */
 
-public class WaypointInfoRecyclerViewViewHolder extends RecyclerView.ViewHolder {
+public class WaypointViewHolder extends RecyclerView.ViewHolder {
 
-    private static final String TAG = WaypointInfoRecyclerViewViewHolder.class.getSimpleName();
+    private static final String TAG = WaypointViewHolder.class.getSimpleName();
     private static final DecimalFormat df = new DecimalFormat();
 
     private final TextView waypointAddressLine0;
@@ -47,7 +50,7 @@ public class WaypointInfoRecyclerViewViewHolder extends RecyclerView.ViewHolder 
     private Waypoint waypoint;
 
 
-    public WaypointInfoRecyclerViewViewHolder(Activity activity, View view, boolean hideButtons) {
+    public WaypointViewHolder(Activity activity, View view, boolean hideButtons) {
         super(view);
 
         this.activity = activity;
@@ -128,14 +131,48 @@ public class WaypointInfoRecyclerViewViewHolder extends RecyclerView.ViewHolder 
 
         if (!hideButtons) {
 
+            // Get navigation app preference
+            SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(activity);
+            String navigationAppKey = sharedPreferences.getString(activity.getString(R.string.navigationAppPreferenceKey),
+                    activity.getResources().getString(R.string.navigationAppPreferenceDefault));
+
             // set maps buttons
-            try {
+            String navigationAppLabel;
+            final Intent mapIntent;
+            if (navigationAppKey.equals("waze")) {
 
-                String query = URLEncoder.encode(location.toAddress(), "utf-8");
+                // setup label
+                navigationAppLabel = activity.getString(R.string.Waze);
 
-                Uri gmmIntentUri = Uri.parse("google.navigation:q=" + query);
-                Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
-                mapIntent.setPackage("com.google.android.apps.maps");
+                // set up waze location
+                GPSLocation gpsLocation = location.getLocation();
+                String url = String.format(Locale.ENGLISH,
+                        "https://waze.com/ul?ll=%f,%f&navigate=yes", gpsLocation.getLatitude(), gpsLocation.getLongitude());
+                mapIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+
+            } else { // if (navigationApp.equals("google_maps")) {
+
+                // setup label
+                navigationAppLabel = activity.getString(R.string.GoogleMaps);
+
+                String query = null;
+                try {
+                    query = URLEncoder.encode(location.toAddress(), "utf-8");
+                } catch (java.io.UnsupportedEncodingException e) {
+                    Log.d(TAG, "Could not parse location into url for map intent");
+                }
+
+                if (query != null) {
+                    Uri gmmIntentUri = Uri.parse("google.navigation:q=" + query);
+                    mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
+                    mapIntent.setPackage("com.google.android.apps.maps");
+                } else {
+                    mapIntent = null;
+                }
+
+            }
+
+            if (mapIntent != null) {
 
                 callNextWaypointToMapsButton.setOnClickListener(v -> {
 
@@ -145,7 +182,7 @@ public class WaypointInfoRecyclerViewViewHolder extends RecyclerView.ViewHolder 
                         // Alert before opening in google maps
                         new AlertDialog.Builder(activity)
                                 .setTitle(activity.getString(R.string.directions))
-                                .setMessage(R.string.wouldYouLikeToGoogleMaps)
+                                .setMessage(activity.getString(R.string.wouldYouLikeToNavigate, navigationAppLabel))
                                 .setPositiveButton(android.R.string.ok,
                                         (dialog, which) -> activity.startActivity(mapIntent))
                                 .setNegativeButton(android.R.string.cancel,
@@ -163,9 +200,6 @@ public class WaypointInfoRecyclerViewViewHolder extends RecyclerView.ViewHolder 
                     }
 
                 });
-
-            } catch (java.io.UnsupportedEncodingException e) {
-                Log.d(TAG, "Could not parse location into url for map intent");
             }
 
             // set location button
@@ -174,7 +208,7 @@ public class WaypointInfoRecyclerViewViewHolder extends RecyclerView.ViewHolder 
                 GPSLocation gpsLocation = location.getLocation();
                 LatLng latLng = new LatLng(gpsLocation.getLatitude(), gpsLocation.getLongitude());
                 bundle.putParcelable("latLng", latLng);
-                ((MainActivity) activity).navigate(R.id.action_ambulance_to_map, bundle);
+                ((MainActivity) activity).navigate(R.id.mapFragment, bundle);
             });
 
         }

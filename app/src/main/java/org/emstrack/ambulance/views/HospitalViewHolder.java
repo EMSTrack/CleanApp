@@ -9,10 +9,8 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import org.emstrack.ambulance.R;
 import org.emstrack.ambulance.adapters.EquipmentRecyclerAdapter;
-import org.emstrack.ambulance.dialogs.AlertSnackbar;
 import org.emstrack.models.EquipmentItem;
 import org.emstrack.models.Hospital;
-import org.emstrack.models.TokenLogin;
 import org.emstrack.models.api.APIService;
 import org.emstrack.models.api.APIServiceGenerator;
 import org.emstrack.models.api.OnAPICallComplete;
@@ -25,9 +23,9 @@ import java.util.List;
  * @since 7/07/2020
  */
 
-public class HospitalRecyclerViewViewHolder extends RecyclerView.ViewHolder {
+public class HospitalViewHolder extends RecyclerView.ViewHolder {
 
-    private static final String TAG = HospitalRecyclerViewViewHolder.class.getSimpleName();
+    private static final String TAG = HospitalViewHolder.class.getSimpleName();
     private final View hospitalEquipment;
     private final TextView hospitalName;
     private final TextView hospitalEquipmentRefreshingData;
@@ -35,7 +33,7 @@ public class HospitalRecyclerViewViewHolder extends RecyclerView.ViewHolder {
     private Hospital hospital;
 
 
-    public HospitalRecyclerViewViewHolder(Context context, View view) {
+    public HospitalViewHolder(Context context, View view) {
         super(view);
 
         hospitalName = view.findViewById(R.id.hospital_name);

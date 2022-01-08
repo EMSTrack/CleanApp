@@ -2,9 +2,18 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
+    <ListPreference
+        android:icon="@drawable/ic_map"
+        android:key="@string/navigationAppPreferenceKey"
+        android:title="@string/navigationAppPreferenceLabel"
+        android:summary="@string/navigationAppPreferenceSummary"
+        android:entries="@array/navigationAppEntries"
+        android:entryValues="@array/navigationAppValues"
+        android:defaultValue="@string/navigationAppPreferenceDefault"/>
+
     <SwitchPreference
         android:icon="@drawable/ic_location_arrow"
-        android:key="@string/useApproximateLocationAccuracyKey"
+        android:key="@string/useApproximateLocationAccuracyPreferenceKey"
         android:title="@string/approximateLocation"
         android:summary="@string/approximateLocationExplanation"
         android:defaultValue="true" />

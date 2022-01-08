@@ -15,11 +15,11 @@
         android:paddingVertical="5dp"
         android:paddingHorizontal="5dp">
 
-        <include layout="@layout/ambulance_header"
+        <include layout="@layout/call_header"
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
 
-        <include layout="@layout/ambulance_detail"
+        <include layout="@layout/call_detail"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginStart="35dp"

@@ -3,20 +3,20 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/app_navigation"
-    app:startDestination="@+id/login">
+    app:startDestination="@+id/loginFragment">
 
     <fragment
-        android:id="@+id/login"
+        android:id="@+id/loginFragment"
         android:name="org.emstrack.ambulance.fragments.LoginFragment"
         android:label="Login"
         tools:layout="@layout/fragment_login" >
         <action
             android:id="@+id/action_loginFragment_to_mapFragment"
-            app:destination="@id/map" />
+            app:destination="@id/mapFragment" />
     </fragment>
 
     <fragment
-        android:id="@+id/map"
+        android:id="@+id/mapFragment"
         android:name="org.emstrack.ambulance.fragments.MapFragment"
         android:label="Map"
         tools:layout="@layout/fragment_map" >
@@ -26,27 +26,27 @@
             android:defaultValue="@null" />
         <action
             android:id="@+id/action_mapFragment_to_hospitalFragment"
-            app:destination="@id/hospitals" />
+            app:destination="@id/hospitalsFragment" />
         <action
             android:id="@+id/action_map_to_settings"
-            app:destination="@id/settings" />
+            app:destination="@id/settingsFragment" />
     </fragment>
 
     <fragment
-        android:id="@+id/hospitals"
+        android:id="@+id/hospitalsFragment"
         android:name="org.emstrack.ambulance.fragments.HospitalFragment"
         android:label="Hospitals"
         tools:layout="@layout/fragment_hospital" >
         <action
             android:id="@+id/action_hospitals_to_ambulancesFragment"
-            app:destination="@id/ambulances" />
+            app:destination="@id/ambulancesFragment" />
         <action
             android:id="@+id/action_hospitals_to_equipment"
-            app:destination="@id/equipment" />
+            app:destination="@id/equipmentFragment" />
     </fragment>
 
     <fragment
-        android:id="@+id/ambulance"
+        android:id="@+id/ambulanceFragment"
         android:name="org.emstrack.ambulance.fragments.AmbulanceFragment"
         android:label="Vehicle"
         tools:layout="@layout/fragment_ambulance" >
@@ -56,17 +56,20 @@
             android:defaultValue="-1" />
         <action
             android:id="@+id/action_ambulance_to_equipment"
-            app:destination="@id/equipment" />
+            app:destination="@id/equipmentFragment" />
         <action
             android:id="@+id/action_ambulance_to_map"
-            app:destination="@id/map" />
+            app:destination="@id/mapFragment" />
         <action
             android:id="@+id/action_ambulance_to_messages"
-            app:destination="@id/messages" />
+            app:destination="@id/messagesFragment" />
+        <action
+            android:id="@+id/action_ambulance_to_call"
+            app:destination="@id/callFragment" />
     </fragment>
 
     <fragment
-        android:id="@+id/equipment"
+        android:id="@+id/equipmentFragment"
         android:name="org.emstrack.ambulance.fragments.EquipmentFragment"
         android:label="Equipment"
         tools:layout="@layout/fragment_equipment">
@@ -81,31 +84,31 @@
     </fragment>
 
     <fragment
-        android:id="@+id/settings"
+        android:id="@+id/settingsFragment"
         android:name="org.emstrack.ambulance.fragments.SettingsFragment"
         android:label="@string/settings" />
 
     <fragment
-        android:id="@+id/ambulances"
+        android:id="@+id/ambulancesFragment"
         android:name="org.emstrack.ambulance.fragments.AmbulancesFragment"
         android:label="@string/ambulances"
         tools:layout="@layout/fragment_ambulances" >
         <action
             android:id="@+id/action_ambulances_to_ambulance"
-            app:destination="@id/ambulance" />
+            app:destination="@id/ambulanceFragment" />
         <action
             android:id="@+id/action_ambulances_to_equipment"
-            app:destination="@id/equipment" />
+            app:destination="@id/equipmentFragment" />
         <action
             android:id="@+id/action_ambulances_to_map"
-            app:destination="@id/map" />
+            app:destination="@id/mapFragment" />
         <action
             android:id="@+id/action_ambulances_to_messages"
-            app:destination="@id/messages" />
+            app:destination="@id/messagesFragment" />
     </fragment>
 
     <fragment
-        android:id="@+id/messages"
+        android:id="@+id/messagesFragment"
         android:name="org.emstrack.ambulance.fragments.MessagesFragment"
         android:label="@string/messages"
         tools:layout="@layout/fragment_messages">
@@ -117,6 +120,18 @@
             android:name="id"
             app:argType="integer"
             android:defaultValue="-1" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/callFragment"
+        android:name="org.emstrack.ambulance.fragments.CallFragment"
+        android:label="CallFragment" >
+        <action
+            android:id="@+id/action_call_to_messages"
+            app:destination="@id/messagesFragment" />
+        <action
+            android:id="@+id/action_call_to_map"
+            app:destination="@id/mapFragment" />
     </fragment>
 
 </navigation>

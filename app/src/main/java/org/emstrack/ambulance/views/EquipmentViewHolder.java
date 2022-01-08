@@ -18,17 +18,17 @@ import org.emstrack.models.EquipmentItem;
  * @since 2/19/2020
  */
 
-public class EquipmentRecyclerViewViewHolder extends RecyclerView.ViewHolder {
+public class EquipmentViewHolder extends RecyclerView.ViewHolder {
 
     private final CheckBox equipmentValueCheckbox;
     private final TextView equipmentDetailTextView;
     private final TextView equipmentValueTextView;
     private final TextView equipmentNameTextView;
 
-    private static final String TAG = EquipmentRecyclerViewViewHolder.class.getSimpleName();
+    private static final String TAG = EquipmentViewHolder.class.getSimpleName();
 
 
-    public EquipmentRecyclerViewViewHolder(Context context, View view) {
+    public EquipmentViewHolder(Context context, View view) {
         super(view);
 
         equipmentNameTextView = view.findViewById(R.id.equipment_name);

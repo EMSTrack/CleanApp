@@ -3471,6 +3471,10 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                 // Broadcast success
                 broadcastSuccess("Successfully subscribed to ambulances", uuid);
 
+                // Broadcast ambulances update
+                Intent localIntent = new Intent(BroadcastActions.OTHER_AMBULANCES_UPDATE);
+                getLocalBroadcastManager().sendBroadcast(localIntent);
+
             }
         })
                 .start();
@@ -3525,7 +3529,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
             @Override
             public void run() {
 
-                // Remove current ambulance map
+                // Remove current ambulance
                 removeAmbulance(getUuid());
 
             }
@@ -3533,6 +3537,8 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
             @Override
             public void onSuccess(Bundle extras) {
                 Log.d(TAG, "Got ambulances");
+
+                // TODO: retrieve only ambulance that was dropped
 
                 // Retrieve hospitals
                 retrieveOtherAmbulances(uuid);

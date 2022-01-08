@@ -186,7 +186,7 @@
     <string name="markAsVisiting">Visiting</string>
     <string name="markAsVisited">Visited</string>
     <string name="addWaypoint">Waypoint</string>
-    <string name="details">Details:</string>
+    <string name="detailsLabel">Details:</string>
     <string name="detailsText">Details</string>
     <string name="patients">Patients:</string>
     <string name="noPatientInformationAvailable">No patient information available</string>
@@ -235,7 +235,7 @@
     <string name="suspend">Suspend</string>
     <string name="toContinue">Continue</string>
     <string name="switchAmbulance">Switch vehicle</string>
-    <string name="switchToAmbulance">Do you want to switch to vehicle %1$s?</string>
+    <string name="switchToAmbulance">Do you want to switch to vehicle \'%1$s\'?</string>
     <string name="panicMessage">Message</string>
     <string name="panicTitle">Panic!</string>
     <string name="acceptCall">Accept Incoming Call?</string>
@@ -267,7 +267,7 @@
     <string name="link_to_google_maps">Link to Google Maps</string>
     <string name="directions">Directions</string>
     <string name="couldNotOpenGoogleMaps">Could not open Google Maps.</string>
-    <string name="wouldYouLikeToGoogleMaps">Would you like to get directions on Google Maps?</string>
+    <string name="wouldYouLikeToNavigate">Would you like to get directions on %1$s?</string>
     <string name="other">Other:</string>
     <string name="selectOthers">Select other locations:</string>
     <string name="radio_code">Radio Code</string>
@@ -323,7 +323,7 @@
     <string name="open_source_icons" translatable="false">- FontAwesome (fontawesome.com)</string>
     <string name="open_source_servers" translatable="false">- Django (www.djangoproject.com)\n- Eclipse Mosquitto (mosquitto.org)\n- PostgreSQL (www.postgresql.org)</string>
     <string name="versionKey" translatable="false">version</string>
-    <string name="useApproximateLocationAccuracyKey" translatable="false">use_approximate_location_accuracy</string>
+    <string name="useApproximateLocationAccuracyPreferenceKey" translatable="false">use_approximate_location_accuracy</string>
     <string-array name="spinner_list_item_array_server">
         <item>@string/server_select</item>
         <item>Tijuana Red Cross:tijuana.emstrack.org:8883</item>
@@ -362,5 +362,19 @@
     <string name="linkToMap">Link to map</string>
     <string name="message_type">Message Type</string>
     <string name="call_messages">Call Messages</string>
+    <string name="navigationAppPreferenceKey" translatable="false">navigation_app_key</string>
+    <string name="navigationAppPreferenceLabel">Navigation app</string>
+    <string name="navigationAppPreferenceSummary">Choice of external navigation app</string>
+    <string name="navigationAppPreferenceDefault" translatable="false">google_maps</string>
+    <string name="StatusLabel">Status:</string>
+    <string name="priorityLabel">Priority:</string>
+    <string name="vehicle_header" translatable="false">Vehicle header</string>
+    <string name="retrievingAmbulance">Retrieving vehicle \'%1$s\'</string>
+    <string name="call_header" translatable="false">Call header</string>
+    <string name="numberOfPatientsLabel">Number of patients:</string>
+    <string name="patient_header" translatable="false">Patient header</string>
+    <string name="name">Name</string>
+    <string name="age">Age</string>
+    <string name="logoutAmbulance">Releasing vehicle \'%1$s\'</string>
 
 </resources>

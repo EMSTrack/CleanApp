@@ -2,11 +2,9 @@ package org.emstrack.ambulance.views;
 
 import android.content.Context;
 import android.view.View;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
-import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import org.emstrack.ambulance.R;
@@ -17,7 +15,6 @@ import java.text.SimpleDateFormat;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
-import java.time.temporal.TemporalAccessor;
 
 /**
  * Holds a message
@@ -25,9 +22,9 @@ import java.time.temporal.TemporalAccessor;
  * @since 01/02/2022
  */
 
-public class MessageRecyclerViewViewHolder extends RecyclerView.ViewHolder {
+public class MessageViewHolder extends RecyclerView.ViewHolder {
 
-    private static final String TAG = MessageRecyclerViewViewHolder.class.getSimpleName();
+    private static final String TAG = MessageViewHolder.class.getSimpleName();
     private final View messageLayout;
     private final TextView messageFrom;
     private final TextView messageText;
@@ -38,7 +35,7 @@ public class MessageRecyclerViewViewHolder extends RecyclerView.ViewHolder {
 
     private final int viewType;
 
-    public MessageRecyclerViewViewHolder(Context context, View view, int viewType) {
+    public MessageViewHolder(Context context, View view, int viewType) {
         super(view);
         this.viewType = viewType;
         messageLayout = view.findViewById(R.id.message_layout);

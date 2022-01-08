@@ -19,9 +19,10 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import org.emstrack.ambulance.MainActivity;
 import org.emstrack.ambulance.R;
-import org.emstrack.ambulance.adapters.AmbulancesRecyclerAdapter;
+import org.emstrack.ambulance.adapters.AmbulanceRecyclerAdapter;
 import org.emstrack.ambulance.models.AmbulanceAppData;
 import org.emstrack.ambulance.services.AmbulanceForegroundService;
+import org.emstrack.ambulance.util.RequestPermission;
 import org.emstrack.models.Ambulance;
 
 public class AmbulancesFragment extends Fragment {
@@ -30,6 +31,7 @@ public class AmbulancesFragment extends Fragment {
     private MainActivity activity;
     private RecyclerView recyclerView;
     private AmbulancesUpdateBroadcastReceiver receiver;
+    private RequestPermission requestPermission;
 
     public class AmbulancesUpdateBroadcastReceiver extends BroadcastReceiver {
 
@@ -44,7 +46,7 @@ public class AmbulancesFragment extends Fragment {
 
                         Log.i(TAG, "AMBULANCES_UPDATE");
                         AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
-                        update(appData.getAmbulances());
+                        refreshData(appData.getAmbulances());
 
                     }
                 }
@@ -61,7 +63,9 @@ public class AmbulancesFragment extends Fragment {
         recyclerView = rootView.findViewById(R.id.ambulances_recycler_view);
 
         AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
-        update(appData.getAmbulances());
+        refreshData(appData.getAmbulances());
+
+        requestPermission = new RequestPermission(this);
 
         return rootView;
     }
@@ -82,7 +86,7 @@ public class AmbulancesFragment extends Fragment {
         AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
 
         // updateAmbulance UI
-        update(appData.getAmbulances());
+        refreshData(appData.getAmbulances());
 
     }
 
@@ -98,21 +102,30 @@ public class AmbulancesFragment extends Fragment {
 
     }
 
-    private void update(SparseArray<Ambulance> ambulances) {
+    private void refreshData(SparseArray<Ambulance> ambulances) {
 
         // fast return if no ambulances
-        if (ambulances == null)
+        if (ambulances == null) {
+            Log.d(TAG, "No ambulances were given.");
             return;
+        }
 
         Log.i(TAG,"Updating ambulances UI.");
 
         // Install adapter
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(requireContext());
-        AmbulancesRecyclerAdapter adapter =
-                new AmbulancesRecyclerAdapter(getActivity(), ambulances);
+        AmbulanceRecyclerAdapter adapter =
+                new AmbulanceRecyclerAdapter(getActivity(), ambulances, this::selectAmbulance);
         recyclerView.setLayoutManager(linearLayoutManager);
         recyclerView.setAdapter(adapter);
 
+    }
+
+    public void selectAmbulance(int ambulanceId) {
+        requestPermission.setOnPermissionGranted(granted -> {
+            activity.selectAmbulance(ambulanceId);
+        });
+        requestPermission.check();
     }
 
     /**

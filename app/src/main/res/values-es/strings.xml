@@ -165,7 +165,7 @@
     <string name="markAsVisited">Visitado</string>
     <string name="addWaypoint">Nueva Ruta</string>
     <string name="endCall">Terminar</string>
-    <string name="details">Detalles:</string>
+    <string name="detailsLabel">Detalles:</string>
     <string name="detailsText">Detalles</string>
     <string name="patients">Pacientes:</string>
     <string name="noPatientInformationAvailable">No hay información disponible para el paciente</string>
@@ -213,7 +213,7 @@
     <string name="suspend">Suspender</string>
     <string name="toContinue">Continuar</string>
     <string name="switchAmbulance">Cambiar de vehículo</string>
-    <string name="switchToAmbulance">" ¿Quieres cambiarte al vehículo %1$s?"</string>
+    <string name="switchToAmbulance">¿Quieres cambiarte al vehículo \'%1$s\'?</string>
     <string name="panicMessage">Mensaje</string>
     <string name="panicTitle">Pánico!</string>
     <string name="acceptCall">¿Aceptar llamada?</string>
@@ -245,7 +245,7 @@
     <string name="link_to_google_maps">Llevar a Google Maps</string>
     <string name="directions">Direcciones</string>
     <string name="couldNotOpenGoogleMaps">No se pudo abrir Google Maps.</string>
-    <string name="wouldYouLikeToGoogleMaps">" ¿Te gustaría obtener direcciones en Google Maps?"</string>
+    <string name="wouldYouLikeToNavigate">" ¿Te gustaría obtener direcciones en %1$s?"</string>
     <string name="other">Otras:</string>
     <string name="selectOthers">Seleccione una otra localización:</string>
     <string name="radio_code">Código de Radio</string>
@@ -320,4 +320,15 @@
     <string name="linkToMap">Enlace al mapa</string>
     <string name="message_type">Tipo de mensaje</string>
     <string name="call_messages">Mensajes de la llamada</string>
+    <string name="GoogleMaps">Google Maps</string>
+    <string name="Waze">Waze</string>
+    <string name="navigationAppPreferenceLabel">Aplicación de navegación</string>
+    <string name="navigationAppPreferenceSummary">Elección de la aplicación de navegación externa</string>
+    <string name="StatusLabel">Estado:</string>
+    <string name="priorityLabel">Prioridad:</string>
+    <string name="retrievingAmbulance">Recuperando vehículo \'%1$s\'</string>
+    <string name="numberOfPatientsLabel">Numero de pacientes:</string>
+    <string name="name">Nombre</string>
+    <string name="age">Edad</string>
+    <string name="logoutAmbulance">Liberando vehículo \'%1$s\'</string>
 </resources>

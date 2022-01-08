@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <EditText
+        android:id="@+id/patientNameEditText"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:hint="@string/name"
+        android:inputType="text"
+        android:layout_weight="1"/>
+
+    <EditText
+        android:id="@+id/patientAgeEditText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:hint="@string/age"
+        android:inputType="numberDecimal" />
+
+    <ImageView
+        android:id="@+id/patientCancelAddIcon"
+        android:layout_height="@dimen/ambulanceToolbarIconHeight"
+        android:layout_width="@dimen/ambulanceToolbarIconWidth"
+        app:srcCompat="@drawable/ic_times_circle_solid"
+        app:tint="@color/bootstrapDanger"
+        android:layout_gravity="center_vertical"
+        android:layout_marginStart="5dp" />
+
+    <ImageView
+        android:id="@+id/patientAddIcon"
+        android:layout_height="@dimen/ambulanceToolbarIconHeight"
+        android:layout_width="@dimen/ambulanceToolbarIconWidth"
+        app:srcCompat="@drawable/ic_check_circle_solid"
+        app:tint="@color/bootstrapSuccess"
+        android:layout_gravity="center_vertical"
+        android:layout_marginStart="5dp"/>
+
+</LinearLayout>

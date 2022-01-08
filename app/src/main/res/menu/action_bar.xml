@@ -27,7 +27,7 @@
         android:icon="@drawable/ic_exclamation_triangle" />
 
     <item
-        android:id="@+id/settings"
+        android:id="@+id/settingsFragment"
         android:title="@string/settings"
         app:showAsAction="ifRoom"
         android:icon="@drawable/ic_cog_solid" />

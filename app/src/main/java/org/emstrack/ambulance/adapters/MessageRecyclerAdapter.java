@@ -9,7 +9,7 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import org.emstrack.ambulance.R;
-import org.emstrack.ambulance.views.MessageRecyclerViewViewHolder;
+import org.emstrack.ambulance.views.MessageViewHolder;
 import org.emstrack.models.DateNote;
 import org.emstrack.models.Note;
 
@@ -25,7 +25,7 @@ import java.util.List;
  * @since 2/17/2020
  */
 
-public class MessageRecyclerAdapter extends RecyclerView.Adapter<MessageRecyclerViewViewHolder> {
+public class MessageRecyclerAdapter extends RecyclerView.Adapter<MessageViewHolder> {
 
     private static final String TAG = MessageRecyclerAdapter.class.getSimpleName();
 
@@ -106,7 +106,7 @@ public class MessageRecyclerAdapter extends RecyclerView.Adapter<MessageRecycler
 
     @NonNull
     @Override
-    public MessageRecyclerViewViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+    public MessageViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view;
         if (viewType == SELF) {
             view = LayoutInflater.from(parent.getContext()).inflate(R.layout.right_message_item, parent, false);
@@ -115,11 +115,11 @@ public class MessageRecyclerAdapter extends RecyclerView.Adapter<MessageRecycler
         } else { // if (viewType == OTHER) {
             view = LayoutInflater.from(parent.getContext()).inflate(R.layout.left_message_item, parent, false);
         }
-        return new MessageRecyclerViewViewHolder(context, view, viewType);
+        return new MessageViewHolder(context, view, viewType);
     }
 
     @Override
-    public void onBindViewHolder(@NonNull MessageRecyclerViewViewHolder holder, int position) {
+    public void onBindViewHolder(@NonNull MessageViewHolder holder, int position) {
         Note item = messages.get(position);
         holder.setNote(item, context);
     }
