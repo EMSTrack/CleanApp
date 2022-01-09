@@ -1,6 +1,9 @@
 package org.emstrack.models;
 
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -37,18 +40,23 @@ public class Call {
     private Date updatedOn;
     private List<AmbulanceCall> ambulancecallSet = new ArrayList<>();
     private List<Patient> patientSet = new ArrayList <>();
+
     private List<CallNote> callnoteSet = new ArrayList<>();
+    private CallNote lastUpdatedOnNote;
 
     private AmbulanceCall currentAmbulanceCall;
-    private boolean sorted;
+    private boolean sortedWaypoints;
+    private boolean sortedNotes;
 
     public Call() {
         id = -1;
         updatedBy = -1;
         radioCode = -1;
         priorityCode = -1;
-        this.currentAmbulanceCall = null;
-        this.sorted = false;
+        currentAmbulanceCall = null;
+        sortedWaypoints = false;
+        sortedNotes = false;
+        lastUpdatedOnNote = null;
     }
 
     public Call(int id, String status, String details, String priority, 
@@ -56,6 +64,7 @@ public class Call {
                 String comment, int updatedBy, Date updatedOn,
                 List<AmbulanceCall> ambulancecallSet, List<Patient> patientSet,
                 List<CallNote> callnoteSet) {
+        this();
     
         this.id = id;
         this.status = status;
@@ -72,11 +81,6 @@ public class Call {
         this.ambulancecallSet = ambulancecallSet;
         this.patientSet = patientSet;
         this.callnoteSet = callnoteSet;
-
-        this.priorityCode = -1;
-        this.radioCode = -1;
-        this.currentAmbulanceCall = null;
-        this.sorted = false;
     }
     
     public int getId() {
@@ -226,12 +230,12 @@ public class Call {
         return currentAmbulanceCall;
     }
 
-    public boolean isSorted() {
-        return sorted;
+    public boolean isSortedWaypoints() {
+        return sortedWaypoints;
     }
 
-    public void setSorted(boolean sorted) {
-        this.sorted = sorted;
+    public void setSortedWaypoints(boolean sortedWaypoints) {
+        this.sortedWaypoints = sortedWaypoints;
     }
 
     public void sortWaypoints() {
@@ -239,11 +243,56 @@ public class Call {
     }
 
     public void sortWaypoints(boolean force) {
-        if (force || !this.sorted) {
+        if (force || !this.sortedWaypoints) {
             for (AmbulanceCall ambulanceCall : this.ambulancecallSet)
                 ambulanceCall.sortWaypoints();
-            this.sorted = true;
+            this.sortedWaypoints = true;
         }
 
     }
+
+    public CallNote getLastUpdatedOnNote() {
+        return lastUpdatedOnNote;
+    }
+
+    public void setLastUpdatedOnNote() {
+        sortNotes();
+        if (callnoteSet.size() > 0) {
+            this.lastUpdatedOnNote = callnoteSet.get(callnoteSet.size() - 1);
+        } else {
+            setLastUpdatedOnNote(null);
+        }
+    }
+
+    public void setLastUpdatedOnNote(CallNote note) {
+        this.lastUpdatedOnNote = note;
+    }
+
+    public void sortNotes() {
+        sortNotes(false);
+    }
+
+    public void sortNotes(boolean force) {
+        if (force || !this.sortedNotes) {
+            Collections.sort(callnoteSet, new Note.SortAscending());
+            this.sortedNotes = true;
+        }
+    }
+
+    public int getNumberOfUnreadNotes() {
+        // easy if never read
+        if (lastUpdatedOnNote == null) {
+            return callnoteSet.size();
+        }
+
+        sortNotes();
+        int index = Collections.binarySearch(callnoteSet, lastUpdatedOnNote, new Note.SortAscending());
+        if (index == -1) {
+            return callnoteSet.size();
+        } else {
+            return callnoteSet.size() - index - 1;
+        }
+
+    }
+
 }

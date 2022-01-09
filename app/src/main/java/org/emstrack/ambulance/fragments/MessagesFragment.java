@@ -196,6 +196,9 @@ public class MessagesFragment extends Fragment {
                 CallStack calls = appData.getCalls();
                 Call call = calls.getCurrentCall();
 
+                // set last call as current call
+                call.setLastUpdatedOnNote();
+
                 // hide refresh label
                 refreshingData.setVisibility(View.GONE);
 

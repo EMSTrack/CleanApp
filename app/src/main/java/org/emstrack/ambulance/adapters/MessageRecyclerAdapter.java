@@ -46,15 +46,15 @@ public class MessageRecyclerAdapter extends RecyclerView.Adapter<MessageViewHold
         splitMessagesByDate();
     }
 
-    static class SortNoteAscending implements Comparator<Note> {
-        public int compare(Note a, Note b)
-        {
-            return a.getUpdatedOn().compareTo(b.getUpdatedOn());
-        }
-    }
+//    static class SortNoteAscending implements Comparator<Note> {
+//        public int compare(Note a, Note b)
+//        {
+//            return a.getUpdatedOn().compareTo(b.getUpdatedOn());
+//        }
+//    }
 
     private void sortMessages() {
-        Collections.sort(messages, new SortNoteAscending());
+        Collections.sort(messages, new Note.SortAscending());
     }
 
     private void addBlankAt(int index) {

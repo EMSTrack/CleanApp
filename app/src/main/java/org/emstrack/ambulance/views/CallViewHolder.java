@@ -48,6 +48,7 @@ public class CallViewHolder extends RecyclerView.ViewHolder {
     private final TextView callDetailsText;
     private final TextView callNumberOfWaypointsText;
     private final TextView callNumberOfPatientsText;
+    private final TextView callNumberOfMessagesText;
     private final ImageView callLoginThumbnail;
     private final ImageView callLogoutThumbnail;
     private final View view;
@@ -74,6 +75,7 @@ public class CallViewHolder extends RecyclerView.ViewHolder {
         callDetailsText = callDetailView.findViewById(R.id.callDetailsText);
         callNumberOfWaypointsText = callDetailView.findViewById(R.id.callNumberOfWaypointsText);
         callNumberOfPatientsText = callDetailView.findViewById(R.id.callNumberOfPatientsText);
+        callNumberOfMessagesText = callDetailView.findViewById(R.id.callNumberOfMessagesText);
 
         callLoginThumbnail = callDetailView.findViewById(R.id.callLogin);
         callLogoutThumbnail = callDetailView.findViewById(R.id.callLogout);
@@ -206,6 +208,8 @@ public class CallViewHolder extends RecyclerView.ViewHolder {
         // set number of patients
         callNumberOfPatientsText.setText(String.valueOf(call.getPatientSet().size()));
 
+        // set number of messages
+        callNumberOfMessagesText.setText(String.valueOf(call.getCallnoteSet().size()));
     }
 
 }

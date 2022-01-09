@@ -3,12 +3,20 @@ package org.emstrack.models;
 import org.emstrack.models.gson.Exclude;
 
 import java.util.Calendar;
+import java.util.Comparator;
 import java.util.Date;
 
 /**
  * A class representing an ambulance or call note.
  */
 public class Note {
+
+    static public class SortAscending implements Comparator<Note> {
+        public int compare(Note a, Note b)
+        {
+            return a.getUpdatedOn().compareTo(b.getUpdatedOn());
+        }
+    }
 
     private String comment;
     @Exclude

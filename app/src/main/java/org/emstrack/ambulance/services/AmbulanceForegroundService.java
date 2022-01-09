@@ -4893,13 +4893,13 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
         // Fail if servicing another call
         if (calls.hasCurrentCall() && calls.getCurrentCallId() != call.getId()) {
-            String message = String.format("Can't set call as accepted: already servicing call '%1$d'", calls.getCurrentCallId());
+            String message = String.format(Locale.ENGLISH, "Can't set call as accepted: already servicing call '%d'", calls.getCurrentCallId());
             throw new AmbulanceForegroundServiceException(message);
         }
 
         // Fails if call is not in stack
         if (!calls.contains(call.getId())) {
-            String message = String.format("Call '%1$d' is not in the current call stack", calls.getCurrentCallId());
+            String message = String.format(Locale.ENGLISH, "Call '%d' is not in the current call stack", calls.getCurrentCallId());
             throw new AmbulanceForegroundServiceException(message);
         }
 
@@ -4915,9 +4915,12 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
             // Get current ambulancecall and next waypoint
             // AmbulanceCall currentAmbulanceCall = AmbulanceForegroundService.getCurrentAmbulanceCall();
-            AmbulanceCall currentAmbulanceCall = calls.getCurrentCall().getCurrentAmbulanceCall();
+            Call currentCall = calls.getCurrentCall();
+            AmbulanceCall currentAmbulanceCall = currentCall.getCurrentAmbulanceCall();
             nextWaypoint = currentAmbulanceCall.getNextWaypoint();
 
+            // copy last seen message
+            call.setLastUpdatedOnNote(currentCall.getLastUpdatedOnNote());
         }
         Log.d(TAG, "Next waypoint is " + (nextWaypoint == null ? "'null'" : "'" + nextWaypoint.getId() + "'"));
 

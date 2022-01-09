@@ -12,12 +12,15 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.OptIn;
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
@@ -25,6 +28,9 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.LinearSnapHelper;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.recyclerview.widget.SnapHelper;
+
+import com.google.android.material.badge.BadgeDrawable;
+import com.google.android.material.badge.BadgeUtils;
 
 import org.emstrack.ambulance.MainActivity;
 import org.emstrack.ambulance.R;
@@ -37,6 +43,7 @@ import org.emstrack.ambulance.views.WaypointViewHolder;
 import org.emstrack.models.Ambulance;
 import org.emstrack.models.AmbulanceCall;
 import org.emstrack.models.Call;
+import org.emstrack.models.CallNote;
 import org.emstrack.models.PriorityCode;
 import org.emstrack.models.RadioCode;
 import org.emstrack.models.Settings;
@@ -46,6 +53,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+@com.google.android.material.badge.ExperimentalBadgeUtils
 public class CallFragment extends Fragment {
 
     private static final String TAG = CallFragment.class.getSimpleName();
@@ -82,6 +90,8 @@ public class CallFragment extends Fragment {
     private View callPatientAddLayout;
     private ImageView callPatientAddIcon;
     private ImageView callPatientCancelAddIcon;
+    private ImageView callMessageButton;
+    private FrameLayout callMessageButtonFrameLayout;
 
     public class CallUpdateBroadcastReceiver extends BroadcastReceiver {
 
@@ -121,7 +131,8 @@ public class CallFragment extends Fragment {
 
         // Retrieve callLayout parts
         View callEndButton = callLayout.findViewById(R.id.callEndButton);
-        View callMessageButton = callLayout.findViewById(R.id.callMessageButton);
+        callMessageButtonFrameLayout = callLayout.findViewById(R.id.callMessageButtonFrameLayout);
+        callMessageButton = callLayout.findViewById(R.id.callMessageButton);
 
         ambulanceIdentifierText = callLayout.findViewById(R.id.ambulanceIdentifierText);
         ambulanceStatusText = callLayout.findViewById(R.id.ambulanceStatusText);
@@ -418,6 +429,31 @@ public class CallFragment extends Fragment {
             configureWaypointEditor(ambulanceCall.getNextWaypointPosition());
         } else {
             waypointBrowserRecyclerView.setVisibility(View.GONE);
+        }
+
+        // set badge
+        int numberOfUnreadNotes = call.getNumberOfUnreadNotes();
+        if (numberOfUnreadNotes > 0) {
+            // add badge to
+            final Context context = requireContext();
+            callMessageButton.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+
+                @Override
+                public void onGlobalLayout() {
+
+                    BadgeDrawable badgeDrawable = BadgeDrawable.create(context);
+                    badgeDrawable.setNumber(numberOfUnreadNotes);
+                    badgeDrawable.setBadgeGravity(BadgeDrawable.TOP_START);
+
+                    badgeDrawable.setVerticalOffset(10);
+//                badgeDrawable.setHorizontalOffset(15);
+
+                    BadgeUtils.attachBadgeDrawable(badgeDrawable, callMessageButton, callMessageButtonFrameLayout);
+
+                    callMessageButton.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+                }
+
+            });
         }
 
     }

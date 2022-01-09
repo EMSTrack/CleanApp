@@ -376,5 +376,7 @@
     <string name="name">Name</string>
     <string name="age">Age</string>
     <string name="logoutAmbulance">Releasing vehicle \'%1$s\'</string>
+    <string name="numberOfMessagesLabel">Number of messages:</string>
+    <string name="tocall">Call</string>
 
 </resources>

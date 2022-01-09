@@ -264,7 +264,7 @@
     <string name="could_not_retrieve_onilne_clients">No se pudieron recuperar clientes en línea</string>
     <string name="error_invalid_client">Por favor seleccione un usuario existente</string>
     <string name="calling_client">Llamando usuario…</string>
-    <string name="call">Llamar</string>
+    <string name="call">Llamada</string>
     <string name="answer">Responder</string>
     <string name="video_call">Videollamada</string>
     <string name="from">De:</string>
@@ -331,4 +331,6 @@
     <string name="name">Nombre</string>
     <string name="age">Edad</string>
     <string name="logoutAmbulance">Liberando vehículo \'%1$s\'</string>
+    <string name="numberOfMessagesLabel">Numero de mensajens:</string>
+    <string name="tocall">Llamar</string>
 </resources>

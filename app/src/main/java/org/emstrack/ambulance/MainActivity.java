@@ -1304,7 +1304,7 @@ public class MainActivity extends AppCompatActivity {
                 builder.setTitle(R.string.new_video_call_title)
                         .setView(view)
                         .setCancelable(false)
-                        .setPositiveButton(R.string.call,
+                        .setPositiveButton(R.string.tocall,
                                 (dialog, id) -> {
 
                                     // first entry is prompt

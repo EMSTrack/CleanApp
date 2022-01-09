@@ -67,27 +67,37 @@
             android:gravity="end"
             android:text="@string/detailsText" />
 
+        <FrameLayout
+            android:id="@+id/callMessageButtonFrameLayout"
+            android:clipChildren="false"
+            android:clipToPadding="false"
+            android:layout_toStartOf="@id/callEndButton"
+            android:layout_below="@id/callDetailsText"
+            android:layout_marginStart="10dp"
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content">
+
+            <ImageView
+                android:id="@+id/callMessageButton"
+                android:layout_width="@dimen/ambulanceToolbarIconWidth"
+                android:layout_height="@dimen/ambulanceToolbarIconHeight"
+                android:layout_marginStart="20dp"
+                android:layout_marginTop="5dp"
+                app:srcCompat="@drawable/ic_envelope_solid"
+                app:tint="@color/iconColorDark" />
+
+        </FrameLayout>
+
         <ImageView
             android:id="@+id/callEndButton"
             android:layout_height="@dimen/ambulanceToolbarIconHeight"
             android:layout_width="@dimen/ambulanceToolbarIconWidth"
             app:srcCompat="@drawable/ic_sign_out_alt"
-            android:layout_marginStart="10dp"
-            android:layout_toStartOf="@id/callMessageButton"
-            android:layout_below="@id/callDetailsText"
-            android:layout_marginTop="5dp"
-            app:tint="@color/iconColorDark"/>
-
-        <ImageView
-            android:id="@+id/callMessageButton"
-            android:layout_width="@dimen/ambulanceToolbarIconWidth"
-            android:layout_height="@dimen/ambulanceToolbarIconHeight"
-            app:srcCompat="@drawable/ic_envelope_solid"
             android:layout_alignParentEnd="true"
             android:layout_below="@id/callDetailsText"
             android:layout_marginStart="10dp"
             android:layout_marginTop="5dp"
-            app:tint="@color/iconColorDark" />
+            app:tint="@color/iconColorDark"/>
 
     </RelativeLayout>
 
@@ -141,7 +151,7 @@
             android:id="@+id/callPatientIcon"
             android:layout_height="@dimen/ambulanceToolbarIconHeight"
             android:layout_width="@dimen/ambulanceToolbarIconWidth"
-            app:srcCompat="@drawable/ic_user_solid"
+            app:srcCompat="@drawable/ic_user_friends_solid"
             app:tint="@color/iconColorDark" />
 
         <TextView
