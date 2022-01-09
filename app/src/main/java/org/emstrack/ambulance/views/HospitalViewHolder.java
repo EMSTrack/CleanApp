@@ -1,21 +1,25 @@
 package org.emstrack.ambulance.views;
 
-import android.content.Context;
+import static org.emstrack.ambulance.util.DateUtils.formatDateTime;
+
+import android.app.Activity;
+import android.location.Location;
+import android.os.Bundle;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.TextView;
 
-import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import org.emstrack.ambulance.R;
-import org.emstrack.ambulance.adapters.EquipmentRecyclerAdapter;
-import org.emstrack.models.EquipmentItem;
-import org.emstrack.models.Hospital;
-import org.emstrack.models.api.APIService;
-import org.emstrack.models.api.APIServiceGenerator;
-import org.emstrack.models.api.OnAPICallComplete;
+import com.google.android.gms.maps.model.LatLng;
 
-import java.util.List;
+import org.emstrack.ambulance.MainActivity;
+import org.emstrack.ambulance.R;
+import org.emstrack.ambulance.models.EquipmentType;
+import org.emstrack.models.Address;
+import org.emstrack.models.Hospital;
+
+import java.text.DateFormat;
 
 /**
  * Holds the hospital data
@@ -26,76 +30,90 @@ import java.util.List;
 public class HospitalViewHolder extends RecyclerView.ViewHolder {
 
     private static final String TAG = HospitalViewHolder.class.getSimpleName();
-    private final View hospitalEquipment;
-    private final TextView hospitalName;
-    private final TextView hospitalEquipmentRefreshingData;
-    private final RecyclerView hospitalEquipmentRecyclerView;
-    private Hospital hospital;
+    private final TextView hospitalNameText;
+    private final View hospitalDetailView;
+    private final ImageView hospitalEquipmentImageView;
+    private final ImageView hospitalLocationImageView;
+    private final View hospitalCommentLabel;
+    private final TextView hospitalCommentText;
+    private final TextView hospitalUpdatedOnText;
+    private final TextView hospitalAddressText;
 
-
-    public HospitalViewHolder(Context context, View view) {
+    public HospitalViewHolder(View view) {
         super(view);
 
-        hospitalName = view.findViewById(R.id.hospital_name);
-        hospitalEquipment = view.findViewById(R.id.hospital_equipment);
+        hospitalNameText = view.findViewById(R.id.hospitalNameText);
 
-        hospitalEquipmentRefreshingData = hospitalEquipment.findViewById(R.id.equipment_refreshing_data);
-        hospitalEquipmentRecyclerView = hospitalEquipment.findViewById(R.id.equipment_recycler_view);
+        hospitalDetailView = view.findViewById(R.id.hospital_detail);
 
-        view.setOnClickListener(v -> {
+        hospitalEquipmentImageView = hospitalDetailView.findViewById(R.id.hospitalEquipment);
+        hospitalLocationImageView = hospitalDetailView.findViewById(R.id.hospitalLocation);
 
-            // toggle visibility of the detail view
-            if (hospitalEquipment.getVisibility() == View.VISIBLE)
-                hospitalEquipment.setVisibility(View.GONE);
-            else {
+        hospitalCommentLabel = hospitalDetailView.findViewById(R.id.commentLabel);
+        hospitalCommentText = hospitalDetailView.findViewById(R.id.commentText);
 
-                // retrieve hospital equipment
-                APIService service = APIServiceGenerator.createService(APIService.class);
-                retrofit2.Call<List<EquipmentItem>> callHospitalEquipment = service.getHospitalEquipment(hospital.getId());
+        hospitalAddressText = hospitalDetailView.findViewById(R.id.addressText);
+        hospitalUpdatedOnText = hospitalDetailView.findViewById(R.id.updatedOnText);
 
-                hospitalEquipmentRefreshingData.setText(R.string.refreshingData);
-                hospitalEquipmentRefreshingData.setVisibility(View.VISIBLE);
-                hospitalEquipmentRecyclerView.setVisibility(View.GONE);
-                hospitalEquipment.setVisibility(View.VISIBLE);
-
-                new OnAPICallComplete<List<EquipmentItem>>(callHospitalEquipment) {
-
-                    @Override
-                    public void onSuccess(List<EquipmentItem> equipments) {
-
-                        // hide refresh label
-                        hospitalEquipmentRefreshingData.setVisibility(View.GONE);
-
-                        // Install adapter
-                        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(context);
-                        EquipmentRecyclerAdapter adapter =
-                                new EquipmentRecyclerAdapter(context, equipments);
-                        hospitalEquipmentRecyclerView.setLayoutManager(linearLayoutManager);
-                        hospitalEquipmentRecyclerView.setAdapter(adapter);
-
-                        hospitalEquipmentRecyclerView.setVisibility(View.VISIBLE);
-                    }
-
-                    @Override
-                    public void onFailure(Throwable t) {
-                        super.onFailure(t);
-
-                        hospitalEquipmentRefreshingData.setText(R.string.couldNotRetrieveEquipments);
-
-                    }
-                }
-                        .start();
-
-            }
-
+        // set click action
+        view.setOnClickListener(view1 -> {
+            toggleDetail();
         });
 
     }
 
-    public void setHospital(Hospital item, Context context) {
+    public void toggleDetail() {
 
-        hospital = item;
-        hospitalName.setText(item.getName());
+        // toggle visibility of the detail view
+        if (hospitalDetailView.getVisibility() == View.VISIBLE) {
+            hospitalDetailView.setVisibility(View.GONE);
+        } else {
+            hospitalDetailView.setVisibility(View.VISIBLE);
+        }
+
+    }
+    
+    public void setHospital(Hospital hospital, Activity activity) {
+
+        MainActivity mainActivity = (MainActivity) activity;
+
+        int hospitalId = hospital.getId();
+
+        hospitalNameText.setText(hospital.getName());
+
+        // set detail
+        hospitalUpdatedOnText.setText(formatDateTime(hospital.getUpdatedOn(), DateFormat.SHORT));
+
+        // set address
+        hospitalAddressText.setText(hospital.toAddress());
+
+        // set comment
+        String comment = hospital.getComment();
+        if (comment != null && !comment.equals("")) {
+            hospitalCommentText.setText(comment);
+            hospitalCommentText.setVisibility(View.VISIBLE);
+            hospitalCommentLabel.setVisibility(View.VISIBLE);
+        } else {
+            hospitalCommentText.setVisibility(View.GONE);
+            hospitalCommentLabel.setVisibility(View.GONE);
+        }
+
+        // set equipment click response
+        hospitalEquipmentImageView.setOnClickListener(v -> {
+            Bundle bundle = new Bundle();
+            bundle.putSerializable("type", EquipmentType.HOSPITAL);
+            bundle.putInt("id", hospitalId);
+            mainActivity.navigate(R.id.action_hospitals_to_equipment, bundle);
+        });
+
+        // set location click response
+        hospitalLocationImageView.setOnClickListener(v -> {
+            Bundle bundle = new Bundle();
+            Location location = hospital.getLocation().toLocation();
+            LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
+            bundle.putParcelable("latLng", latLng);
+            mainActivity.navigate(R.id.action_hospitals_to_map, bundle);
+        });
 
     }
 

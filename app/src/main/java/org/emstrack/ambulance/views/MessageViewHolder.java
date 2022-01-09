@@ -1,5 +1,8 @@
 package org.emstrack.ambulance.views;
 
+import static org.emstrack.ambulance.util.DateUtils.formatDate;
+import static org.emstrack.ambulance.util.DateUtils.formatTime;
+
 import android.content.Context;
 import android.view.View;
 import android.widget.TextView;
@@ -11,6 +14,7 @@ import org.emstrack.ambulance.R;
 import org.emstrack.ambulance.adapters.MessageRecyclerAdapter;
 import org.emstrack.models.Note;
 
+import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -25,20 +29,15 @@ import java.time.format.FormatStyle;
 public class MessageViewHolder extends RecyclerView.ViewHolder {
 
     private static final String TAG = MessageViewHolder.class.getSimpleName();
-    private final View messageLayout;
     private final TextView messageFrom;
     private final TextView messageText;
     private final TextView messageTimestamp;
-
-    private static final SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm");
-    private static final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 
     private final int viewType;
 
     public MessageViewHolder(Context context, View view, int viewType) {
         super(view);
         this.viewType = viewType;
-        messageLayout = view.findViewById(R.id.message_layout);
         messageText = view.findViewById(R.id.message_text);
         messageFrom = view.findViewById(R.id.message_from);
         messageTimestamp = view.findViewById(R.id.message_timestamp);
@@ -47,31 +46,11 @@ public class MessageViewHolder extends RecyclerView.ViewHolder {
     public void setNote(Note item, @NonNull Context context) {
         // message contents
         if (viewType == MessageRecyclerAdapter.DATE) {
-            String date;
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-                DateTimeFormatter dateFormatter = DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT);
-                date = dateFormatter.format(item.getUpdatedOn()
-                        .toInstant()
-                        .atZone(ZoneId.systemDefault())
-                        .toLocalDate());
-            } else {
-                date = dateFormat.format(item.getUpdatedOn().getTime());
-            }
-            messageTimestamp.setText(date);
+            messageTimestamp.setText(formatDate(item.getUpdatedOn(), DateFormat.MEDIUM));
         } else {
             messageFrom.setText(item.getUpdatedByUsername());
             messageText.setText(item.getComment());
-            String time;
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-                DateTimeFormatter timeFormatter = DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT);
-                time = timeFormatter.format(item.getUpdatedOn()
-                        .toInstant()
-                        .atZone(ZoneId.systemDefault())
-                        .toLocalTime());
-            } else {
-                time = timeFormat.format(item.getUpdatedOn().getTime());
-            }
-            messageTimestamp.setText(time);
+            messageTimestamp.setText(formatTime(item.getUpdatedOn(), DateFormat.SHORT));
         }
     }
 

@@ -4,7 +4,7 @@ import android.os.Parcel;
 import android.os.Parcelable;
 import android.util.Log;
 
-import java.util.Date;
+import java.util.Calendar;
 
 /**
  * A class representing an equipment item.
@@ -22,13 +22,13 @@ public class EquipmentItem implements Parcelable {
     private String value;
     private String comment;
     private int updatedBy;
-    private Date updatedOn;
+    private Calendar updatedOn;
 
     public EquipmentItem(int equipmentHolderId,
                          int equipmentId, String equipmentName,
                          Character equipmentType,
                          String value, String comment,
-                         int updatedBy, Date updatedOn) {
+                         int updatedBy, Calendar updatedOn) {
         this.equipmentHolderId = equipmentHolderId;
         // this.hospitalName = hospitalName;
         this.equipmentId = equipmentId;
@@ -102,11 +102,11 @@ public class EquipmentItem implements Parcelable {
         this.updatedBy = updatedBy;
     }
 
-    public Date getUpdatedOn() {
+    public Calendar getUpdatedOn() {
         return updatedOn;
     }
 
-    public void setUpdatedOn(Date updatedOn) {
+    public void setUpdatedOn(Calendar updatedOn) {
         this.updatedOn = updatedOn;
     }
 

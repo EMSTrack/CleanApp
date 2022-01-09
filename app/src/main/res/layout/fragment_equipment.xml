@@ -7,14 +7,28 @@
     tools:context="org.emstrack.ambulance.fragments.EquipmentFragment">
 
     <TextView
+        android:id="@+id/equipment_type"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:text=""
+        android:visibility="visible"
+        android:gravity="center_vertical|center"
+        android:fontFamily="sans-serif-smallcaps"
+        android:textAllCaps="true"
+        android:letterSpacing="0.3"
+        android:background="@color/bootstrapLight" />
+
+    <TextView
         android:id="@+id/equipment_refreshing_data"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:padding="5dp"
+        android:layout_below="@id/equipment_type"
         android:text="@string/refreshingData">
     </TextView>
 
     <androidx.recyclerview.widget.RecyclerView
+        android:layout_below="@id/equipment_refreshing_data"
         android:id="@+id/equipment_recycler_view"
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />

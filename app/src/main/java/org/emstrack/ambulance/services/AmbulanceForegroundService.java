@@ -88,11 +88,10 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.nio.charset.StandardCharsets;
-import java.text.SimpleDateFormat;
+import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -102,6 +101,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static org.emstrack.ambulance.util.DateUtils.formatDateTime;
 import static org.emstrack.models.util.BroadcastExtras.ERROR_CODE;
 
 /**
@@ -143,7 +143,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
     private static AmbulanceAppData appData;
 
     private static AmbulanceUpdate _lastLocation;
-    private static Date _lastServerUpdate;
+    private static Calendar _lastServerUpdate;
     private static boolean _updatingLocation = false;
     private static boolean _canUpdateLocation = false;
     private static boolean _isLocationPrecise = true;
@@ -1247,7 +1247,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
      * @param status      the status
      */
     public void updateAmbulanceStatus(int ambulanceId, String status) {
-        updateAmbulanceStatus(ambulanceId, status, new Date());
+        updateAmbulanceStatus(ambulanceId, status, Calendar.getInstance());
     }
 
     /**
@@ -1257,7 +1257,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
      * @param status      the status
      * @param timestamp   the timestamp
      */
-    public void updateAmbulanceStatus(int ambulanceId, String status, Date timestamp) {
+    public void updateAmbulanceStatus(int ambulanceId, String status, Calendar timestamp) {
 
         if (ambulanceId == getAppData().getAmbulanceId()) {
 
@@ -1363,7 +1363,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                     message, 2, false);
 
             // Set update time
-            _lastServerUpdate = new Date();
+            _lastServerUpdate = Calendar.getInstance();
 
             return true;
 
@@ -3795,15 +3795,10 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                 }
 
                 // Notification message
-                String message = getString(R.string.lastLocationUpdate,
-                        new SimpleDateFormat(getString(R.string.defaultDateFormat),
-                                Locale.getDefault()).format(new Date()));
+                String message = getString(R.string.lastLocationUpdate, formatDateTime(Calendar.getInstance(), DateFormat.SHORT));
 
                 if (_lastServerUpdate != null)
-                    message += "\n" +
-                            getString(R.string.lastServerUpdate,
-                                    new SimpleDateFormat(getString(R.string.defaultDateFormat),
-                                            Locale.getDefault()).format(_lastServerUpdate));
+                    message += "\n" + getString(R.string.lastServerUpdate, formatDateTime(_lastServerUpdate, DateFormat.SHORT));
 
                 if (isOnline())
                     message += "\n" + getString(R.string.serverIsOnline);

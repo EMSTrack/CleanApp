@@ -4,7 +4,6 @@ import org.emstrack.models.gson.Exclude;
 
 import java.util.Calendar;
 import java.util.Comparator;
-import java.util.Date;
 
 /**
  * A class representing an ambulance or call note.

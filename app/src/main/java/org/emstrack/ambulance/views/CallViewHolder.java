@@ -1,5 +1,7 @@
 package org.emstrack.ambulance.views;
 
+import static org.emstrack.ambulance.util.DateUtils.formatDateTime;
+
 import android.app.Activity;
 import android.content.Context;
 import android.util.Log;
@@ -176,19 +178,7 @@ public class CallViewHolder extends RecyclerView.ViewHolder {
         }
 
         // set call updated on
-        String updatedOn;
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-            DateTimeFormatter dateFormatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT);
-            updatedOn = dateFormatter.format(ambulanceCall.getUpdatedOn()
-                    .toInstant()
-                    .atZone(ZoneId.systemDefault())
-                    .toLocalDate());
-        } else {
-            DateFormat dateFormat = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT);
-            updatedOn = dateFormat.format(ambulanceCall.getUpdatedOn());
-        }
-
-        callUpdatedOn.setText(updatedOn);
+        callUpdatedOn.setText(formatDateTime(ambulanceCall.getUpdatedOn(), DateFormat.SHORT));
 
         // Set radio code
         int radioCodeInt = call.getRadioCode();

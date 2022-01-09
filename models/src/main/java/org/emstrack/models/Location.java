@@ -1,5 +1,7 @@
 package org.emstrack.models;
 
+import androidx.annotation.NonNull;
+
 import org.emstrack.models.gson.Exclude;
 
 import java.util.Collections;
@@ -78,6 +80,7 @@ public class Location extends Address {
      *
      * @return the location as string
      */
+    @NonNull
     @Override
     public String toString() {
         return String.format("{id:'%1$d', name:'%2$s', type:'%3$s', value:'%4$s'}", this.id, this.name, this.type, super.toString());

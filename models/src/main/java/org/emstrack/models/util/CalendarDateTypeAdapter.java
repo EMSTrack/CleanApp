@@ -55,15 +55,23 @@ public class CalendarDateTypeAdapter extends TypeAdapter<Calendar> implements Js
 
     @Override
     public void write(JsonWriter out, Calendar value) throws IOException {
-        dateTypeAdapter.write(out, value.getTime());
+        if (value == null) {
+            dateTypeAdapter.write(out, null);
+        } else {
+            dateTypeAdapter.write(out, value.getTime());
+        }
     }
 
     @Override
     public Calendar read(JsonReader in) throws IOException {
         Date read = dateTypeAdapter.read(in);
-        GregorianCalendar gregorianCalendar = new GregorianCalendar();
-        gregorianCalendar.setTime(read);
-        return gregorianCalendar;
+        if (read != null) {
+            GregorianCalendar gregorianCalendar = new GregorianCalendar();
+            gregorianCalendar.setTime(read);
+            return gregorianCalendar;
+        } else {
+            return null;
+        }
     }
 
 }

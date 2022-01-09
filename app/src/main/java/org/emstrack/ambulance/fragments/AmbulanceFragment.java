@@ -1,5 +1,7 @@
 package org.emstrack.ambulance.fragments;
 
+import static org.emstrack.ambulance.util.DateUtils.formatDateTime;
+
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -36,6 +38,7 @@ import org.emstrack.models.Call;
 import org.emstrack.models.CallStack;
 import org.emstrack.models.Settings;
 
+import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -341,7 +344,7 @@ public class AmbulanceFragment extends Fragment {
         }
 
         // set updated on
-        updatedOnText.setText(ambulance.getUpdatedOn().toString());
+        updatedOnText.setText(formatDateTime(ambulance.getUpdatedOn(), DateFormat.SHORT));
 
         // set capability
         capabilityText.setText(ambulanceCapabilities.get(ambulance.getCapability()));

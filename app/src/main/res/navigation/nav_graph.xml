@@ -11,7 +11,7 @@
         android:label="Login"
         tools:layout="@layout/fragment_login" >
         <action
-            android:id="@+id/action_loginFragment_to_mapFragment"
+            android:id="@+id/action_login_to_map"
             app:destination="@id/mapFragment" />
     </fragment>
 
@@ -25,7 +25,7 @@
             app:argType="com.google.android.gms.maps.model.LatLng"
             android:defaultValue="@null" />
         <action
-            android:id="@+id/action_mapFragment_to_hospitalFragment"
+            android:id="@+id/action_map_to_hospitals"
             app:destination="@id/hospitalsFragment" />
         <action
             android:id="@+id/action_map_to_settings"
@@ -38,11 +38,14 @@
         android:label="Hospitals"
         tools:layout="@layout/fragment_hospital" >
         <action
-            android:id="@+id/action_hospitals_to_ambulancesFragment"
+            android:id="@+id/action_hospitals_to_ambulances"
             app:destination="@id/ambulancesFragment" />
         <action
             android:id="@+id/action_hospitals_to_equipment"
             app:destination="@id/equipmentFragment" />
+        <action
+            android:id="@+id/action_hospitals_to_map"
+            app:destination="@id/mapFragment" />
     </fragment>
 
     <fragment

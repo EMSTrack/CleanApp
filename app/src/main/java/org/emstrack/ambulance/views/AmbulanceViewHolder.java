@@ -1,5 +1,7 @@
 package org.emstrack.ambulance.views;
 
+import static org.emstrack.ambulance.util.DateUtils.formatDateTime;
+
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.PorterDuff;
@@ -23,6 +25,7 @@ import org.emstrack.ambulance.services.AmbulanceForegroundService;
 import org.emstrack.models.Ambulance;
 import org.emstrack.models.Settings;
 
+import java.text.DateFormat;
 import java.util.Map;
 
 /**
@@ -81,11 +84,11 @@ public class AmbulanceViewHolder extends RecyclerView.ViewHolder {
 
         // set click action
         view.setOnClickListener(view1 -> {
-            showDetail();
+            toggleDetail();
         });
     }
 
-    public void showDetail() {
+    public void toggleDetail() {
 
         // toggle visibility of the detail view
         if (ambulanceDetailView.getVisibility() == View.VISIBLE) {
@@ -121,7 +124,7 @@ public class AmbulanceViewHolder extends RecyclerView.ViewHolder {
 
         // set detail
         ambulanceCapabilityText.setText(ambulanceCapabilitiesMap.get(ambulance.getCapability()));
-        ambulanceUpdatedOnText.setText(ambulance.getUpdatedOn().toString());
+        ambulanceUpdatedOnText.setText(formatDateTime(ambulance.getUpdatedOn(), DateFormat.SHORT));
 
         // set comment
         String comment = ambulance.getComment();

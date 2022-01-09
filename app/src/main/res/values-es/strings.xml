@@ -333,4 +333,6 @@
     <string name="logoutAmbulance">Liberando vehículo \'%1$s\'</string>
     <string name="numberOfMessagesLabel">Numero de mensajens:</string>
     <string name="tocall">Llamar</string>
+    <string name="equipment_type">Tipo de equipo</string>
+    <string name="noEquipmentText">\'%1$s\' no tiene equipos registrados</string>
 </resources>

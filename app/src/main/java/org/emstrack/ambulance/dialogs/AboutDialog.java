@@ -1,5 +1,7 @@
 package org.emstrack.ambulance.dialogs;
 
+import static org.emstrack.ambulance.util.DateUtils.formatDateTime;
+
 import android.app.Activity;
 
 import androidx.appcompat.app.AlertDialog;
@@ -10,7 +12,8 @@ import android.widget.TextView;
 import org.emstrack.ambulance.BuildConfig;
 import org.emstrack.ambulance.R;
 
-import java.util.Date;
+import java.text.DateFormat;
+import java.util.Calendar;
 
 /**
  * Created by mauricio on 4/26/18.
@@ -27,7 +30,9 @@ public class AboutDialog {
 
         // Set build date
         TextView buildDate = messageView.findViewById(R.id.buildDate);
-        buildDate.setText(new Date(BuildConfig.TIMESTAMP).toString());
+        Calendar buildDateCalendar = Calendar.getInstance();
+        buildDateCalendar.setTimeInMillis(BuildConfig.TIMESTAMP);
+        buildDate.setText(formatDateTime(buildDateCalendar, DateFormat.MEDIUM));
 
         // Set build version
         TextView buildVersion = messageView.findViewById(R.id.buildVersion);

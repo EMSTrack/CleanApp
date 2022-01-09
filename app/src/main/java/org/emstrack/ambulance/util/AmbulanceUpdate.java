@@ -6,8 +6,8 @@ import android.text.TextUtils;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.List;
 import java.util.TimeZone;
 
@@ -28,42 +28,43 @@ public class AmbulanceUpdate {
     private Location location;
     private float bearing;
     private float velocity;
-    private Date timestamp;
+    private Calendar timestamp;
     private String status;
 
     public AmbulanceUpdate() {
-        this.location = null;
-        this.bearing = (float) 0.0;
-        this.velocity = (float) 0.0;
-        this.timestamp = new Date();
-        this.status = null;
+        location = null;
+        bearing = (float) 0.0;
+        velocity = (float) 0.0;
+        timestamp = Calendar.getInstance();
+        status = null;
     }
 
     public AmbulanceUpdate(Location location) {
         this.location = new Location(location);
-        this.bearing = location.getBearing();
-        this.velocity = location.getSpeed();
-        this.timestamp = new Date(location.getTime());
-        this.status = null;
+        bearing = location.getBearing();
+        velocity = location.getSpeed();
+        timestamp = Calendar.getInstance();
+        timestamp.setTimeInMillis(location.getTime());
+        status = null;
     }
 
     public AmbulanceUpdate(AmbulanceUpdate update) {
-        this.location = new Location(update.location);
-        this.bearing = update.bearing;
-        this.velocity = update.velocity;
-        this.timestamp = new Date(update.timestamp.getTime());
-        this.status = null;
+        location = new Location(update.location);
+        bearing = update.bearing;
+        velocity = update.velocity;
+        timestamp = update.timestamp;
+        status = null;
     }
 
     public AmbulanceUpdate(String status) {
-        this(status, new Date());
+        this(status, Calendar.getInstance());
     }
 
-    public AmbulanceUpdate(String status, Date timestamp) {
+    public AmbulanceUpdate(String status, Calendar timestamp) {
         this.location = null;
         this.bearing = 0;
         this.velocity = 0;
-        this.timestamp = timestamp == null ? new Date() : timestamp;
+        this.timestamp = timestamp == null ? Calendar.getInstance() : timestamp;
         this.status = status;
     }
 
@@ -103,11 +104,16 @@ public class AmbulanceUpdate {
         return velocity;
     }
 
-    public void setTimestamp(Date timestamp) {
+    public void setTimestamp(long millis) {
+        timestamp = Calendar.getInstance();
+        timestamp.setTimeInMillis(millis);
+    }
+
+    public void setTimestamp(Calendar timestamp) {
         this.timestamp = timestamp;
     }
 
-    public Date getTimestamp() {
+    public Calendar getTimestamp() {
         return timestamp;
     }
 
@@ -143,7 +149,7 @@ public class AmbulanceUpdate {
         // format timestamp
         DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
         df.setTimeZone(TimeZone.getTimeZone("UTC"));
-        String timestamp = df.format(this.getTimestamp());
+        String timestamp = df.format(this.getTimestamp().getTime());
 
         // add timestamp
         updates.add("\"timestamp\":\"" + timestamp + "\"");

@@ -1,5 +1,7 @@
 package org.emstrack.ambulance.views;
 
+import static org.emstrack.ambulance.util.DateUtils.formatDateTime;
+
 import android.content.Context;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -11,6 +13,8 @@ import android.widget.TextView;
 
 import org.emstrack.ambulance.R;
 import org.emstrack.models.EquipmentItem;
+
+import java.text.DateFormat;
 
 /**
  * Holds the Equipment data (called from EquipmentExpandableRecyclerAdapter)
@@ -77,7 +81,7 @@ public class EquipmentViewHolder extends RecyclerView.ViewHolder {
 
         }
 
-        equipmentDetailTextView.setText(context.getString(R.string.equipment_detail_text, item.getComment(), item.getUpdatedOn()));
+        equipmentDetailTextView.setText(context.getString(R.string.equipment_detail_text, item.getComment(), formatDateTime(item.getUpdatedOn(), DateFormat.SHORT)));
 
     }
 

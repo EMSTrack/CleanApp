@@ -1,5 +1,7 @@
 package org.emstrack.models;
 
+import androidx.annotation.NonNull;
+
 /**
  * A class representing an address.
  *
@@ -227,25 +229,31 @@ public class Address {
     /**
      * @return a string representation of the address
      */
+    @NonNull
     public String toString() {
 
         // TODO: Take into account the locale
 
         String retValue = "";
+
+        // street address
         retValue += this.number + " " + this.street;
         if (this.unit != null && !this.unit.isEmpty())
             retValue += " " + this.unit;
-        if (this.neighborhood != null && !this.neighborhood.isEmpty())
+        if (this.neighborhood != null && !this.neighborhood.isEmpty()) {
             retValue += ", " + this.neighborhood;
+        }
         if (this.city != null && !this.city.isEmpty())
-            retValue += ", " + this.city;
+            retValue += "\n" + this.city;
         if (this.state != null && !this.state.isEmpty())
             retValue += ", " + this.state;
         if (this.zipcode != null && !this.zipcode.isEmpty())
             retValue += " " + this.zipcode;
         if (this.country != null && !this.country.isEmpty())
             retValue += ", " + this.country;
-        return retValue;
+
+        return retValue.trim();
+
     }
 
 }

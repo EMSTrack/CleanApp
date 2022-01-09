@@ -2,9 +2,7 @@ package org.emstrack.models;
 
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Collection;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -31,13 +29,13 @@ public class Call {
     private String priority;
     private int priorityCode;
     private int radioCode;
-    private Date createdAt;
-    private Date pendingAt;
-    private Date startedAt;
-    private Date endedAt;
+    private Calendar createdAt;
+    private Calendar pendingAt;
+    private Calendar startedAt;
+    private Calendar endedAt;
     private String comment;
     private int updatedBy;
-    private Date updatedOn;
+    private Calendar updatedOn;
     private List<AmbulanceCall> ambulancecallSet = new ArrayList<>();
     private List<Patient> patientSet = new ArrayList <>();
 
@@ -60,8 +58,8 @@ public class Call {
     }
 
     public Call(int id, String status, String details, String priority, 
-                Date createdAt, Date pendingAt, Date startedAt, Date endedAt,
-                String comment, int updatedBy, Date updatedOn,
+                Calendar createdAt, Calendar pendingAt, Calendar startedAt, Calendar endedAt,
+                String comment, int updatedBy, Calendar updatedOn,
                 List<AmbulanceCall> ambulancecallSet, List<Patient> patientSet,
                 List<CallNote> callnoteSet) {
         this();
@@ -131,35 +129,35 @@ public class Call {
         this.priorityCode = priorityCode;
     }
 
-    public Date getCreatedAt() {
+    public Calendar getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(Date createdAt) {
+    public void setCreatedAt(Calendar createdAt) {
         this.createdAt = createdAt;
     }
 
-    public Date getPendingAt() {
+    public Calendar getPendingAt() {
         return pendingAt;
     }
 
-    public void setPendingAt(Date pendingAt) {
+    public void setPendingAt(Calendar pendingAt) {
         this.pendingAt = pendingAt;
     }
 
-    public Date getStartedAt() {
+    public Calendar getStartedAt() {
         return startedAt;
     }
 
-    public void setStartedAt(Date startedAt) {
+    public void setStartedAt(Calendar startedAt) {
         this.startedAt = startedAt;
     }
 
-    public Date getEndedAt() {
+    public Calendar getEndedAt() {
         return endedAt;
     }
 
-    public void setEndedAt(Date endedAt) {
+    public void setEndedAt(Calendar endedAt) {
         this.endedAt = endedAt;
     }
 
@@ -179,11 +177,11 @@ public class Call {
         this.updatedBy = updatedBy;
     }
 
-    public Date getUpdatedOn() {
+    public Calendar getUpdatedOn() {
         return updatedOn;
     }
 
-    public void setUpdatedOn(Date updatedOn) {
+    public void setUpdatedOn(Calendar updatedOn) {
         this.updatedOn = updatedOn;
     }
 

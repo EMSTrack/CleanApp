@@ -2,7 +2,7 @@
 <resources>
 
     <string name="app_name">EMSTrack</string>
-    <string name="app_version" translatable="false">0_9_1</string>
+    <string name="app_version" translatable="false">0_9_3</string>
     <string name="client_name" translatable="false">AndroidClient</string>
 
     <string name="drawer_open">Open navigation drawer</string>
@@ -378,5 +378,7 @@
     <string name="logoutAmbulance">Releasing vehicle \'%1$s\'</string>
     <string name="numberOfMessagesLabel">Number of messages:</string>
     <string name="tocall">Call</string>
+    <string name="equipment_type">Equipment Type</string>
+    <string name="noEquipmentText">\'%1$s\' has no registered equipments</string>
 
 </resources>

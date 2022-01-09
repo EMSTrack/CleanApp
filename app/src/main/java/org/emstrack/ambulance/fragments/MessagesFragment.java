@@ -203,8 +203,8 @@ public class MessagesFragment extends Fragment {
                 refreshingData.setVisibility(View.GONE);
 
                 // set label
-                messageType.setVisibility(View.VISIBLE);
                 messageType.setText(R.string.call_messages);
+                messageType.setVisibility(View.VISIBLE);
 
                 // Install adapter
                 LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getContext());
@@ -232,8 +232,8 @@ public class MessagesFragment extends Fragment {
                         // set label
                         Ambulance ambulance = AmbulanceForegroundService.getAppData().getAmbulanceById(id);
                         if (ambulance != null) {
-                            messageType.setVisibility(View.VISIBLE);
                             messageType.setText(ambulance.getIdentifier());
+                            messageType.setVisibility(View.VISIBLE);
                         } else {
                             messageType.setVisibility(View.GONE);
                         }

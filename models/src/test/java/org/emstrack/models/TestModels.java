@@ -42,6 +42,7 @@ public class TestModels {
         profile.setHospitals(hospitals);
 
         GsonBuilder gsonBuilder = new GsonBuilder();
+        gsonBuilder.registerTypeHierarchyAdapter(Calendar.class, new CalendarDateTypeAdapter());
         gsonBuilder.setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES);
         Gson gson = gsonBuilder.create();
 
@@ -191,7 +192,7 @@ public class TestModels {
         EquipmentItem equipment = new EquipmentItem(1,
                                                             2, "beds",'I',
                                                             "12", "000",
-                                                            1, new Date());
+                                                            1, Calendar.getInstance());
 
         Gson gson = new Gson();
 
@@ -233,10 +234,10 @@ public class TestModels {
         answerId = from_json.getUpdatedBy();
         assertEquals(expectedId, answerId);
 
-        Date expectedDate = equipment.getUpdatedOn();
-        Date answerDate = from_json.getUpdatedOn();
+        Calendar expectedDate = equipment.getUpdatedOn();
+        Calendar answerDate = from_json.getUpdatedOn();
         SimpleDateFormat df = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
-        assertEquals(df.format(expectedDate), df.format(answerDate));
+        assertEquals(df.format(expectedDate.getTime()), df.format(answerDate.getTime()));
 
     }
 
@@ -318,6 +319,7 @@ public class TestModels {
                 defaults);
 
         GsonBuilder gsonBuilder = new GsonBuilder();
+        gsonBuilder.registerTypeHierarchyAdapter(Calendar.class, new CalendarDateTypeAdapter());
         gsonBuilder.setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES);
         Gson gson = gsonBuilder.create();
 
@@ -454,8 +456,8 @@ public class TestModels {
         ambulance.setStatus("UK");
         ambulance.setOrientation(12.0);
         ambulance.setLocation(new GPSLocation(32.5149,-117.0382));
-        ambulance.setTimestamp(new Date());
-        ambulance.setUpdatedOn(new Date());
+        ambulance.setTimestamp(Calendar.getInstance());
+        ambulance.setUpdatedOn(Calendar.getInstance());
 
         Gson gson = new Gson();
 
@@ -488,10 +490,10 @@ public class TestModels {
         assertEquals(expectedLocation.getLatitude(),answerLocation.getLatitude(),epsilon);
         assertEquals(expectedLocation.getLongitude(),answerLocation.getLongitude(),epsilon);
 
-        Date expectedDate = ambulance.getTimestamp();
-        Date answerDate = from_json.getTimestamp();
+        Calendar expectedDate = ambulance.getTimestamp();
+        Calendar answerDate = from_json.getTimestamp();
         SimpleDateFormat df = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
-        assertEquals(df.format(expectedDate), df.format(answerDate));
+        assertEquals(df.format(expectedDate.getTime()), df.format(answerDate.getTime()));
 
         expectedId = ambulance.getUpdatedBy();
         answerId = from_json.getUpdatedBy();
@@ -499,15 +501,22 @@ public class TestModels {
 
         expectedDate = ambulance.getUpdatedOn();
         answerDate = ambulance.getUpdatedOn();
-        assertEquals(df.format(expectedDate), df.format(answerDate));
+        assertEquals(df.format(expectedDate.getTime()), df.format(answerDate.getTime()));
 
-        // Test partial serialization
-        gson = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().create();
+//        gson = new GsonBuilder()
+//                .excludeFieldsWithoutExposeAnnotation()
+//                .create();
+
+        GsonBuilder gsonBuilder = new GsonBuilder();
+        gsonBuilder.registerTypeHierarchyAdapter(Calendar.class, new CalendarDateTypeAdapter());
+        gsonBuilder.setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES);
+        gsonBuilder.excludeFieldsWithoutExposeAnnotation();
+        gson = gsonBuilder.create();
 
         to_json = gson.toJson(ambulance);
 
         df = new SimpleDateFormat("MMM d, y, h:mm:ss a");
-        String expected_to_json = "{\"capability\":\"B\",\"status\":\"UK\",\"orientation\":12.0,\"location\":{\"latitude\":32.5149,\"longitude\":-117.0382},\"timestamp\":\"" + df.format(ambulance.getTimestamp()) + "\"}";
+        String expected_to_json = "{\"capability\":\"B\",\"status\":\"UK\",\"orientation\":12.0,\"location\":{\"latitude\":32.5149,\"longitude\":-117.0382},\"timestamp\":\"" + df.format(ambulance.getTimestamp().getTime()) + "\"}";
 
         assertEquals(expected_to_json, to_json);
 
@@ -526,17 +535,17 @@ public class TestModels {
         equipment.add(new EquipmentItem(1,
                 2, "beds",'I',
                 "12", "",
-                1, new Date()));
+                1, Calendar.getInstance()));
         equipment.add(new EquipmentItem(1,
                 3, "x-rays",'B',
                 "True", "no comment",
-                1, new Date()));
+                1, Calendar.getInstance()));
 
         Hospital hospital = new Hospital(1,
                 "123","Some Street", null, null,
                 "Tijuana","BCN","28334","MX",
                 "Hospital Viejo", new GPSLocation(32.5149,-117.0382),
-                "No comments",1, new Date());
+                "No comments",1, Calendar.getInstance());
 
         Gson gson = new Gson();
 
@@ -599,10 +608,10 @@ public class TestModels {
         answerId = from_json.getUpdatedBy();
         assertEquals(expectedId, answerId);
 
-        Date expectedDate = hospital.getUpdatedOn();
-        Date answerDate = hospital.getUpdatedOn();
+        Calendar expectedDate = hospital.getUpdatedOn();
+        Calendar answerDate = hospital.getUpdatedOn();
         SimpleDateFormat df = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
-        assertEquals(df.format(expectedDate), df.format(answerDate));
+        assertEquals(df.format(expectedDate.getTime()), df.format(answerDate.getTime()));
 
         /*
 
@@ -803,9 +812,10 @@ public class TestModels {
         List<Waypoint> waypointSet = new ArrayList<>();
         waypointSet.add(waypoint);
         
-        AmbulanceCall ambulanceCall = new AmbulanceCall(1,2,AmbulanceCall.STATUS_SUSPENDED, "", 1, new Date(), waypointSet);
+        AmbulanceCall ambulanceCall = new AmbulanceCall(1,2,AmbulanceCall.STATUS_SUSPENDED, "", 1, Calendar.getInstance(), waypointSet);
 
         GsonBuilder gsonBuilder = new GsonBuilder();
+        gsonBuilder.registerTypeHierarchyAdapter(Calendar.class, new CalendarDateTypeAdapter());
         gsonBuilder.setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES);
         Gson gson = gsonBuilder.create();
 
@@ -849,9 +859,10 @@ public class TestModels {
 
         DateFormat df = new SimpleDateFormat("MMM d, y, K:mm:ss a");
 
-        to_json = "{\"id\":1,\"ambulance_id\":2,\"status\":\"S\",\"updated_on\":\"" + df.format(ambulanceCall.getUpdatedOn()) + "\",\"waypoint_set\":[{\"order\":0,\"status\":\"C\",\"location\":{\"type\":\"i\",\"number\":\"\",\"street\":\"Bonifácio Avilés\",\"unit\":null,\"neighborhood\":null,\"city\":\"Tijuana\",\"state\":\"BCN\",\"zipcode\":\"\",\"country\":\"MX\",\"waypoint\":{\"latitude\":\"32.51543632662701\",\"longitude\":\"-117.03812250149775\"},\"updated_on\":\"2018-11-14T22:33:46.055339Z\",\"pending_at\":\"2018-11-14T22:33:46.054955Z\",\"started_at\":\"2018-11-14T22:34:50.329321Z\",\"ended_at\":null,\"comment\":null,\"updated_by\":1,\"updated_on\":\"2018-11-14T22:34:50.329428Z\"}}]}";
-        from_json = gson.fromJson(to_json, AmbulanceCall.class);
+        to_json = "{\"id\":1,\"ambulance_id\":2,\"status\":\"S\",\"updated_on\":\"" + df.format(ambulanceCall.getUpdatedOn().getTime()) + "\",\"waypoint_set\":[{\"order\":0,\"status\":\"C\",\"location\":{\"type\":\"i\",\"number\":\"\",\"street\":\"Bonifácio Avilés\",\"unit\":null,\"neighborhood\":null,\"city\":\"Tijuana\",\"state\":\"BCN\",\"zipcode\":\"\",\"country\":\"MX\",\"waypoint\":{\"latitude\":\"32.51543632662701\",\"longitude\":\"-117.03812250149775\"},\"updated_on\":\"2018-11-14T22:33:46.055339Z\",\"pending_at\":\"2018-11-14T22:33:46.054955Z\",\"started_at\":\"2018-11-14T22:34:50.329321Z\",\"ended_at\":null,\"comment\":null,\"updated_by\":1,\"updated_on\":\"2018-11-14T22:34:50.329428Z\"}}]}";
         System.out.println("to_json = '" + to_json + "'");
+        from_json = gson.fromJson(to_json, AmbulanceCall.class);
+        System.out.println("from_json = '" + from_json + "'");
 
         expectedId = ambulanceCall.getId();
         answerId = from_json.getId();
@@ -904,7 +915,7 @@ public class TestModels {
         List<Waypoint> waypointSet = new ArrayList<>();
         waypointSet.add(waypoint);
 
-        AmbulanceCall ambulanceCall = new AmbulanceCall(1,2,AmbulanceCall.STATUS_SUSPENDED, "", 1, new Date(), waypointSet);
+        AmbulanceCall ambulanceCall = new AmbulanceCall(1,2,AmbulanceCall.STATUS_SUSPENDED, "", 1, Calendar.getInstance(), waypointSet);
         List<AmbulanceCall> ambulanceCallSet = new ArrayList<>();
         ambulanceCallSet.add(ambulanceCall);
 
@@ -979,7 +990,7 @@ public class TestModels {
         assertEquals(expectedStreet, answerStreet);
 
         DateFormat df = new SimpleDateFormat("MMM d, y, K:mm:ss a");
-        String ambulance_call_json = "{\"id\":1,\"ambulance_id\":2,\"status\":\"S\",\"updated_on\":\"" + df.format(ambulanceCall.getUpdatedOn()) + "\",\"waypoint_set\":[{\"order\":0,\"status\":\"C\",\"location\":{\"type\":\"i\",\"number\":\"\",\"street\":\"Bonifácio Avilés\",\"unit\":null,\"neighborhood\":null,\"city\":\"Tijuana\",\"state\":\"BCN\",\"zipcode\":\"\",\"country\":\"MX\",\"waypoint\":{\"latitude\":\"32.51543632662701\",\"longitude\":\"-117.03812250149775\"},\"updated_on\":\"2018-11-14T22:33:46.055339Z\",\"pending_at\":\"2018-11-14T22:33:46.054955Z\",\"started_at\":\"2018-11-14T22:34:50.329321Z\",\"ended_at\":null,\"comment\":null,\"updated_by\":1,\"updated_on\":\"2018-11-14T22:34:50.329428Z\"}}]}";
+        String ambulance_call_json = "{\"id\":1,\"ambulance_id\":2,\"status\":\"S\",\"updated_on\":\"" + df.format(ambulanceCall.getUpdatedOn().getTime()) + "\",\"waypoint_set\":[{\"order\":0,\"status\":\"C\",\"location\":{\"type\":\"i\",\"number\":\"\",\"street\":\"Bonifácio Avilés\",\"unit\":null,\"neighborhood\":null,\"city\":\"Tijuana\",\"state\":\"BCN\",\"zipcode\":\"\",\"country\":\"MX\",\"waypoint\":{\"latitude\":\"32.51543632662701\",\"longitude\":\"-117.03812250149775\"},\"updated_on\":\"2018-11-14T22:33:46.055339Z\",\"pending_at\":\"2018-11-14T22:33:46.054955Z\",\"started_at\":\"2018-11-14T22:34:50.329321Z\",\"ended_at\":null,\"comment\":null,\"updated_by\":1,\"updated_on\":\"2018-11-14T22:34:50.329428Z\"}}]}";
         to_json = "{\"id\":64,\"status\":\"S\",\"details\":\"ads asd\",\"priority\":\"O\",\"updated_on\":\"2018-11-14T22:33:46.055339Z\",\"pending_at\":\"2018-11-14T22:33:46.054955Z\",\"started_at\":\"2018-11-14T22:34:50.329321Z\",\"ended_at\":null,\"comment\":null,\"updated_by\":1,\"updated_on\":\"2018-11-14T22:34:50.329428Z\",\"ambulancecall_set\":[" + ambulance_call_json + "],\"patient_set\":[{\"id\":31,\"name\":\"Maria\",\"age\":null},{\"id\":30,\"name\":\"Jose\",\"age\":13}],\n" +
                 "    \"callnote_set\": [\n" +
                 "        {\n" +
@@ -1087,7 +1098,7 @@ public class TestModels {
         EquipmentItem equipment = new EquipmentItem(1,
                 2, "gauze",'I',
                 "20", "2 packages",
-                1, new Date());
+                1, Calendar.getInstance());
 
         Gson gson = new Gson();
 
@@ -1123,10 +1134,10 @@ public class TestModels {
         answerId = from_json.getUpdatedBy();
         assertEquals(expectedId, answerId);
 
-        Date expectedDate = equipment.getUpdatedOn();
-        Date answerDate = from_json.getUpdatedOn();
+        Calendar expectedDate = equipment.getUpdatedOn();
+        Calendar answerDate = from_json.getUpdatedOn();
         SimpleDateFormat df = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
-        assertEquals(df.format(expectedDate), df.format(answerDate));
+        assertEquals(df.format(expectedDate.getTime()), df.format(answerDate.getTime()));
 
     }
 

@@ -15,8 +15,8 @@
         android:id="@+id/callDetailsLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_toEndOf="@id/callPhoneIcon"
         android:layout_marginStart="10dp"
+        android:layout_toEndOf="@id/callPhoneIcon"
         android:orientation="vertical">
 
         <TextView
@@ -26,27 +26,28 @@
             android:text="@string/priorityLabel"
             android:textStyle="bold" />
 
-        <include layout="@layout/call_priority"
+        <include
             android:id="@+id/callPriorityLayout"
+            layout="@layout/call_priority"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_toEndOf="@id/callPriorityLabel"
-            android:layout_alignParentEnd="true" />
+            android:layout_alignParentEnd="true"
+            android:layout_toEndOf="@id/callPriorityLabel" />
 
         <TextView
             android:id="@+id/callRadioCodeLabel"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/radio_code_label"
             android:layout_below="@id/callPriorityLabel"
+            android:text="@string/radio_code_label"
             android:textStyle="bold" />
 
         <TextView
             android:id="@+id/callRadioCodeText"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:layout_toEndOf="@id/callRadioCodeLabel"
             android:layout_below="@id/callPriorityLabel"
+            android:layout_toEndOf="@id/callRadioCodeLabel"
             android:gravity="end"
             android:text="@string/radio_code" />
 
@@ -54,28 +55,27 @@
             android:id="@+id/callDetailsLabel"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/detailsLabel"
             android:layout_below="@id/callRadioCodeLabel"
+            android:text="@string/detailsLabel"
             android:textStyle="bold" />
 
         <TextView
             android:id="@+id/callDetailsText"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:layout_toEndOf="@id/callDetailsLabel"
             android:layout_below="@id/callRadioCodeLabel"
+            android:layout_toEndOf="@id/callDetailsLabel"
             android:gravity="end"
             android:text="@string/detailsText" />
 
         <FrameLayout
             android:id="@+id/callMessageButtonFrameLayout"
-            android:clipChildren="false"
-            android:clipToPadding="false"
-            android:layout_toStartOf="@id/callEndButton"
-            android:layout_below="@id/callDetailsText"
-            android:layout_marginStart="10dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_width="wrap_content">
+            android:layout_below="@id/callDetailsText"
+            android:layout_toStartOf="@id/callEndButton"
+            android:clipChildren="false"
+            android:clipToPadding="false">
 
             <ImageView
                 android:id="@+id/callMessageButton"
@@ -90,14 +90,14 @@
 
         <ImageView
             android:id="@+id/callEndButton"
-            android:layout_height="@dimen/ambulanceToolbarIconHeight"
             android:layout_width="@dimen/ambulanceToolbarIconWidth"
-            app:srcCompat="@drawable/ic_sign_out_alt"
-            android:layout_alignParentEnd="true"
+            android:layout_height="@dimen/ambulanceToolbarIconHeight"
             android:layout_below="@id/callDetailsText"
+            android:layout_alignParentEnd="true"
             android:layout_marginStart="10dp"
             android:layout_marginTop="5dp"
-            app:tint="@color/iconColorDark"/>
+            app:srcCompat="@drawable/ic_sign_out_alt"
+            app:tint="@color/iconColorDark" />
 
     </RelativeLayout>
 

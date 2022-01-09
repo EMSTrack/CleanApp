@@ -1,10 +1,7 @@
 package org.emstrack.models;
 
-import java.util.Collections;
+import java.util.Calendar;
 import java.util.Comparator;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * A class representing a waypoint.
@@ -30,11 +27,11 @@ public class Waypoint {
     private Location location;
     private String comment;
     private int updatedBy;
-    private Date updatedOn;
+    private Calendar updatedOn;
 
     public Waypoint(int id, int ambulanceCallId,
                     int order, String status, Location location,
-                    String comment, int updatedBy, Date updatedOn) {
+                    String comment, int updatedBy, Calendar updatedOn) {
         this.id = id;
         this.ambulanceCallId = ambulanceCallId;
         this.order = order;
@@ -47,7 +44,7 @@ public class Waypoint {
 
     public Waypoint(int order, String status, Location location) {
         this(-1, -1, order, status, location,
-                "", -1, new Date());
+                "", -1, Calendar.getInstance());
     }
 
     public int getId() {
@@ -122,11 +119,11 @@ public class Waypoint {
         this.updatedBy = updatedBy;
     }
 
-    public Date getUpdatedOn() {
+    public Calendar getUpdatedOn() {
         return updatedOn;
     }
 
-    public void setUpdatedOn(Date updatedOn) {
+    public void setUpdatedOn(Calendar updatedOn) {
         this.updatedOn = updatedOn;
     }
 

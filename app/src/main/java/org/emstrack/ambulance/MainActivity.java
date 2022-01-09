@@ -919,16 +919,37 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    private String getAmbulanceIdentifier(final int ambulanceId) {
+    public String getHospitalName(final int hospitalId) {
+        String hospitalName = "";
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            HospitalPermission hospital = hospitalPermissions
+                    .stream()
+                    .filter(hospitalPermission -> hospitalPermission.getHospitalId() == hospitalId)
+                    .findAny()
+                    .orElse(null);
+            if (hospital != null)
+                hospitalName = hospital.getHospitalName();
+        } else {
+            for (HospitalPermission hospitalPermission: hospitalPermissions) {
+                if (hospitalPermission.getHospitalId() == hospitalId) {
+                    hospitalName = hospitalPermission.getHospitalName();
+                    break;
+                }
+            }
+        }
+        return hospitalName;
+    }
+
+    public String getAmbulanceIdentifier(final int ambulanceId) {
         String ambulanceIdentifier = "";
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            AmbulancePermission newAmbulance = ambulancePermissions
+            AmbulancePermission ambulance = ambulancePermissions
                     .stream()
                     .filter(ambulancePermission -> ambulancePermission.getAmbulanceId() == ambulanceId)
                     .findAny()
                     .orElse(null);
-            if (newAmbulance != null)
-                ambulanceIdentifier = newAmbulance.getAmbulanceIdentifier();
+            if (ambulance != null)
+                ambulanceIdentifier = ambulance.getAmbulanceIdentifier();
         } else {
             for (AmbulancePermission ambulancePermission: ambulancePermissions) {
                 if (ambulancePermission.getAmbulanceId() == ambulanceId) {

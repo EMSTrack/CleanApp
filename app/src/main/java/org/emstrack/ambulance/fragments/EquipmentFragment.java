@@ -26,6 +26,7 @@ import org.emstrack.models.EquipmentItem;
 import org.emstrack.models.api.APIService;
 import org.emstrack.models.api.APIServiceGenerator;
 import org.emstrack.models.api.OnAPICallComplete;
+import org.w3c.dom.Text;
 
 import java.util.List;
 
@@ -44,6 +45,7 @@ public class EquipmentFragment extends Fragment {
 
     private EquipmentType type;
     private int id;
+    private TextView equipmentType;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -52,6 +54,7 @@ public class EquipmentFragment extends Fragment {
         activity = (MainActivity) requireActivity();
 
         refreshingData = rootView.findViewById(R.id.equipment_refreshing_data);
+        equipmentType = rootView.findViewById(R.id.equipment_type);
 
         swipeController = new SwipeController(getContext(), new SwipeControllerActions(){
             @Override
@@ -109,6 +112,8 @@ public class EquipmentFragment extends Fragment {
      */
     public void refreshData() {
 
+        MainActivity mainActivity = (MainActivity) requireActivity();
+
         // retrieve equipment
         refreshingData.setVisibility(View.VISIBLE);
         recyclerView.setVisibility(View.GONE);
@@ -119,32 +124,47 @@ public class EquipmentFragment extends Fragment {
 
         } else {
 
+            refreshingData.setText(R.string.refreshingData);
+
             APIService service = APIServiceGenerator.createService(APIService.class);
-            retrofit2.Call<List<EquipmentItem>> callAmbulanceEquipment;
+            retrofit2.Call<List<EquipmentItem>> callEquipment;
+            String label;
             if (type == EquipmentType.AMBULANCE) {
-                callAmbulanceEquipment = service.getAmbulanceEquipment(id);
+                callEquipment = service.getAmbulanceEquipment(id);
+                label = mainActivity.getAmbulanceIdentifier(id);
             } else { // if (type == EquipmentType.HOSPITAL)
-                callAmbulanceEquipment = service.getHospitalEquipment(id);
+                callEquipment = service.getHospitalEquipment(id);
+                label = mainActivity.getHospitalName(id);
             }
+            equipmentType.setText(label);
+            equipmentType.setVisibility(View.VISIBLE);
 
             refreshingData.setText(R.string.refreshingData);
 
-            new OnAPICallComplete<List<EquipmentItem>>(callAmbulanceEquipment) {
+            new OnAPICallComplete<List<EquipmentItem>>(callEquipment) {
 
                 @Override
                 public void onSuccess(List<EquipmentItem> equipments) {
 
-                    // hide refresh label
-                    refreshingData.setVisibility(View.GONE);
+                    if (equipments.size() > 0) {
 
-                    // Install adapter
-                    LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getContext());
-                    EquipmentRecyclerAdapter adapter =
-                            new EquipmentRecyclerAdapter(getContext(), equipments);
-                    recyclerView.setLayoutManager(linearLayoutManager);
-                    recyclerView.setAdapter(adapter);
+                        // hide refresh label
+                        refreshingData.setVisibility(View.GONE);
 
-                    recyclerView.setVisibility(View.VISIBLE);
+                        // Install adapter
+                        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getContext());
+                        EquipmentRecyclerAdapter adapter =
+                                new EquipmentRecyclerAdapter(getContext(), equipments);
+                        recyclerView.setLayoutManager(linearLayoutManager);
+                        recyclerView.setAdapter(adapter);
+
+                        recyclerView.setVisibility(View.VISIBLE);
+
+                    } else {
+
+                        refreshingData.setText(getString(R.string.noEquipmentText, label));
+
+                    }
                 }
 
                 @Override

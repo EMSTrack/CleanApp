@@ -4,8 +4,8 @@ import android.location.Location;
 import android.util.Log;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 
 import static org.emstrack.ambulance.util.LatLon.calculateDistanceAndBearing;
@@ -67,7 +67,7 @@ public class AmbulanceUpdateFilter {
         }
 
         // elapsed time
-        double dt = update.getTime() - currentAmbulanceUpdate.getTimestamp().getTime();
+        double dt = update.getTime() - currentAmbulanceUpdate.getTimestamp().getTimeInMillis();
 
         // Predict next currentAmbulanceUpdate
         // GPSLocation prediction = updateLocation(currentAmbulanceUpdate, bearing, velocity * dt);
@@ -97,7 +97,7 @@ public class AmbulanceUpdateFilter {
 
             // updateAmbulance currentAmbulanceUpdate
             currentAmbulanceUpdate.setLocation(update);
-            currentAmbulanceUpdate.setTimestamp(new Date(update.getTime()));
+            currentAmbulanceUpdate.setTimestamp(update.getTime());
 
             // add currentAmbulanceUpdate to filtered locations
             filteredAmbulanceUpdates.add(new AmbulanceUpdate(currentAmbulanceUpdate));
@@ -114,7 +114,7 @@ public class AmbulanceUpdateFilter {
 
     }
 
-    public void update(String status, Date timestamp) {
+    public void update(String status, Calendar timestamp) {
 
         this.filteredAmbulanceUpdates.add(new AmbulanceUpdate(status, timestamp));
 
