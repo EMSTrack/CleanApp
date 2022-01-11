@@ -1,6 +1,7 @@
 package org.emstrack.ambulance.views;
 
-import static org.emstrack.ambulance.util.DateUtils.formatDateTime;
+import static org.emstrack.ambulance.util.FormatUtils.formatDateTime;
+import static org.emstrack.ambulance.util.FormatUtils.formatDistance;
 
 import android.app.Activity;
 import android.content.Context;
@@ -15,15 +16,14 @@ import org.emstrack.ambulance.MainActivity;
 import org.emstrack.ambulance.R;
 import org.emstrack.ambulance.models.AmbulanceAppData;
 import org.emstrack.ambulance.services.AmbulanceForegroundService;
+import org.emstrack.ambulance.util.FormatUtils;
 import org.emstrack.models.AmbulanceCall;
 import org.emstrack.models.Call;
 import org.emstrack.models.PriorityCode;
 import org.emstrack.models.RadioCode;
+import org.emstrack.models.Waypoint;
 
 import java.text.DateFormat;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
-import java.time.format.FormatStyle;
 import java.util.Locale;
 
 /**
@@ -51,6 +51,7 @@ public class CallViewHolder extends RecyclerView.ViewHolder {
     private final TextView callNumberOfWaypointsText;
     private final TextView callNumberOfPatientsText;
     private final TextView callNumberOfMessagesText;
+    private final TextView callDistanceToText;
     private final ImageView callLoginThumbnail;
     private final ImageView callLogoutThumbnail;
     private final View view;
@@ -76,6 +77,7 @@ public class CallViewHolder extends RecyclerView.ViewHolder {
         callRadioCodeText = callDetailView.findViewById(R.id.callRadioCodeText);
         callDetailsText = callDetailView.findViewById(R.id.callDetailsText);
         callNumberOfWaypointsText = callDetailView.findViewById(R.id.callNumberOfWaypointsText);
+        callDistanceToText = callDetailView.findViewById(R.id.callDistanceToText);
         callNumberOfPatientsText = callDetailView.findViewById(R.id.callNumberOfPatientsText);
         callNumberOfMessagesText = callDetailView.findViewById(R.id.callNumberOfMessagesText);
 
@@ -138,6 +140,8 @@ public class CallViewHolder extends RecyclerView.ViewHolder {
                 callLogoutThumbnail.setOnClickListener(v -> mainActivity.promptEndCallDialog(call.getId()));
                 // click navigates to call
                 view.setOnClickListener(v -> mainActivity.navigate(R.id.callFragment));
+                // logout button exits call
+                callLogoutThumbnail.setOnClickListener(v -> mainActivity.promptEndCallDialog(call.getId()));
                 break;
             case AmbulanceCall.STATUS_SUSPENDED:
                 // call is suspended
@@ -175,6 +179,19 @@ public class CallViewHolder extends RecyclerView.ViewHolder {
             callPriorityTextView.setTextColor(mainActivity.getCallPriorityForegroundColors().get(priority));
         } catch (NullPointerException e) {
             Log.d(TAG, "Could not set colors");
+        }
+
+        // set call distance to
+        Waypoint nextWaypoint = ambulanceCall.getNextWaypoint();
+        if (nextWaypoint != null) {
+            float distance = nextWaypoint.calculateDistance(AmbulanceForegroundService.getLastLocation());
+            String distanceText = activity.getString(R.string.dash);
+            if (distance > 0) {
+                distanceText = formatDistance(distance, appData.getSettings().getUnits());
+            }
+            callDistanceToText.setText(distanceText);
+        } else {
+            callDistanceToText.setText(R.string.noDistanceInformationAvailable);
         }
 
         // set call updated on

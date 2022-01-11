@@ -22,6 +22,8 @@ import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+import androidx.preference.PreferenceManager;
+
 import android.text.TextUtils;
 import android.util.Log;
 import android.util.Pair;
@@ -101,7 +103,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static org.emstrack.ambulance.util.DateUtils.formatDateTime;
+import static org.emstrack.ambulance.util.FormatUtils.formatDateTime;
 import static org.emstrack.models.util.BroadcastExtras.ERROR_CODE;
 
 /**
@@ -132,8 +134,12 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
     public final static String PREFERENCES_PASSWORD = "PASSWORD";
     public final static String PREFERENCES_MQTT_SERVER = "MQTT_SERVER";
     public final static String PREFERENCES_API_SERVER = "API_SERVER";
-    private static final String PREFERENCES_UNIQUE_ID = "UNIQUE_ID";
+    public static final String PREFERENCES_UNIQUE_ID = "UNIQUE_ID";
     public final static String PREFERENCES_SERVERS = "SERVERS";
+    public static final String PREFERENCES_MAP_SHOW_AMBULANCES = "MAP_SHOW_AMBULANCES";
+    public static final String PREFERENCES_MAP_SHOW_HOSPITALS = "MAP_SHOW_HOSPITALS";
+    public static final String PREFERENCES_MAP_SHOW_WAYPOINTS = "MAP_SHOW_WAYPOINTS";
+    public static final String PREFERENCES_MAP_CENTER_AMBULANCES = "MAP_CENTER_AMBULANCES";
 
     // Server URI
     private static String _serverUri = "ssl://cruzroja.ucsd.edu:8883";
@@ -510,7 +516,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                     Log.d(TAG, "Failed to logout");
 
                     // Create notification
-                    NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(AmbulanceForegroundService.this, PRIMARY_CHANNEL)
+                    NotificationCompat.Builder builder = new NotificationCompat.Builder(AmbulanceForegroundService.this, PRIMARY_CHANNEL)
                             .setSmallIcon(R.mipmap.ic_launcher)
                             .setContentTitle("EMSTrack")
                             .setContentText(getString(R.string.couldNotLogin, username))
@@ -518,7 +524,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                             .setAutoCancel(true);
 
                     NotificationManagerCompat notificationManager = NotificationManagerCompat.from(AmbulanceForegroundService.this);
-                    notificationManager.notify(notificationId.getAndIncrement(), mBuilder.build());
+                    notificationManager.notify(notificationId.getAndIncrement(), builder.build());
 
                     // Broadcast failure
                     broadcastFailure(extras, uuid);
@@ -556,7 +562,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                     forceLogout();
 
                     // Create notification
-                    NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(AmbulanceForegroundService.this, PRIMARY_CHANNEL)
+                    NotificationCompat.Builder builder = new NotificationCompat.Builder(AmbulanceForegroundService.this, PRIMARY_CHANNEL)
                             .setSmallIcon(R.mipmap.ic_launcher)
                             .setContentTitle("EMSTrack")
                             .setContentText(getString(R.string.couldNotLogin, username))
@@ -564,7 +570,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                             .setAutoCancel(true);
 
                     NotificationManagerCompat notificationManager = NotificationManagerCompat.from(AmbulanceForegroundService.this);
-                    notificationManager.notify(notificationId.getAndIncrement(), mBuilder.build());
+                    notificationManager.notify(notificationId.getAndIncrement(), builder.build());
 
                     // Broadcast failure
                     broadcastFailure(extras, uuid);
@@ -1377,7 +1383,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         Log.i(TAG, message);
 
         // Create notification
-        NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(this, PRIMARY_CHANNEL)
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, PRIMARY_CHANNEL)
                 .setSmallIcon(R.mipmap.ic_launcher)
                 .setContentTitle("EMSTrack")
                 .setContentText(error)
@@ -1385,7 +1391,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                 .setAutoCancel(true);
 
         NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
-        notificationManager.notify(notificationId.getAndIncrement(), mBuilder.build());
+        notificationManager.notify(notificationId.getAndIncrement(), builder.build());
 
         // and return false
         return false;
@@ -1638,7 +1644,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         setOnline(false);
 
         // Create notification
-        NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(this, PRIMARY_CHANNEL)
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, PRIMARY_CHANNEL)
                 .setSmallIcon(R.mipmap.ic_launcher)
                 .setContentTitle("EMSTrack")
                 .setContentText(getString(R.string.attemptingToReconnect))
@@ -1646,7 +1652,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                 .setAutoCancel(true);
 
         NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
-        notificationManager.notify(notificationId.getAndIncrement(), mBuilder.build());
+        notificationManager.notify(notificationId.getAndIncrement(), builder.build());
 
     }
 
@@ -1841,7 +1847,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                     }
 
                     // Create notification
-                    NotificationCompat.Builder mBuilder =
+                    NotificationCompat.Builder builder =
                             new NotificationCompat.Builder(AmbulanceForegroundService.this,
                                     PRIMARY_CHANNEL)
                                     .setSmallIcon(R.mipmap.ic_launcher)
@@ -1851,7 +1857,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                                     .setAutoCancel(true);
 
                     NotificationManagerCompat notificationManager = NotificationManagerCompat.from(AmbulanceForegroundService.this);
-                    notificationManager.notify(notificationId.getAndIncrement(), mBuilder.build());
+                    notificationManager.notify(notificationId.getAndIncrement(), builder.build());
 
                 }
 
@@ -1914,7 +1920,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         setOnline(false);
 
         // Notify user and return
-        NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(this, PRIMARY_CHANNEL)
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, PRIMARY_CHANNEL)
                 .setSmallIcon(R.mipmap.ic_launcher)
                 .setContentTitle(getString(R.string.EMSTrack))
                 .setContentText(getString(R.string.serverIsOfflineBufferingUpdate))
@@ -1922,7 +1928,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                 .setAutoCancel(true);
 
         NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
-        notificationManager.notify(notificationId.getAndIncrement(), mBuilder.build());
+        notificationManager.notify(notificationId.getAndIncrement(), builder.build());
 
     }
 
@@ -1948,7 +1954,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                     Log.d(TAG, String.format("MQTT parsed error message: '%1$s'", errorMessage));
 
                     // Create notification
-                    NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(AmbulanceForegroundService.this, PRIMARY_CHANNEL)
+                    NotificationCompat.Builder builder = new NotificationCompat.Builder(AmbulanceForegroundService.this, PRIMARY_CHANNEL)
                             .setSmallIcon(R.mipmap.ic_launcher)
                             .setContentTitle("EMSTrack")
                             .setContentText(errorMessage)
@@ -1956,7 +1962,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                             .setAutoCancel(true);
 
                     NotificationManagerCompat notificationManager = NotificationManagerCompat.from(AmbulanceForegroundService.this);
-                    notificationManager.notify(notificationId.getAndIncrement(), mBuilder.build());
+                    notificationManager.notify(notificationId.getAndIncrement(), builder.build());
 
                 });
 
@@ -2188,6 +2194,23 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
                                         // save profile
                                         appData.setSettings(settings);
+
+                                        // get local preferences
+                                        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(AmbulanceForegroundService.this);
+                                        String units = sharedPreferences.getString(getString(R.string.unitsPreferenceKey),
+                                                getString(R.string.unitsDefault));
+                                        String waypointEnterDetection = sharedPreferences.getString(getString(R.string.waypointEnterDetectionPreferenceKey),
+                                                getString(R.string.waypointEnterDetectionDefault));
+                                        String waypointExitDetection = sharedPreferences.getString(getString(R.string.waypointExitDetectionPreferenceKey),
+                                                getString(R.string.waypointExitDetectionDefault));
+
+                                        // and save them in settings
+                                        settings.setUnits(units);
+                                        settings.setWaypointEnterDetection(waypointEnterDetection);
+                                        settings.setWaypointExitDetection(waypointExitDetection);
+
+                                        // TODO: update units from server
+
                                     }
 
                                     @Override
@@ -3248,7 +3271,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                                     notificationIntent, 0);
 
                             // Create notification
-                            NotificationCompat.Builder mBuilder =
+                            NotificationCompat.Builder builder =
                                     new NotificationCompat.Builder(this, PRIMARY_CHANNEL)
                                             .setSmallIcon(R.mipmap.ic_launcher)
                                             .setContentTitle(getString(R.string.EMSTrack))
@@ -3260,7 +3283,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
                             NotificationManagerCompat notificationManager
                                     = NotificationManagerCompat.from(this);
-                            notificationManager.notify(notificationId.getAndIncrement(), mBuilder.build());
+                            notificationManager.notify(notificationId.getAndIncrement(), builder.build());
 
 
                             // Broadcast new video call
@@ -4697,7 +4720,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                         notificationIntent, 0);
 
                 // Create notification
-                NotificationCompat.Builder mBuilder =
+                NotificationCompat.Builder builder =
                         new NotificationCompat.Builder(this, CALL_CHANNEL)
                                 .setSmallIcon(R.mipmap.ic_launcher)
                                 .setContentTitle("EMSTrack")
@@ -4709,7 +4732,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
                 NotificationManagerCompat notificationManager
                         = NotificationManagerCompat.from(this);
-                notificationManager.notify(notificationId.getAndIncrement(), mBuilder.build());
+                notificationManager.notify(notificationId.getAndIncrement(), builder.build());
 
                 // create intent to prompt user
                 Intent callPromptIntent = new Intent(BroadcastActions.PROMPT_CALL_ACCEPT);
@@ -5083,6 +5106,19 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
      */
     public void updateAmbulanceEnterWaypointStatus(AmbulanceCall ambulanceCall,
                                                    Call call, Waypoint waypoint) {
+        updateAmbulanceEnterWaypointStatus(ambulanceCall, call, waypoint, false);
+    }
+
+    /**
+     * Update enter waypoint status
+     *
+     * @param ambulanceCall the ambulance call
+     * @param call the call
+     * @param waypoint the waypoint
+     * @param notifyOnly whether only to notify
+     */
+    public void updateAmbulanceEnterWaypointStatus(AmbulanceCall ambulanceCall,
+                                                   Call call, Waypoint waypoint, boolean notifyOnly) {
 
         Log.d(TAG, "Entering waypoint");
 
@@ -5122,40 +5158,94 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
             return;
         }
 
-        String waypointType = waypoint.getLocation().getType();
+        Location location = waypoint.getLocation();
+        String waypointType = location.getType();
         Log.d(TAG, "Arrived at waypoint of type '" + waypointType + "'");
 
+        String ambulanceStatus;
         switch (waypointType) {
             case Location.TYPE_INCIDENT:
 
                 // publish at patient to server
-                updateAmbulanceStatus(ambulanceCall.getAmbulanceId(), Ambulance.STATUS_AT_PATIENT);
+//                updateAmbulanceStatus(ambulanceCall.getAmbulanceId(), Ambulance.STATUS_AT_PATIENT);
+                ambulanceStatus = Ambulance.STATUS_AT_PATIENT;
 
                 break;
             case Location.TYPE_BASE:
 
                 // publish base bound to server
-                updateAmbulanceStatus(ambulanceCall.getAmbulanceId(), Ambulance.STATUS_AT_BASE);
+//                updateAmbulanceStatus(ambulanceCall.getAmbulanceId(), Ambulance.STATUS_AT_BASE);
+                ambulanceStatus = Ambulance.STATUS_AT_BASE;
 
                 break;
             case Location.TYPE_HOSPITAL:
 
                 // publish hospital bound to server
-                updateAmbulanceStatus(ambulanceCall.getAmbulanceId(), Ambulance.STATUS_AT_HOSPITAL);
+//                updateAmbulanceStatus(ambulanceCall.getAmbulanceId(), Ambulance.STATUS_AT_HOSPITAL);
+                ambulanceStatus = Ambulance.STATUS_AT_HOSPITAL;
 
                 break;
             case Location.TYPE_WAYPOINT:
             case Location.TYPE_OTHER:
 
                 // publish waypoint bound to server
-                updateAmbulanceStatus(ambulanceCall.getAmbulanceId(), Ambulance.STATUS_AT_WAYPOINT);
+//                updateAmbulanceStatus(ambulanceCall.getAmbulanceId(), Ambulance.STATUS_AT_WAYPOINT);
+                ambulanceStatus = Ambulance.STATUS_AT_WAYPOINT;
 
                 break;
+
+            default:
+                Log.d(TAG, "Unknown location type. Aborting");
+                return;
         }
 
-        // Update waypoint status
-        updateWaypointStatus(Waypoint.STATUS_VISITING, waypoint,
-                ambulanceCall.getAmbulanceId(), call.getId());
+        if (notifyOnly) {
+
+            // notify user
+            Log.d(TAG, "Notifying user waypoint was entered");
+
+            // Notification
+            int _notificationId = notificationId.getAndIncrement();
+
+            Intent markAsVisitingIntent = new Intent(AmbulanceForegroundService.this, MainActivity.class);
+            markAsVisitingIntent.putExtra(MainActivity.NOTIFICATION_ID, _notificationId);
+            markAsVisitingIntent.putExtra(MainActivity.ACTION, MainActivity.ACTION_MARK_AS_VISITING);
+            markAsVisitingIntent.putExtra("ambulanceId", ambulanceCall.getAmbulanceId());
+            markAsVisitingIntent.putExtra("callId", call.getId());
+            markAsVisitingIntent.putExtra("waypointId", waypoint.getId());
+            markAsVisitingIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            PendingIntent markAsVisitingPendingIntent = PendingIntent.getActivity(AmbulanceForegroundService.this, 0,
+                    markAsVisitingIntent,
+                    android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M ?
+                            PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT :
+                            PendingIntent.FLAG_UPDATE_CURRENT );
+
+            // Create notification
+            NotificationCompat.Builder builder =
+                    new NotificationCompat.Builder(this, CALL_CHANNEL)
+                            .setSmallIcon(R.mipmap.ic_launcher)
+                            .setContentTitle(getString(R.string.EMSTrack))
+                            .setContentText(getString(R.string.approachedAWaypoint))
+                            .setStyle(new NotificationCompat.BigTextStyle()
+                                    .bigText(String.format("%s:\n%s", location.getType(), location.toAddress())))
+                            .setPriority(NotificationCompat.PRIORITY_MAX)
+                            .setAutoCancel(true)
+                            .setDefaults(Notification.DEFAULT_ALL)
+                            .addAction(R.drawable.ic_map_marker, getString(R.string.markAsVisiting), markAsVisitingPendingIntent);
+
+            NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
+            notificationManager.notify(_notificationId, builder.build());
+
+        } else {
+
+            // Update ambulance status
+            updateAmbulanceStatus(ambulanceCall.getAmbulanceId(), ambulanceStatus);
+
+            // Update waypoint status
+            updateWaypointStatus(Waypoint.STATUS_VISITING, waypoint,
+                    ambulanceCall.getAmbulanceId(), call.getId());
+
+        }
 
     }
 
@@ -5166,7 +5256,21 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
      * @param call the call
      * @param waypoint the waypoint
      */
-    public void updateAmbulanceExitWaypointStatus(AmbulanceCall ambulanceCall, Call call, Waypoint waypoint) {
+    public void updateAmbulanceExitWaypointStatus(AmbulanceCall ambulanceCall, Call call,
+                                                  Waypoint waypoint) {
+        updateAmbulanceExitWaypointStatus(ambulanceCall, call, waypoint, false);
+    }
+
+    /**
+     * Update exit waypoint status
+     *
+     * @param ambulanceCall the ambulance call
+     * @param call the call
+     * @param waypoint the waypoint
+     * @param notifyOnly whether to only notify
+     */
+    public void updateAmbulanceExitWaypointStatus(AmbulanceCall ambulanceCall, Call call,
+                                                  Waypoint waypoint, boolean notifyOnly) {
 
         Log.d(TAG, "Exiting waypoint");
 
@@ -5206,16 +5310,57 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
             return;
         }
 
-        String waypointType = waypoint.getLocation().getType();
+        Location location = waypoint.getLocation();
+        String waypointType = location.getType();
         Log.d(TAG, "Left a waypoint of type '" + waypointType + "'");
 
-        // Update waypoint status on server
-        updateWaypointStatus(Waypoint.STATUS_VISITED, waypoint,
-                ambulanceCall.getAmbulanceId(), call.getId());
+        if (notifyOnly) {
 
-        // Go for next waypoint
-        updateAmbulanceNextWaypointStatus(ambulanceCall, call);
+            // notify user
+            Log.d(TAG, "Notifying user waypoint was exited");
 
+            // Notification
+            int _notificationId = notificationId.getAndIncrement();
+
+            Intent markAsVisitedIntent = new Intent(AmbulanceForegroundService.this, MainActivity.class);
+            markAsVisitedIntent.putExtra(MainActivity.NOTIFICATION_ID, _notificationId);
+            markAsVisitedIntent.putExtra(MainActivity.ACTION, MainActivity.ACTION_MARK_AS_VISITED);
+            markAsVisitedIntent.putExtra("ambulanceId", ambulanceCall.getAmbulanceId());
+            markAsVisitedIntent.putExtra("callId", call.getId());
+            markAsVisitedIntent.putExtra("waypointId", waypoint.getId());
+            markAsVisitedIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            PendingIntent markAsVisitedPendingIntent = PendingIntent.getActivity(AmbulanceForegroundService.this, 0,
+                    markAsVisitedIntent,
+                    android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M ?
+                            PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT :
+                            PendingIntent.FLAG_UPDATE_CURRENT );
+
+            // Create notification
+            NotificationCompat.Builder builder =
+                    new NotificationCompat.Builder(this, CALL_CHANNEL)
+                            .setSmallIcon(R.mipmap.ic_launcher)
+                            .setContentTitle(getString(R.string.EMSTrack))
+                            .setContentText(getString(R.string.leftAWaypoint))
+                            .setStyle(new NotificationCompat.BigTextStyle()
+                                    .bigText(String.format("%s\n%s:", location.getType(), location.toAddress())))
+                            .setPriority(NotificationCompat.PRIORITY_MAX)
+                            .setAutoCancel(true)
+                            .setDefaults(Notification.DEFAULT_ALL)
+                            .addAction(R.drawable.ic_map_marker, getString(R.string.markAsVisited), markAsVisitedPendingIntent);
+
+            NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
+            notificationManager.notify(notificationId.getAndIncrement(), builder.build());
+
+        } else {
+
+            // Update waypoint status on server
+            updateWaypointStatus(Waypoint.STATUS_VISITED, waypoint,
+                    ambulanceCall.getAmbulanceId(), call.getId());
+
+            // Go for next waypoint
+            updateAmbulanceNextWaypointStatus(ambulanceCall, call);
+
+        }
     }
 
     /**
@@ -5270,7 +5415,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         Ambulance ambulance = appData.getAmbulance();
         if (ambulance == null) {
 
-            Log.d(TAG, "Ambulance not found while in replyToTransition()");
+            Log.d(TAG, "Ambulance not found while in replyToGeofenceTransition()");
 
             Intent localIntent = new Intent(org.emstrack.models.util.BroadcastActions.FAILURE);
             localIntent.putExtra(org.emstrack.models.util.BroadcastExtras.MESSAGE, getString(R.string.couldNotFindAmbulance));
@@ -5297,18 +5442,45 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
             }
 
+            // Get waypointdetenction settings
+            Settings settings = appData.getSettings();
+
             // Process transitions
             if (Actions.GEOFENCE_ENTER.equals(action)) {
 
                 // Entered a geofence
                 Log.i(TAG, "GEOFENCE ENTER");
-                updateAmbulanceEnterWaypointStatus(ambulanceCall, call, geofence.getWaypoint());
+                String waypointEnterDetection = settings.getWaypointEnterDetection();
+                if (Waypoint.DETECTION_MARK.equals(waypointEnterDetection)) {
+                    // automatically mark waypoint status
+                    Log.d(TAG, "Will mark status");
+                    updateAmbulanceEnterWaypointStatus(ambulanceCall, call, geofence.getWaypoint());
+                } else if (Waypoint.DETECTION_NOTIFY.equals(waypointEnterDetection)) {
+                    // notify has entered waypoint
+                    Log.d(TAG, "Will notify user");
+                    updateAmbulanceEnterWaypointStatus(ambulanceCall, call, geofence.getWaypoint(), true);
+                } else { // if (Waypoint.DETECTION_DISABLED.equals(waypointEnterDetection)) {
+                    // log and ignore
+                    Log.d(TAG, "Ignoring waypoint enter event");
+                }
 
             } else {
 
                 // Exited a geofence
                 Log.i(TAG, "GEOFENCE EXIT");
-                updateAmbulanceExitWaypointStatus(ambulanceCall, call, geofence.getWaypoint());
+                String waypointExitDetection = settings.getWaypointExitDetection();
+                if (Waypoint.DETECTION_MARK.equals(waypointExitDetection)) {
+                    // automatically mark waypoint status
+                    Log.d(TAG, "Will mark status");
+                    updateAmbulanceExitWaypointStatus(ambulanceCall, call, geofence.getWaypoint());
+                } else if (Waypoint.DETECTION_NOTIFY.equals(waypointExitDetection)) {
+                    // notify has entered waypoint
+                    Log.d(TAG, "Will notify user");
+                    updateAmbulanceExitWaypointStatus(ambulanceCall, call, geofence.getWaypoint(), true);
+                } else { // if (Waypoint.DETECTION_DISABLED.equals(waypointEnterDetection)) {
+                    // log and ignore
+                    Log.d(TAG, "Ignoring waypoint enter event");
+                }
 
             }
 

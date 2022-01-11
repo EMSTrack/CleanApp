@@ -161,8 +161,8 @@
     <string name="visitingWaypoint">Marcar punto de ruta como visitando</string>
     <string name="visitedWaypoint">Marcando punto de ruta como visitado</string>
     <string name="skip">Saltar</string>
-    <string name="markAsVisiting">Visitando</string>
-    <string name="markAsVisited">Visitado</string>
+    <string name="visiting">Visitando</string>
+    <string name="visited">Visitado</string>
     <string name="addWaypoint">Nueva Ruta</string>
     <string name="endCall">Terminar</string>
     <string name="detailsLabel">Detalles:</string>
@@ -335,4 +335,20 @@
     <string name="tocall">Llamar</string>
     <string name="equipment_type">Tipo de equipo</string>
     <string name="noEquipmentText">\'%1$s\' no tiene equipos registrados</string>
+    <string name="ignore">Ignorar</string>
+    <string name="notifyUser">Notificar al usuario</string>
+    <string name="markAsVisiting">Marcar como visita</string>
+    <string name="markAsVisited">Marcar como visitado</string>
+    <string name="kilometers">kilómetros</string>
+    <string name="miles">millas</string>
+    <string name="distanceToNextWaypoint">Distancia al siguiente punto de ruta:</string>
+    <string name="waypointEnterDetectionPreferenceLabel">Acercándose al punto de ruta</string>
+    <string name="waypointEnterDetectionPreferenceSummary">Qué hacer al acercarse al punto de ruta durante una llamada</string>
+    <string name="waypointExitDetectionPreferenceLabel">Dejando punto de ruta</string>
+    <string name="waypointExitDetectionPreferenceSummary">Qué hacer al abandonar un punto de ruta durante una llamada</string>
+    <string name="invalidNotification">Esta notificación ya no es válida.</string>
+    <string name="unitsOfMeasurement">Unidades de medida</string>
+    <string name="unitOfMeasurementSummary">Elección de unidades para medir distancias</string>
+    <string name="approachedAWaypoint">Se ha acercado a un punto de ruta</string>
+    <string name="leftAWaypoint">Se ha alejado de un punto de ruta</string>
 </resources>

@@ -1,7 +1,7 @@
 package org.emstrack.ambulance.views;
 
-import static org.emstrack.ambulance.util.DateUtils.formatDate;
-import static org.emstrack.ambulance.util.DateUtils.formatTime;
+import static org.emstrack.ambulance.util.FormatUtils.formatDate;
+import static org.emstrack.ambulance.util.FormatUtils.formatTime;
 
 import android.content.Context;
 import android.view.View;
@@ -15,10 +15,6 @@ import org.emstrack.ambulance.adapters.MessageRecyclerAdapter;
 import org.emstrack.models.Note;
 
 import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
-import java.time.format.FormatStyle;
 
 /**
  * Holds a message

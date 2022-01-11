@@ -2,6 +2,7 @@ package org.emstrack.ambulance.util;
 
 import android.os.Build;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 
 import java.text.DateFormat;
@@ -9,8 +10,21 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
 import java.util.Calendar;
+import java.util.Locale;
 
-public class DateUtils {
+public class FormatUtils {
+
+    public static float MILES_TO_KM = 1.609f;
+    public static String METRIC = "metric";
+    public static String IMPERIAL = "imperial";
+
+    public static boolean isMetric(String value) {
+        return METRIC.equals(value);
+    }
+
+    public static boolean isImperial(String value) {
+        return IMPERIAL.equals(value);
+    }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     public static FormatStyle getFormatStyle(int format) {
@@ -76,6 +90,14 @@ public class DateUtils {
         }
 
         return updatedOn;
+    }
+
+    public static String formatDistance(float distance, String unitSystem) {
+        if (isImperial(unitSystem)) {
+            return String.format(Locale.getDefault(), "%.1f mi", distance / MILES_TO_KM );
+        } else { //if (unitSystem.isMetric()) {
+            return String.format(Locale.getDefault(), "%.1f km", distance);
+        }
     }
 
 }

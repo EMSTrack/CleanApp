@@ -5,9 +5,11 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.hardware.SensorManager;
 import android.os.Bundle;
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
@@ -353,7 +355,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
                     //Log.d(TAG,"onOrientationChanged");
                     if (rotation != ORIENTATION_UNKNOWN) {
                         screenOrientation = degreesToRotation(rotation);
-                        //Log.d(TAG, "rotation = " + rotation + ", screenOrientation = " + screenOrientation);
+                        Log.d(TAG, "rotation = " + rotation + ", screenOrientation = " + screenOrientation);
                     }
                 }
 
@@ -529,6 +531,16 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
         receiver = new AmbulancesUpdateBroadcastReceiver();
         getLocalBroadcastManager().registerReceiver(receiver, filter);
 
+        // Retrieving button state
+        SharedPreferences sharedPreferences =
+                activity.getSharedPreferences(AmbulanceForegroundService.PREFERENCES_NAME, AppCompatActivity.MODE_PRIVATE);
+
+        // Retrieve button state
+        showAmbulances = sharedPreferences.getBoolean(AmbulanceForegroundService.PREFERENCES_MAP_SHOW_AMBULANCES, false);
+        showHospitals = sharedPreferences.getBoolean(AmbulanceForegroundService.PREFERENCES_MAP_SHOW_HOSPITALS, false);
+        showWaypoints = sharedPreferences.getBoolean(AmbulanceForegroundService.PREFERENCES_MAP_SHOW_WAYPOINTS, false);
+        centerAmbulances = sharedPreferences.getBoolean(AmbulanceForegroundService.PREFERENCES_MAP_CENTER_AMBULANCES, false);
+
         // Switch colors
         if (showAmbulances)
             showAmbulancesButton.setBackgroundColor(getResources().getColor(R.color.mapButtonOn));
@@ -564,6 +576,21 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
 
         // disable orientation listener
         orientationListener.disable();
+
+        // save button state
+        SharedPreferences sharedPreferences =
+                activity.getSharedPreferences(AmbulanceForegroundService.PREFERENCES_NAME, AppCompatActivity.MODE_PRIVATE);
+
+        // Get preferences editor
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+
+        // Save credentials
+        Log.d(TAG, "Storing buttons");
+        editor.putBoolean(AmbulanceForegroundService.PREFERENCES_MAP_SHOW_AMBULANCES, showAmbulances);
+        editor.putBoolean(AmbulanceForegroundService.PREFERENCES_MAP_SHOW_HOSPITALS, showHospitals);
+        editor.putBoolean(AmbulanceForegroundService.PREFERENCES_MAP_SHOW_WAYPOINTS, showWaypoints);
+        editor.putBoolean(AmbulanceForegroundService.PREFERENCES_MAP_CENTER_AMBULANCES, centerAmbulances);
+        editor.apply();
 
     }
 
@@ -921,14 +948,15 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
             // Center and orient map
             CameraPosition currentPlace = new CameraPosition.Builder()
                     .target(latLng)
-                    .bearing((float) ambulance.getOrientation() + ROTATIONS[screenOrientation])
+                    .bearing((float) ambulance.getOrientation())
                     .zoom(zoomLevel)
                     .build();
             googleMap.animateCamera(CameraUpdateFactory.newCameraPosition(currentPlace));
 
         } else {
 
-            new AlertSnackbar(activity).alert(getString(R.string.selectVehicleFirst));
+            Log.d(TAG, "No ambulance is selected");
+            // new AlertSnackbar(activity).alert(getString(R.string.selectVehicleFirst));
 
         }
 

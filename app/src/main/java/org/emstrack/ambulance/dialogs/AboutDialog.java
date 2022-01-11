@@ -1,6 +1,6 @@
 package org.emstrack.ambulance.dialogs;
 
-import static org.emstrack.ambulance.util.DateUtils.formatDateTime;
+import static org.emstrack.ambulance.util.FormatUtils.formatDateTime;
 
 import android.app.Activity;
 

@@ -50,17 +50,32 @@
         android:text="0" />
 
     <TextView
-        android:id="@+id/callNumberOfPatientsLabel"
+        android:id="@+id/callDistanceToLabel"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@id/callNumberOfWaypointsText"
+        android:text="@string/distanceToNextWaypoint" />
+
+    <TextView
+        android:id="@+id/callDistanceToText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/callNumberOfWaypointsText"
+        android:layout_alignParentEnd="true"
+        android:text="" />
+
+    <TextView
+        android:id="@+id/callNumberOfPatientsLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/callDistanceToText"
         android:text="@string/numberOfPatientsLabel" />
 
     <TextView
         android:id="@+id/callNumberOfPatientsText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@id/callNumberOfWaypointsText"
+        android:layout_below="@id/callDistanceToText"
         android:layout_alignParentEnd="true"
         android:text="0" />
 

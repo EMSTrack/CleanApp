@@ -1,6 +1,6 @@
 package org.emstrack.ambulance.views;
 
-import static org.emstrack.ambulance.util.DateUtils.formatDateTime;
+import static org.emstrack.ambulance.util.FormatUtils.formatDateTime;
 
 import android.content.Context;
 import androidx.recyclerview.widget.RecyclerView;

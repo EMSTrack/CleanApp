@@ -1,6 +1,6 @@
 package org.emstrack.ambulance.views;
 
-import static org.emstrack.ambulance.util.DateUtils.formatDateTime;
+import static org.emstrack.ambulance.util.FormatUtils.formatDateTime;
 
 import android.app.Activity;
 import android.location.Location;
@@ -16,7 +16,6 @@ import com.google.android.gms.maps.model.LatLng;
 import org.emstrack.ambulance.MainActivity;
 import org.emstrack.ambulance.R;
 import org.emstrack.ambulance.models.EquipmentType;
-import org.emstrack.models.Address;
 import org.emstrack.models.Hospital;
 
 import java.text.DateFormat;

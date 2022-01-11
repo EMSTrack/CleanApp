@@ -2,6 +2,7 @@ package org.emstrack.ambulance.fragments;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
@@ -20,7 +21,6 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.annotation.OptIn;
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
@@ -43,7 +43,6 @@ import org.emstrack.ambulance.views.WaypointViewHolder;
 import org.emstrack.models.Ambulance;
 import org.emstrack.models.AmbulanceCall;
 import org.emstrack.models.Call;
-import org.emstrack.models.CallNote;
 import org.emstrack.models.PriorityCode;
 import org.emstrack.models.RadioCode;
 import org.emstrack.models.Settings;
@@ -68,11 +67,11 @@ public class CallFragment extends Fragment {
     private LinearLayoutManager patientLinearLayoutManager;
     private RecyclerView patientRecyclerView;
 
-    private Button waypointToolbarPreviousButton;
     private Button waypointToolbarNextButton;
     private Button waypointToolbarVisitingButton;
     private Button waypointToolbarSkipButton;
     private Button waypointToolbarAddWaypointButton;
+    private Button waypointToolbarUndoButton;
 
     private TextView callPriorityTextView;
     private TextView callPriorityPrefixTextView;
@@ -92,6 +91,8 @@ public class CallFragment extends Fragment {
     private ImageView callPatientCancelAddIcon;
     private ImageView callMessageButton;
     private FrameLayout callMessageButtonFrameLayout;
+    private WaypointInfoRecyclerAdapter waypointAdapter;
+    private Bundle arguments;
 
     public class CallUpdateBroadcastReceiver extends BroadcastReceiver {
 
@@ -101,14 +102,24 @@ public class CallFragment extends Fragment {
 
                 final String action = intent.getAction();
                 if (action != null) {
-                    if (AmbulanceForegroundService.BroadcastActions.CALL_UPDATE.equals(action)) {
-                        Log.i(TAG, "CALL_UPDATE");
-                        refreshData();
-                    } else if (AmbulanceForegroundService.BroadcastActions.CALL_COMPLETED.equals(action)) {
-                        Log.i(TAG, "CALL_COMPLETED");
-                        activity.navigate(R.id.ambulanceFragment);
-                    } else {
-                        Log.i(TAG, "Unknown broadcast action");
+                    switch (action) {
+                        case AmbulanceForegroundService.BroadcastActions.AMBULANCE_UPDATE:
+                            Log.i(TAG, "AMBULANCE_UPDATE");
+                            if (waypointAdapter != null) {
+                                waypointAdapter.notifyDataSetChanged();
+                            }
+                            break;
+                        case AmbulanceForegroundService.BroadcastActions.CALL_UPDATE:
+                            Log.i(TAG, "CALL_UPDATE");
+                            refreshData();
+                            break;
+                        case AmbulanceForegroundService.BroadcastActions.CALL_COMPLETED:
+                            Log.i(TAG, "CALL_COMPLETED");
+                            activity.navigate(R.id.ambulanceFragment);
+                            break;
+                        default:
+                            Log.i(TAG, "Unknown broadcast action");
+                            break;
                     }
                 } else {
                     Log.i(TAG, "Action is null");
@@ -207,11 +218,11 @@ public class CallFragment extends Fragment {
         waypointBrowserRecyclerView = waypointBrowser.findViewById(R.id.waypointBrowserRecyclerView);
 
         View waypointBrowserToolbar = waypointBrowser.findViewById(R.id.waypointBrowserToolbar);
-        waypointToolbarPreviousButton = waypointBrowserToolbar.findViewById(R.id.waypointToolbarPreviousButton);
         waypointToolbarNextButton = waypointBrowserToolbar.findViewById(R.id.waypointToolbarNextButton);
         waypointToolbarVisitingButton = waypointBrowserToolbar.findViewById(R.id.waypointToolbarVisitingButton);
         waypointToolbarSkipButton = waypointBrowserToolbar.findViewById(R.id.waypointToolbarSkipButton);
         waypointToolbarAddWaypointButton = waypointBrowserToolbar.findViewById(R.id.waypointToolbarAddWaypointButton);
+        waypointToolbarUndoButton = waypointBrowserToolbar.findViewById(R.id.waypointToolbarUndoButton);
 
         // called after user scrolls waypoint tool
         waypointLinearLayoutManager = new LinearLayoutManager(requireContext(),
@@ -234,21 +245,22 @@ public class CallFragment extends Fragment {
         snapHelper.attachToRecyclerView(waypointBrowserRecyclerView);
 
         // set up toolbar
-        waypointToolbarPreviousButton
-                .setOnClickListener(v -> {
-                    int currentPosition = waypointLinearLayoutManager.findFirstVisibleItemPosition();
-                    if (currentPosition > 0) {
-                        waypointBrowserRecyclerView.smoothScrollToPosition(currentPosition - 1);
-                    }
-                });
-
         waypointToolbarNextButton
                 .setOnClickListener(v -> {
                     int currentPosition = waypointLinearLayoutManager.findFirstVisibleItemPosition();
                     RecyclerView.Adapter adapter = waypointBrowserRecyclerView.getAdapter();
-                    if (adapter != null && currentPosition < adapter.getItemCount()) {
-                        waypointBrowserRecyclerView.smoothScrollToPosition(currentPosition + 1);
+                    if (adapter != null) {
+                        AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
+                        Call call = appData.getCalls().getCurrentCall();
+                        AmbulanceCall ambulanceCall = call.getCurrentAmbulanceCall();
+                        waypointBrowserRecyclerView.smoothScrollToPosition(ambulanceCall.getNextWaypointPosition());
                     }
+                });
+
+        waypointToolbarUndoButton
+                .setOnClickListener(v -> {
+                    new org.emstrack.ambulance.dialogs.AlertDialog(getActivity(), getString(R.string.alert_warning_title))
+                            .alert(getString(R.string.notImplementedYet));
                 });
 
         waypointToolbarAddWaypointButton
@@ -310,6 +322,9 @@ public class CallFragment extends Fragment {
         // update call
         refreshData();
 
+        // get arguments
+        arguments = getArguments();
+
         return view;
     }
 
@@ -322,10 +337,14 @@ public class CallFragment extends Fragment {
 
         // Register receiver
         IntentFilter filter = new IntentFilter();
+        filter.addAction(AmbulanceForegroundService.BroadcastActions.AMBULANCE_UPDATE);
         filter.addAction(AmbulanceForegroundService.BroadcastActions.CALL_UPDATE);
         filter.addAction(AmbulanceForegroundService.BroadcastActions.CALL_COMPLETED);
         receiver = new CallFragment.CallUpdateBroadcastReceiver();
         getLocalBroadcastManager().registerReceiver(receiver, filter);
+
+        // process arguments
+        processArguments();
 
     }
 
@@ -339,6 +358,70 @@ public class CallFragment extends Fragment {
             receiver = null;
         }
 
+    }
+
+    public void processArguments() {
+        if (arguments != null) {
+            Log.d(TAG, "Has arguments");
+            String action = arguments.getString(MainActivity.ACTION);
+            if (action != null) {
+                Log.d(TAG, "Process arguments");
+                int ambulanceId = arguments.getInt("ambulanceId", -1);
+                int callId = arguments.getInt("callId", -1);
+                int waypointId = arguments.getInt("waypointId", -1);
+                AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
+                Ambulance ambulance = appData.getAmbulance();
+                Call call = appData.getCalls().getCurrentCall();
+                AmbulanceCall ambulanceCall = call.getCurrentAmbulanceCall();
+                Waypoint waypoint = ambulanceCall.getNextWaypoint();
+                if (ambulance.getId() == ambulanceId &&
+                        ambulanceCall.getAmbulanceId() == ambulanceId &&
+                        call.getId() == callId &&
+                        waypoint.getId() == waypointId) {
+                    if (action.equals(MainActivity.ACTION_MARK_AS_VISITING)) {
+                        if (waypoint.isCreated()) {
+                            Log.d(TAG, "Will prompt to mark visiting");
+                            promptSkipVisitingOrVisited(Waypoint.STATUS_VISITING,
+                                    waypointId, callId, ambulanceId,
+                                    getString(R.string.pleaseConfirm),
+                                    getString(R.string.visitCurrentWaypoint),
+                                    getString(R.string.visitingWaypoint));
+                        } else {
+                            Log.d(TAG, String.format("Invalid action %s for ambulance '%d', call '%d' and waypoint '%d'", action, ambulance.getId(), callId, waypointId));
+                            new org.emstrack.ambulance.dialogs.AlertDialog(activity, getString(R.string.alert_warning_title))
+                                    .alert(getString(R.string.invalidNotification), (dialogInterface, i) -> activity.navigate(R.id.mapFragment));
+                        }
+                    } else if (action.equals(MainActivity.ACTION_MARK_AS_VISITED)) {
+                        if (waypoint.isVisiting()) {
+                            Log.d(TAG, "Will prompt to mark visited");
+                            promptSkipVisitingOrVisited(Waypoint.STATUS_VISITED,
+                                    waypointId, callId, ambulanceId,
+                                    getString(R.string.pleaseConfirm),
+                                    getString(R.string.visitedCurrentWaypoint),
+                                    getString(R.string.visitedWaypoint));
+                        }  else {
+                            Log.d(TAG, String.format("Invalid action %s for ambulance '%d', call '%d' and waypoint '%d'", action, ambulance.getId(), callId, waypointId));
+                            new org.emstrack.ambulance.dialogs.AlertDialog(activity, getString(R.string.alert_warning_title))
+                                    .alert(getString(R.string.invalidNotification), (dialogInterface, i) -> activity.navigate(R.id.mapFragment));
+                        }
+                    } else if (action.equals(MainActivity.ACTION_OPEN_CALL_FRAGMENT)) {
+                        Log.d(TAG, "Will simply open call fragment");
+                    } else {
+                        Log.d(TAG, String.format("Invalid action for ambulance '%d', call '%d' and waypoint '%d'", ambulance.getId(), callId, waypointId));
+                        new org.emstrack.ambulance.dialogs.AlertDialog(activity, getString(R.string.alert_warning_title))
+                                .alert(getString(R.string.invalidNotification), (dialogInterface, i) -> activity.navigate(R.id.mapFragment));
+                    }
+                } else {
+                    Log.d(TAG, String.format("Ambulance '%d', call '%d' and waypoint '%d' are not current", ambulance.getId(), callId, waypointId));
+                    new org.emstrack.ambulance.dialogs.AlertDialog(activity, getString(R.string.alert_warning_title))
+                            .alert(getString(R.string.invalidNotification), (dialogInterface, i) -> activity.navigate(R.id.mapFragment));
+                }
+            }
+            // make sure it gets executed only once
+            arguments = null;
+        } else {
+            Log.d(TAG, "Has no arguments");
+        }
     }
 
     public void refreshData() {
@@ -420,9 +503,8 @@ public class CallFragment extends Fragment {
         if (numberOfWaypoints > 0) {
 
             // Install adapter
-            WaypointInfoRecyclerAdapter adapter =
-                    new WaypointInfoRecyclerAdapter(requireActivity(), ambulanceCall.getWaypointSet());
-            waypointBrowserRecyclerView.setAdapter(adapter);
+            waypointAdapter = new WaypointInfoRecyclerAdapter(requireActivity(), ambulanceCall.getWaypointSet());
+            waypointBrowserRecyclerView.setAdapter(waypointAdapter);
             waypointBrowserRecyclerView.setVisibility(View.VISIBLE);
 
             // configure waypoint editor
@@ -491,10 +573,6 @@ public class CallFragment extends Fragment {
         RecyclerView.Adapter adapter = waypointBrowserRecyclerView.getAdapter();
         int itemCount = adapter != null ? adapter.getItemCount() : 0;
 
-        // disable/enable previous/next buttons
-        waypointToolbarPreviousButton.setEnabled(position != 0);
-        waypointToolbarNextButton.setEnabled(position != itemCount - 1);
-
         // set visiting button
         try {
             Call call = AmbulanceForegroundService.getAppData().getCalls().getCurrentCall();
@@ -515,13 +593,13 @@ public class CallFragment extends Fragment {
 
                 if (waypoint.isCreated()) {
 
-                    text = getString(R.string.markAsVisiting);
+                    text = getString(R.string.visiting);
                     backgroundColor = getResources().getColor(R.color.bootstrapWarning);
                     textColor = getResources().getColor(R.color.bootstrapDark);
 
                 } else { // if waypoint.isVisiting()
 
-                    text = getString(R.string.markAsVisited);
+                    text = getString(R.string.visited);
                     backgroundColor = getResources().getColor(R.color.bootstrapPrimary);
                     textColor = getResources().getColor(R.color.bootstrapLight);
 
@@ -530,8 +608,9 @@ public class CallFragment extends Fragment {
                 waypointToolbarVisitingButton.setEnabled(true);
                 waypointToolbarAddWaypointButton.setEnabled(true);
                 waypointToolbarSkipButton.setEnabled(true);
+                waypointToolbarUndoButton.setEnabled(true);
 
-                if (nextWaypoint != null && waypoint.isCreated()) {
+                if (waypoint.isCreated()) {
                     // color current waypoint
                     WaypointViewHolder viewHolder = (WaypointViewHolder) waypointBrowserRecyclerView.findViewHolderForAdapterPosition(position);
                     if (viewHolder != null) {
@@ -545,33 +624,36 @@ public class CallFragment extends Fragment {
                 if (waypoint.isVisited()) {
 
                     // waypoint is already visited
-                    text = getString(R.string.markAsVisited);
+                    text = getString(R.string.visited);
                     backgroundColor = getResources().getColor(R.color.bootstrapPrimary);
-                    textColor = getResources().getColor(R.color.bootstrapLight);
 
                 } else { // { if (waypoint.isSkipped()) {
 
                     // waypoint was skipped
                     text = getString(R.string.skipped);
                     backgroundColor = getResources().getColor(R.color.bootstrapSecondary);
-                    textColor = getResources().getColor(R.color.bootstrapDark);
 
                 }
+                textColor = getResources().getColor(R.color.bootstrapDark);
+
                 waypointToolbarVisitingButton.setEnabled(false);
                 waypointToolbarAddWaypointButton.setEnabled(nextWaypointOrder == -1 && position == waypointSet.size() - 1);
                 waypointToolbarSkipButton.setEnabled(false);
+                // enable undo only if last waypoint
+                waypointToolbarUndoButton.setEnabled(nextWaypointOrder == -1 && position == waypointSet.size() - 1);
 
             } else { // if (waypoint.getOrder() > nextWaypoint.getOrder()) {
                 Log.d(TAG, "Waypoint comes after current waypoint");
 
                 // waypoint is not visited yet
-                text = getString(R.string.markAsVisiting);
+                text = getString(R.string.visiting);
                 backgroundColor = getResources().getColor(R.color.bootstrapWarning);
-                textColor = getResources().getColor(R.color.bootstrapDark);
+                textColor = getResources().getColor(R.color.bootstrapSecondary);
 
                 waypointToolbarVisitingButton.setEnabled(false);
                 waypointToolbarAddWaypointButton.setEnabled(true);
                 waypointToolbarSkipButton.setEnabled(true);
+                waypointToolbarUndoButton.setEnabled(false);
 
             }
 

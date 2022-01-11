@@ -1,5 +1,6 @@
 package org.emstrack.ambulance;
 
+import android.app.NotificationManager;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
@@ -93,6 +94,12 @@ import java.util.Objects;
  */
 public class MainActivity extends AppCompatActivity {
 
+    public static final String NOTIFICATION_ID = "NOTIFICATION_ID";
+    public static final String ACTION = "ACTION";
+    public static final String ACTION_MARK_AS_VISITING = "MARK_AS_VISITING";
+    public static final String ACTION_MARK_AS_VISITED = "MARK_AS_VISITED";
+    public static final String ACTION_OPEN_CALL_FRAGMENT = "OPEN_CALL_FRAGMENT";
+
     private static final String TAG = MainActivity.class.getSimpleName();
 
     private static final DecimalFormat df = new DecimalFormat();
@@ -125,7 +132,6 @@ public class MainActivity extends AppCompatActivity {
     private ArrayAdapter<String> othersListAdapter;
 
     private Drawable onlineIcon;
-    private Drawable trackingIcon;
     private MainActivityBroadcastReceiver receiver;
     private Map<String, Integer> callPriorityBackgroundColors;
     private Map<String, Integer> callPriorityForegroundColors;
@@ -156,18 +162,11 @@ public class MainActivity extends AppCompatActivity {
                     case AmbulanceForegroundService.BroadcastActions.AMBULANCE_UPDATE:
 
                         Log.i(TAG, "AMBULANCE_UPDATE");
-                        // setupNavigationBar();
 
                         break;
                     case AmbulanceForegroundService.BroadcastActions.LOCATION_UPDATE_CHANGE:
 
                         Log.i(TAG, "LOCATION_UPDATE_CHANGE");
-
-                        if (AmbulanceForegroundService.isUpdatingLocation())
-                            trackingIcon.setAlpha(enabledAlpha);
-                        else {
-                            trackingIcon.setAlpha(disabledAlpha);
-                        }
 
                         break;
                     case AmbulanceForegroundService.BroadcastActions.CONNECTIVITY_CHANGE:
@@ -212,19 +211,10 @@ public class MainActivity extends AppCompatActivity {
 
                         Log.i(TAG, "CALL_ACCEPTED");
 
-                        // change button color to red
-                        int myVectorColor = ContextCompat.getColor(MainActivity.this, R.color.iconCallAccepted);
-                        trackingIcon.setColorFilter(myVectorColor, PorterDuff.Mode.SRC_IN);
-                        navigate(R.id.ambulanceFragment);
-
                         break;
                     case AmbulanceForegroundService.BroadcastActions.CALL_COMPLETED:
 
                         Log.i(TAG, "CALL_COMPLETED");
-
-                        // change button color to black
-                        myVectorColor = ContextCompat.getColor(MainActivity.this, R.color.iconColor);
-                        trackingIcon.setColorFilter(myVectorColor, PorterDuff.Mode.SRC_IN);
 
                         // Logout?
                         if (logoutAfterFinish) {
@@ -290,14 +280,6 @@ public class MainActivity extends AppCompatActivity {
             onlineIcon.setAlpha(enabledAlpha);
         else
             onlineIcon.setAlpha(disabledAlpha);
-
-        // Tracking icon
-        trackingIcon = menu.findItem(R.id.trackingIcon).getIcon();
-        if (AmbulanceForegroundService.isUpdatingLocation()) {
-            trackingIcon.setAlpha(enabledAlpha);
-        } else {
-            trackingIcon.setAlpha(disabledAlpha);
-        }
 
         return super.onCreateOptionsMenu(menu);
     }
@@ -377,6 +359,9 @@ public class MainActivity extends AppCompatActivity {
 
         // setup navigation
         setUpNavigation();
+
+        // call on new intent
+        onNewIntent(getIntent());
     }
 
     public void initialize() {
@@ -701,7 +686,7 @@ public class MainActivity extends AppCompatActivity {
         } else if (itemId == R.id.videoCallButton) {
             promptVideoCallNew();
             return true;
-        } else if (itemId == R.id.trackingIcon || itemId == R.id.onlineIcon) {
+        } else if (itemId == R.id.onlineIcon) {
             return false;
         } else if (itemId == android.R.id.home) {
             navigatePopBackStack();
@@ -747,14 +732,6 @@ public class MainActivity extends AppCompatActivity {
 
         // setup bottom navigation bar
         setupNavigationBar();
-
-        // Update location icon
-        if (trackingIcon != null) {
-            if (AmbulanceForegroundService.isUpdatingLocation())
-                trackingIcon.setAlpha(enabledAlpha);
-            else
-                trackingIcon.setAlpha(disabledAlpha);
-        }
 
         if (onlineIcon != null) {
             // Online icon
@@ -1659,66 +1636,12 @@ public class MainActivity extends AppCompatActivity {
                             endOrSuspendCall(call.getId(), nextCallId, nextAmbulanceId,
                                     getString(R.string.suspendingCall), AmbulanceForegroundService.Actions.CALL_SUSPEND);
 
-//                            Toast.makeText(MainActivity.this,
-//                                    R.string.suspendingCall,
-//                                    Toast.LENGTH_SHORT).show();
-//
-//                            Log.i(TAG, "Suspending call");
-//
-//                            Intent serviceIntent = new Intent(MainActivity.this,
-//                                    AmbulanceForegroundService.class);
-//                            serviceIntent.setAction(AmbulanceForegroundService.Actions.CALL_SUSPEND);
-//                            serviceIntent.putExtra(AmbulanceForegroundService.BroadcastExtras.CALL_ID, call.getId());
-//
-//                            new OnServiceComplete(this,
-//                                    AmbulanceForegroundService.BroadcastActions.CALL_COMPLETED,
-//                                    BroadcastActions.FAILURE,
-//                                    serviceIntent) {
-//
-//                                @Override
-//                                public void onSuccess(Bundle extras) {
-//
-//                                    Log.d(TAG, "Successfully completed call");
-//                                    handleNextCallAndAmbulance(nextCallId, nextAmbulanceId);
-//
-//                                }
-//                            }
-//                                    .setSuccessIdCheck(false)
-//                                    .start();
-
                         })
                 .setPositiveButton(R.string.end,
                         (dialog, id) -> {
 
                             endOrSuspendCall(call.getId(), nextCallId, nextAmbulanceId,
                                     getString(R.string.endingCall), AmbulanceForegroundService.Actions.CALL_FINISH);
-
-//                            Toast.makeText(MainActivity.this,
-//                                    R.string.endingCall,
-//                                    Toast.LENGTH_SHORT).show();
-//
-//                            Log.i(TAG, "Ending call");
-//
-//                            Intent serviceIntent = new Intent(MainActivity.this,
-//                                    AmbulanceForegroundService.class);
-//                            serviceIntent.setAction(AmbulanceForegroundService.Actions.CALL_FINISH);
-//
-//                            new OnServiceComplete(this,
-//                                    AmbulanceForegroundService.BroadcastActions.CALL_COMPLETED,
-//                                    BroadcastActions.FAILURE,
-//                                    serviceIntent) {
-//
-//                                @Override
-//                                public void onSuccess(Bundle extras) {
-//
-//                                    Log.d(TAG, "Successfully completed call");
-//                                    handleNextCallAndAmbulance(nextCallId, nextAmbulanceId);
-//
-//                                }
-//                            }
-//                                    .setSuccessIdCheck(false)
-//                                    .start();
-
 
                         })
                 .setOnCancelListener(
@@ -1999,6 +1922,46 @@ public class MainActivity extends AppCompatActivity {
 
         }
 
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        Log.d(TAG, "onNewIntent");
+
+        // get parameters
+        Bundle extras = intent.getExtras();
+        if (extras != null) {
+
+            Log.d(TAG, "extras is not null");
+
+            String action = extras.getString(MainActivity.ACTION);
+            if (action != null) {
+                if (action.equals(MainActivity.ACTION_MARK_AS_VISITING) ||
+                        action.equals(MainActivity.ACTION_MARK_AS_VISITED) ||
+                        action.equals(MainActivity.ACTION_OPEN_CALL_FRAGMENT)) {
+                    navigate(R.id.callFragment, extras);
+                } else {
+                    Log.d(TAG, "Unknown action");
+                }
+            }
+
+            // Cancel the notification that initiated this activity.
+            // This is required when using the action buttons in expanded notifications.
+            // While the default action automatically closes the notification, the
+            // actions initiated by buttons do not.
+            // https://stackoverflow.com/questions/18261969/clicking-android-notification-actions-does-not-close-notification-drawer/21783203
+            int notificationId = extras.getInt(MainActivity.NOTIFICATION_ID, -1);
+            if (notificationId != -1) {
+                Log.d(TAG, "Canceling the notification");
+                NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+                manager.cancel(notificationId);
+            }
+
+        } else {
+            Log.d(TAG, "extras is null");
+        }
+
+        super.onNewIntent(intent);
     }
 
     @Override

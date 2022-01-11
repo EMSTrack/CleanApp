@@ -1,6 +1,6 @@
 package org.emstrack.ambulance.fragments;
 
-import static org.emstrack.ambulance.util.DateUtils.formatDateTime;
+import static org.emstrack.ambulance.util.FormatUtils.formatDateTime;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;

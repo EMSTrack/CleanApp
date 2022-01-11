@@ -306,6 +306,10 @@ public class TestModels {
         turnServer.put("user", "turnuser");
         turnServer.put("pass", "secret");
 
+        String units = "metric";
+        String waypointEnterDetection = "mark";
+        String waypointExitDetection = "mark";
+
         Defaults defaults = new Defaults(new GPSLocation(32.5149,-117.0382),"BC","Tijuana","MX");
 
         Settings settings = new Settings(ambulanceStatus, ambulanceStatusOrder,
@@ -316,6 +320,7 @@ public class TestModels {
                 locationType, locationTypeOrder,
                 equipmentType, equipmentTypeDefaults,
                 guestUsername, enableVideo, turnServer,
+                units, waypointEnterDetection, waypointExitDetection,
                 defaults);
 
         GsonBuilder gsonBuilder = new GsonBuilder();
@@ -410,6 +415,7 @@ public class TestModels {
                 locationType, locationTypeOrder,
                 equipmentType, equipmentTypeDefaults,
                 guestUsername, enableVideo, turnServer,
+                units, waypointEnterDetection, waypointExitDetection,
                 defaults);
 
         expectedDefaults = settings.getDefaults();

@@ -183,8 +183,8 @@
     <string name="visitingWaypoint">Mark waypoint as visiting</string>
     <string name="visitedWaypoint">Marking waypoint as visited</string>
     <string name="skip">Skip</string>
-    <string name="markAsVisiting">Visiting</string>
-    <string name="markAsVisited">Visited</string>
+    <string name="visiting">Visiting</string>
+    <string name="visited">Visited</string>
     <string name="addWaypoint">Waypoint</string>
     <string name="detailsLabel">Details:</string>
     <string name="detailsText">Details</string>
@@ -380,5 +380,24 @@
     <string name="tocall">Call</string>
     <string name="equipment_type">Equipment Type</string>
     <string name="noEquipmentText">\'%1$s\' has no registered equipments</string>
+    <string name="distanceToNextWaypoint">Distance to next waypoint:</string>
+    <string name="dash" translatable="false">&#8211;</string>
+
+    <string name="waypointEnterDetectionPreferenceKey" translatable="false">waypoint_enter_preference_key</string>
+    <string name="waypointEnterDetectionPreferenceLabel">Approaching waypoint</string>
+    <string name="waypointEnterDetectionPreferenceSummary">What to do when approaching a waypoint location during a call</string>
+    <string name="waypointEnterDetectionDefault" translatable="false">mark</string>
+
+    <string name="waypointExitDetectionPreferenceKey" translatable="false">waypoint_exit_preference_key</string>
+    <string name="waypointExitDetectionPreferenceLabel">Leaving waypoint</string>
+    <string name="waypointExitDetectionPreferenceSummary">What to do when leaving a waypoint location during a call</string>
+    <string name="waypointExitDetectionDefault" translatable="false">mark</string>
+    <string name="unitsPreferenceKey" translatable="false">units_preference_key</string>
+    <string name="unitsDefault" translatable="false">metric</string>
+    <string name="invalidNotification">This notification is no longer valid.</string>
+    <string name="unitsOfMeasurement">Units of measurement</string>
+    <string name="unitOfMeasurementSummary">Choice of units for measuring distances</string>
+    <string name="approachedAWaypoint">You have approached a waypoint</string>
+    <string name="leftAWaypoint">You have left a waypoint</string>
 
 </resources>

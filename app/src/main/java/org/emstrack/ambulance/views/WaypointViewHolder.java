@@ -1,5 +1,7 @@
 package org.emstrack.ambulance.views;
 
+import static org.emstrack.ambulance.util.FormatUtils.formatDistance;
+
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Intent;
@@ -35,7 +37,6 @@ import java.util.Locale;
 public class WaypointViewHolder extends RecyclerView.ViewHolder {
 
     private static final String TAG = WaypointViewHolder.class.getSimpleName();
-    private static final DecimalFormat df = new DecimalFormat();
 
     private final TextView waypointAddressLine0;
     private final TextView waypointAddressLine1;
@@ -55,9 +56,6 @@ public class WaypointViewHolder extends RecyclerView.ViewHolder {
 
         this.activity = activity;
         this.hideButtons = hideButtons;
-
-        // set formatter
-        df.setMaximumFractionDigits(3);
 
         waypointInfoLayout = view.findViewById(R.id.waypointInfoLayout);
         waypointAddressLine0 = view.findViewById(R.id.waypointAddressLine0);
@@ -118,14 +116,10 @@ public class WaypointViewHolder extends RecyclerView.ViewHolder {
 
 
         // Calculate distance to patient
-        float distance = -1;
-        android.location.Location lastLocation = AmbulanceForegroundService.getLastLocation();
-        if (lastLocation != null) {
-            distance = lastLocation.distanceTo(location.getLocation().toLocation()) / 1000;
-        }
-        String distanceText = activity.getString(R.string.noDistanceAvailable);
+        float distance = waypoint.calculateDistance(AmbulanceForegroundService.getLastLocation());
+        String distanceText = activity.getString(R.string.noDistanceInformationAvailable);
         if (distance > 0) {
-            distanceText = df.format(distance) + " km";
+            distanceText = formatDistance(distance, AmbulanceForegroundService.getAppData().getSettings().getUnits());
         }
         waypointDistance.setText(distanceText);
 

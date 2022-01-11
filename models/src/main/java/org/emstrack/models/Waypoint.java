@@ -15,6 +15,10 @@ public class Waypoint {
         }
     }
 
+    public static final String DETECTION_MARK = "mark";
+    public static final String DETECTION_NOTIFY = "notify";
+    public static final String DETECTION_DISABLED = "notify";
+
     public static final String STATUS_CREATED = "C";
     public static final String STATUS_VISITING = "V";
     public static final String STATUS_VISITED = "D";
@@ -125,6 +129,15 @@ public class Waypoint {
 
     public void setUpdatedOn(Calendar updatedOn) {
         this.updatedOn = updatedOn;
+    }
+
+    public float calculateDistance(android.location.Location lastLocation) {
+        // Calculate distance to patient in kilometers
+        if (lastLocation != null) {
+            return lastLocation.distanceTo(location.getLocation().toLocation()) / 1000;
+        } else {
+            return -1;
+        }
     }
 
 }

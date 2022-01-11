@@ -1,5 +1,6 @@
 package org.emstrack.ambulance.fragments;
 
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -11,10 +12,14 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
+import androidx.preference.PreferenceManager;
 
 import org.emstrack.ambulance.MainActivity;
 import org.emstrack.ambulance.R;
 import org.emstrack.ambulance.dialogs.AboutDialog;
+import org.emstrack.ambulance.models.AmbulanceAppData;
+import org.emstrack.ambulance.services.AmbulanceForegroundService;
+import org.emstrack.models.Settings;
 
 import java.util.Objects;
 
@@ -57,6 +62,28 @@ public class SettingsFragment extends PreferenceFragmentCompat {
 
         Log.d(TAG, "onResume");
         activity.setupNavigationBar(this);
+
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+
+        // get preference
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(requireContext());
+        String units = sharedPreferences.getString(getString(R.string.unitsPreferenceKey),
+                getString(R.string.unitsDefault));
+        String waypointEnterDetection = sharedPreferences.getString(getString(R.string.waypointEnterDetectionPreferenceKey),
+                getString(R.string.waypointEnterDetectionDefault));
+        String waypointExitDetection = sharedPreferences.getString(getString(R.string.waypointExitDetectionPreferenceKey),
+                getString(R.string.waypointExitDetectionDefault));
+
+        // and save them in settings
+        AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
+        Settings settings = appData.getSettings();
+        settings.setUnits(units);
+        settings.setWaypointEnterDetection(waypointEnterDetection);
+        settings.setWaypointExitDetection(waypointExitDetection);
 
     }
 
