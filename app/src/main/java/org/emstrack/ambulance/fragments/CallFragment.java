@@ -282,7 +282,8 @@ public class CallFragment extends Fragment {
                         promptSkipVisitingOrVisited(Waypoint.STATUS_SKIPPED,
                                 waypoint.getId(), call.getId(), ambulance.getId(),
                                 getString(R.string.pleaseConfirm),
-                                getString(R.string.skipCurrentWaypoint),
+                                getString(R.string.skipCurrentWaypoint,
+                                        waypoint.getLocation().toAddress(requireContext())),
                                 getString(R.string.skippingWaypoint));
                     } catch (NullPointerException e) {
                         Log.d(TAG, "Exception in waypointToolbarSkipButton: " + e);
@@ -304,13 +305,15 @@ public class CallFragment extends Fragment {
                             promptSkipVisitingOrVisited(Waypoint.STATUS_VISITING,
                                     waypoint.getId(), call.getId(), ambulance.getId(),
                                     getString(R.string.pleaseConfirm),
-                                    getString(R.string.visitCurrentWaypoint),
+                                    getString(R.string.visitCurrentWaypoint,
+                                            waypoint.getLocation().toAddress(requireContext())),
                                     getString(R.string.visitingWaypoint));
                         } else {
                             promptSkipVisitingOrVisited(Waypoint.STATUS_VISITED,
                                     waypoint.getId(), call.getId(), ambulance.getId(),
                                     getString(R.string.pleaseConfirm),
-                                    getString(R.string.visitedCurrentWaypoint),
+                                    getString(R.string.visitedCurrentWaypoint,
+                                            waypoint.getLocation().toAddress(requireContext())),
                                     getString(R.string.visitedWaypoint));
                         }
 
@@ -384,7 +387,8 @@ public class CallFragment extends Fragment {
                             promptSkipVisitingOrVisited(Waypoint.STATUS_VISITING,
                                     waypointId, callId, ambulanceId,
                                     getString(R.string.pleaseConfirm),
-                                    getString(R.string.visitCurrentWaypoint),
+                                    getString(R.string.visitCurrentWaypoint,
+                                            waypoint.getLocation().toAddress(requireContext())),
                                     getString(R.string.visitingWaypoint));
                         } else {
                             Log.d(TAG, String.format("Invalid action %s for ambulance '%d', call '%d' and waypoint '%d'", action, ambulance.getId(), callId, waypointId));
@@ -397,7 +401,8 @@ public class CallFragment extends Fragment {
                             promptSkipVisitingOrVisited(Waypoint.STATUS_VISITED,
                                     waypointId, callId, ambulanceId,
                                     getString(R.string.pleaseConfirm),
-                                    getString(R.string.visitedCurrentWaypoint),
+                                    getString(R.string.visitedCurrentWaypoint,
+                                            waypoint.getLocation().toAddress(requireContext())),
                                     getString(R.string.visitedWaypoint));
                         }  else {
                             Log.d(TAG, String.format("Invalid action %s for ambulance '%d', call '%d' and waypoint '%d'", action, ambulance.getId(), callId, waypointId));

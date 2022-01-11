@@ -2,7 +2,7 @@
 <resources>
 
     <string name="app_name">EMSTrack</string>
-    <string name="app_version" translatable="false">0_9_3</string>
+    <string name="app_version" translatable="false">0_9_4</string>
     <string name="client_name" translatable="false">AndroidClient</string>
 
     <string name="drawer_open">Open navigation drawer</string>
@@ -176,9 +176,9 @@
     <string name="nextWaypointHasntBeenSetYet">Next waypoint hasn\'t been set yet.</string>
     <string name="requestedSuspended">requested (%1$d), suspended (%2$d)</string>
     <string name="pleaseConfirm">Please confirm</string>
-    <string name="skipCurrentWaypoint">Do you want to skip the current waypoint?</string>
-    <string name="visitCurrentWaypoint">Are you visiting this location?</string>
-    <string name="visitedCurrentWaypoint">Are you done visiting this location?</string>
+    <string name="skipCurrentWaypoint">Do you want to skip this waypoint?\n\n%1$s</string>
+    <string name="visitCurrentWaypoint">Are you currently visiting the waypoint:\n\n%1$s</string>
+    <string name="visitedCurrentWaypoint">Have you left the waypoint:\n\n%1$s</string>
     <string name="skippingWaypoint">Skipping waypoint</string>
     <string name="visitingWaypoint">Mark waypoint as visiting</string>
     <string name="visitedWaypoint">Marking waypoint as visited</string>
@@ -399,5 +399,9 @@
     <string name="unitOfMeasurementSummary">Choice of units for measuring distances</string>
     <string name="approachedAWaypoint">You have approached a waypoint</string>
     <string name="leftAWaypoint">You have left a waypoint</string>
+
+    <string name="approachedAParticularWaypoint">You have approached the waypoint:\n%1$s</string>
+    <string name="leftAParticularWaypoint">You have left the waypoint:\n%1$s</string>
+
 
 </resources>

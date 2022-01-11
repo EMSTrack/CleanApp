@@ -15,6 +15,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.CountDownTimer;
+import android.os.Handler;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -75,6 +76,7 @@ import org.emstrack.models.Profile;
 import org.emstrack.models.RadioCode;
 import org.emstrack.models.Settings;
 import org.emstrack.models.TokenLogin;
+import org.emstrack.models.Waypoint;
 import org.emstrack.models.api.APIService;
 import org.emstrack.models.api.APIServiceGenerator;
 import org.emstrack.models.api.OnAPICallComplete;
@@ -159,16 +161,6 @@ public class MainActivity extends AppCompatActivity {
                     return;
 
                 switch (action) {
-                    case AmbulanceForegroundService.BroadcastActions.AMBULANCE_UPDATE:
-
-                        Log.i(TAG, "AMBULANCE_UPDATE");
-
-                        break;
-                    case AmbulanceForegroundService.BroadcastActions.LOCATION_UPDATE_CHANGE:
-
-                        Log.i(TAG, "LOCATION_UPDATE_CHANGE");
-
-                        break;
                     case AmbulanceForegroundService.BroadcastActions.CONNECTIVITY_CHANGE:
 
                         Log.i(TAG, "CONNECTIVITY_CHANGE");
@@ -207,11 +199,6 @@ public class MainActivity extends AppCompatActivity {
                         promptNextWaypointDialog(callId);
 
                         break;
-                    case AmbulanceForegroundService.BroadcastActions.CALL_ACCEPTED:
-
-                        Log.i(TAG, "CALL_ACCEPTED");
-
-                        break;
                     case AmbulanceForegroundService.BroadcastActions.CALL_COMPLETED:
 
                         Log.i(TAG, "CALL_COMPLETED");
@@ -221,6 +208,15 @@ public class MainActivity extends AppCompatActivity {
                             logoutAfterFinish = false;
                             promptLogout();
                         }
+
+                        break;
+                    case AmbulanceForegroundService.BroadcastActions.WAYPOINT_EVENT:
+
+                        Log.i(TAG, "WAYPOINT_EVENT");
+                        int waypointId = intent.getIntExtra(AmbulanceForegroundService.BroadcastExtras.WAYPOINT_ID, -1);
+                        Waypoint.WaypointEvent waypointEventType =
+                                (Waypoint.WaypointEvent) intent.getSerializableExtra(AmbulanceForegroundService.BroadcastExtras.WAYPOINT_EVENT_TYPE);
+                        alertWaypointEvent(waypointId, waypointEventType);
 
                         break;
                     case AmbulanceForegroundService.BroadcastActions.WEBRTC_MESSAGE:
@@ -260,6 +256,7 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         }
+
     }
 
     @Override
@@ -743,15 +740,12 @@ public class MainActivity extends AppCompatActivity {
 
         // Register receiver
         IntentFilter filter = new IntentFilter();
-        filter.addAction(AmbulanceForegroundService.BroadcastActions.AMBULANCE_UPDATE);
-        filter.addAction(AmbulanceForegroundService.BroadcastActions.LOCATION_UPDATE_CHANGE);
         filter.addAction(AmbulanceForegroundService.BroadcastActions.CONNECTIVITY_CHANGE);
         filter.addAction(AmbulanceForegroundService.BroadcastActions.PROMPT_CALL_ACCEPT);
         filter.addAction(AmbulanceForegroundService.BroadcastActions.PROMPT_CALL_END);
         filter.addAction(AmbulanceForegroundService.BroadcastActions.PROMPT_NEXT_WAYPOINT);
-        filter.addAction(AmbulanceForegroundService.BroadcastActions.CALL_ACCEPTED);
-        filter.addAction(AmbulanceForegroundService.BroadcastActions.CALL_DECLINED);
         filter.addAction(AmbulanceForegroundService.BroadcastActions.CALL_COMPLETED);
+        filter.addAction(AmbulanceForegroundService.BroadcastActions.WAYPOINT_EVENT);
 
         // Enable video
         if (appData != null && appData.getSettings() != null && appData.getSettings().isEnableVideo())
@@ -1920,6 +1914,31 @@ public class MainActivity extends AppCompatActivity {
             // Prompt to end call first
             promptEndCallDialog(call.getId());
 
+        }
+
+    }
+
+    private void alertWaypointEvent(int waypointId, Waypoint.WaypointEvent waypointEventType) {
+
+        AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
+        Call call = appData.getCalls().getCurrentCall();
+        AmbulanceCall ambulanceCall = call.getCurrentAmbulanceCall();
+        Waypoint waypoint = ambulanceCall.getWaypoint(waypointId);
+        if (waypoint != null) {
+
+            Log.d(TAG, "Posting waypoint event dialog");
+            String message = getString(waypointEventType == Waypoint.WaypointEvent.ENTER ?
+                            R.string.approachedAParticularWaypoint :
+                            R.string.leftAParticularWaypoint,
+                    waypoint.getLocation().toAddress(this));
+            org.emstrack.ambulance.dialogs.AlertDialog alert = new org.emstrack.ambulance.dialogs.AlertDialog(this, getString(R.string.alert_warning_title));
+            alert.alert(message);
+
+            // dismiss dialog automatically
+            new Handler().postDelayed(alert::dismiss, 10000 );
+
+        } else {
+            Log.d(TAG, "Invalid waypoint id = " + waypointId);
         }
 
     }

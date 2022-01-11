@@ -154,9 +154,9 @@
     <string name="nextWaypointHasntBeenSetYet">El próximo punto de ruta aún no se ha establecido</string>
     <string name="requestedSuspended">solicitadas (%1$d), suspendidas (%2$d)</string>
     <string name="pleaseConfirm">Por favor confirmar</string>
-    <string name="skipCurrentWaypoint">¿Quieres saltarte el punto de ruta actual?</string>
-    <string name="visitCurrentWaypoint">¿Estás visitando este lugar?</string>
-    <string name="visitedCurrentWaypoint">¿Has terminado de visitar este lugar?</string>
+    <string name="skipCurrentWaypoint">¿Quieres saltarte ese punto de ruta?\n\n%1$s</string>
+    <string name="visitCurrentWaypoint">¿Estás visitando este punto de ruta?\n\n%1$s</string>
+    <string name="visitedCurrentWaypoint">¿Has terminado de visitar este punto de ruta?\n\n%1$s</string>
     <string name="skippingWaypoint">Saltando punto de ruta</string>
     <string name="visitingWaypoint">Marcar punto de ruta como visitando</string>
     <string name="visitedWaypoint">Marcando punto de ruta como visitado</string>
@@ -351,4 +351,8 @@
     <string name="unitOfMeasurementSummary">Elección de unidades para medir distancias</string>
     <string name="approachedAWaypoint">Se ha acercado a un punto de ruta</string>
     <string name="leftAWaypoint">Se ha alejado de un punto de ruta</string>
+
+    <string name="approachedAParticularWaypoint">Se ha acercado al punto de ruta:\n%s</string>
+    <string name="leftAParticularWaypoint">Se ha alejado del punto de ruta:\n%s</string>
+
 </resources>

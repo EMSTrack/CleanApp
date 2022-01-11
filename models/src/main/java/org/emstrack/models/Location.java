@@ -1,12 +1,10 @@
 package org.emstrack.models;
 
+import android.content.Context;
+
 import androidx.annotation.NonNull;
 
-import org.emstrack.models.gson.Exclude;
-
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Locale;
 
 /**
  * A class representing a location.
@@ -76,6 +74,25 @@ public class Location extends Address {
         this.type = type;
     }
 
+    public String getTypeName(Context context) {
+        switch (type) {
+            case TYPE_HOSPITAL:
+                return context.getString(R.string.locationTypeHospital);
+            case TYPE_BASE:
+                return context.getString(R.string.locationTypeBase);
+            case TYPE_INCIDENT:
+                return context.getString(R.string.locationTypeIncident);
+            case TYPE_OTHER:
+                return context.getString(R.string.locationTypeOther);
+            case TYPE_AED:
+                return context.getString(R.string.locationTypeAED);
+            default:
+            case TYPE_WAYPOINT:
+                return context.getString(R.string.locationTypeWaypoint);
+        }
+
+    }
+
     /**
      *
      * @return the location as string
@@ -92,6 +109,14 @@ public class Location extends Address {
      */
     public String toAddress() {
         return super.toString();
+    }
+
+    /**
+     *
+     * @return the location address as string
+     */
+    public String toAddress(Context context) {
+        return getTypeName(context).toUpperCase(Locale.getDefault()) +"\n" + super.toString();
     }
 
 }

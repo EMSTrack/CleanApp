@@ -15,6 +15,11 @@ public class Waypoint {
         }
     }
 
+    public enum WaypointEvent {
+        ENTER,
+        EXIT
+    };
+
     public static final String DETECTION_MARK = "mark";
     public static final String DETECTION_NOTIFY = "notify";
     public static final String DETECTION_DISABLED = "notify";

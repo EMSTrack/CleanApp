@@ -1,3 +1,9 @@
 <resources>
     <string name="app_name" translatable="false">models</string>
+    <string name="locationTypeHospital">hospital</string>
+    <string name="locationTypeBase">base</string>
+    <string name="locationTypeIncident">incident</string>
+    <string name="locationTypeOther">location</string>
+    <string name="locationTypeAED">automatic defibrillator</string>
+    <string name="locationTypeWaypoint">waypoint</string>
 </resources>

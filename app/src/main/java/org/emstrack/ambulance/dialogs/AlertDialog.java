@@ -19,11 +19,13 @@ public class AlertDialog extends Alert {
 
     private final android.app.AlertDialog.Builder builder;
     private final DialogInterface.OnClickListener onClickListener;
+    private android.app.AlertDialog alert;
 
     public AlertDialog(String TAG) {
         this.TAG = TAG;
         this.builder = null;
         this.onClickListener = null;
+        this.alert = null;
     }
 
     public AlertDialog(Activity activity, String title,
@@ -62,11 +64,18 @@ public class AlertDialog extends Alert {
             this.builder.setMessage(message);
 
             // Build dialog
-            this.builder.setPositiveButton(android.R.string.ok, onOkClickAction)
-                    .create()
-                    .show();
+            alert = this.builder.setPositiveButton(android.R.string.ok, onOkClickAction)
+                    .create();
+
+            alert.show();
         }
 
+    }
+
+    public void dismiss() {
+        if (this.alert != null) {
+            this.alert.dismiss();
+        }
     }
 
 }
