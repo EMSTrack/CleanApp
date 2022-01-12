@@ -24,6 +24,10 @@ import org.emstrack.ambulance.models.AmbulanceAppData;
 import org.emstrack.ambulance.services.AmbulanceForegroundService;
 import org.emstrack.ambulance.util.RequestPermission;
 import org.emstrack.models.Ambulance;
+import org.emstrack.models.UpdatedOn;
+
+import java.util.ArrayList;
+import java.util.Collections;
 
 public class AmbulancesFragment extends Fragment {
 
@@ -61,9 +65,6 @@ public class AmbulancesFragment extends Fragment {
         activity = (MainActivity) requireActivity();
 
         recyclerView = rootView.findViewById(R.id.ambulances_recycler_view);
-
-        AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
-        refreshData(appData.getAmbulances());
 
         requestPermission = new RequestPermission(this);
 
@@ -112,10 +113,17 @@ public class AmbulancesFragment extends Fragment {
 
         Log.i(TAG,"Updating ambulances UI.");
 
+        // convert sparse array to list and sort by updatedOn
+        ArrayList<Ambulance> ambulanceList = new ArrayList<>();
+        for (int i = 0; i < ambulances.size(); i++) {
+            ambulanceList.add(ambulances.valueAt(i));
+        }
+        Collections.sort(ambulanceList, new UpdatedOn.SortDescending());
+
         // Install adapter
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(requireContext());
         AmbulanceRecyclerAdapter adapter =
-                new AmbulanceRecyclerAdapter(getActivity(), ambulances, this::selectAmbulance);
+                new AmbulanceRecyclerAdapter(getActivity(), ambulanceList, this::selectAmbulance);
         recyclerView.setLayoutManager(linearLayoutManager);
         recyclerView.setAdapter(adapter);
 

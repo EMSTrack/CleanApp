@@ -2,13 +2,12 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 31
-    // buildToolsVersion '27.0.3'
     defaultConfig {
         applicationId 'org.emstrack.ambulance'
         minSdkVersion 19
         targetSdkVersion 31
-        versionCode 17
-        versionName "0.9.4"
+        versionCode 18
+        versionName "0.9.5"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
 

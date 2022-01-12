@@ -4,13 +4,14 @@ import com.google.gson.annotations.Expose;
 
 import java.util.Calendar;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 
 /**
  * A class representing an ambulance.
  */
-public class Ambulance {
+public class Ambulance implements UpdatedOn {
 
     public static final String STATUS_UNKNOWN = "UK";
     public static final String STATUS_AVAILABLE= "AV";

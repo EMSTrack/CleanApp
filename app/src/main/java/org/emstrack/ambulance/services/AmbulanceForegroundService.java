@@ -136,7 +136,9 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
     public final static String PREFERENCES_API_SERVER = "API_SERVER";
     public static final String PREFERENCES_UNIQUE_ID = "UNIQUE_ID";
     public final static String PREFERENCES_SERVERS = "SERVERS";
+    public static final String PREFERENCES_MAP_SHOW_TOOLBAR = "MAP_SHOW_FAB";
     public static final String PREFERENCES_MAP_SHOW_AMBULANCES = "MAP_SHOW_AMBULANCES";
+    public static final String PREFERENCES_MAP_SHOW_OFFLINE_AMBULANCES = "MAP_SHOW_OFFLINE_AMBULANCES";
     public static final String PREFERENCES_MAP_SHOW_HOSPITALS = "MAP_SHOW_HOSPITALS";
     public static final String PREFERENCES_MAP_SHOW_WAYPOINTS = "MAP_SHOW_WAYPOINTS";
     public static final String PREFERENCES_MAP_CENTER_AMBULANCES = "MAP_CENTER_AMBULANCES";

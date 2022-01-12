@@ -13,6 +13,9 @@ import org.emstrack.ambulance.R;
 import org.emstrack.ambulance.views.AmbulanceViewHolder;
 import org.emstrack.models.Ambulance;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Connects Equipment data to the RecyclerView (called from EquipmentFragment)
  * @author Mauricio de Oliveira
@@ -28,9 +31,9 @@ public class AmbulanceRecyclerAdapter extends RecyclerView.Adapter<AmbulanceView
     private static final String TAG = AmbulanceRecyclerAdapter.class.getSimpleName();
     private final Activity activity;
     private final LoginAmbulance loginAmbulance;
-    SparseArray<Ambulance> ambulances;
+    List<Ambulance> ambulances;
 
-    public AmbulanceRecyclerAdapter(Activity activity, SparseArray<Ambulance> ambulances, LoginAmbulance loginAmbulance) {
+    public AmbulanceRecyclerAdapter(Activity activity, List<Ambulance> ambulances, LoginAmbulance loginAmbulance) {
         this.activity = activity;
         this.ambulances = ambulances;
         this.loginAmbulance = loginAmbulance;
@@ -46,7 +49,7 @@ public class AmbulanceRecyclerAdapter extends RecyclerView.Adapter<AmbulanceView
     @Override
     public void onBindViewHolder(@NonNull AmbulanceViewHolder holder, int position) {
 
-        Ambulance item = ambulances.valueAt(position);
+        Ambulance item = ambulances.get(position);
         holder.setAmbulance(item, activity, loginAmbulance);
 
     }

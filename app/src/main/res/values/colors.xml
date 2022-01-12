@@ -7,8 +7,6 @@
     <color name="colorWhite">#ffffffff</color>
     <color name="colorBlack">#000000</color>
     <color name="common_action_bar_splitter">#000000</color>
-    <color name="mapButtonOff">#8FFF</color>
-    <color name="mapButtonOn">#8888</color>
     <color name="colorRed">#FFFF0000</color>
     <color name="colorAvailable">#4CAF50</color>
 
@@ -39,5 +37,9 @@
 
     <color name="tabBackground">#CFCFCF</color>
     <color name="messageBackground">#cfcfcf</color>
+
+    <color name="mapButtonOn">#8888</color>
+    <color name="mapButtonAlert">#ffdc3545</color>
+    <color name="mapButtonOff">#99ffffff</color>
 
 </resources>

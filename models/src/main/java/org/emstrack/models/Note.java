@@ -8,14 +8,7 @@ import java.util.Comparator;
 /**
  * A class representing an ambulance or call note.
  */
-public class Note {
-
-    static public class SortAscending implements Comparator<Note> {
-        public int compare(Note a, Note b)
-        {
-            return a.getUpdatedOn().compareTo(b.getUpdatedOn());
-        }
-    }
+public class Note implements UpdatedOn {
 
     private String comment;
     @Exclude
