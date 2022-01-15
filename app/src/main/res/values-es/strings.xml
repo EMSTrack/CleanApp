@@ -341,7 +341,7 @@
     <string name="markAsVisited">Marcar como visitado</string>
     <string name="kilometers">kilómetros</string>
     <string name="miles">millas</string>
-    <string name="distanceToNextWaypoint">Distancia al siguiente punto de ruta:</string>
+    <string name="distanceToNextWaypoint">Distancia al punto de ruta:</string>
     <string name="waypointEnterDetectionPreferenceLabel">Acercándose al punto de ruta</string>
     <string name="waypointEnterDetectionPreferenceSummary">Qué hacer al acercarse al punto de ruta durante una llamada</string>
     <string name="waypointExitDetectionPreferenceLabel">Dejando punto de ruta</string>

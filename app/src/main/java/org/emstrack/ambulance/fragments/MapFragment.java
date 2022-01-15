@@ -12,10 +12,10 @@ import android.location.Location;
 import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
-import android.os.Handler;
 import android.util.Log;
 import android.util.SparseArray;
 import android.view.LayoutInflater;
@@ -32,6 +32,7 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
@@ -57,11 +58,13 @@ import org.emstrack.models.GPSLocation;
 import org.emstrack.models.Hospital;
 import org.emstrack.models.Waypoint;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
 // TODO: Implement listener to ambulance changes
 
@@ -131,6 +134,183 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
     private VehicleUpdateFilter updateFilter;
     private boolean isAnimatingMarkerAndCamera;
     private AnimateBuffer animateBuffer;
+
+    private static Map<String, BitmapDescriptor> iconBitmapDescriptors = new HashMap<>();
+
+    private static void initializeMarkers(Context context) {
+
+        if (iconBitmapDescriptors.size() == 0) {
+
+            iconBitmapDescriptors.put(
+                    "AMBULANCE_CURRENT",
+                    new BitmapUtils.BitmapDescriptorFromVectorBuilder(context,
+                            R.drawable.ambulance_red)
+                            .setBackground(context, R.drawable.ic_oval_regular)
+                            .setBackgroundScale(0.09f)
+                            .setBackgroundColor(ContextCompat.getColor(context, R.color.bootstrapSecondary))
+                            .setScale(0.1f)
+                            .setOffset(9,18)
+                            .build());
+
+            iconBitmapDescriptors.put(
+                    "AMBULANCE_" + Ambulance.STATUS_AVAILABLE,
+                    new BitmapUtils.BitmapDescriptorFromVectorBuilder(context,
+                            R.drawable.ambulance_green)
+                            .setScale(0.1f)
+                            .build());
+
+            iconBitmapDescriptors.put(
+                    "AMBULANCE_" + Ambulance.STATUS_OUT_OF_SERVICE,
+                    new BitmapUtils.BitmapDescriptorFromVectorBuilder(context,
+                            R.drawable.ambulance_gray)
+                            .setScale(0.1f)
+                            .build());
+
+            iconBitmapDescriptors.put(
+                    "AMBULANCE_" + Ambulance.STATUS_UNKNOWN,
+                    new BitmapUtils.BitmapDescriptorFromVectorBuilder(context,
+                            R.drawable.ambulance_gray)
+                            .setScale(0.1f)
+                            .build());
+
+            iconBitmapDescriptors.put(
+                    "AMBULANCE_" + Ambulance.STATUS_AT_BASE,
+                    new BitmapUtils.BitmapDescriptorFromVectorBuilder(context,
+                            R.drawable.ambulance_green)
+                            .setScale(0.1f)
+                            .build());
+
+            iconBitmapDescriptors.put(
+                    "AMBULANCE_" + Ambulance.STATUS_BASE_BOUND,
+                    new BitmapUtils.BitmapDescriptorFromVectorBuilder(context,
+                            R.drawable.ambulance_yellow)
+                            .setScale(0.1f)
+                            .build());
+
+            iconBitmapDescriptors.put(
+                    "AMBULANCE_" + Ambulance.STATUS_AT_HOSPITAL,
+                    new BitmapUtils.BitmapDescriptorFromVectorBuilder(context,
+                            R.drawable.ambulance_orange)
+                            .setScale(0.1f)
+                            .build());
+
+            iconBitmapDescriptors.put(
+                    "AMBULANCE_" + Ambulance.STATUS_HOSPITAL_BOUND,
+                    new BitmapUtils.BitmapDescriptorFromVectorBuilder(context,
+                            R.drawable.ambulance_orange)
+                            .setScale(0.1f)
+                            .build());
+
+            iconBitmapDescriptors.put(
+                    "AMBULANCE_" + Ambulance.STATUS_AT_PATIENT,
+                    new BitmapUtils.BitmapDescriptorFromVectorBuilder(context,
+                            R.drawable.ambulance_red)
+                            .setScale(0.1f)
+                            .build());
+
+            iconBitmapDescriptors.put(
+                    "AMBULANCE_" + Ambulance.STATUS_PATIENT_BOUND,
+                    new BitmapUtils.BitmapDescriptorFromVectorBuilder(context,
+                            R.drawable.ambulance_red)
+                            .setScale(0.1f)
+                            .build());
+
+            iconBitmapDescriptors.put(
+                    "AMBULANCE_" + Ambulance.STATUS_AT_WAYPOINT,
+                    new BitmapUtils.BitmapDescriptorFromVectorBuilder(context,
+                            R.drawable.ambulance_blue)
+                            .setScale(0.1f)
+                            .build());
+
+            iconBitmapDescriptors.put(
+                    "AMBULANCE_" + Ambulance.STATUS_WAYPOINT_BOUND,
+                    new BitmapUtils.BitmapDescriptorFromVectorBuilder(context,
+                            R.drawable.ambulance_blue)
+                            .setScale(0.1f)
+                            .build());
+
+            iconBitmapDescriptors.put(
+                    "HOSPITAL",
+                    new BitmapUtils.BitmapDescriptorFromVectorBuilder(context,
+                            R.drawable.ic_hospital_15)
+                            .setColor(ContextCompat.getColor(context, R.color.bootstrapDark))
+                            .build());
+
+            iconBitmapDescriptors.put(
+                    "WAYPOINT_" + org.emstrack.models.Location.TYPE_BASE,
+                    new BitmapUtils.BitmapDescriptorFromVectorBuilder(context,
+                            R.drawable.ic_home_15)
+                            .setBackground(context, R.drawable.ic_marker_15)
+                            .setBackgroundScale(1.5f)
+                            .setBackgroundColor(ContextCompat.getColor(context, R.color.bootstrapSuccess))
+                            .setColor(ContextCompat.getColor(context, R.color.bootstrapLight))
+                            .setScale(0.85f)
+                            .setOffset(15, 5)
+                            .build());
+
+            iconBitmapDescriptors.put(
+                    "WAYPOINT_" + org.emstrack.models.Location.TYPE_AED,
+                    new BitmapUtils.BitmapDescriptorFromVectorBuilder(context,
+                            R.drawable.ic_heartbeat_solid)
+                            .setBackground(context, R.drawable.ic_marker_15)
+                            .setBackgroundScale(1.5f)
+                            .setBackgroundColor(ContextCompat.getColor(context, R.color.bootstrapInfo))
+                            .setColor(ContextCompat.getColor(context, R.color.bootstrapLight))
+                            .setOffset(14, 10)
+                            .setScale(.03f)
+                            .build());
+
+            iconBitmapDescriptors.put(
+                    "WAYPOINT_" + org.emstrack.models.Location.TYPE_INCIDENT,
+                    new BitmapUtils.BitmapDescriptorFromVectorBuilder(context,
+                            R.drawable.ic_car_crash_solid)
+                            .setBackground(context, R.drawable.ic_marker_15)
+                            .setBackgroundScale(1.5f)
+                            .setBackgroundColor(ContextCompat.getColor(context, R.color.bootstrapDanger))
+                            .setColor(ContextCompat.getColor(context, R.color.bootstrapLight))
+                            .setOffset(14, 10)
+                            .setScale(.03f)
+                            .build());
+
+            iconBitmapDescriptors.put(
+                    "WAYPOINT_" + org.emstrack.models.Location.TYPE_HOSPITAL,
+                    new BitmapUtils.BitmapDescriptorFromVectorBuilder(context,
+                            R.drawable.ic_hospital_15)
+                            .setBackground(context, R.drawable.ic_marker_15)
+                            .setBackgroundScale(1.5f)
+                            .setBackgroundColor(ContextCompat.getColor(context, R.color.bootstrapWarning))
+                            .setColor(ContextCompat.getColor(context, R.color.bootstrapLight))
+                            .setOffset(15, 5)
+                            .setScale(.85f)
+                            .build());
+
+            iconBitmapDescriptors.put(
+                    "WAYPOINT_" + org.emstrack.models.Location.TYPE_WAYPOINT,
+                    new BitmapUtils.BitmapDescriptorFromVectorBuilder(context,
+                            R.drawable.ic_location_arrow)
+                            .setBackground(context, R.drawable.ic_marker_15)
+                            .setBackgroundScale(1.5f)
+                            .setBackgroundColor(ContextCompat.getColor(context, R.color.bootstrapPrimary))
+                            .setColor(ContextCompat.getColor(context, R.color.bootstrapLight))
+                            .setOffset(14, 10)
+                            .setScale(.03f)
+                            .build());
+
+            iconBitmapDescriptors.put(
+                    "WAYPOINT_" + org.emstrack.models.Location.TYPE_OTHER,
+                    new BitmapUtils.BitmapDescriptorFromVectorBuilder(context,
+                            R.drawable.ic_location_arrow)
+                            .setBackground(context, R.drawable.ic_marker_15)
+                            .setBackgroundScale(1.5f)
+                            .setBackgroundColor(ContextCompat.getColor(context, R.color.bootstrapPrimary))
+                            .setColor(ContextCompat.getColor(context, R.color.bootstrapLight))
+                            .setOffset(14, 10)
+                            .setScale(.03f)
+                            .build());
+
+        }
+
+    }
 
     public class AmbulancesUpdateBroadcastReceiver extends BroadcastReceiver {
 
@@ -272,8 +452,23 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
             showWaypoints = !showWaypoints;
             setButtonColor(showWaypointsButton, showWaypoints);
 
-            // update markers and center
-            updateMarkersAndCenter(showWaypoints);
+            // update markers
+            updateMarkers();
+
+            if (showWaypoints) {
+                // calculate call boundaries
+                LatLngBounds.Builder builder = new LatLngBounds.Builder();
+
+                // add waypoints
+                addToBounds(builder, waypointMarkers);
+
+                // add current ambulance
+                addToBounds(builder, getCurrentAmbulanceMarker());
+
+                // center map
+                LatLngBounds bounds = builder.build();
+                centerMap(bounds);
+            }
 
         });
 
@@ -458,6 +653,9 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
         // save map
         this.googleMap = googleMap;
 
+        // initialize static markers
+        initializeMarkers(requireContext());
+
         myLocationEnabled = false;
         if (useMyLocation && AmbulanceForegroundService.canUpdateLocation()) {
 
@@ -486,10 +684,6 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
 
         }
 
-    }
-
-    private void startLocationUpdates() {
-        startLocationUpdates(true);
     }
 
     private class AnimateBuffer {
@@ -573,6 +767,10 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
 
     }
 
+    private void startLocationUpdates() {
+        startLocationUpdates(true);
+    }
+
     private void startLocationUpdates(boolean initialize) {
 
         if (fusedLocationClient != null) {
@@ -580,14 +778,14 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
             return;
         }
 
-        // disable button
-        compassButton.setEnabled(false);
-
-        // set update filter
-        updateFilter = new VehicleUpdateFilter();
-
         // Initialize fused location client
         if (AmbulanceForegroundService.getAppData().getAmbulance() != null && centerCurrentAmbulance) {
+
+            // disable button
+            compassButton.setEnabled(false);
+
+            // set update filter
+            updateFilter = new VehicleUpdateFilter();
 
             try {
 
@@ -635,13 +833,6 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
 
                                 // animate or buffer
                                 animateMarkerAndCamera(ambulance, lastLocation, animateTimeInMs);
-
-//                                // update marker
-//                                LatLng latLng = new LatLng(lastLocation.getLatitude(), lastLocation.getLongitude());
-//                                updateAmbulanceMarker(ambulance, latLng, lastLocation.getBearing(), animateTimeInMs);
-//
-//                                // center map
-//                                centerMap(latLng, lastLocation.getBearing(), false, animateTimeInMs);
 
                             }
                         }
@@ -880,7 +1071,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
         if (waypointMarkers.size() > 0 && bounds != null) {
 
 
-                Log.d(TAG, "center at all ambulances and waypoints");
+                Log.d(TAG, "center at bounds");
 
                 // move camera
                 googleMap.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, defaultPadding));
@@ -958,6 +1149,21 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
 
     }
 
+    private Marker getCurrentAmbulanceMarker() {
+
+        Ambulance currentAmbulance = AmbulanceForegroundService.getAppData().getAmbulance();
+        if (currentAmbulance != null) {
+            int ambulanceId = currentAmbulance.getId();
+            for (Map.Entry<Integer, Marker> entry : ambulanceMarkers.entrySet()) {
+                if (entry.getKey() == ambulanceId) {
+                    return entry.getValue();
+                }
+            }
+        }
+
+        return null;
+    }
+
     private void removeMarker(Map<Integer, Marker> map, int key) {
 
         if ( map.containsKey(key) ) {
@@ -966,6 +1172,23 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
 
             // remove from collection
             map.remove(key);
+        }
+
+    }
+
+    private void addToBounds(LatLngBounds.Builder builder, Map<Integer, Marker> map) {
+
+        // loop through all markers
+        for (Marker marker : map.values()) {
+            builder.include(marker.getPosition());
+        }
+
+    }
+
+    private void addToBounds(LatLngBounds.Builder builder, Marker marker) {
+
+        if (marker != null) {
+            builder.include(marker.getPosition());
         }
 
     }
@@ -1119,10 +1342,18 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
 
         } else {
 
+            Ambulance currentAmbulance = AmbulanceForegroundService.getAppData().getAmbulance();
+            BitmapDescriptor ambulanceIcon;
+            if (currentAmbulance == null || currentAmbulance.getId() != ambulance.getId()) {
+                ambulanceIcon = iconBitmapDescriptors.get("AMBULANCE_" + ambulance.getStatus());
+            } else {
+                ambulanceIcon = iconBitmapDescriptors.get("AMBULANCE_CURRENT");
+            }
+
             // Create marker, ignores animation
             marker = googleMap.addMarker(new MarkerOptions()
                     .position(latLng)
-                    .icon(BitmapUtils.bitmapDescriptorFromVector(getActivity(), R.drawable.ambulance_blue, 0.1))
+                    .icon(ambulanceIcon)
                     .anchor(0.5F,0.5F)
                     .rotation(orientation)
                     .flat(true)
@@ -1158,7 +1389,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
             // Create marker
             marker = googleMap.addMarker(new MarkerOptions()
                     .position(latLng)
-                    .icon(BitmapUtils.bitmapDescriptorFromVector(getActivity(), R.drawable.ic_hospital_15, 1))
+                    .icon(iconBitmapDescriptors.get("HOSPITAL"))
                     .anchor(0.5F,0.5F)
                     .flat(true)
                     .title(hospital.getName()));
@@ -1192,7 +1423,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
             // Create marker
             marker = googleMap.addMarker(new MarkerOptions()
                     .position(latLng)
-                    .icon(BitmapUtils.bitmapDescriptorFromVector(getActivity(), R.drawable.ic_marker_15, 1))
+                    .icon(iconBitmapDescriptors.get("WAYPOINT_" + waypoint.getLocation().getType()))
                     .anchor(0.5F,1.0F)
                     .flat(false));
                     // .title(waypoint.getName()));

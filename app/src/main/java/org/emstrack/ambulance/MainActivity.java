@@ -1497,6 +1497,9 @@ public class MainActivity extends AppCompatActivity {
                             serviceIntent.putExtra(AmbulanceForegroundService.BroadcastExtras.CALL_ID, nextCallId);
                             startService(serviceIntent);
 
+                            // navigate to ambulance page
+                            navigate(R.id.ambulanceFragment);
+
                         })
                 .setNegativeButton(R.string.decline,
                         (dialog, id) -> {
