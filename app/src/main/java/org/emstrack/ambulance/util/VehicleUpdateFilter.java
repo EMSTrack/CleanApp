@@ -1,7 +1,6 @@
 package org.emstrack.ambulance.util;
 
 import android.location.Location;
-import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -16,41 +15,45 @@ import static org.emstrack.ambulance.util.LatLon.stationaryVelocity;
  * Created by mauricio on 3/22/2018.
  */
 
-public class AmbulanceUpdateFilter {
+public class VehicleUpdateFilter {
 
-    private static final String TAG = AmbulanceUpdateFilter.class.getSimpleName();
+    private static final String TAG = VehicleUpdateFilter.class.getSimpleName();
 
-    private AmbulanceUpdate currentAmbulanceUpdate;
-    private List<AmbulanceUpdate> filteredAmbulanceUpdates;
+    private VehicleUpdate currentVehicleUpdate;
+    private List<VehicleUpdate> filteredVehicleUpdates;
 
-    public AmbulanceUpdateFilter() {
+    public VehicleUpdateFilter() {
         this(null);
     }
 
-    public AmbulanceUpdateFilter(AmbulanceUpdate location) {
-        this.currentAmbulanceUpdate = location;
-        this.filteredAmbulanceUpdates = new ArrayList<>();
+    public VehicleUpdateFilter(VehicleUpdate location) {
+        this.currentVehicleUpdate = location;
+        this.filteredVehicleUpdates = new ArrayList<>();
     }
 
-    public void setCurrentAmbulanceUpdate(AmbulanceUpdate currentAmbulanceUpdate) {
-        this.currentAmbulanceUpdate = currentAmbulanceUpdate;
+    public void setCurrentVehicleUpdate(VehicleUpdate currentVehicleUpdate) {
+        this.currentVehicleUpdate = currentVehicleUpdate;
     }
 
-    public List<AmbulanceUpdate> getFilteredAmbulanceUpdates() {
-        return this.filteredAmbulanceUpdates;
+    public VehicleUpdate getCurrentVehicleUpdate() {
+        return currentVehicleUpdate;
+    }
+
+    public List<VehicleUpdate> getFilteredUpdates() {
+        return this.filteredVehicleUpdates;
     }
 
     public boolean hasUpdates() {
-        return this.filteredAmbulanceUpdates.size() > 0;
+        return this.filteredVehicleUpdates.size() > 0;
     }
 
     public void reset() {
-        this.filteredAmbulanceUpdates = new ArrayList<>();
+        this.filteredVehicleUpdates = new ArrayList<>();
     }
 
     public void sort() {
-        Collections.sort(this.filteredAmbulanceUpdates,
-                new AmbulanceUpdate.SortByAscendingOrder());
+        Collections.sort(this.filteredVehicleUpdates,
+                new VehicleUpdate.SortByAscendingOrder());
     }
 
     /**
@@ -61,46 +64,46 @@ public class AmbulanceUpdateFilter {
     private void _update(Location update) {
 
         // return if null
-        if (currentAmbulanceUpdate.getLocation() == null) {
+        if (currentVehicleUpdate.getLocation() == null) {
             // Log.d(TAG, "Null location, skipping...");
             return;
         }
 
         // elapsed time
-        double dt = update.getTime() - currentAmbulanceUpdate.getTimestamp().getTimeInMillis();
+        double dt = update.getTime() - currentVehicleUpdate.getTimestamp().getTimeInMillis();
 
         // Predict next currentAmbulanceUpdate
         // GPSLocation prediction = updateLocation(currentAmbulanceUpdate, bearing, velocity * dt);
 
         // measure velocity and bearing
-        double[] dandb = calculateDistanceAndBearing(currentAmbulanceUpdate.getLocation(), update);
+        double[] dandb = calculateDistanceAndBearing(currentVehicleUpdate.getLocation(), update);
         double distance = dandb[0];
         double brn = dandb[1];
-        double vel = currentAmbulanceUpdate.getVelocity();
+        double vel = currentVehicleUpdate.getVelocity();
         if (dt > 0)
             vel = distance / dt;
 
         // ambulanceUpdateFilter velocity
         double Kv = 0.9;
-        double velocity = currentAmbulanceUpdate.getVelocity();
+        double velocity = currentVehicleUpdate.getVelocity();
         velocity += Kv * (vel - velocity);
-        currentAmbulanceUpdate.setVelocity(velocity);
+        currentVehicleUpdate.setVelocity(velocity);
 
         // ambulanceUpdateFilter bearing
         double Kb = 0.9;
-        double bearing = currentAmbulanceUpdate.getBearing();
+        double bearing = currentVehicleUpdate.getBearing();
         bearing += Kb * (brn - bearing);
-        currentAmbulanceUpdate.setBearing(bearing);
+        currentVehicleUpdate.setBearing(bearing);
 
         if ((velocity > stationaryVelocity && distance > stationaryRadius) ||
                 (velocity <= stationaryVelocity && distance > 3 * stationaryRadius)) {
 
             // updateAmbulance currentAmbulanceUpdate
-            currentAmbulanceUpdate.setLocation(update);
-            currentAmbulanceUpdate.setTimestamp(update.getTime());
+            currentVehicleUpdate.setLocation(update);
+            currentVehicleUpdate.setTimestamp(update.getTime());
 
             // add currentAmbulanceUpdate to filtered locations
-            filteredAmbulanceUpdates.add(new AmbulanceUpdate(currentAmbulanceUpdate));
+            filteredVehicleUpdates.add(new VehicleUpdate(currentVehicleUpdate));
 
         }
 
@@ -110,22 +113,22 @@ public class AmbulanceUpdateFilter {
 
     public void update(String status) {
 
-        this.filteredAmbulanceUpdates.add(new AmbulanceUpdate(status));
+        this.filteredVehicleUpdates.add(new VehicleUpdate(status));
 
     }
 
     public void update(String status, Calendar timestamp) {
 
-        this.filteredAmbulanceUpdates.add(new AmbulanceUpdate(status, timestamp));
+        this.filteredVehicleUpdates.add(new VehicleUpdate(status, timestamp));
 
     }
 
     public void update(Location location) {
 
         // initialize
-        if (this.currentAmbulanceUpdate == null) {
+        if (this.currentVehicleUpdate == null) {
             // use first record
-            this.currentAmbulanceUpdate = new AmbulanceUpdate(location);
+            this.currentVehicleUpdate = new VehicleUpdate(location);
             return;
         }
 
@@ -141,9 +144,9 @@ public class AmbulanceUpdateFilter {
             return;
 
         // initialize
-        if (currentAmbulanceUpdate == null)
+        if (currentVehicleUpdate == null)
             // use first record
-            currentAmbulanceUpdate = new AmbulanceUpdate(locations.get(0));
+            currentVehicleUpdate = new VehicleUpdate(locations.get(0));
 
         // loop through records
         for (Location location : locations)

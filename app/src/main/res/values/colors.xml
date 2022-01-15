@@ -38,8 +38,8 @@
     <color name="tabBackground">#CFCFCF</color>
     <color name="messageBackground">#cfcfcf</color>
 
-    <color name="mapButtonOn">#8888</color>
-    <color name="mapButtonAlert">#ffdc3545</color>
-    <color name="mapButtonOff">#99ffffff</color>
+    <color name="mapButtonOn">@color/bootstrapDark</color>
+    <color name="mapButtonOff">@color/bootstrapLight</color>
+    <color name="mapButtonAlert">@color/bootstrapWarning</color>
 
 </resources>

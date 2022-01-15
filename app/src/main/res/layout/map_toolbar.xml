@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:elevation="@dimen/design_appbar_elevation"
+    android:paddingHorizontal="10dp"
+    android:background="@color/bootstrapPrimary"
+    android:gravity="center_vertical|end">
+
+    <ImageView
+        android:id="@+id/showWaypointsButton"
+        android:layout_width="40dp"
+        android:layout_height="36dp"
+        app:tint="@color/iconColor"
+        android:padding="@dimen/mapToolbarPadding"
+        android:layout_marginHorizontal="@dimen/mapToolbarHorizontalMargin"
+        app:srcCompat="@drawable/ic_phone_solid" />
+
+    <ImageView
+        android:id="@+id/compassButton"
+        android:layout_width="40dp"
+        android:layout_height="36dp"
+        app:tint="@color/iconColor"
+        android:padding="@dimen/mapToolbarPadding"
+        android:layout_marginHorizontal="@dimen/mapToolbarHorizontalMargin"
+        app:srcCompat="@drawable/ic_compass_regular" />
+
+    <ImageView
+        android:id="@+id/showAmbulanceButton"
+        android:layout_width="40dp"
+        android:layout_height="36dp"
+        app:tint="@color/iconColor"
+        android:padding="@dimen/mapToolbarPadding"
+        android:layout_marginHorizontal="@dimen/mapToolbarHorizontalMargin"
+        app:srcCompat="@drawable/ic_car_solid" />
+
+    <ImageView
+        android:id="@+id/showAmbulancesButton"
+        android:layout_width="40dp"
+        android:layout_height="36dp"
+        app:tint="@color/iconColor"
+        android:padding="@dimen/mapToolbarPadding"
+        android:layout_marginHorizontal="@dimen/mapToolbarHorizontalMargin"
+        app:srcCompat="@drawable/ic_cars_solid" />
+
+    <ImageView
+        android:id="@+id/showHospitalsButton"
+        android:layout_width="40dp"
+        android:layout_height="36dp"
+        app:tint="@color/iconColor"
+        android:padding="@dimen/mapToolbarPadding"
+        android:layout_marginStart="@dimen/mapToolbarHorizontalMargin"
+        app:srcCompat="@drawable/ic_hospital" />
+
+
+</LinearLayout>

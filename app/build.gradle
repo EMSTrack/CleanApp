@@ -6,8 +6,8 @@ android {
         applicationId 'org.emstrack.ambulance'
         minSdkVersion 19
         targetSdkVersion 31
-        versionCode 18
-        versionName "0.9.5"
+        versionCode 19
+        versionName "0.9.6"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
 
@@ -33,16 +33,19 @@ android {
 }
 
 dependencies {
+
     implementation fileTree(include: ['*.jar'], dir: 'libs')
+
     implementation 'androidx.viewpager2:viewpager2:1.0.0'
     implementation 'androidx.navigation:navigation-fragment:2.3.5'
     implementation 'androidx.navigation:navigation-ui:2.3.5'
     implementation 'androidx.preference:preference:1.1.1'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.2'
+    implementation "androidx.coordinatorlayout:coordinatorlayout:1.2.0"
 
     implementation 'com.google.android.gms:play-services-location:19.0.1'
     implementation 'com.google.android.gms:play-services-maps:18.0.2'
     implementation 'com.google.android.gms:play-services-gcm:17.0.0'
-    implementation 'androidx.constraintlayout:constraintlayout:2.1.2'
     implementation 'com.google.code.gson:gson:2.8.6'
 
     implementation 'com.squareup.retrofit2:retrofit:2.5.0'
@@ -55,7 +58,7 @@ dependencies {
     implementation 'androidx.cardview:cardview:1.0.0'
     implementation 'androidx.recyclerview:recyclerview:1.2.1'
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
-    implementation 'androidx.appcompat:appcompat:1.4.0'
+    implementation 'androidx.appcompat:appcompat:1.4.1'
 
     implementation 'androidx.browser:browser:1.4.0'
     implementation 'com.google.android.material:material:1.4.0'

@@ -54,8 +54,8 @@ import org.eclipse.paho.client.mqttv3.MqttException;
 import org.emstrack.ambulance.MainActivity;
 import org.emstrack.ambulance.R;
 import org.emstrack.ambulance.models.AmbulanceAppData;
-import org.emstrack.ambulance.util.AmbulanceUpdate;
-import org.emstrack.ambulance.util.AmbulanceUpdateFilter;
+import org.emstrack.ambulance.util.VehicleUpdate;
+import org.emstrack.ambulance.util.VehicleUpdateFilter;
 import org.emstrack.ambulance.util.Geofence;
 import org.emstrack.ambulance.util.SparseArrayUtils;
 import org.emstrack.models.Ambulance;
@@ -142,6 +142,10 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
     public static final String PREFERENCES_MAP_SHOW_HOSPITALS = "MAP_SHOW_HOSPITALS";
     public static final String PREFERENCES_MAP_SHOW_WAYPOINTS = "MAP_SHOW_WAYPOINTS";
     public static final String PREFERENCES_MAP_CENTER_AMBULANCES = "MAP_CENTER_AMBULANCES";
+    public static final String PREFERENCES_MAP_ZOOM = "MAP_ZOOM";
+    public static final String PREFERENCES_MAP_LONGITUDE = "MAP_LONGITUDE";
+    public static final String PREFERENCES_MAP_LATITUDE = "MAP_LATITUDE";
+    public static final String PREFERENCES_MAP_BEARING = "MAP_BEARING";
 
     // Server URI
     private static String _serverUri = "ssl://cruzroja.ucsd.edu:8883";
@@ -150,7 +154,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
     private static MqttProfileClient client;
     private static AmbulanceAppData appData;
 
-    private static AmbulanceUpdate _lastLocation;
+    private static VehicleUpdate _lastLocation;
     private static Calendar _lastServerUpdate;
     private static boolean _updatingLocation = false;
     private static boolean _canUpdateLocation = false;
@@ -173,7 +177,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
     private FusedLocationProviderClient fusedLocationClient;
     private SharedPreferences sharedPreferences;
 
-    public AmbulanceUpdateFilter ambulanceUpdateFilter = new AmbulanceUpdateFilter();
+    public VehicleUpdateFilter vehicleUpdateFilter = new VehicleUpdateFilter();
 
     private LocationCallback locationCallback;
     private GeofencingClient fenceClient;
@@ -1145,12 +1149,12 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
      * Send updates in bulk for ambulance with id <code>ambulanceId</code> to server
      *
      * @param ambulanceId the ambulance id
-     * @param updates     a list of {@link AmbulanceUpdate}s
+     * @param updates     a list of {@link VehicleUpdate}s
      */
-    public boolean updateAmbulance(int ambulanceId, List<AmbulanceUpdate> updates) {
+    public boolean updateAmbulance(int ambulanceId, List<VehicleUpdate> updates) {
 
         ArrayList<String> updateString = new ArrayList<>();
-        for (AmbulanceUpdate update : updates) {
+        for (VehicleUpdate update : updates) {
 
             if (update.hasLocation())
                 // Set last location
@@ -1275,7 +1279,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         if (ambulanceId == getAppData().getAmbulanceId()) {
 
             // add status update to ambulanceUpdateFilter
-            ambulanceUpdateFilter.update(status, timestamp);
+            vehicleUpdateFilter.update(status, timestamp);
 
             // Update locally
             Ambulance ambulance = getAppData().getAmbulance();
@@ -1470,16 +1474,16 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
         // Is there data on ambulanceUpdateFilter?
         Ambulance ambulance = appData.getAmbulance();
-        if (ambulance != null && ambulanceUpdateFilter.hasUpdates()) {
+        if (ambulance != null && vehicleUpdateFilter.hasUpdates()) {
 
             // Sort updates
-            ambulanceUpdateFilter.sort();
+            vehicleUpdateFilter.sort();
 
             // update server or buffer
-            updateAmbulance(ambulance.getId(), ambulanceUpdateFilter.getFilteredAmbulanceUpdates());
+            updateAmbulance(ambulance.getId(), vehicleUpdateFilter.getFilteredUpdates());
 
             // reset filter
-            ambulanceUpdateFilter.reset();
+            vehicleUpdateFilter.reset();
 
         }
 
@@ -2983,7 +2987,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                         if (_lastLocation == null || ambulance.getTimestamp().after(_lastLocation.getTimestamp())) {
 
                             // Update last location
-                            _lastLocation = new AmbulanceUpdate();
+                            _lastLocation = new VehicleUpdate();
                             android.location.Location location = new android.location.Location("FusedLocationClient");
                             location.setLatitude(ambulance.getLocation().getLatitude());
                             location.setLongitude(ambulance.getLocation().getLongitude());
@@ -3805,22 +3809,22 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
                 // Initialize ambulanceUpdateFilter
                 if (_lastLocation != null)
-                    ambulanceUpdateFilter.setCurrentAmbulanceUpdate(_lastLocation);
+                    vehicleUpdateFilter.setCurrentVehicleUpdate(_lastLocation);
 
                 // Filter locations
-                ambulanceUpdateFilter.update(locations);
+                vehicleUpdateFilter.update(locations);
 
                 // Publish update
-                if (ambulanceUpdateFilter.hasUpdates()) {
+                if (vehicleUpdateFilter.hasUpdates()) {
 
                     // Sort updates
-                    ambulanceUpdateFilter.sort();
+                    vehicleUpdateFilter.sort();
 
                     // update server or buffer
-                    updateAmbulance(ambulance.getId(), ambulanceUpdateFilter.getFilteredAmbulanceUpdates());
+                    updateAmbulance(ambulance.getId(), vehicleUpdateFilter.getFilteredUpdates());
 
                     // reset filter
-                    ambulanceUpdateFilter.reset();
+                    vehicleUpdateFilter.reset();
 
                 }
 

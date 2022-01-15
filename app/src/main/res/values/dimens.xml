@@ -13,4 +13,11 @@
     <dimen name="messageMargin">40dp</dimen>
     <dimen name="ambulanceIconStart">5dp</dimen>
 
+    <dimen name="mapToolbarHorizontalMargin">0dp</dimen>
+    <dimen name="mapToolbarPadding">5dp</dimen>
+    <dimen name="mapToolbarLayoutHeight">52dp</dimen>
+    <dimen name="mapToolbarHeight">45dp</dimen>
+    <dimen name="mapToolbarMargin">-45dp</dimen>
+    <dimen name="mapToolbarHeightOffset">44dp</dimen>
+
 </resources>

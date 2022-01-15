@@ -15,11 +15,11 @@ import java.util.TimeZone;
  * Created by mauricio on 3/22/2018.
  */
 
-public class AmbulanceUpdate {
+public class VehicleUpdate {
 
-    static class SortByAscendingOrder implements Comparator<AmbulanceUpdate>
+    static class SortByAscendingOrder implements Comparator<VehicleUpdate>
     {
-        public int compare(AmbulanceUpdate a, AmbulanceUpdate b) {
+        public int compare(VehicleUpdate a, VehicleUpdate b) {
             return a.timestamp.compareTo(b.timestamp);
         }
     }
@@ -31,7 +31,7 @@ public class AmbulanceUpdate {
     private Calendar timestamp;
     private String status;
 
-    public AmbulanceUpdate() {
+    public VehicleUpdate() {
         location = null;
         bearing = (float) 0.0;
         velocity = (float) 0.0;
@@ -39,7 +39,7 @@ public class AmbulanceUpdate {
         status = null;
     }
 
-    public AmbulanceUpdate(Location location) {
+    public VehicleUpdate(Location location) {
         this.location = new Location(location);
         bearing = location.getBearing();
         velocity = location.getSpeed();
@@ -48,7 +48,7 @@ public class AmbulanceUpdate {
         status = null;
     }
 
-    public AmbulanceUpdate(AmbulanceUpdate update) {
+    public VehicleUpdate(VehicleUpdate update) {
         location = new Location(update.location);
         bearing = update.bearing;
         velocity = update.velocity;
@@ -56,11 +56,11 @@ public class AmbulanceUpdate {
         status = null;
     }
 
-    public AmbulanceUpdate(String status) {
+    public VehicleUpdate(String status) {
         this(status, Calendar.getInstance());
     }
 
-    public AmbulanceUpdate(String status, Calendar timestamp) {
+    public VehicleUpdate(String status, Calendar timestamp) {
         this.location = null;
         this.bearing = 0;
         this.velocity = 0;
