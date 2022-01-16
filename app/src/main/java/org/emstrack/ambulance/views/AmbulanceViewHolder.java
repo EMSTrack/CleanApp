@@ -3,7 +3,6 @@ package org.emstrack.ambulance.views;
 import static org.emstrack.ambulance.util.FormatUtils.formatDateTime;
 
 import android.app.Activity;
-import android.content.Context;
 import android.graphics.PorterDuff;
 import android.location.Location;
 import android.os.Bundle;
@@ -23,6 +22,7 @@ import org.emstrack.ambulance.models.EquipmentType;
 import org.emstrack.ambulance.models.MessageType;
 import org.emstrack.ambulance.services.AmbulanceForegroundService;
 import org.emstrack.models.Ambulance;
+import org.emstrack.models.AmbulancePermission;
 import org.emstrack.models.Settings;
 
 import java.text.DateFormat;
@@ -37,6 +37,7 @@ import java.util.Map;
 public class AmbulanceViewHolder extends RecyclerView.ViewHolder {
 
     private static final String TAG = AmbulanceViewHolder.class.getSimpleName();
+
     private final Map<String, String> ambulanceCapabilitiesMap;
     private final Map<String, String> ambulanceStatusMap;
 
@@ -54,7 +55,7 @@ public class AmbulanceViewHolder extends RecyclerView.ViewHolder {
     private final TextView ambulanceUpdatedOnText;
     private final View ambulanceCommentLabel;
 
-    public AmbulanceViewHolder(Context context, View view) {
+    public AmbulanceViewHolder(View view) {
         super(view);
 
         ambulanceIdentifierText = view.findViewById(R.id.ambulanceIdentifierText);
@@ -83,9 +84,7 @@ public class AmbulanceViewHolder extends RecyclerView.ViewHolder {
         ambulanceStatusMap = settings.getAmbulanceStatus();
 
         // set click action
-        view.setOnClickListener(view1 -> {
-            toggleDetail();
-        });
+        view.setOnClickListener(view1 -> toggleDetail());
     }
 
     public void toggleDetail() {
@@ -163,9 +162,12 @@ public class AmbulanceViewHolder extends RecyclerView.ViewHolder {
         });
 
         // set select click response
-        ambulanceLoginImageView.setOnClickListener(v -> {
-            loginAmbulance.login(ambulanceId);
-        });
+        AmbulancePermission permission = AmbulanceForegroundService.getAppData().getProfile().getPermission(ambulance);
+        if (permission.isCanWrite()) {
+            ambulanceLoginImageView.setOnClickListener(v -> loginAmbulance.login(ambulanceId));
+        } else {
+            ambulanceLoginImageView.setVisibility(View.GONE);
+        }
 
     }
 

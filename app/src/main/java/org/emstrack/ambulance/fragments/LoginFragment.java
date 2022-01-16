@@ -92,23 +92,26 @@ public class LoginFragment extends Fragment {
         loginAsDemoButton = rootView.findViewById(R.id.buttonDemoLogin);
         loginAsDemoButton.setOnClickListener(view -> {
             Log.i(TAG, "Login as demo");
-            usernameField.setText(R.string.demoUsername);
-            passwordField.setText(R.string.demoPassword);
-            int serverPos = serverMqttURIs.indexOf(getString(R.string.demoServer));
-            if (serverPos >= 0)
-                serverField.setSelection(serverPos);
 
             TextView textView = new TextView(requireContext());
             final SpannableString s =
-                    new SpannableString(getString(R.string.demoLoginMessage));
+                    new SpannableString(getString(R.string.demoLoginMessage, getString(android.R.string.ok)));
             Linkify.addLinks(s, Linkify.WEB_URLS);
             textView.setText(s);
             textView.setMovementMethod(LinkMovementMethod.getInstance());
             textView.setPadding(50,20,10,32);
 
             new android.app.AlertDialog.Builder(requireContext())
-                    .setTitle("Demo Session")
-                    .setPositiveButton(android.R.string.ok, null)
+                    .setTitle(R.string.demoSession)
+                    .setPositiveButton(android.R.string.ok, (dialogInterface, i) -> {
+                        // set demo credentials
+                        usernameField.setText(R.string.demoUsername);
+                        passwordField.setText(R.string.demoPassword);
+                        int serverPos = serverMqttURIs.indexOf(getString(R.string.demoServer));
+                        if (serverPos >= 0)
+                            serverField.setSelection(serverPos);
+                    })
+                    .setNegativeButton(android.R.string.cancel, null)
                     .setView(textView)
                     .create()
                     .show();
@@ -325,14 +328,12 @@ public class LoginFragment extends Fragment {
                                 SharedPreferences sharedPreferences = activity.getSharedPreferences(
                                         AmbulanceForegroundService.PREFERENCES_NAME, AppCompatActivity.MODE_PRIVATE);
                                 Set<String> serversSet = sharedPreferences.getStringSet(AmbulanceForegroundService.PREFERENCES_SERVERS, null);
-                                ArrayList<String> serverList = null;
                                 if (serversSet != null) {
 
                                     new AlertSnackbar(activity)
                                             .alert("Could not retrieve servers. List of servers may be outdated.");
 
-                                    serverList = new ArrayList<>(serversSet);
-
+                                    ArrayList<String> serverList = new ArrayList<>(serversSet);
                                     doEnableLogin(serverList);
 
                                 } else {

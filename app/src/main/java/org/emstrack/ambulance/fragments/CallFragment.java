@@ -682,9 +682,9 @@ public class CallFragment extends Fragment {
         AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
         builder.setTitle(title)
                 .setMessage(message)
-                .setNegativeButton(R.string.no,
+                .setNegativeButton(android.R.string.no,
                         (dialog, id) -> Log.i(TAG, "Continuing..."))
-                .setPositiveButton(R.string.yes,
+                .setPositiveButton(android.R.string.yes,
                         (dialog, id) -> {
 
                             Log.i(TAG, String.format("Will mark as '%1$s'", status));

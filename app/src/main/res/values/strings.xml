@@ -221,13 +221,10 @@
     <string name="settingsAreInadequate">GPSLocation settings are inadequate, and cannot be fixed here. Fix in Settings.</string>
     <string name="decline">Decline</string>
     <string name="accept">Accept</string>
-    <string name="no">No</string>
-    <string name="yes">Yes</string>
     <string name="add">Add</string>
     <string name="confirm">Confirm</string>
     <string name="end">End</string>
     <string name="select">Select</string>
-    <string name="ok">OK</string>
     <string name="mustChooseAmbulance">You must choose a vehicle or logout to proceed</string>
     <string name="logout">Logout</string>
     <string name="currentlyHandlingCall">Currently handling call</string>
@@ -240,7 +237,6 @@
     <string name="panicTitle">Panic!</string>
     <string name="acceptCall">Accept Incoming Call?</string>
     <string name="selectNextWaypoint">Select next waypoint</string>
-    <string name="cancel">Cancel</string>
     <string name="endCall">End Call</string>
     <string name="loggingIn">Logging in \'%1$s\'</string>
     <string name="pleaseSelectAmbulance">Please select vehicle</string>
@@ -308,13 +304,13 @@
     <string name="locationPermissionMessage">Access to this device\'s precise location is necessary to enable vehicle tracking and call dispatching.\n\nIt is also necessary to access the device\'s location in the background for the application to be able to receive calls."</string>
     <string name="locationPermissionMessageVersionRMessage1">You will be asked to enable locations twice, one time to enable foreground location, and a second time to enable background location in the application\'s settings page."</string>
     <string name="locationPermissionMessageVersionRMessage2">Congratulations, your foreground location has been successfully enabled!"</string>
-    <string name="locationPermissionSettingsMessage">After clicking \'OK\' you will be taken to the application\'s settings page where you can enable background location for this device%1$s in the \'Permissions\' settings.</string>
+    <string name="locationPermissionSettingsMessage">After clicking \'%1$s\' you will be taken to the application\'s settings page where you can enable background location for this device%2$s in the \'Permissions\' settings.</string>
     <string name="needPermissions">Need permissions</string>
     <string name="login_as_demo">Demo</string>
     <string name="demoUsername" translatable="false">test</string>
     <string name="demoPassword" translatable="false">testuser</string>
     <string name="demoServer" translatable="false">ssl://cruzroja.ucsd.edu:8883</string>
-    <string name="demoLoginMessage">"Credentials have been provided for you to demo the application.\n\nFor more information contact\n\nemstrack.org</string>
+    <string name="demoLoginMessage">"Click \'%1$s\' to obtain credentials to demo the application.\n\nFor more information contact\n\nemstrack.org</string>
     <string name="tracking">Tracking</string>
     <string name="online">Online</string>
     <string name="panic">Panic</string>
@@ -402,6 +398,7 @@
 
     <string name="approachedAParticularWaypoint">You have approached the waypoint:\n%1$s</string>
     <string name="leftAParticularWaypoint">You have left the waypoint:\n%1$s</string>
+    <string name="demoSession">Demo Session</string>
 
 
 </resources>

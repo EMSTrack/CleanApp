@@ -10,18 +10,18 @@ import android.content.SharedPreferences;
 import android.graphics.PorterDuff;
 import android.location.Location;
 import android.os.Bundle;
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.ContextCompat;
-import androidx.fragment.app.Fragment;
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
-
 import android.util.Log;
 import android.util.SparseArray;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
+import androidx.fragment.app.Fragment;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
@@ -40,33 +40,29 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import org.emstrack.ambulance.MainActivity;
+import org.emstrack.ambulance.R;
 import org.emstrack.ambulance.models.AmbulanceAppData;
 import org.emstrack.ambulance.services.AmbulanceForegroundService;
-import org.emstrack.ambulance.R;
-import org.emstrack.ambulance.util.LatLngInterpolator;
-import org.emstrack.ambulance.util.MarkerAnimation;
-import org.emstrack.ambulance.util.VehicleUpdate;
-import org.emstrack.ambulance.util.VehicleUpdateFilter;
 import org.emstrack.ambulance.util.BitmapUtils;
 import org.emstrack.ambulance.util.DragHelper;
+import org.emstrack.ambulance.util.LatLngInterpolator;
+import org.emstrack.ambulance.util.MarkerAnimation;
 import org.emstrack.ambulance.util.SparseArrayUtils;
-import org.emstrack.models.Call;
-import org.emstrack.models.Settings;
+import org.emstrack.ambulance.util.VehicleUpdate;
+import org.emstrack.ambulance.util.VehicleUpdateFilter;
 import org.emstrack.models.Ambulance;
 import org.emstrack.models.AmbulanceCall;
+import org.emstrack.models.Call;
 import org.emstrack.models.GPSLocation;
 import org.emstrack.models.Hospital;
+import org.emstrack.models.Settings;
 import org.emstrack.models.Waypoint;
 
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
-
-// TODO: Implement listener to ambulance changes
 
 public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleMap.OnCameraIdleListener {
 
@@ -78,7 +74,6 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
     private static final String TAG = MapFragment.class.getSimpleName();
 
     private final float defaultZoom = 17;
-    private final int defaultPadding = 50;
 
     private MainActivity activity;
     View rootView;
@@ -108,9 +103,6 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
     private ImageView showWaypointsButton;
     private boolean showWaypoints = false;
 
-    private boolean myLocationEnabled;
-    private boolean useMyLocation = false;
-
     private float zoomLevel = defaultZoom;
     private LatLng target;
     private float bearing;
@@ -119,8 +111,6 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
     private AmbulancesUpdateBroadcastReceiver receiver;
 
     private GPSLocation defaultLocation;
-
-    private boolean centerAtDefault;
 
     private int buttonOnColor;
     private int buttonOffColor;
@@ -135,7 +125,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
     private boolean isAnimatingMarkerAndCamera;
     private AnimateBuffer animateBuffer;
 
-    private static Map<String, BitmapDescriptor> iconBitmapDescriptors = new HashMap<>();
+    private static final Map<String, BitmapDescriptor> iconBitmapDescriptors = new HashMap<>();
 
     private static void initializeMarkers(Context context) {
 
@@ -328,7 +318,6 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
 
                         if (!centerCurrentAmbulance || fusedLocationClient == null) {
                             // update ambulance marker only if location service is not on
-                            // TODO: update status if changed
                             Ambulance ambulance = AmbulanceForegroundService.getAppData().getAmbulance();
                             updateAmbulanceMarker(ambulance);
                         }
@@ -656,22 +645,6 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
         // initialize static markers
         initializeMarkers(requireContext());
 
-        myLocationEnabled = false;
-        if (useMyLocation && AmbulanceForegroundService.canUpdateLocation()) {
-
-            // Use google map's my location
-            try {
-
-                Log.i(TAG, "Enable my location on google map.");
-                googleMap.setMyLocationEnabled(true);
-                myLocationEnabled = true;
-
-            } catch (SecurityException e) {
-                Log.i(TAG, "Could not enable my location on google map.");
-            }
-
-        }
-
         if (doneOnResume) {
 
             // already did onResume and did not initialize map
@@ -686,7 +659,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
 
     }
 
-    private class AnimateBuffer {
+    private static class AnimateBuffer {
         LatLng latLng;
         float bearing;
         int animateTimeInMs;
@@ -827,12 +800,16 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
 
                                 // calculate update distance
                                 Marker currentMarker = ambulanceMarkers.get(ambulance.getId());
-                                double distance = calculateDistanceHaversine(currentMarker.getPosition(), lastLocation);
-                                double time = distance/lastUpdate.getVelocity();
-                                int animateTimeInMs = Math.min((int) (1000 * time), 3000);
+                                if (currentMarker != null) {
+                                    double distance = calculateDistanceHaversine(currentMarker.getPosition(), lastLocation);
+                                    double time = distance / lastUpdate.getVelocity();
+                                    int animateTimeInMs = Math.min((int) (1000 * time), 3000);
 
-                                // animate or buffer
-                                animateMarkerAndCamera(ambulance, lastLocation, animateTimeInMs);
+                                    // animate or buffer
+                                    animateMarkerAndCamera(ambulance, lastLocation, animateTimeInMs);
+                                } else {
+                                    Log.d(TAG, "Marker for current ambulance does not exist");
+                                }
 
                             }
                         }
@@ -1005,9 +982,9 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
         centerMap(latLng, bearing, dropMarker, 0, null);
     }
 
-    public void centerMap(LatLng latLng, float bearing, boolean dropMarker, int animateTimeInMs) {
-        centerMap(latLng, bearing, dropMarker, animateTimeInMs, null);
-    }
+//    public void centerMap(LatLng latLng, float bearing, boolean dropMarker, int animateTimeInMs) {
+//        centerMap(latLng, bearing, dropMarker, animateTimeInMs, null);
+//    }
 
     public void centerMap(LatLng latLng, float bearing, boolean dropMarker, int animateTimeInMs, GoogleMap.CancelableCallback animateCallback) {
 
@@ -1040,9 +1017,9 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
         centerMap(ambulance, false, 0, null);
     }
 
-    public void centerMap(Ambulance ambulance, boolean dropPin) {
-        centerMap(ambulance, dropPin, 0, null);
-    }
+//    public void centerMap(Ambulance ambulance, boolean dropPin) {
+//        centerMap(ambulance, dropPin, 0, null);
+//    }
 
     public void centerMap(Ambulance ambulance, boolean dropPin, int animateTimeInMs) {
         centerMap(ambulance, dropPin, animateTimeInMs, null);
@@ -1065,19 +1042,16 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
     public void centerMap(LatLngBounds bounds) {
 
         Log.d(TAG, "centerMap bounds");
-        centerAtDefault = false;
 
         // Has waypoints?
+        final int defaultPadding = 50;
+
         if (waypointMarkers.size() > 0 && bounds != null) {
-
-
                 Log.d(TAG, "center at bounds");
 
                 // move camera
                 googleMap.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, defaultPadding));
-
                 return;
-
         }
 
         // Has ambulances?
@@ -1107,9 +1081,6 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
             }
 
         }
-
-        Log.d(TAG, "center at default location");
-        centerAtDefault = true;
 
         // Otherwise center at default location
         LatLng latLng = new LatLng(defaultLocation.getLatitude(), defaultLocation.getLongitude());
@@ -1153,28 +1124,23 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
 
         Ambulance currentAmbulance = AmbulanceForegroundService.getAppData().getAmbulance();
         if (currentAmbulance != null) {
-            int ambulanceId = currentAmbulance.getId();
-            for (Map.Entry<Integer, Marker> entry : ambulanceMarkers.entrySet()) {
-                if (entry.getKey() == ambulanceId) {
-                    return entry.getValue();
-                }
-            }
+            return ambulanceMarkers.get(currentAmbulance.getId());
+        } else {
+            return null;
         }
-
-        return null;
     }
 
-    private void removeMarker(Map<Integer, Marker> map, int key) {
-
-        if ( map.containsKey(key) ) {
-            // remove from google map
-            map.get(key).remove();
-
-            // remove from collection
-            map.remove(key);
-        }
-
-    }
+//    private void removeMarker(Map<Integer, Marker> map, int key) {
+//
+//        if ( map.containsKey(key) ) {
+//            // remove from google map
+//            Objects.requireNonNull(map.get(key)).remove();
+//
+//            // remove from collection
+//            map.remove(key);
+//        }
+//
+//    }
 
     private void addToBounds(LatLngBounds.Builder builder, Map<Integer, Marker> map) {
 
@@ -1269,9 +1235,6 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
         // Assemble marker bounds
         LatLngBounds.Builder builder = new LatLngBounds.Builder();
 
-        // Get app data
-        AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
-
         // Update hospitals
         updateHospitalMarkers(builder);
 
@@ -1281,19 +1244,15 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
         // Update waypoints
         updateWaypointMarkers(builder);
 
-        // Handle my location?
-        if (!useMyLocation) {
+        // Current ambulance
+        Ambulance ambulance = AmbulanceForegroundService.getAppData().getAmbulance();
+        if (ambulance != null) {
 
-            Ambulance ambulance = AmbulanceForegroundService.getAppData().getAmbulance();
-            if (ambulance != null) {
+            // Add marker for ambulance
+            Marker marker = addMarkerForAmbulance(ambulance);
 
-                // Add marker for ambulance
-                Marker marker = addMarkerForAmbulance(ambulance);
-
-                // Add to bound builder
-                builder.include(marker.getPosition());
-
-            }
+            // Add to bound builder
+            builder.include(marker.getPosition());
 
         }
 
@@ -1328,16 +1287,20 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
 
             // get marker
             marker = ambulanceMarkers.get(ambulance.getId());
+            if (marker != null) {
 
-            if (animateTimeInMs > 0) {
-                marker.setSnippet(ambulanceStatus.get(ambulance.getStatus()));
-                MarkerAnimation.animateMarkerToICS(marker, latLng, orientation,
-                        animateTimeInMs, new LatLngInterpolator.Linear());
+                if (animateTimeInMs > 0) {
+                    marker.setSnippet(ambulanceStatus.get(ambulance.getStatus()));
+                    MarkerAnimation.animateMarkerToICS(marker, latLng, orientation,
+                            animateTimeInMs, new LatLngInterpolator.Linear());
+                } else {
+                    // Just update marker
+                    marker.setPosition(latLng);
+                    marker.setRotation(orientation);
+                    marker.setSnippet(ambulanceStatus.get(ambulance.getStatus()));
+                }
             } else {
-                // Just update marker
-                marker.setPosition(latLng);
-                marker.setRotation(orientation);
-                marker.setSnippet(ambulanceStatus.get(ambulance.getStatus()));
+                Log.d(TAG, "marker for ambulance is null");
             }
 
         } else {
@@ -1382,7 +1345,11 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
 
             // Update marker
             marker = hospitalMarkers.get(hospital.getId());
-            marker.setPosition(latLng);;
+            if (marker != null) {
+                marker.setPosition(latLng);
+            } else {
+                Log.d(TAG, "marker for hospital is null");
+            }
 
         } else {
 
@@ -1416,7 +1383,11 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
 
             // Update marker
             marker = waypointMarkers.get(waypoint.getId());
-            marker.setPosition(latLng);
+            if (marker != null) {
+                marker.setPosition(latLng);
+            } else {
+                Log.d(TAG, "marker for waypoint is null");
+            }
 
         } else {
 

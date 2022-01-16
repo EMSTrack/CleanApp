@@ -43,7 +43,7 @@ public class AmbulanceRecyclerAdapter extends RecyclerView.Adapter<AmbulanceView
     @Override
     public AmbulanceViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         final View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.ambulance_item, parent, false);
-        return new AmbulanceViewHolder(activity, view);
+        return new AmbulanceViewHolder(view);
     }
 
     @Override

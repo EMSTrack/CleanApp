@@ -4,7 +4,7 @@
     android:id="@+id/hospital_fragment"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="org.emstrack.ambulance.fragments.HospitalFragment">
+    tools:context="org.emstrack.ambulance.fragments.HospitalsFragment">
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/hospital_recycler_view"

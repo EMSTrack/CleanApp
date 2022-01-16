@@ -134,6 +134,7 @@ public class RequestPermission {
                         fragment.getString(R.string.locationPermissionMessageVersionRMessage2)
                                 + "\n\n" +
                                 fragment.getString(R.string.locationPermissionSettingsMessage,
+                                        fragment.getString(android.R.string.ok),
                                         fragment.getString(R.string.versionRPermissionOption,
                                                 fragment.requireContext().getPackageManager().getBackgroundPermissionOptionLabel()))
                                 + "\n\n" +
@@ -165,7 +166,9 @@ public class RequestPermission {
             // intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             new AlertDialog.Builder(fragment.getActivity())
                     .setTitle(R.string.needPermissions)
-                    .setMessage(fragment.getString(R.string.locationPermissionMessage) + "\n\n" + fragment.getString(R.string.locationPermissionSettingsMessage, message))
+                    .setMessage(fragment.getString(R.string.locationPermissionMessage) +
+                            "\n\n" +
+                            fragment.getString(R.string.locationPermissionSettingsMessage, fragment.getString(android.R.string.ok), message))
                     .setPositiveButton(android.R.string.ok,
                             (dialog, which) -> {
 

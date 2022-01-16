@@ -34,7 +34,7 @@
 
     <fragment
         android:id="@+id/hospitalsFragment"
-        android:name="org.emstrack.ambulance.fragments.HospitalFragment"
+        android:name="org.emstrack.ambulance.fragments.HospitalsFragment"
         android:label="Hospitals"
         tools:layout="@layout/fragment_hospital" >
         <action

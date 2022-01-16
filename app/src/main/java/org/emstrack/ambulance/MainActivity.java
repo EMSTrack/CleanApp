@@ -370,14 +370,14 @@ public class MainActivity extends AppCompatActivity {
 
         // ambulance permissions
         if (profile != null) {
-            ambulancePermissions = profile.getAmbulances();
+            ambulancePermissions = profile.getAmbulancePermissions();
         } else {
             ambulancePermissions = new ArrayList<>();
         }
 
         // hospital permissions
         if (profile != null) {
-            hospitalPermissions = profile.getHospitals();
+            hospitalPermissions = profile.getHospitalPermissions();
         } else {
             hospitalPermissions = new ArrayList<>();
         }
@@ -784,7 +784,7 @@ public class MainActivity extends AppCompatActivity {
         boolean canWrite = false;
 
         AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
-        for (AmbulancePermission permission : appData.getProfile().getAmbulances()) {
+        for (AmbulancePermission permission : appData.getProfile().getAmbulancePermissions()) {
             if (permission.getAmbulanceId() == ambulance.getId()) {
                 if (permission.isCanWrite()) {
                     canWrite = true;
@@ -946,9 +946,9 @@ public class MainActivity extends AppCompatActivity {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle(R.string.switchAmbulance)
                 .setMessage(String.format(getString(R.string.switchToAmbulance), ambulanceIdentifier))
-                .setNegativeButton(R.string.no,
+                .setNegativeButton(android.R.string.no,
                         (dialog, id) -> Log.i(TAG, "Continue with same ambulance"))
-                .setPositiveButton(R.string.yes,
+                .setPositiveButton(android.R.string.yes,
                         (dialog, id) -> {
 
                             Log.d(TAG, String.format("Switching to ambulance %1$s", ambulanceIdentifier));
@@ -1322,7 +1322,7 @@ public class MainActivity extends AppCompatActivity {
                                     }
 
                                 })
-                        .setNegativeButton(R.string.cancel, (dialog, id) -> Log.i(TAG, "Video call cancelled"));
+                        .setNegativeButton(android.R.string.cancel, (dialog, id) -> Log.i(TAG, "Video call cancelled"));
 
                 // Create the AlertDialog object and display it
                 builder.create().show();
@@ -1822,7 +1822,7 @@ public class MainActivity extends AppCompatActivity {
 
                             promptingNextWaypoint = false;
                         })
-                .setNegativeButton(R.string.cancel,
+                .setNegativeButton(android.R.string.cancel,
                         (dialog, id) -> {
 
                             Log.i(TAG, "No waypoint selected");
@@ -1893,12 +1893,11 @@ public class MainActivity extends AppCompatActivity {
             new AlertDialog.Builder(this)
                     .setTitle(R.string.logout)
                     .setMessage(R.string.logout_confirm)
-                    .setNegativeButton(R.string.cancel,
+                    .setNegativeButton(android.R.string.cancel,
                             (dialog, which) -> {
                                 /* do nothing */
                             })
-                    .setPositiveButton(
-                            R.string.ok,
+                    .setPositiveButton(android.R.string.ok,
                             (dialog, which) -> {
 
                                 Log.i(TAG, "LogoutDialog: OK Button Clicked");

@@ -200,12 +200,9 @@
     <string name="settingsAreInadequate">Los permisos de ubicación de GPS son inadecuados y no se pueden corregir aquí. Arreglo en Configuraciones.</string>
     <string name="decline">Rechazar</string>
     <string name="accept">Aceptar</string>
-    <string name="no">No</string>
-    <string name="yes">Si</string>
     <string name="confirm">Confirmar</string>
     <string name="end">Terminar</string>
     <string name="select">Seleccionar</string>
-    <string name="ok">Ok</string>
     <string name="mustChooseAmbulance">Debes elegir un vehículo o cerrar la sesión para proceder.</string>
     <string name="logout">Cerrar la sesión</string>
     <string name="currentlyHandlingCall">Actualmente atendiendo llamada</string>
@@ -218,7 +215,6 @@
     <string name="panicTitle">Pánico!</string>
     <string name="acceptCall">¿Aceptar llamada?</string>
     <string name="selectNextWaypoint">Seleccione el siguiente punto de ruta</string>
-    <string name="cancel">Cancelar</string>
     <string name="loggingIn">Iniciando sesíon para \'%1$s\'</string>
     <string name="pleaseSelectAmbulance">Por favor seleccione vehículo</string>
     <string name="selectHospital">Seleccione un hospital:</string>
@@ -285,13 +281,13 @@
     <string name="confirmAmbulanceReleaseMessage">¿Estás seguro de que quieres liberar el vehículo?</string>
     <string name="couldNotReleaseAmbulance">No se pudo liberar el vehículo</string>
     <string name="locationPermissionMessage">El acceso a la ubicación precisa de este dispositivo es necesario para permitir el seguimiento de vehículos y el envío de llamadas.\n\nTambién es necesario acceder a la ubicación del dispositivo en proceso de fondo para que la aplicación pueda recibir llamadas.</string>
-    <string name="locationPermissionSettingsMessage">Después de hacer clic en \'Aceptar\', se lo llevará a la página de configuración de la aplicación, donde se puede habilitar la ubicación en proceso de fondo para este dispositivo%1$s en la configuración de \'Permisos\'.</string>
+    <string name="locationPermissionSettingsMessage">Después de hacer clic en \'%1$s\', se lo llevará a la página de configuración de la aplicación, donde se puede habilitar la ubicación en proceso de fondo para este dispositivo%2$s en la configuración de \'Permisos\'.</string>
     <string name="needPermissions">Necessita permisos</string>
     <string name="versionRPermissionOption">" seleccionando la opción '(%1$s)'"</string>
     <string name="locationPermissionMessageVersionRMessage1">Se le pedirá que habilite las ubicaciones dos veces, una vez para habilitar la ubicación en primer plano y una segunda vez para habilitar la ubicación en proceso de fondo en la página de configuración de la aplicación.</string>
     <string name="locationPermissionMessageVersionRMessage2">¡Felicitaciones, su ubicación en primer plano se ha habilitado correctamente!</string>
     <string name="login_as_demo">Sesión de Demostración</string>
-    <string name="demoLoginMessage">"Se le han proporcionado credenciales para que pueda hacer una demostración de la aplicación.\n\nPara más informacion contacte\n\nemstrack.org"</string>
+    <string name="demoLoginMessage">"Haga clic en \'%1$s\' para obtener credenciales para que pueda hacer una demostración de la aplicación.\n\nPara más informacion contacte\n\nemstrack.org"</string>
     <string name="tracking">Seguimiento</string>
     <string name="online">En línea</string>
     <string name="panic">Pánico</string>
@@ -354,5 +350,6 @@
 
     <string name="approachedAParticularWaypoint">Se ha acercado al punto de ruta:\n%s</string>
     <string name="leftAParticularWaypoint">Se ha alejado del punto de ruta:\n%s</string>
+    <string name="demoSession">Sesión de demostración</string>
 
 </resources>

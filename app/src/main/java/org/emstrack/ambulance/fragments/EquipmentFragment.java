@@ -2,6 +2,11 @@ package org.emstrack.ambulance.fragments;
 
 import android.graphics.Canvas;
 import android.os.Bundle;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.TextView;
+
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
@@ -9,14 +14,8 @@ import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.TextView;
-
 import org.emstrack.ambulance.MainActivity;
 import org.emstrack.ambulance.R;
-//TODO change hospital imports to equipment imports below
 import org.emstrack.ambulance.adapters.EquipmentRecyclerAdapter;
 import org.emstrack.ambulance.dialogs.AlertDialog;
 import org.emstrack.ambulance.models.EquipmentType;
@@ -26,7 +25,6 @@ import org.emstrack.models.EquipmentItem;
 import org.emstrack.models.api.APIService;
 import org.emstrack.models.api.APIServiceGenerator;
 import org.emstrack.models.api.OnAPICallComplete;
-import org.w3c.dom.Text;
 
 import java.util.List;
 
@@ -56,7 +54,7 @@ public class EquipmentFragment extends Fragment {
         refreshingData = rootView.findViewById(R.id.equipment_refreshing_data);
         equipmentType = rootView.findViewById(R.id.equipment_type);
 
-        swipeController = new SwipeController(getContext(), new SwipeControllerActions(){
+        swipeController = new SwipeController(requireContext(), new SwipeControllerActions(){
             @Override
             public void onLeftClicked(int position) {
                 new AlertDialog(getActivity(), getString(R.string.editEquipment))
@@ -68,7 +66,7 @@ public class EquipmentFragment extends Fragment {
         recyclerView = rootView.findViewById(R.id.equipment_recycler_view);
         recyclerView.addItemDecoration(new RecyclerView.ItemDecoration() {
             @Override
-            public void onDraw(Canvas c, RecyclerView parent, RecyclerView.State state) {
+            public void onDraw(@NonNull Canvas c, @NonNull RecyclerView parent, @NonNull RecyclerView.State state) {
                 swipeController.onDraw(c);
             }
         });

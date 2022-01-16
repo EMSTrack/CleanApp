@@ -145,12 +145,9 @@ public class AmbulanceFragment extends Fragment {
 
     public class StatusButtonClickListener implements View.OnClickListener {
 
-        private boolean enabled;
         ArrayAdapter<String> ambulanceStatusListAdapter;
 
         public StatusButtonClickListener() {
-            this.enabled = true;
-
             // Create the adapter
             this.ambulanceStatusListAdapter =
                     new ArrayAdapter<>(AmbulanceFragment.this.requireContext(),
@@ -160,21 +157,8 @@ public class AmbulanceFragment extends Fragment {
 
         }
 
-        public void setEnabled(boolean enabled) {
-            this.enabled = enabled;
-        }
-
-        public boolean isEnabled() {
-            return enabled;
-        }
-
         @Override
         public void onClick(View v) {
-
-            // short return if disabled
-            if (!enabled)
-                return;
-
             new AlertDialog.Builder(activity)
                     .setTitle(R.string.selectAmbulanceStatus)
                     .setAdapter(ambulanceStatusListAdapter,

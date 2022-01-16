@@ -38,8 +38,8 @@ public class TestModels {
         hospitals.add(new HospitalPermission(35,"Hospital Viejo", true, true));
 
         Profile profile = new Profile();
-        profile.setAmbulances(ambulances);
-        profile.setHospitals(hospitals);
+        profile.setAmbulancePermissions(ambulances);
+        profile.setHospitalPermissions(hospitals);
 
         GsonBuilder gsonBuilder = new GsonBuilder();
         gsonBuilder.registerTypeHierarchyAdapter(Calendar.class, new CalendarDateTypeAdapter());
@@ -53,20 +53,20 @@ public class TestModels {
         // Check hospital permissions
         for (int i = 0; i < hospitals.size(); i++) {
 
-            Integer expectedId = profile.getHospitals().get(i).getHospitalId();
-            Integer answerId = from_json.getHospitals().get(i).getHospitalId();
+            Integer expectedId = profile.getHospitalPermissions().get(i).getHospitalId();
+            Integer answerId = from_json.getHospitalPermissions().get(i).getHospitalId();
             assertEquals(expectedId, answerId);
 
-            String expectedName = profile.getHospitals().get(i).getHospitalName();
-            String answerName = from_json.getHospitals().get(i).getHospitalName();
+            String expectedName = profile.getHospitalPermissions().get(i).getHospitalName();
+            String answerName = from_json.getHospitalPermissions().get(i).getHospitalName();
             assertEquals(expectedName, answerName);
 
-            boolean expectedCanRead = profile.getHospitals().get(i).isCanRead();
-            boolean answerCanRead = from_json.getHospitals().get(i).isCanRead();
+            boolean expectedCanRead = profile.getHospitalPermissions().get(i).isCanRead();
+            boolean answerCanRead = from_json.getHospitalPermissions().get(i).isCanRead();
             assertEquals(expectedCanRead, answerCanRead);
 
-            boolean expectedCanWrite = profile.getHospitals().get(i).isCanWrite();
-            boolean answerCanWrite = from_json.getHospitals().get(i).isCanWrite();
+            boolean expectedCanWrite = profile.getHospitalPermissions().get(i).isCanWrite();
+            boolean answerCanWrite = from_json.getHospitalPermissions().get(i).isCanWrite();
             assertEquals(expectedCanWrite, answerCanWrite);
 
         }
@@ -74,20 +74,20 @@ public class TestModels {
         // Check ambulance permissions
         for (int i = 0; i < ambulances.size(); i++) {
 
-            Integer expectedId = profile.getAmbulances().get(i).getAmbulanceId();
-            Integer answerId = from_json.getAmbulances().get(i).getAmbulanceId();
+            Integer expectedId = profile.getAmbulancePermissions().get(i).getAmbulanceId();
+            Integer answerId = from_json.getAmbulancePermissions().get(i).getAmbulanceId();
             assertEquals(expectedId, answerId);
 
-            String expectedIdentifier = profile.getAmbulances().get(i).getAmbulanceIdentifier();
-            String answerIdentifier = from_json.getAmbulances().get(i).getAmbulanceIdentifier();
+            String expectedIdentifier = profile.getAmbulancePermissions().get(i).getAmbulanceIdentifier();
+            String answerIdentifier = from_json.getAmbulancePermissions().get(i).getAmbulanceIdentifier();
             assertEquals(expectedIdentifier, answerIdentifier);
 
-            boolean expectedCanRead = profile.getAmbulances().get(i).isCanRead();
-            boolean answerCanRead = from_json.getAmbulances().get(i).isCanRead();
+            boolean expectedCanRead = profile.getAmbulancePermissions().get(i).isCanRead();
+            boolean answerCanRead = from_json.getAmbulancePermissions().get(i).isCanRead();
             assertEquals(expectedCanRead, answerCanRead);
 
-            boolean expectedCanWrite = profile.getAmbulances().get(i).isCanWrite();
-            boolean answerCanWrite = from_json.getAmbulances().get(i).isCanWrite();
+            boolean expectedCanWrite = profile.getAmbulancePermissions().get(i).isCanWrite();
+            boolean answerCanWrite = from_json.getAmbulancePermissions().get(i).isCanWrite();
             assertEquals(expectedCanWrite, answerCanWrite);
 
         }
@@ -104,26 +104,26 @@ public class TestModels {
         hospitals.add(new HospitalPermission(1,"General Hospital", true, true));
 
         profile = new Profile();
-        profile.setAmbulances(ambulances);
-        profile.setHospitals(hospitals);
+        profile.setAmbulancePermissions(ambulances);
+        profile.setHospitalPermissions(hospitals);
 
         // Check hospital permissions
         for (int i = 0; i < hospitals.size(); i++) {
 
-            Integer expectedId = profile.getHospitals().get(i).getHospitalId();
-            Integer answerId = from_json.getHospitals().get(i).getHospitalId();
+            Integer expectedId = profile.getHospitalPermissions().get(i).getHospitalId();
+            Integer answerId = from_json.getHospitalPermissions().get(i).getHospitalId();
             assertEquals(expectedId, answerId);
 
-            String expectedName = profile.getHospitals().get(i).getHospitalName();
-            String answerName = from_json.getHospitals().get(i).getHospitalName();
+            String expectedName = profile.getHospitalPermissions().get(i).getHospitalName();
+            String answerName = from_json.getHospitalPermissions().get(i).getHospitalName();
             assertEquals(expectedName, answerName);
 
-            boolean expectedCanRead = profile.getHospitals().get(i).isCanRead();
-            boolean answerCanRead = from_json.getHospitals().get(i).isCanRead();
+            boolean expectedCanRead = profile.getHospitalPermissions().get(i).isCanRead();
+            boolean answerCanRead = from_json.getHospitalPermissions().get(i).isCanRead();
             assertEquals(expectedCanRead, answerCanRead);
 
-            boolean expectedCanWrite = profile.getHospitals().get(i).isCanWrite();
-            boolean answerCanWrite = from_json.getHospitals().get(i).isCanWrite();
+            boolean expectedCanWrite = profile.getHospitalPermissions().get(i).isCanWrite();
+            boolean answerCanWrite = from_json.getHospitalPermissions().get(i).isCanWrite();
             assertEquals(expectedCanWrite, answerCanWrite);
 
         }
@@ -131,20 +131,20 @@ public class TestModels {
         // Check ambulance permissions
         for (int i = 0; i < ambulances.size(); i++) {
 
-            Integer expectedId = profile.getAmbulances().get(i).getAmbulanceId();
-            Integer answerId = from_json.getAmbulances().get(i).getAmbulanceId();
+            Integer expectedId = profile.getAmbulancePermissions().get(i).getAmbulanceId();
+            Integer answerId = from_json.getAmbulancePermissions().get(i).getAmbulanceId();
             assertEquals(expectedId, answerId);
 
-            String expectedIdentifier = profile.getAmbulances().get(i).getAmbulanceIdentifier();
-            String answerIdentifier = from_json.getAmbulances().get(i).getAmbulanceIdentifier();
+            String expectedIdentifier = profile.getAmbulancePermissions().get(i).getAmbulanceIdentifier();
+            String answerIdentifier = from_json.getAmbulancePermissions().get(i).getAmbulanceIdentifier();
             assertEquals(expectedIdentifier, answerIdentifier);
 
-            boolean expectedCanRead = profile.getAmbulances().get(i).isCanRead();
-            boolean answerCanRead = from_json.getAmbulances().get(i).isCanRead();
+            boolean expectedCanRead = profile.getAmbulancePermissions().get(i).isCanRead();
+            boolean answerCanRead = from_json.getAmbulancePermissions().get(i).isCanRead();
             assertEquals(expectedCanRead, answerCanRead);
 
-            boolean expectedCanWrite = profile.getAmbulances().get(i).isCanWrite();
-            boolean answerCanWrite = from_json.getAmbulances().get(i).isCanWrite();
+            boolean expectedCanWrite = profile.getAmbulancePermissions().get(i).isCanWrite();
+            boolean answerCanWrite = from_json.getAmbulancePermissions().get(i).isCanWrite();
             assertEquals(expectedCanWrite, answerCanWrite);
 
         }

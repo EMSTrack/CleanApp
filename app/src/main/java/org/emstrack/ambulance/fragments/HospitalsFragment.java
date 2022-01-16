@@ -23,9 +23,9 @@ import org.emstrack.ambulance.models.AmbulanceAppData;
 import org.emstrack.ambulance.services.AmbulanceForegroundService;
 import org.emstrack.models.Hospital;
 
-public class HospitalFragment extends Fragment {
+public class HospitalsFragment extends Fragment {
 
-    private static final String TAG = HospitalFragment.class.getSimpleName();
+    private static final String TAG = HospitalsFragment.class.getSimpleName();
     private MainActivity activity;
     private RecyclerView recyclerView;
     private HospitalsUpdateBroadcastReceiver receiver;

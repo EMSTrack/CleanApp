@@ -68,10 +68,10 @@ public class RequestPermissionHelper {
             new AlertDialog.Builder(this.activity)
                     .setTitle(R.string.needPermissions)
                     .setMessage(rationale)
-                    .setPositiveButton( android.R.string.ok,
+                    .setPositiveButton(android.R.string.ok,
                             (dialog, which) -> launcher.launch(this.permissions)
                     )
-                    .setNegativeButton( android.R.string.cancel, (dialog, which) ->
+                    .setNegativeButton(android.R.string.cancel, (dialog, which) ->
                             new AlertSnackbar(this.activity)
                                     .alert(this.context.getString(R.string.expectLimitedFuncionality)))
                     .create()

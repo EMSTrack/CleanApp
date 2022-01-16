@@ -130,9 +130,7 @@ public class AmbulancesFragment extends Fragment {
     }
 
     public void selectAmbulance(int ambulanceId) {
-        requestPermission.setOnPermissionGranted(granted -> {
-            activity.selectAmbulance(ambulanceId);
-        });
+        requestPermission.setOnPermissionGranted(granted -> activity.selectAmbulance(ambulanceId));
         requestPermission.check();
     }
 
