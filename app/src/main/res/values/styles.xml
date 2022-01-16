@@ -60,4 +60,9 @@
         <item name="android:layout">@layout/pref_screen</item>
     </style>
 
+    <!-- Custom style for ambulance status dialog -->
+    <style name="ambulance_status_dialog_style" parent="Theme.MaterialComponents.Light.Dialog.Alert">
+        <item name="windowFixedHeightMajor">60%</item>
+    </style>
+
 </resources>

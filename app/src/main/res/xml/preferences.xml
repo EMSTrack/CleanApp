@@ -2,7 +2,7 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <ListPreference
+    <org.emstrack.ambulance.preferences.ListPreference
         android:icon="@drawable/ic_ruler_solid"
         android:key="@string/unitsPreferenceKey"
         android:title="@string/unitsOfMeasurement"
@@ -11,9 +11,10 @@
         android:entryValues="@array/unitsValues"
         android:defaultValue="@string/unitsDefault"
         app:allowDividerAbove="true"
-        app:allowDividerBelow="true" />
+        app:allowDividerBelow="true"
+        android:layout="@layout/preference_layout"/>
 
-    <ListPreference
+    <org.emstrack.ambulance.preferences.ListPreference
         android:icon="@drawable/ic_map_marker"
         android:key="@string/waypointEnterDetectionPreferenceKey"
         android:title="@string/waypointEnterDetectionPreferenceLabel"
@@ -21,18 +22,20 @@
         android:entries="@array/waypointEnterDetectionEntries"
         android:entryValues="@array/waypointDetectionValues"
         android:defaultValue="@string/waypointEnterDetectionDefault"
-        app:allowDividerAbove="true" />
+        app:allowDividerAbove="true"
+        android:layout="@layout/preference_layout"/>
 
-    <ListPreference
+    <org.emstrack.ambulance.preferences.ListPreference
         android:key="@string/waypointExitDetectionPreferenceKey"
         android:title="@string/waypointExitDetectionPreferenceLabel"
         android:summary="@string/waypointExitDetectionPreferenceSummary"
         android:entries="@array/waypointExitDetectionEntries"
         android:entryValues="@array/waypointDetectionValues"
         android:defaultValue="@string/waypointExitDetectionDefault"
-        app:allowDividerBelow="true" />
+        app:allowDividerBelow="true"
+        android:layout="@layout/preference_layout"/>
 
-    <ListPreference
+    <org.emstrack.ambulance.preferences.ListPreference
         android:icon="@drawable/ic_map"
         android:key="@string/navigationAppPreferenceKey"
         android:title="@string/navigationAppPreferenceLabel"
@@ -41,7 +44,8 @@
         android:entryValues="@array/navigationAppValues"
         android:defaultValue="@string/navigationAppPreferenceDefault"
         app:allowDividerAbove="true"
-        app:allowDividerBelow="true" />
+        app:allowDividerBelow="true"
+        android:layout="@layout/preference_layout"/>
 
     <SwitchPreference
         android:icon="@drawable/ic_location_arrow"
@@ -50,13 +54,15 @@
         android:summary="@string/approximateLocationExplanation"
         android:defaultValue="true"
         app:allowDividerAbove="true"
-        app:allowDividerBelow="true" />
+        app:allowDividerBelow="true"
+        android:layout="@layout/preference_layout"/>
 
     <Preference
         android:icon="@drawable/ic_info_circle"
         android:key="@string/versionKey"
         android:title="@string/aboutLabel"
         android:summary="@string/version"
-        app:allowDividerAbove="true" />
+        app:allowDividerAbove="true"
+        android:layout="@layout/preference_layout"/>
 
 </PreferenceScreen>

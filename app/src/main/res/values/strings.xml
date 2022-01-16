@@ -399,6 +399,8 @@
     <string name="approachedAParticularWaypoint">You have approached the waypoint:\n%1$s</string>
     <string name="leftAParticularWaypoint">You have left the waypoint:\n%1$s</string>
     <string name="demoSession">Demo Session</string>
+    <string name="couldNotUpdateAmbulanceStatus">Could not update vehicle status.</string>
+    <string name="cannotUpdateStatusDuringACall">Currently handling a call.\n\nVehicle status will be updated automatically as you visit the call waypoints.</string>
 
 
 </resources>

@@ -247,7 +247,6 @@ public class CallFragment extends Fragment {
         // set up toolbar
         waypointToolbarNextButton
                 .setOnClickListener(v -> {
-                    int currentPosition = waypointLinearLayoutManager.findFirstVisibleItemPosition();
                     RecyclerView.Adapter adapter = waypointBrowserRecyclerView.getAdapter();
                     if (adapter != null) {
                         AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
@@ -368,6 +367,7 @@ public class CallFragment extends Fragment {
             Log.d(TAG, "Has arguments");
             String action = arguments.getString(MainActivity.ACTION);
             if (action != null) {
+
                 Log.d(TAG, "Process arguments");
                 int ambulanceId = arguments.getInt("ambulanceId", -1);
                 int callId = arguments.getInt("callId", -1);
@@ -375,52 +375,50 @@ public class CallFragment extends Fragment {
                 AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
                 Ambulance ambulance = appData.getAmbulance();
                 Call call = appData.getCalls().getCurrentCall();
-                AmbulanceCall ambulanceCall = call.getCurrentAmbulanceCall();
-                Waypoint waypoint = ambulanceCall.getNextWaypoint();
-                if (ambulance.getId() == ambulanceId &&
-                        ambulanceCall.getAmbulanceId() == ambulanceId &&
-                        call.getId() == callId &&
-                        waypoint.getId() == waypointId) {
-                    if (action.equals(MainActivity.ACTION_MARK_AS_VISITING)) {
-                        if (waypoint.isCreated()) {
-                            Log.d(TAG, "Will prompt to mark visiting");
-                            promptSkipVisitingOrVisited(Waypoint.STATUS_VISITING,
-                                    waypointId, callId, ambulanceId,
-                                    getString(R.string.pleaseConfirm),
-                                    getString(R.string.visitCurrentWaypoint,
-                                            waypoint.getLocation().toAddress(requireContext())),
-                                    getString(R.string.visitingWaypoint));
-                        } else {
-                            Log.d(TAG, String.format("Invalid action %s for ambulance '%d', call '%d' and waypoint '%d'", action, ambulance.getId(), callId, waypointId));
-                            new org.emstrack.ambulance.dialogs.AlertDialog(activity, getString(R.string.alert_warning_title))
-                                    .alert(getString(R.string.invalidNotification), (dialogInterface, i) -> activity.navigate(R.id.mapFragment));
+
+                boolean invalidCall = true;
+                if (call != null) {
+                    AmbulanceCall ambulanceCall = call.getCurrentAmbulanceCall();
+                    Waypoint waypoint = ambulanceCall.getNextWaypoint();
+                    if (ambulance.getId() == ambulanceId &&
+                            ambulanceCall.getAmbulanceId() == ambulanceId &&
+                            call.getId() == callId &&
+                            waypoint.getId() == waypointId) {
+                        if (action.equals(MainActivity.ACTION_MARK_AS_VISITING)) {
+                            if (waypoint.isCreated()) {
+                                Log.d(TAG, "Will prompt to mark visiting");
+                                promptSkipVisitingOrVisited(Waypoint.STATUS_VISITING,
+                                        waypointId, callId, ambulanceId,
+                                        getString(R.string.pleaseConfirm),
+                                        getString(R.string.visitCurrentWaypoint,
+                                                waypoint.getLocation().toAddress(requireContext())),
+                                        getString(R.string.visitingWaypoint));
+                                invalidCall = false;
+                            }
+                        } else if (action.equals(MainActivity.ACTION_MARK_AS_VISITED)) {
+                            if (waypoint.isVisiting()) {
+                                Log.d(TAG, "Will prompt to mark visited");
+                                promptSkipVisitingOrVisited(Waypoint.STATUS_VISITED,
+                                        waypointId, callId, ambulanceId,
+                                        getString(R.string.pleaseConfirm),
+                                        getString(R.string.visitedCurrentWaypoint,
+                                                waypoint.getLocation().toAddress(requireContext())),
+                                        getString(R.string.visitedWaypoint));
+                                invalidCall = false;
+                            }
+                        } else if (action.equals(MainActivity.ACTION_OPEN_CALL_FRAGMENT)) {
+                            Log.d(TAG, "Will simply open call fragment");
+                            invalidCall = false;
                         }
-                    } else if (action.equals(MainActivity.ACTION_MARK_AS_VISITED)) {
-                        if (waypoint.isVisiting()) {
-                            Log.d(TAG, "Will prompt to mark visited");
-                            promptSkipVisitingOrVisited(Waypoint.STATUS_VISITED,
-                                    waypointId, callId, ambulanceId,
-                                    getString(R.string.pleaseConfirm),
-                                    getString(R.string.visitedCurrentWaypoint,
-                                            waypoint.getLocation().toAddress(requireContext())),
-                                    getString(R.string.visitedWaypoint));
-                        }  else {
-                            Log.d(TAG, String.format("Invalid action %s for ambulance '%d', call '%d' and waypoint '%d'", action, ambulance.getId(), callId, waypointId));
-                            new org.emstrack.ambulance.dialogs.AlertDialog(activity, getString(R.string.alert_warning_title))
-                                    .alert(getString(R.string.invalidNotification), (dialogInterface, i) -> activity.navigate(R.id.mapFragment));
-                        }
-                    } else if (action.equals(MainActivity.ACTION_OPEN_CALL_FRAGMENT)) {
-                        Log.d(TAG, "Will simply open call fragment");
-                    } else {
-                        Log.d(TAG, String.format("Invalid action for ambulance '%d', call '%d' and waypoint '%d'", ambulance.getId(), callId, waypointId));
-                        new org.emstrack.ambulance.dialogs.AlertDialog(activity, getString(R.string.alert_warning_title))
-                                .alert(getString(R.string.invalidNotification), (dialogInterface, i) -> activity.navigate(R.id.mapFragment));
                     }
-                } else {
+                }
+
+                if (invalidCall) {
                     Log.d(TAG, String.format("Ambulance '%d', call '%d' and waypoint '%d' are not current", ambulance.getId(), callId, waypointId));
                     new org.emstrack.ambulance.dialogs.AlertDialog(activity, getString(R.string.alert_warning_title))
                             .alert(getString(R.string.invalidNotification), (dialogInterface, i) -> activity.navigate(R.id.mapFragment));
                 }
+
             }
             // make sure it gets executed only once
             arguments = null;

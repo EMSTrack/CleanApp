@@ -170,6 +170,20 @@ public class MainActivity extends AppCompatActivity {
                             onlineIcon.setAlpha(disabledAlpha);
 
                         break;
+
+                    case AmbulanceForegroundService.BroadcastActions.CALL_ACCEPTED:
+
+                        Log.i(TAG, "CALL_ACCEPTED");
+
+                        // Toast to warn user
+                        Toast.makeText(context, R.string.CallStarted, Toast.LENGTH_LONG).show();
+
+                        // navigate to call window
+                        navigate(R.id.callFragment);
+
+                        break;
+
+
                     case AmbulanceForegroundService.BroadcastActions.PROMPT_CALL_ACCEPT:
 
                         Log.i(TAG, "PROMPT_CALL_ACCEPT");
@@ -743,6 +757,7 @@ public class MainActivity extends AppCompatActivity {
         filter.addAction(AmbulanceForegroundService.BroadcastActions.PROMPT_CALL_ACCEPT);
         filter.addAction(AmbulanceForegroundService.BroadcastActions.PROMPT_CALL_END);
         filter.addAction(AmbulanceForegroundService.BroadcastActions.PROMPT_NEXT_WAYPOINT);
+        filter.addAction(AmbulanceForegroundService.BroadcastActions.CALL_ACCEPTED);
         filter.addAction(AmbulanceForegroundService.BroadcastActions.CALL_COMPLETED);
         filter.addAction(AmbulanceForegroundService.BroadcastActions.WAYPOINT_EVENT);
 

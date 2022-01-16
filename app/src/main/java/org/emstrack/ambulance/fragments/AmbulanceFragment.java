@@ -37,6 +37,8 @@ import org.emstrack.models.AmbulanceCall;
 import org.emstrack.models.Call;
 import org.emstrack.models.CallStack;
 import org.emstrack.models.Settings;
+import org.emstrack.models.util.BroadcastActions;
+import org.emstrack.models.util.OnServiceComplete;
 
 import java.text.DateFormat;
 import java.util.ArrayList;
@@ -94,21 +96,6 @@ public class AmbulanceFragment extends Fragment {
 
                             break;
 
-                        case AmbulanceForegroundService.BroadcastActions.CALL_ACCEPTED:
-
-                            Log.i(TAG, "CALL_ACCEPTED");
-
-                            // Toast to warn user
-                            Toast.makeText(getContext(), R.string.CallStarted, Toast.LENGTH_LONG).show();
-
-                            // disable ambulance status button
-                            ambulanceStatusButton.setEnabled(false);
-
-                            // navigate to call window
-                            activity.navigate(R.id.action_ambulance_to_call);
-
-                            break;
-
                         case AmbulanceForegroundService.BroadcastActions.CALL_DECLINED:
 
                             Log.i(TAG, "CALL_DECLINED");
@@ -140,39 +127,6 @@ public class AmbulanceFragment extends Fragment {
                 }
 
             }
-        }
-    }
-
-    public class StatusButtonClickListener implements View.OnClickListener {
-
-        ArrayAdapter<String> ambulanceStatusListAdapter;
-
-        public StatusButtonClickListener() {
-            // Create the adapter
-            this.ambulanceStatusListAdapter =
-                    new ArrayAdapter<>(AmbulanceFragment.this.requireContext(),
-                            android.R.layout.simple_spinner_dropdown_item,
-                            ambulanceStatusList);
-            ambulanceStatusListAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-
-        }
-
-        @Override
-        public void onClick(View v) {
-            new AlertDialog.Builder(activity)
-                    .setTitle(R.string.selectAmbulanceStatus)
-                    .setAdapter(ambulanceStatusListAdapter,
-                            (dialog, which) -> {
-
-                                // Get selected status
-                                Log.i(TAG, "Status at position '" + which + "' selected.");
-
-                                // Update ambulance status
-                                updateAmbulanceStatus(which);
-
-                            })
-                    .create()
-                    .show();
         }
     }
 
@@ -261,8 +215,93 @@ public class AmbulanceFragment extends Fragment {
         });
 
         // Set status button
+        // Create the adapter
+        ArrayAdapter<String> ambulanceStatusListAdapter = new ArrayAdapter<>(AmbulanceFragment.this.requireContext(),
+                android.R.layout.simple_spinner_dropdown_item,
+                ambulanceStatusList);
+        ambulanceStatusListAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+
         ambulanceStatusButton = view.findViewById(R.id.statusButton);
-        ambulanceStatusButton.setOnClickListener(new StatusButtonClickListener());
+        ambulanceStatusButton.setOnClickListener(v -> {
+
+            if (AmbulanceForegroundService.getAppData().getCalls().getCurrentCallId() >= 0) {
+                // handling a call, alert and quit
+
+                new org.emstrack.ambulance.dialogs.AlertDialog(activity, getString(R.string.alert_warning_title))
+                        .alert(getString(R.string.cannotUpdateStatusDuringACall));
+
+                return;
+            }
+
+            new AlertDialog.Builder(activity, R.style.ambulance_status_dialog_style)
+                    .setTitle(R.string.selectAmbulanceStatus)
+                    .setAdapter(ambulanceStatusListAdapter,
+                            (dialog, which) -> {
+                                // Get selected status
+                                Log.i(TAG, String.format("Status at position '%d' selected.", which));
+
+                                // Get selected status
+                                String status = ambulanceStatusList.get(which);
+
+                                // Search for entry in ambulanceStatus map
+                                String statusCode = "";
+                                for (Map.Entry<String, String> entry : ambulanceStatus.entrySet()) {
+                                    if (status.equals(entry.getValue())) {
+                                        statusCode = entry.getKey();
+                                        break;
+                                    }
+                                }
+
+                                // Update on server
+                                Ambulance ambulance = AmbulanceForegroundService.getAppData().getAmbulance();
+                                Intent intent = new Intent(getContext(), AmbulanceForegroundService.class);
+                                intent.setAction(AmbulanceForegroundService.Actions.UPDATE_AMBULANCE_STATUS);
+                                Bundle bundle = new Bundle();
+                                bundle.putInt(AmbulanceForegroundService.BroadcastExtras.AMBULANCE_ID, ambulance.getId());
+                                bundle.putString(AmbulanceForegroundService.BroadcastExtras.AMBULANCE_STATUS, statusCode);
+                                intent.putExtras(bundle);
+
+                                // disable button before updating
+                                ambulanceStatusButton.setEnabled(false);
+
+                                new OnServiceComplete(requireContext(),
+                                        AmbulanceForegroundService.BroadcastActions.AMBULANCE_UPDATE,
+                                        BroadcastActions.FAILURE,
+                                        intent) {
+
+                                    @Override
+                                    public void onSuccess(Bundle extras) {
+
+                                        Log.d(TAG, "Successfully updated status");
+
+                                        // enable button after update is submitted
+                                        ambulanceStatusButton.setEnabled(true);
+
+
+                                    }
+
+                                    @Override
+                                    public void onFailure(Bundle extras) {
+                                        super.onFailure(extras);
+
+                                        Log.d(TAG, "Failed to update status");
+
+                                        // enable button after update is submitted
+                                        ambulanceStatusButton.setEnabled(true);
+
+                                        new org.emstrack.ambulance.dialogs.AlertDialog(activity, getString(R.string.alert_warning_title))
+                                                .alert(getString(R.string.couldNotUpdateAmbulanceStatus));
+
+                                    }
+                                }
+                                        .setSuccessIdCheck(false)
+                                        .start();
+
+                            })
+                    .setCancelable(true)
+                    .create()
+                    .show();
+        });
 
         // Update ambulance
         Ambulance ambulance = appData.getAmbulance();
@@ -283,7 +322,6 @@ public class AmbulanceFragment extends Fragment {
         IntentFilter filter = new IntentFilter();
         filter.addAction(AmbulanceForegroundService.BroadcastActions.AMBULANCE_UPDATE);
         filter.addAction(AmbulanceForegroundService.BroadcastActions.CALL_UPDATE);
-        filter.addAction(AmbulanceForegroundService.BroadcastActions.CALL_ACCEPTED);
         filter.addAction(AmbulanceForegroundService.BroadcastActions.CALL_COMPLETED);
         filter.addAction(AmbulanceForegroundService.BroadcastActions.CALL_DECLINED);
         receiver = new AmbulanceFragment.AmbulancesUpdateBroadcastReceiver();
@@ -362,14 +400,7 @@ public class AmbulanceFragment extends Fragment {
         ambulanceCallRecyclerView.setLayoutManager(linearLayoutManager);
         ambulanceCallRecyclerView.setAdapter(adapter);
 
-        // deploy resume panel
-        int currentCallId = calls.getCurrentCallId();
-
-        // enable ambulanceStatusButton
-        ambulanceStatusButton.setEnabled(currentCallId < 0);
-
     }
-
 
     public void setAmbulanceStatusButton(int position) {
 
@@ -377,54 +408,6 @@ public class AmbulanceFragment extends Fragment {
         ambulanceStatusButton.setText(ambulanceStatusList.get(position));
         ambulanceStatusButton.setTextColor(ambulanceStatusTextColorList.get(position));
         ambulanceStatusButton.setBackgroundColor(ambulanceStatusBackgroundColorList.get(position));
-
-    }
-
-    public void updateAmbulanceStatus(int position) {
-
-        try {
-
-            if (!activity.canWrite()) {
-
-                // Toast to warn user
-                Toast.makeText(getContext(),
-                        R.string.cantModifyAmbulance,
-                        Toast.LENGTH_LONG).show();
-
-                // Return
-                return;
-
-            }
-
-            // Get selected status
-            String status = ambulanceStatusList.get(position);
-
-            // Search for entry in ambulanceStatus map
-            String statusCode = "";
-            for (Map.Entry<String, String> entry : ambulanceStatus.entrySet()) {
-                if (status.equals(entry.getValue())) {
-                    statusCode = entry.getKey();
-                    break;
-                }
-            }
-
-            // Update on server
-            // TODO: Update along with locations because it will be recorded with
-            //       the wrong location on the server
-            Ambulance ambulance = AmbulanceForegroundService.getAppData().getAmbulance();
-            Intent intent = new Intent(getContext(), AmbulanceForegroundService.class);
-            intent.setAction(AmbulanceForegroundService.Actions.UPDATE_AMBULANCE_STATUS);
-            Bundle bundle = new Bundle();
-            bundle.putInt(AmbulanceForegroundService.BroadcastExtras.AMBULANCE_ID, ambulance.getId());
-            bundle.putString(AmbulanceForegroundService.BroadcastExtras.AMBULANCE_STATUS, statusCode);
-            intent.putExtras(bundle);
-            activity.startService(intent);
-
-        } catch (Exception e) {
-
-            Log.i(TAG, "updateAmbulanceStatus exception: " + e);
-
-        }
 
     }
 

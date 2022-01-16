@@ -351,5 +351,7 @@
     <string name="approachedAParticularWaypoint">Se ha acercado al punto de ruta:\n%s</string>
     <string name="leftAParticularWaypoint">Se ha alejado del punto de ruta:\n%s</string>
     <string name="demoSession">Sesión de demostración</string>
+    <string name="couldNotUpdateAmbulanceStatus">No se pudo actualizar el estado del vehículo.</string>
+    <string name="cannotUpdateStatusDuringACall">Respondiendo una llamada.\n\nEl estado del vehículo se actualizará automáticamente a medida que visite los puntos de ruta de llamada.</string>
 
 </resources>
