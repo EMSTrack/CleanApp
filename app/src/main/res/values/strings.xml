@@ -2,7 +2,7 @@
 <resources>
 
     <string name="app_name">EMSTrack</string>
-    <string name="app_version" translatable="false">0_9_8</string>
+    <string name="app_version" translatable="false">0_9_9</string>
     <string name="client_name" translatable="false">AndroidClient</string>
 
     <string name="drawer_open">Open navigation drawer</string>
@@ -31,8 +31,8 @@
     <string name="error_invalid_server">Please select server.</string>
 
     <string name="equipment_boolean_image">Checkbox</string>
-    <string name="equipment_bolean_button_positive_text">Update</string>
-    <string name="equipment_bolean_button_negative_text">Cancel</string>
+    <string name="equipment_boolean_button_positive_text">Update</string>
+    <string name="equipment_boolean_button_negative_text">Cancel</string>
     <string name="equipment_boolean_message">Is this equipment available?</string>
     <string name="equipment_boolean_true">Available</string>
     <string name="equipment_boolean_false">Not available</string>
@@ -76,7 +76,7 @@
     <string name="callNotesLabel">Notes:</string>
     <string name="gpsLastUpdatedOnLabel">Last update:</string>
     <string name="gpsCommentsLabel">Comments:</string>
-    <string name="failedToConnectToBrocker">Failed to connected to broker.</string>
+    <string name="failedToConnectToBroker">Failed to connected to broker.</string>
     <string name="Exception">Exception:</string>
     <string name="loginSuccessMessage">User \'%1$s\' successfully logged in.</string>
     <string name="couldNotLoginUser">Could not login user \'%1$s\'</string>
@@ -87,7 +87,7 @@
     <string name="couldNotRetrieveAmbulance">Could not retrieve vehicle \'%1$s\'.</string>
     <string name="couldNotRetrieveHospitals">Could not retrieve hospitals.</string>
     <string name="couldNotUpdateAmbulanceOnServer">Could not update vehicle on server.</string>
-    <string name="failedToDisconnectFromBroker">Failed to disconnect from brocker.</string>
+    <string name="failedToDisconnectFromBroker">Failed to disconnect from broker.</string>
     <string name="couldNotLogout">Could not logout.</string>
     <string name="couldNotRetrieveAmbulances">Could not retrieve vehicles.</string>
     <string name="couldNotUnsubscribeToAmbulances">Could not unsubscribe to vehicles.</string>
@@ -120,14 +120,7 @@
     <string name="couldNotStartService">Could not start foreground service.</string>
     <string name="serverError">Server error: %1$s.</string>
     <string name="stopText">Stop.</string>
-    <string name="stopedStreamingLocation">Stopped streaming updates.</string>
-    <string name="app_descrip">Use this app to track emergency resources using the EMSTrack system.\n\nVisit emstrack.org for details.</string>
-    <string name="app_credits">The following open source projects were used to build this app:</string>
-    <string name="app_credits_icons">Icons:</string>
-    <string name="app_credits_servers">Our servers are powered by:</string>
-    <string name="credits">Credits:</string>
-    <string name="build_date">Build date:</string>
-    <string name="build_version">Build version:</string>
+    <string name="stoppedStreamingLocation">Stopped streaming updates.</string>
     <string name="about">About:</string>
     <string name="failedToAddGeofence">Failed to add geofence.</string>
     <string name="failedToRemoveGeofence">Failed to remove geofence.</string>
@@ -217,7 +210,7 @@
     <string name="endingCall">Ending call</string>
     <string name="checkingResources">Please be patient. Checking permissions…</string>
     <string name="permissionsSatisfied">Location permissions satisfied.</string>
-    <string name="expectLimitedFuncionality">Location permissions not satisfied. Expect limited functionality.</string>
+    <string name="expectLimitedFunctionality">Location permissions not satisfied. Expect limited functionality.</string>
     <string name="settingsAreInadequate">GPSLocation settings are inadequate, and cannot be fixed here. Fix in Settings.</string>
     <string name="decline">Decline</string>
     <string name="accept">Accept</string>
@@ -233,8 +226,6 @@
     <string name="toContinue">Continue</string>
     <string name="switchAmbulance">Switch vehicle</string>
     <string name="switchToAmbulance">Do you want to switch to vehicle \'%1$s\'?</string>
-    <string name="panicMessage">Message</string>
-    <string name="panicTitle">Panic!</string>
     <string name="acceptCall">Accept Incoming Call?</string>
     <string name="selectNextWaypoint">Select next waypoint</string>
     <string name="endCall">End Call</string>
@@ -277,7 +268,7 @@
     <string name="couldNotRedirectToBrowser">Could not redirect to browser</string>
     <string name="new_video_call_title">New video call</string>
     <string name="select_user">Select user:</string>
-    <string name="could_not_retrieve_onilne_clients">Could not retrieve online clients</string>
+    <string name="could_not_retrieve_online_clients">Could not retrieve online clients</string>
     <string name="error_invalid_client">Please select an existing user</string>
     <string name="calling_client">Calling user…</string>
     <string name="call">Call</string>
@@ -310,14 +301,10 @@
     <string name="demoUsername" translatable="false">test</string>
     <string name="demoPassword" translatable="false">testuser</string>
     <string name="demoServer" translatable="false">ssl://cruzroja.ucsd.edu:8883</string>
-    <string name="demoLoginMessage">"Click \'%1$s\' to obtain credentials to demo the application.\n\nFor more information contact\n\nemstrack.org</string>
+    <string name="demoLoginMessage">Click \'%1$s\' to obtain credentials to demo the application.</string>
     <string name="tracking">Tracking</string>
-    <string name="online">Online</string>
     <string name="panic">Panic</string>
     <string name="preferences_build_version">Version %1$s</string>
-    <string name="open_source" translatable="false">- Retrofit (square.github.io/retrofit)\n- Eclipse Paho (www.eclipse.org/paho)</string>
-    <string name="open_source_icons" translatable="false">- FontAwesome (fontawesome.com)</string>
-    <string name="open_source_servers" translatable="false">- Django (www.djangoproject.com)\n- Eclipse Mosquitto (mosquitto.org)\n- PostgreSQL (www.postgresql.org)</string>
     <string name="versionKey" translatable="false">version</string>
     <string name="useApproximateLocationAccuracyPreferenceKey" translatable="false">use_approximate_location_accuracy</string>
     <string-array name="spinner_list_item_array_server">
@@ -373,7 +360,7 @@
     <string name="age">Age</string>
     <string name="logoutAmbulance">Releasing vehicle \'%1$s\'</string>
     <string name="numberOfMessagesLabel">Number of messages:</string>
-    <string name="tocall">Call</string>
+    <string name="toCall">Call</string>
     <string name="equipment_type">Equipment Type</string>
     <string name="noEquipmentText">\'%1$s\' has no registered equipments</string>
     <string name="distanceToNextWaypoint">Distance to next waypoint:</string>
@@ -401,6 +388,24 @@
     <string name="demoSession">Demo Session</string>
     <string name="couldNotUpdateAmbulanceStatus">Could not update vehicle status.</string>
     <string name="cannotUpdateStatusDuringACall">Currently handling a call.\n\nVehicle status will be updated automatically as you visit the call waypoints.</string>
+    <string name="alertOnline">This icon monitors your current connection to the EMSTrack servers.\n\nYou are currently \'%1$s\'.</string>
+    <string name="offline">offline</string>
+    <string name="online">online</string>
 
+    <string name="panicTitle">Panic!</string>
+    <string name="panicMessage">If you click \'%1$s\' a panic message will be relayed to our server.\n\nIf you don\'t this dialog will automatically close in %2$ds without sending a message.\n\nIMPORTANT: this feature is not yet supported by your current server.</string>
+
+    <string name="app_description">Use this app to track emergency resources using the EMSTrack system.\n\nVisit <a href="https://emstrack.org/web">emstrack.org</a> for details.</string>
+    <string name="app_credits">The following open source projects were used to build this app:</string>
+    <string name="app_credits_icons">Icons:</string>
+    <string name="app_credits_servers">Our servers are powered by:</string>
+    <string name="credits">Credits:</string>
+    <string name="build_date">Build date:</string>
+    <string name="build_version">Build version:</string>
+
+    <string name="open_source" translatable="false">- <a href="https://square.github.io/retrofit">Retrofit</a>\n- <a href="https://www.eclipse.org/paho">Eclipse Paho</a></string>
+    <string name="open_source_icons" translatable="false">- <a href="https://fontawesome.com">FontAwesome</a></string>
+    <string name="open_source_servers" translatable="false">- <a href="https://www.djangoproject.com">Django</a>\n- <a href="https://mosquitto.org">Eclipse Mosquitto</a>\n- <a href="https://www.postgresql.org">PostgreSQL</a></string>
+    <string name="EMSTrackURL">For more information contact\n\n<a href="https://emstrack.org/web">emstrack.org</a></string>
 
 </resources>

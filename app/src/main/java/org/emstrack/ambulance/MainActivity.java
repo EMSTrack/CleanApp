@@ -105,13 +105,9 @@ public class MainActivity extends AppCompatActivity {
 
     private static final DecimalFormat df = new DecimalFormat();
 
-    private ArrayList<String> ambulanceStatusList;
-    private Map<String, String> ambulanceStatusMap;
     private HashMap<String, Integer> ambulanceStatusBackgroundColorMap;
     private HashMap<String, Integer> ambulanceStatusTextColorMap;
 
-    private Map<String, String> ambulanceCapabilitiesMap;
-    private ArrayList<String> ambulanceCapabilityList;
     private boolean promptingNextWaypoint;
 
     public enum BackButtonMode {
@@ -437,7 +433,8 @@ public class MainActivity extends AppCompatActivity {
         Settings settings = appData.getSettings();
 
         // Get settings, status and capabilities
-        ambulanceStatusMap = settings.getAmbulanceStatus();
+        // private ArrayList<String> ambulanceStatusList;
+        Map<String, String> ambulanceStatusMap = settings.getAmbulanceStatus();
         ambulanceStatusBackgroundColorMap = new HashMap<>();
         ambulanceStatusTextColorMap = new HashMap<>();
         for (Map.Entry<String,String> entry : ambulanceStatusMap.entrySet()) {
@@ -449,7 +446,6 @@ public class MainActivity extends AppCompatActivity {
                             .statusTextColorMap.get(entry.getKey())));
         }
 
-        ambulanceCapabilitiesMap = settings.getAmbulanceCapability();
     }
 
     public HashMap<String, Integer> getAmbulanceStatusBackgroundColorMap() {
@@ -697,7 +693,8 @@ public class MainActivity extends AppCompatActivity {
             promptVideoCallNew();
             return true;
         } else if (itemId == R.id.onlineIcon) {
-            return false;
+            alertOnline();
+            return true;
         } else if (itemId == android.R.id.home) {
             navigatePopBackStack();
             return true;
@@ -787,63 +784,63 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    public boolean canWrite() {
+    @Override
+    protected void onNewIntent(Intent intent) {
+        Log.d(TAG, "onNewIntent");
 
-        Ambulance ambulance = AmbulanceForegroundService.getAppData().getAmbulance();
+        // get parameters
+        Bundle extras = intent.getExtras();
+        if (extras != null) {
 
-        // has ambulance?
-        if (ambulance == null)
-            return false;
+            Log.d(TAG, "extras is not null");
 
-        // can write?
-        boolean canWrite = false;
-
-        AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
-        for (AmbulancePermission permission : appData.getProfile().getAmbulancePermissions()) {
-            if (permission.getAmbulanceId() == ambulance.getId()) {
-                if (permission.isCanWrite()) {
-                    canWrite = true;
+            String action = extras.getString(MainActivity.ACTION);
+            if (action != null) {
+                if (action.equals(MainActivity.ACTION_MARK_AS_VISITING) ||
+                        action.equals(MainActivity.ACTION_MARK_AS_VISITED) ||
+                        action.equals(MainActivity.ACTION_OPEN_CALL_FRAGMENT)) {
+                    navigate(R.id.callFragment, extras);
+                } else {
+                    Log.d(TAG, "Unknown action");
                 }
-                break;
             }
+
+            // Cancel the notification that initiated this activity.
+            // This is required when using the action buttons in expanded notifications.
+            // While the default action automatically closes the notification, the
+            // actions initiated by buttons do not.
+            // https://stackoverflow.com/questions/18261969/clicking-android-notification-actions-does-not-close-notification-drawer/21783203
+            int notificationId = extras.getInt(MainActivity.NOTIFICATION_ID, -1);
+            if (notificationId != -1) {
+                Log.d(TAG, "Canceling the notification");
+                NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+                manager.cancel(notificationId);
+            }
+
+        } else {
+            Log.d(TAG, "extras is null");
         }
 
-        return canWrite;
-
+        super.onNewIntent(intent);
     }
 
-    public boolean panicPopUp() {
-        final long DIALOG_DISMISS_TIME = 3000; // milliseconds
+    @Override
+    public void onBackPressed() {
+        Log.d(TAG, "Back button pressed with mode = " + backButtonMode);
+        if (backButtonMode == BackButtonMode.LOGOUT) {
+            promptLogout();
+        } else if (backButtonMode == BackButtonMode.UP){
+            navigatePopBackStack();
+        } else if (backButtonMode == BackButtonMode.FINISH) {
+            finish();
+        }
+    }
 
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setCancelable(true);
-        builder.setTitle(R.string.panicTitle);
-        builder.setMessage(R.string.panicMessage);
-        builder.setPositiveButton(R.string.confirm,
-                (dialog, which) -> {
-                });
-        builder.setNegativeButton(android.R.string.cancel,
-                (dialog, which) -> {
-                });
-
-        AlertDialog alertDialog = builder.create();
-
-        // timer to dismiss dialog after DIALOG_DISMISS_TIME ms
-        final CountDownTimer timer = new CountDownTimer(DIALOG_DISMISS_TIME, 1000) {
-            @Override
-            public void onTick(long l) {
-                alertDialog.setMessage("Seconds remaining: "+((l/1000)+1));
-            }
-            @Override
-            public void onFinish() {
-                alertDialog.dismiss();
-            }
-        };
-        //if dismissed before timer's up, cancel timer
-        alertDialog.setOnDismissListener(dialog -> timer.cancel());
-        alertDialog.show();
-        timer.start();
-        return true;
+    @Override
+    public void supportNavigateUpTo(@NonNull Intent upIntent) {
+        NavController navController = navHostFragment.getNavController();
+        if ( !navController.navigateUp() )
+            super.supportNavigateUpTo(upIntent);
     }
 
     /**
@@ -1310,7 +1307,7 @@ public class MainActivity extends AppCompatActivity {
                 builder.setTitle(R.string.new_video_call_title)
                         .setView(view)
                         .setCancelable(false)
-                        .setPositiveButton(R.string.tocall,
+                        .setPositiveButton(R.string.toCall,
                                 (dialog, id) -> {
 
                                     // first entry is prompt
@@ -1349,7 +1346,7 @@ public class MainActivity extends AppCompatActivity {
                 super.onFailure(t);
 
                 Toast.makeText(MainActivity.this,
-                        R.string.could_not_retrieve_onilne_clients,
+                        R.string.could_not_retrieve_online_clients,
                         Toast.LENGTH_SHORT).show();
 
             }
@@ -1959,63 +1956,48 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    @Override
-    protected void onNewIntent(Intent intent) {
-        Log.d(TAG, "onNewIntent");
+    public void sendPanicMessage() {
+        Log.d(TAG,"PANIC!!!");
 
-        // get parameters
-        Bundle extras = intent.getExtras();
-        if (extras != null) {
+        new org.emstrack.ambulance.dialogs.AlertDialog(this, getString(R.string.alert_warning_title))
+                .alert(getString(R.string.notImplementedYet));
 
-            Log.d(TAG, "extras is not null");
-
-            String action = extras.getString(MainActivity.ACTION);
-            if (action != null) {
-                if (action.equals(MainActivity.ACTION_MARK_AS_VISITING) ||
-                        action.equals(MainActivity.ACTION_MARK_AS_VISITED) ||
-                        action.equals(MainActivity.ACTION_OPEN_CALL_FRAGMENT)) {
-                    navigate(R.id.callFragment, extras);
-                } else {
-                    Log.d(TAG, "Unknown action");
-                }
-            }
-
-            // Cancel the notification that initiated this activity.
-            // This is required when using the action buttons in expanded notifications.
-            // While the default action automatically closes the notification, the
-            // actions initiated by buttons do not.
-            // https://stackoverflow.com/questions/18261969/clicking-android-notification-actions-does-not-close-notification-drawer/21783203
-            int notificationId = extras.getInt(MainActivity.NOTIFICATION_ID, -1);
-            if (notificationId != -1) {
-                Log.d(TAG, "Canceling the notification");
-                NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-                manager.cancel(notificationId);
-            }
-
-        } else {
-            Log.d(TAG, "extras is null");
-        }
-
-        super.onNewIntent(intent);
     }
 
-    @Override
-    public void onBackPressed() {
-        Log.d(TAG, "Back button pressed with mode = " + backButtonMode);
-        if (backButtonMode == BackButtonMode.LOGOUT) {
-            promptLogout();
-        } else if (backButtonMode == BackButtonMode.UP){
-            navigatePopBackStack();
-        } else if (backButtonMode == BackButtonMode.FINISH) {
-            finish();
-        }
+    public void panicPopUp() {
+        final long DIALOG_DISMISS_TIME = 10000; // milliseconds
+
+        AlertDialog alertDialog = new AlertDialog.Builder(this)
+                .setCancelable(false)
+                .setTitle(R.string.panicTitle)
+                .setMessage(getString(R.string.panicMessage, getString(android.R.string.ok), DIALOG_DISMISS_TIME/1000))
+                .setPositiveButton(R.string.confirm, (dialog, which) -> sendPanicMessage() )
+                .setNegativeButton(android.R.string.cancel, null)
+                .create();
+
+        // timer to dismiss dialog after DIALOG_DISMISS_TIME ms
+        final CountDownTimer timer = new CountDownTimer(DIALOG_DISMISS_TIME, 1000) {
+            @Override
+            public void onTick(long l) {
+                alertDialog.setMessage(getString(R.string.panicMessage, getString(android.R.string.ok), (l/1000)+1));
+            }
+            @Override
+            public void onFinish() {
+                alertDialog.dismiss();
+            }
+        };
+
+        //if dismissed before timer's up, cancel timer
+        alertDialog.setOnDismissListener(dialog -> timer.cancel());
+        alertDialog.show();
+        timer.start();
     }
 
-    @Override
-    public void supportNavigateUpTo(@NonNull Intent upIntent) {
-        NavController navController = navHostFragment.getNavController();
-        if ( !navController.navigateUp() )
-            super.supportNavigateUpTo(upIntent);
+    private void alertOnline() {
+
+        new org.emstrack.ambulance.dialogs.AlertDialog(this, getString(R.string.alert_warning_title))
+                .alert(getString(R.string.alertOnline, getString(AmbulanceForegroundService.isOnline() ? R.string.online : R.string.offline)));
+
     }
 
     public Map<String, Integer> getCallPriorityBackgroundColors() {

@@ -73,7 +73,7 @@ public class RequestPermissionHelper {
                     )
                     .setNegativeButton(android.R.string.cancel, (dialog, which) ->
                             new AlertSnackbar(this.activity)
-                                    .alert(this.context.getString(R.string.expectLimitedFuncionality)))
+                                    .alert(this.context.getString(R.string.expectLimitedFunctionality)))
                     .create()
                     .show();
             return false;

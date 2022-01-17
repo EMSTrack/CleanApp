@@ -3,9 +3,6 @@ package org.emstrack.ambulance.fragments;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.text.SpannableString;
-import android.text.method.LinkMovementMethod;
-import android.text.util.Linkify;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -24,6 +21,7 @@ import org.emstrack.ambulance.MainActivity;
 import org.emstrack.ambulance.R;
 import org.emstrack.ambulance.dialogs.AlertDialog;
 import org.emstrack.ambulance.dialogs.AlertSnackbar;
+import org.emstrack.ambulance.dialogs.DemoLoginDialog;
 import org.emstrack.ambulance.models.AmbulanceAppData;
 import org.emstrack.ambulance.services.AmbulanceForegroundService;
 import org.emstrack.models.Credentials;
@@ -93,28 +91,16 @@ public class LoginFragment extends Fragment {
         loginAsDemoButton.setOnClickListener(view -> {
             Log.i(TAG, "Login as demo");
 
-            TextView textView = new TextView(requireContext());
-            final SpannableString s =
-                    new SpannableString(getString(R.string.demoLoginMessage, getString(android.R.string.ok)));
-            Linkify.addLinks(s, Linkify.WEB_URLS);
-            textView.setText(s);
-            textView.setMovementMethod(LinkMovementMethod.getInstance());
-            textView.setPadding(50,20,10,32);
-
-            new android.app.AlertDialog.Builder(requireContext())
-                    .setTitle(R.string.demoSession)
-                    .setPositiveButton(android.R.string.ok, (dialogInterface, i) -> {
-                        // set demo credentials
-                        usernameField.setText(R.string.demoUsername);
-                        passwordField.setText(R.string.demoPassword);
-                        int serverPos = serverMqttURIs.indexOf(getString(R.string.demoServer));
-                        if (serverPos >= 0)
-                            serverField.setSelection(serverPos);
-                    })
-                    .setNegativeButton(android.R.string.cancel, null)
-                    .setView(textView)
-                    .create()
+            DemoLoginDialog.create(requireActivity(), (dialogInterface, i) -> {
+                // set demo credentials
+                usernameField.setText(R.string.demoUsername);
+                passwordField.setText(R.string.demoPassword);
+                int serverPos = serverMqttURIs.indexOf(getString(R.string.demoServer));
+                if (serverPos >= 0)
+                    serverField.setSelection(serverPos);
+            })
                     .show();
+
         });
 
         return rootView;

@@ -6,6 +6,7 @@ import android.app.Activity;
 
 import androidx.appcompat.app.AlertDialog;
 
+import android.text.method.LinkMovementMethod;
 import android.view.View;
 import android.widget.TextView;
 
@@ -23,7 +24,7 @@ public class AboutDialog {
 
     private static final String TAG = AboutDialog.class.getSimpleName();
 
-    public static AlertDialog newInstance(final Activity activity) {
+    public static AlertDialog create(final Activity activity) {
 
         // Inflate the about message contents
         View messageView = activity.getLayoutInflater().inflate(R.layout.dialog_about, null, false);
@@ -38,17 +39,19 @@ public class AboutDialog {
         TextView buildVersion = messageView.findViewById(R.id.buildVersion);
         buildVersion.setText(activity.getString(R.string.app_version).replace('_','.'));
 
+        // enable links
+        ((TextView) messageView.findViewById(R.id.about_app_description)).setMovementMethod(LinkMovementMethod.getInstance());
+        ((TextView) messageView.findViewById(R.id.about_open_source)).setMovementMethod(LinkMovementMethod.getInstance());
+        ((TextView) messageView.findViewById(R.id.about_open_source_icons)).setMovementMethod(LinkMovementMethod.getInstance());
+        ((TextView) messageView.findViewById(R.id.about_open_source_servers)).setMovementMethod(LinkMovementMethod.getInstance());
+
         // Logout dialog
-        AlertDialog.Builder builder = new AlertDialog.Builder(activity);
-
-        builder.setIcon(R.drawable.ambulancelogo);
-        builder.setTitle(R.string.app_name);
-        builder.setView(messageView);
-
-        // Create OK button
-        builder.setPositiveButton(android.R.string.ok, null);
-
-        return builder.create();
+        return new AlertDialog.Builder(activity)
+                .setIcon(R.drawable.ambulancelogo)
+                .setTitle(R.string.app_name)
+                .setView(messageView)
+                .setPositiveButton(android.R.string.ok, null)
+                .create();
 
     }
 

@@ -22,9 +22,10 @@
                 android:textStyle="bold" />
 
             <TextView
+                android:id="@+id/about_app_description"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="@string/app_descrip" />
+                android:text="@string/app_description" />
 
             <TextView
                 android:layout_width="match_parent"
@@ -64,6 +65,7 @@
                 android:text="@string/app_credits" />
 
             <TextView
+                android:id="@+id/about_open_source"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/open_source"
@@ -76,6 +78,7 @@
                 android:layout_marginTop="10dp" />
 
             <TextView
+                android:id="@+id/about_open_source_icons"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/open_source_icons" />
@@ -87,6 +90,7 @@
                 android:layout_marginTop="10dp" />
 
             <TextView
+                android:id="@+id/about_open_source_servers"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/open_source_servers" />

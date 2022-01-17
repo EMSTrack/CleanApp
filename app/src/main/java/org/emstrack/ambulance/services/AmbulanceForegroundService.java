@@ -2465,7 +2465,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
                             Log.d(TAG, "Failed to connected to broker.");
 
-                            String message = getString(R.string.failedToConnectToBrocker);
+                            String message = getString(R.string.failedToConnectToBroker);
 
                             if (t instanceof MqttException) {
 

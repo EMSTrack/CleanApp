@@ -183,7 +183,7 @@ public class RequestPermission {
                             })
                     .setNegativeButton(android.R.string.cancel,
                             (dialog, which) -> new AlertSnackbar(fragment.requireActivity())
-                                    .alert(fragment.getString(R.string.expectLimitedFuncionality)))
+                                    .alert(fragment.getString(R.string.expectLimitedFunctionality)))
                     .create()
                     .show();
 
@@ -206,7 +206,7 @@ public class RequestPermission {
             }
 
         }
-                .setFailureMessage(fragment.getString(R.string.expectLimitedFuncionality))
+                .setFailureMessage(fragment.getString(R.string.expectLimitedFunctionality))
                 .setAlert(new AlertSnackbar(fragment.requireActivity()))
                 .start();
     }

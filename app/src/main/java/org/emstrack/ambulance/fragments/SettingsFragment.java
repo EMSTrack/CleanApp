@@ -9,7 +9,6 @@ import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.ActionBar;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
 import androidx.preference.PreferenceManager;
@@ -20,8 +19,6 @@ import org.emstrack.ambulance.dialogs.AboutDialog;
 import org.emstrack.ambulance.models.AmbulanceAppData;
 import org.emstrack.ambulance.services.AmbulanceForegroundService;
 import org.emstrack.models.Settings;
-
-import java.util.Objects;
 
 public class SettingsFragment extends PreferenceFragmentCompat {
 
@@ -48,7 +45,7 @@ public class SettingsFragment extends PreferenceFragmentCompat {
                     getString(R.string.app_version)).replace('_', '.'));
             // fire dialog
             pref.setOnPreferenceClickListener(preference -> {
-                AboutDialog.newInstance(activity).show();
+                AboutDialog.create(activity).show();
                 return true;
             });
         }
