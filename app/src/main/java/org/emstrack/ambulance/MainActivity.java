@@ -160,10 +160,12 @@ public class MainActivity extends AppCompatActivity {
 
                         Log.i(TAG, "CONNECTIVITY_CHANGE");
 
-                        if (AmbulanceForegroundService.isOnline())
-                            onlineIcon.setAlpha(enabledAlpha);
-                        else
-                            onlineIcon.setAlpha(disabledAlpha);
+                        if (onlineIcon != null) {
+                            if (AmbulanceForegroundService.isOnline())
+                                onlineIcon.setAlpha(enabledAlpha);
+                            else
+                                onlineIcon.setAlpha(disabledAlpha);
+                        }
 
                         break;
 
@@ -249,7 +251,7 @@ public class MainActivity extends AppCompatActivity {
                                 promptVideoCallDialog.dismiss();
                                 promptVideoCallDialog = null;
 
-                                Toast.makeText(MainActivity.this,
+                                Toast.makeText(context,
                                         R.string.video_call_cancelled,
                                         Toast.LENGTH_SHORT).show();
                             } else

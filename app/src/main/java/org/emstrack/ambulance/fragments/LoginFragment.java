@@ -1,5 +1,6 @@
 package org.emstrack.ambulance.fragments;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -44,7 +45,6 @@ public class LoginFragment extends Fragment {
     private ArrayAdapter<CharSequence> serverNames;
     private List<String> serverMqttURIs;
     private List<String> serverAPIURIs;
-    private MainActivity activity;
     private Button loginAsDemoButton;
 
 
@@ -54,7 +54,7 @@ public class LoginFragment extends Fragment {
         View rootView = inflater.inflate(R.layout.fragment_login, container, false);
 
         // get activity
-        activity = (MainActivity) requireActivity();
+        MainActivity mainActivity = (MainActivity) requireActivity();
 
         // Find username and password from layout
         usernameField = rootView.findViewById(R.id.editUserName);
@@ -77,7 +77,7 @@ public class LoginFragment extends Fragment {
 
         // Retrieving credentials
         SharedPreferences sharedPreferences =
-                activity.getSharedPreferences(AmbulanceForegroundService.PREFERENCES_NAME, AppCompatActivity.MODE_PRIVATE);
+                mainActivity.getSharedPreferences(AmbulanceForegroundService.PREFERENCES_NAME, AppCompatActivity.MODE_PRIVATE);
 
         // Retrieve past credentials
         usernameField.setText(sharedPreferences.getString(AmbulanceForegroundService.PREFERENCES_USERNAME, null));
@@ -85,7 +85,94 @@ public class LoginFragment extends Fragment {
 
         // Submit button
         loginSubmitButton = rootView.findViewById(R.id.buttonLogin);
-        loginSubmitButton.setOnClickListener(new ClickListener());
+        loginSubmitButton.setOnClickListener(
+                v-> {
+
+                    // Get user info & remove whitespace
+                    final String username = usernameField.getText().toString().trim();
+                    final String password = passwordField.getText().toString().trim();
+
+                    final String serverUri = serverMqttURIs.get(serverField.getSelectedItemPosition());
+                    final String serverApiUri = serverAPIURIs.get(serverField.getSelectedItemPosition());
+                    Log.d(TAG, "Logging into server: " + serverUri);
+
+                    Activity activity;
+                    try {
+                        activity = (MainActivity) requireActivity();
+                    } catch (IllegalStateException e) {
+                        Log.d(TAG, "Activity is out of context. Aborting!");
+                        e.printStackTrace();
+                        return;
+                    }
+
+                    if (username.isEmpty())
+                        new AlertSnackbar(activity).alert(getResources().getString(R.string.error_empty_username));
+
+                    else if (password.isEmpty())
+                        new AlertSnackbar(activity).alert(getResources().getString(R.string.error_empty_password));
+
+                    else if (serverUri.isEmpty())
+                        new AlertSnackbar(activity).alert(getResources().getString(R.string.error_invalid_server));
+
+                    else if (serverApiUri.isEmpty())
+                        new AlertSnackbar(activity).alert(getResources().getString(R.string.error_invalid_server));
+
+                    else {
+
+                        Log.d(TAG, "Will offer credentials");
+
+                        // Login at service
+                        Intent intent = new Intent(requireContext(),
+                                AmbulanceForegroundService.class);
+                        intent.setAction(AmbulanceForegroundService.Actions.LOGIN);
+                        intent.putExtra(AmbulanceForegroundService.BroadcastExtras.CREDENTIALS,
+                                new String[]{username, password, serverUri, serverApiUri});
+
+                        // disable login button
+                        loginSubmitButton.setEnabled(false);
+                        loginAsDemoButton.setEnabled(false);
+
+                        // What to do when service completes?
+                        new OnServiceComplete(requireContext(),
+                                BroadcastActions.SUCCESS,
+                                BroadcastActions.FAILURE,
+                                intent) {
+
+                            @Override
+                            public void onSuccess(Bundle extras) {
+                                Log.i(TAG, "onClick:OnServiceComplete:onSuccess");
+
+                                try {
+                                    // Toast
+                                    Toast.makeText(requireActivity(),
+                                            getResources().getString(R.string.loginSuccessMessage, username),
+                                            Toast.LENGTH_SHORT).show();
+                                } catch (IllegalStateException e) {
+                                    Log.d(TAG, "Activity is out of context. Ignoring!");
+                                    e.printStackTrace();
+                                }
+
+                                // navigate to map fragment
+                                navigateToMap();
+                            }
+
+                            @Override
+                            public void onFailure(Bundle extras) {
+                                super.onFailure(extras);
+
+                                // enable login buttons
+                                loginSubmitButton.setEnabled(true);
+                                loginAsDemoButton.setEnabled(true);
+                            }
+                        }
+                                .setFailureMessage(null)
+                                .setAlert(new AlertDialog(activity,
+                                        getResources().getString(R.string.couldNotLoginUser, username)))
+                                .start();
+
+                    }
+
+                });
 
         loginAsDemoButton = rootView.findViewById(R.id.buttonDemoLogin);
         loginAsDemoButton.setOnClickListener(view -> {
@@ -112,6 +199,9 @@ public class LoginFragment extends Fragment {
 
         Log.d(TAG, "onResume");
 
+        // get activity
+        MainActivity activity = (MainActivity) requireActivity();
+
         // hide action bar and bottom navigation bar
         activity.hideActionBar();
         activity.hideBottomNavigationBar();
@@ -133,52 +223,62 @@ public class LoginFragment extends Fragment {
 
         Log.i(TAG, "Setting server list");
 
-        // Populate server list
-        // Log.d(TAG, "Populating server list");
-        serverNames.clear();
-        serverMqttURIs = new ArrayList<>();
-        serverAPIURIs = new ArrayList<>();
+        try {
 
-        // add select server message
-        serverNames.add(getString(R.string.server_select));
-        serverMqttURIs.add("");
-        serverAPIURIs.add("");
+            Activity activity = requireActivity();
 
-        for (String server: serverList) {
-            try {
-                String[] splits = server.split(":", 3);
-                serverNames.add(splits[0]);
-                if (!splits[1].isEmpty()) {
-                    serverMqttURIs.add("ssl://" + splits[1] + ":" + splits[2]);
-                    serverAPIURIs.add("https://" + splits[1]);
-                } else {
-                    serverMqttURIs.add("");
-                    serverAPIURIs.add("");
+            // Populate server list
+            // Log.d(TAG, "Populating server list");
+            serverNames.clear();
+            serverMqttURIs = new ArrayList<>();
+            serverAPIURIs = new ArrayList<>();
+
+            // add select server message
+            serverNames.add(getString(R.string.server_select));
+            serverMqttURIs.add("");
+            serverAPIURIs.add("");
+
+            for (String server: serverList) {
+                try {
+                    String[] splits = server.split(":", 3);
+                    serverNames.add(splits[0]);
+                    if (!splits[1].isEmpty()) {
+                        serverMqttURIs.add("ssl://" + splits[1] + ":" + splits[2]);
+                        serverAPIURIs.add("https://" + splits[1]);
+                    } else {
+                        serverMqttURIs.add("");
+                        serverAPIURIs.add("");
+                    }
+                } catch (Exception e) {
+                    Log.d(TAG, "Malformed server string. Skipping.");
+                    e.printStackTrace();
                 }
-            } catch (Exception e) {
-                Log.d(TAG, "Malformed server string. Skipping.");
             }
+
+            // Create server spinner
+            serverNames.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+            serverField.setAdapter(serverNames);
+
+            // Retrieving credentials
+            SharedPreferences sharedPreferences = activity.getSharedPreferences(
+                    AmbulanceForegroundService.PREFERENCES_NAME, AppCompatActivity.MODE_PRIVATE);
+
+            // Retrieve past credentials
+            String serverMqttUri = sharedPreferences.getString(AmbulanceForegroundService.PREFERENCES_MQTT_SERVER, null);
+
+            // set server item
+            int serverPos = 0;
+            if (serverMqttUri != null) {
+                serverPos = serverMqttURIs.indexOf(serverMqttUri);
+            }
+            if (serverPos < 0)
+                serverPos = 0;
+            serverField.setSelection(serverPos);
+
+        } catch (IllegalStateException e) {
+            Log.d(TAG, "Activity is out of context. Aborting!");
+            e.printStackTrace();
         }
-
-        // Create server spinner
-        serverNames.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        serverField.setAdapter(serverNames);
-
-        // Retrieving credentials
-        SharedPreferences sharedPreferences = activity.getSharedPreferences(
-                AmbulanceForegroundService.PREFERENCES_NAME, AppCompatActivity.MODE_PRIVATE);
-
-        // Retrieve past credentials
-        String serverMqttUri = sharedPreferences.getString(AmbulanceForegroundService.PREFERENCES_MQTT_SERVER, null);
-
-        // set server item
-        int serverPos = 0;
-        if (serverMqttUri != null) {
-            serverPos = serverMqttURIs.indexOf(serverMqttUri);
-        }
-        if (serverPos < 0)
-            serverPos = 0;
-        serverField.setSelection(serverPos);
 
     }
 
@@ -199,6 +299,15 @@ public class LoginFragment extends Fragment {
     public void enableLogin() {
 
         Log.d(TAG, "enableLogin");
+
+        Activity activity;
+        try {
+            activity = requireActivity();
+        } catch (IllegalStateException e) {
+            Log.d(TAG, "Activity is out of context. Aborting!");
+            e.printStackTrace();
+            return;
+        }
 
         // Already logged in?
         AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
@@ -230,7 +339,7 @@ public class LoginFragment extends Fragment {
 
             }
 
-        } else{
+        } else {
 
             Log.i(TAG, "Could not find profile, starting service");
 
@@ -280,10 +389,15 @@ public class LoginFragment extends Fragment {
 
                         Log.i(TAG, "Successfully started service");
 
-                        // Toast
-                        Toast.makeText(activity,
-                                getString(R.string.updatingServers),
-                                Toast.LENGTH_SHORT).show();
+                        try {
+                            // Toast
+                            Toast.makeText(requireActivity(),
+                                    getString(R.string.updatingServers),
+                                    Toast.LENGTH_SHORT).show();
+                        } catch (IllegalStateException e) {
+                            Log.d(TAG, "Activity is out of context. Aborting!");
+                            e.printStackTrace();
+                        }
 
                     }
 
@@ -310,24 +424,32 @@ public class LoginFragment extends Fragment {
                             public void onFailure(Bundle extras) {
                                 super.onFailure(extras);
 
-                                // Retrieve past servers
-                                SharedPreferences sharedPreferences = activity.getSharedPreferences(
-                                        AmbulanceForegroundService.PREFERENCES_NAME, AppCompatActivity.MODE_PRIVATE);
-                                Set<String> serversSet = sharedPreferences.getStringSet(AmbulanceForegroundService.PREFERENCES_SERVERS, null);
-                                if (serversSet != null) {
+                                try {
+                                    Activity activity = requireActivity();
 
-                                    new AlertSnackbar(activity)
-                                            .alert("Could not retrieve servers. List of servers may be outdated.");
+                                    // Retrieve past servers
+                                    SharedPreferences sharedPreferences = activity.getSharedPreferences(
+                                            AmbulanceForegroundService.PREFERENCES_NAME, AppCompatActivity.MODE_PRIVATE);
+                                    Set<String> serversSet = sharedPreferences.getStringSet(AmbulanceForegroundService.PREFERENCES_SERVERS, null);
+                                    if (serversSet != null) {
 
-                                    ArrayList<String> serverList = new ArrayList<>(serversSet);
-                                    doEnableLogin(serverList);
+                                        new AlertSnackbar(activity)
+                                                .alert("Could not retrieve servers. List of servers may be outdated.");
 
-                                } else {
+                                        ArrayList<String> serverList = new ArrayList<>(serversSet);
+                                        doEnableLogin(serverList);
 
-                                    new AlertSnackbar(activity)
-                                            .alert("Could not retrieve servers. Check your internet connection.");
+                                    } else {
 
+                                        new AlertSnackbar(activity)
+                                                .alert("Could not retrieve servers. Check your internet connection.");
+
+                                    }
+                                } catch (IllegalStateException e) {
+                                    Log.d(TAG, "Activity is out of context. Aborting!");
+                                    e.printStackTrace();
                                 }
+
                             }
 
                         })
@@ -339,96 +461,25 @@ public class LoginFragment extends Fragment {
 
     }
 
-    public class ClickListener implements View.OnClickListener {
-
-        @Override
-        public void onClick(View view) {
-
-            // Get user info & remove whitespace
-            final String username = usernameField.getText().toString().trim();
-            final String password = passwordField.getText().toString().trim();
-
-            final String serverUri = serverMqttURIs.get(serverField.getSelectedItemPosition());
-            final String serverApiUri = serverAPIURIs.get(serverField.getSelectedItemPosition());
-            Log.d(TAG, "Logging into server: " + serverUri);
-
-            if (username.isEmpty())
-                new AlertSnackbar(activity).alert(getResources().getString(R.string.error_empty_username));
-
-            else if (password.isEmpty())
-                new AlertSnackbar(activity).alert(getResources().getString(R.string.error_empty_password));
-
-            else if (serverUri.isEmpty())
-                new AlertSnackbar(activity).alert(getResources().getString(R.string.error_invalid_server));
-
-            else if (serverApiUri.isEmpty())
-                new AlertSnackbar(activity).alert(getResources().getString(R.string.error_invalid_server));
-
-            else {
-
-                Log.d(TAG, "Will offer credentials");
-
-                // Login at service
-                Intent intent = new Intent(requireContext(),
-                        AmbulanceForegroundService.class);
-                intent.setAction(AmbulanceForegroundService.Actions.LOGIN);
-                intent.putExtra(AmbulanceForegroundService.BroadcastExtras.CREDENTIALS,
-                        new String[]{username, password, serverUri, serverApiUri});
-
-                // disable login button
-                loginSubmitButton.setEnabled(false);
-                loginAsDemoButton.setEnabled(false);
-
-                // What to do when service completes?
-                new OnServiceComplete(requireContext(),
-                        BroadcastActions.SUCCESS,
-                        BroadcastActions.FAILURE,
-                        intent) {
-
-                    @Override
-                    public void onSuccess(Bundle extras) {
-                        Log.i(TAG, "onClick:OnServiceComplete:onSuccess");
-
-                        // Toast
-                        Toast.makeText(activity,
-                                getResources().getString(R.string.loginSuccessMessage, username),
-                                Toast.LENGTH_SHORT).show();
-
-                        // navigate to map fragment
-                        navigateToMap();
-                    }
-
-                    @Override
-                    public void onFailure(Bundle extras) {
-                        super.onFailure(extras);
-
-                        // enable login buttons
-                        loginSubmitButton.setEnabled(true);
-                        loginAsDemoButton.setEnabled(true);
-                    }
-                }
-                        .setFailureMessage(null)
-                        .setAlert(new AlertDialog(activity,
-                                getResources().getString(R.string.couldNotLoginUser, username)))
-                        .start();
-
-            }
-
-        }
-    }
-
     public void navigateToMap() {
 
-        // initialize after login
-        activity.initialize();
+        try {
+            MainActivity activity = (MainActivity) requireActivity();
 
-        // navigate to map fragment
-        activity.navigate(R.id.mapFragment);
+            // initialize after login
+            activity.initialize();
 
-        // show action bar and bottom navigation bar
-        activity.showActionBar();
-        activity.showBottomNavigationBar();
+            // navigate to map fragment
+            activity.navigate(R.id.mapFragment);
 
+            // show action bar and bottom navigation bar
+            activity.showActionBar();
+            activity.showBottomNavigationBar();
+
+        } catch (IllegalStateException e) {
+            Log.d(TAG, "Activity is out of context. Aborting!");
+            e.printStackTrace();
+        }
     }
 
 }

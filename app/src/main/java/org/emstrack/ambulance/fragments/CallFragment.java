@@ -377,7 +377,7 @@ public class CallFragment extends Fragment {
                 Call call = appData.getCalls().getCurrentCall();
 
                 boolean invalidCall = true;
-                if (call != null) {
+                if (ambulance != null && call != null) {
                     AmbulanceCall ambulanceCall = call.getCurrentAmbulanceCall();
                     Waypoint waypoint = ambulanceCall.getNextWaypoint();
                     if (ambulance.getId() == ambulanceId &&
@@ -414,7 +414,7 @@ public class CallFragment extends Fragment {
                 }
 
                 if (invalidCall) {
-                    Log.d(TAG, String.format("Ambulance '%d', call '%d' and waypoint '%d' are not current", ambulance.getId(), callId, waypointId));
+                    Log.d(TAG, String.format("Ambulance '%d', call '%d' and waypoint '%d' are not current", ambulanceId, callId, waypointId));
                     new org.emstrack.ambulance.dialogs.AlertDialog(activity, getString(R.string.alert_warning_title))
                             .alert(getString(R.string.invalidNotification), (dialogInterface, i) -> activity.navigate(R.id.mapFragment));
                 }

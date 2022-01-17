@@ -69,17 +69,17 @@ public class HospitalsFragment extends Fragment {
 
         activity.setupNavigationBar();
 
-        // Register receiver
-        IntentFilter filter = new IntentFilter();
-        filter.addAction(AmbulanceForegroundService.BroadcastActions.HOSPITALS_UPDATE);
-        receiver = new HospitalsUpdateBroadcastReceiver();
-        getLocalBroadcastManager().registerReceiver(receiver, filter);
-
         // Get app data
         AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
 
         // updateAmbulance UI
         update(appData.getHospitals());
+
+        // Register receiver
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(AmbulanceForegroundService.BroadcastActions.HOSPITALS_UPDATE);
+        receiver = new HospitalsUpdateBroadcastReceiver();
+        getLocalBroadcastManager().registerReceiver(receiver, filter);
 
     }
 

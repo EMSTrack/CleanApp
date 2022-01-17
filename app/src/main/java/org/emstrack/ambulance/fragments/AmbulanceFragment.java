@@ -67,8 +67,6 @@ public class AmbulanceFragment extends Fragment {
 
     private TextView ambulanceLabel;
 
-    private MainActivity activity;
-
     private View commentLabel;
     private RecyclerView ambulanceCallRecyclerView;
 
@@ -91,7 +89,12 @@ public class AmbulanceFragment extends Fragment {
                             if (ambulance != null) {
                                 updateAmbulance(ambulance);
                             } else {
-                                activity.navigate(R.id.ambulancesFragment);
+                                try {
+                                    // setup navigation bar
+                                    ((MainActivity) requireActivity()).navigate(R.id.ambulancesFragment);
+                                } catch (IllegalStateException e) {
+                                    Log.d(TAG, "Activity out of context. Ignoring");
+                                }
                             }
 
                             break;
@@ -113,8 +116,12 @@ public class AmbulanceFragment extends Fragment {
                             Log.i(TAG, "CALL_COMPLETED");
                             updateCall(ambulance);
 
-                            // setup navigation bar
-                            activity.setupNavigationBar();
+                            try {
+                                // setup navigation bar
+                                ((MainActivity) requireActivity()).setupNavigationBar();
+                            } catch (IllegalStateException e) {
+                                Log.d(TAG, "Activity out of context. Ignoring");
+                            }
 
                             break;
 
@@ -136,7 +143,7 @@ public class AmbulanceFragment extends Fragment {
 
         // inflate view
         View view = inflater.inflate(R.layout.fragment_ambulance, container, false);
-        activity = (MainActivity) requireActivity();
+        MainActivity activity = (MainActivity) requireActivity();
 
         // retrieve ambulance selection button
         ambulanceLabel = view.findViewById(R.id.ambulanceLabel);
@@ -316,6 +323,9 @@ public class AmbulanceFragment extends Fragment {
         super.onResume();
 
         Log.d(TAG, "onResume");
+
+        // get activity
+        MainActivity activity = (MainActivity) requireActivity();
         activity.setupNavigationBar();
 
         // Register receiver
@@ -375,8 +385,12 @@ public class AmbulanceFragment extends Fragment {
 
     private void updateCall(Ambulance ambulance) {
 
-        Log.d(TAG,"Updating call information");
+        if (ambulance == null) {
+            Log.d(TAG, "Ambulance is null");
+            return;
+        }
 
+        Log.d(TAG,"Updating call information");
         AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
 
         // get calls

@@ -108,7 +108,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
     private float bearing;
 
     private GoogleMap googleMap;
-    private AmbulancesUpdateBroadcastReceiver receiver;
+    private MapFragmentBroadcastReceiver receiver;
 
     private GPSLocation defaultLocation;
 
@@ -126,6 +126,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
     private AnimateBuffer animateBuffer;
 
     private static final Map<String, BitmapDescriptor> iconBitmapDescriptors = new HashMap<>();
+    private boolean processBroadcasts;
 
     private static void initializeMarkers(Context context) {
 
@@ -302,11 +303,11 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
 
     }
 
-    public class AmbulancesUpdateBroadcastReceiver extends BroadcastReceiver {
+    private class MapFragmentBroadcastReceiver extends BroadcastReceiver {
 
         @Override
         public void onReceive(Context context, Intent intent ) {
-            if (intent != null) {
+            if (processBroadcasts && intent != null) {
 
                 final String action = intent.getAction();
                 assert action != null;
@@ -321,7 +322,6 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
                             Ambulance ambulance = AmbulanceForegroundService.getAppData().getAmbulance();
                             updateAmbulanceMarker(ambulance);
                         }
-
                         break;
                     }
 
@@ -342,7 +342,6 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
                             SparseArray<Ambulance> ambulances = AmbulanceForegroundService.getAppData().getAmbulances();
                             updateAmbulanceMarker(ambulances.get(ambulanceId));
                         }
-
                         break;
                     }
 
@@ -357,7 +356,6 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
                         // updateAmbulance markers without centering
                         LatLngBounds.Builder builder = new LatLngBounds.Builder();
                         updateWaypointMarkers(builder);
-
                         break;
                 }
 
@@ -516,14 +514,6 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
         // configure buttons
         configureButtons();
 
-        // Register receiver
-        IntentFilter filter = new IntentFilter();
-        filter.addAction(AmbulanceForegroundService.BroadcastActions.OTHER_AMBULANCES_UPDATE);
-        filter.addAction(AmbulanceForegroundService.BroadcastActions.AMBULANCE_UPDATE);
-        filter.addAction(AmbulanceForegroundService.BroadcastActions.CALL_UPDATE);
-        receiver = new AmbulancesUpdateBroadcastReceiver();
-        getLocalBroadcastManager().registerReceiver(receiver, filter);
-
         // Retrieving button state
         SharedPreferences sharedPreferences =
                 activity.getSharedPreferences(AmbulanceForegroundService.PREFERENCES_NAME, AppCompatActivity.MODE_PRIVATE);
@@ -577,6 +567,16 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
 
         }
 
+        // Register receiver
+        Log.d(TAG, "Registering receiver");
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(AmbulanceForegroundService.BroadcastActions.OTHER_AMBULANCES_UPDATE);
+        filter.addAction(AmbulanceForegroundService.BroadcastActions.AMBULANCE_UPDATE);
+        filter.addAction(AmbulanceForegroundService.BroadcastActions.CALL_UPDATE);
+        receiver = new MapFragmentBroadcastReceiver();
+        processBroadcasts = false;
+        getLocalBroadcastManager().registerReceiver(receiver, filter);
+
     }
 
     @Override
@@ -584,10 +584,14 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
         super.onPause();
 
         Log.d(TAG, "onPause");
+
         // Unregister receiver
         if (receiver != null) {
             getLocalBroadcastManager().unregisterReceiver(receiver);
+            processBroadcasts = false;
             receiver = null;
+        } else {
+            Log.d(TAG, "DID NOT REMOVE RECEIVER!");
         }
 
         // show toolbar
@@ -651,6 +655,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
             Log.d(TAG, "Will initialize map in onMapReady");
 
             initializeMap();
+
         } else {
 
             Log.d(TAG, "Did not initialized map in onMapReady");
@@ -659,84 +664,31 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
 
     }
 
-    private static class AnimateBuffer {
-        LatLng latLng;
-        float bearing;
-        int animateTimeInMs;
+    private void initializeMap() {
 
-        AnimateBuffer(LatLng latLng, float bearing, int animateTimeInMs) {
-            this.latLng = latLng; this.bearing = bearing; this.animateTimeInMs = animateTimeInMs;
-        }
-    }
+        Log.d(TAG, "initializeMapAndReceiver");
 
-    private synchronized void doAnimateMarkerAndCamera(Ambulance ambulance, LatLng latLng, float bearing, int animateTimeInMs) {
+        // Update markers and center map
+        updateMarkers();
 
-        // set flag
-        isAnimatingMarkerAndCamera = true;
-
-        // update marker
-        updateAmbulanceMarker(ambulance, latLng, bearing, animateTimeInMs);
-
-        // center map
-        centerMap(latLng, bearing, false, animateTimeInMs, new GoogleMap.CancelableCallback() {
-
-            @Override
-            public void onCancel() {
-
-                Log.d(TAG, "onCancel");
-                isAnimatingMarkerAndCamera = false;
-
-                // this will cause the pending buffer to be lost
-
-            }
-
-            @Override
-            public void onFinish() {
-
-                Log.d(TAG, "onFinish");
-                if (animateBuffer != null) {
-
-                    Log.d(TAG, "Consume buffer");
-
-                    // animate buffer
-                    doAnimateMarkerAndCamera(ambulance,
-                            animateBuffer.latLng, animateBuffer.bearing,
-                            animateBuffer.animateTimeInMs);
-
-                    // release buffer
-                    animateBuffer = null;
-
-                } else {
-
-                    Log.d(TAG, "Releasing flag");
-
-                    // release animating flag
-                    isAnimatingMarkerAndCamera = false;
-
-                }
-
-            }
-
-        });
-
-    }
-
-    private synchronized void animateMarkerAndCamera(Ambulance ambulance, Location lastLocation, int animateTimeInMs) {
-
-        LatLng latLng = new LatLng(lastLocation.getLatitude(), lastLocation.getLongitude());
-        float bearing = lastLocation.getBearing();
-
-        if (isAnimatingMarkerAndCamera) {
-
-            // override buffer
-            animateBuffer = new AnimateBuffer(latLng, bearing, animateTimeInMs);
-
+        if (centerLatLng != null) {
+            startLocationUpdates(false);
+            centerMap(centerLatLng, bearing, true);
+        } else if (target != null) {
+            startLocationUpdates(false);
+            centerMap(target, bearing, false);
         } else {
-
-            // do animate
-            doAnimateMarkerAndCamera(ambulance, latLng, bearing, animateTimeInMs);
-
+            startLocationUpdates();
         }
+
+        // enable zoom buttons
+        googleMap.getUiSettings().setZoomControlsEnabled(true);
+
+        // Add listener to track zoom
+        googleMap.setOnCameraIdleListener(this);
+
+        // enable broadcasts
+        processBroadcasts = true;
 
     }
 
@@ -894,31 +846,6 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
                             compassButton.setEnabled(true);
 
                         });
-
-    }
-
-    private void initializeMap() {
-
-        Log.d(TAG, "initializeMap");
-
-        // Update markers and center map
-        updateMarkers();
-
-        if (centerLatLng != null) {
-            startLocationUpdates(false);
-            centerMap(centerLatLng, bearing, true);
-        } else if (target != null) {
-            startLocationUpdates(false);
-            centerMap(target, bearing, false);
-        } else {
-            startLocationUpdates();
-        }
-
-        // enable zoom buttons
-        googleMap.getUiSettings().setZoomControlsEnabled(true);
-
-        // Add listener to track zoom
-        googleMap.setOnCameraIdleListener(this);
 
     }
 
@@ -1317,7 +1244,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
             marker = googleMap.addMarker(new MarkerOptions()
                     .position(latLng)
                     .icon(ambulanceIcon)
-                    .anchor(0.5F,0.5F)
+                    .anchor(0.5F, 0.5F)
                     .rotation(orientation)
                     .flat(true)
                     .title(ambulance.getIdentifier())
@@ -1405,6 +1332,87 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
         }
 
         return marker;
+    }
+
+    private static class AnimateBuffer {
+        LatLng latLng;
+        float bearing;
+        int animateTimeInMs;
+
+        AnimateBuffer(LatLng latLng, float bearing, int animateTimeInMs) {
+            this.latLng = latLng; this.bearing = bearing; this.animateTimeInMs = animateTimeInMs;
+        }
+    }
+
+    private synchronized void doAnimateMarkerAndCamera(Ambulance ambulance, LatLng latLng, float bearing, int animateTimeInMs) {
+
+        // set flag
+        isAnimatingMarkerAndCamera = true;
+
+        // update marker
+        updateAmbulanceMarker(ambulance, latLng, bearing, animateTimeInMs);
+
+        // center map
+        centerMap(latLng, bearing, false, animateTimeInMs, new GoogleMap.CancelableCallback() {
+
+            @Override
+            public void onCancel() {
+
+                Log.d(TAG, "onCancel");
+                isAnimatingMarkerAndCamera = false;
+
+                // this will cause the pending buffer to be lost
+
+            }
+
+            @Override
+            public void onFinish() {
+
+                Log.d(TAG, "onFinish");
+                if (animateBuffer != null) {
+
+                    Log.d(TAG, "Consume buffer");
+
+                    // animate buffer
+                    doAnimateMarkerAndCamera(ambulance,
+                            animateBuffer.latLng, animateBuffer.bearing,
+                            animateBuffer.animateTimeInMs);
+
+                    // release buffer
+                    animateBuffer = null;
+
+                } else {
+
+                    Log.d(TAG, "Releasing flag");
+
+                    // release animating flag
+                    isAnimatingMarkerAndCamera = false;
+
+                }
+
+            }
+
+        });
+
+    }
+
+    private synchronized void animateMarkerAndCamera(Ambulance ambulance, Location lastLocation, int animateTimeInMs) {
+
+        LatLng latLng = new LatLng(lastLocation.getLatitude(), lastLocation.getLongitude());
+        float bearing = lastLocation.getBearing();
+
+        if (isAnimatingMarkerAndCamera) {
+
+            // override buffer
+            animateBuffer = new AnimateBuffer(latLng, bearing, animateTimeInMs);
+
+        } else {
+
+            // do animate
+            doAnimateMarkerAndCamera(ambulance, latLng, bearing, animateTimeInMs);
+
+        }
+
     }
 
     /**
