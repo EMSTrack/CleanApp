@@ -2,7 +2,7 @@
 <resources>
 
     <string name="app_name">EMSTrack</string>
-    <string name="app_version" translatable="false">0_9_9</string>
+    <string name="app_version" translatable="false">0_9_10</string>
     <string name="client_name" translatable="false">AndroidClient</string>
 
     <string name="drawer_open">Open navigation drawer</string>
@@ -410,7 +410,7 @@
     <string name="Other">Location</string>
     <string name="Search">Search</string>
     <string name="Waypoints">Waypoints</string>
-    <string name="confirmNewWaypoint">Do you want to add the following waypoint to the current call?  %1$s</string>
+    <string name="confirmNewWaypoint">Do you want to add the following waypoint to the current call?\n\n%1$s</string>
     <string name="addWaypointButtonLabel">Add Waypoint</string>
 
 </resources>

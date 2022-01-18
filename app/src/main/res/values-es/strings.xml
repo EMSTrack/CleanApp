@@ -362,7 +362,7 @@
     <string name="Other">Ubicación</string>
     <string name="Search">Búsqueda</string>
     <string name="Waypoints">Punto de ruta</string>
-    <string name="confirmNewWaypoint">¿Desea agregar el siguiente punto de ruta a la llamada actual?\\n\\n%1$s</string>
+    <string name="confirmNewWaypoint">¿Desea agregar el siguiente punto de ruta a la llamada actual?\n\n%1$s</string>
     <string name="addWaypointButtonLabel">Agregar punto de ruta</string>
 
 </resources>
