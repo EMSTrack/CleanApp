@@ -1,50 +1,42 @@
 package org.emstrack.ambulance.fragments;
 
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
-import androidx.annotation.NonNull;
-import androidx.fragment.app.Fragment;
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
 import android.util.Log;
 import android.util.SparseArray;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
 import org.emstrack.ambulance.MainActivity;
 import org.emstrack.ambulance.R;
 import org.emstrack.ambulance.adapters.HospitalRecyclerAdapter;
 import org.emstrack.ambulance.models.AmbulanceAppData;
 import org.emstrack.ambulance.services.AmbulanceForegroundService;
+import org.emstrack.ambulance.util.FragmentWithLocalBroadcastReceiver;
 import org.emstrack.models.Hospital;
 
-public class HospitalsFragment extends Fragment {
+public class HospitalsFragment extends FragmentWithLocalBroadcastReceiver {
 
     private static final String TAG = HospitalsFragment.class.getSimpleName();
-    private MainActivity activity;
     private RecyclerView recyclerView;
-    private HospitalsUpdateBroadcastReceiver receiver;
 
-    public class HospitalsUpdateBroadcastReceiver extends BroadcastReceiver {
+    @Override
+    public void onReceive(Context context, @NonNull Intent intent ) {
+        final String action = intent.getAction();
+        if (action != null) {
+            if (action.equals(AmbulanceForegroundService.BroadcastActions.HOSPITALS_UPDATE)) {
 
-        @Override
-        public void onReceive(Context context, Intent intent ) {
-            if (intent != null) {
-                final String action = intent.getAction();
-                if (action != null) {
-                    if (action.equals(AmbulanceForegroundService.BroadcastActions.HOSPITALS_UPDATE)) {
+                Log.i(TAG, "HOSPITALS_UPDATE");
+                AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
+                update(appData.getHospitals());
 
-                        Log.i(TAG, "HOSPITALS_UPDATE");
-                        AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
-                        update(appData.getHospitals());
-
-                    }
-                }
             }
         }
     }
@@ -53,12 +45,16 @@ public class HospitalsFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
         View rootView = inflater.inflate(R.layout.fragment_hospital, container, false);
-        activity = (MainActivity) requireActivity();
 
         recyclerView = rootView.findViewById(R.id.hospital_recycler_view);
 
         AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
         update(appData.getHospitals());
+
+        // Register receiver
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(AmbulanceForegroundService.BroadcastActions.HOSPITALS_UPDATE);
+        setupReceiver(filter);
 
         return rootView;
     }
@@ -67,6 +63,7 @@ public class HospitalsFragment extends Fragment {
     public void onResume() {
         super.onResume();
 
+        MainActivity activity = (MainActivity) requireActivity();
         activity.setupNavigationBar();
 
         // Get app data
@@ -74,24 +71,6 @@ public class HospitalsFragment extends Fragment {
 
         // updateAmbulance UI
         update(appData.getHospitals());
-
-        // Register receiver
-        IntentFilter filter = new IntentFilter();
-        filter.addAction(AmbulanceForegroundService.BroadcastActions.HOSPITALS_UPDATE);
-        receiver = new HospitalsUpdateBroadcastReceiver();
-        getLocalBroadcastManager().registerReceiver(receiver, filter);
-
-    }
-
-    @Override
-    public void onPause() {
-        super.onPause();
-
-        // Unregister receiver
-        if (receiver != null) {
-            getLocalBroadcastManager().unregisterReceiver(receiver);
-            receiver = null;
-        }
 
     }
 
@@ -115,15 +94,6 @@ public class HospitalsFragment extends Fragment {
         recyclerView.setLayoutManager(linearLayoutManager);
         recyclerView.setAdapter(adapter);
 
-    }
-
-    /**
-     * Get LocalBroadcastManager
-     *
-     * @return the LocalBroadcastManager
-     */
-    private LocalBroadcastManager getLocalBroadcastManager() {
-        return LocalBroadcastManager.getInstance(requireContext());
     }
 
 }

@@ -19,13 +19,13 @@ import com.google.android.gms.maps.model.LatLng;
 
 import org.emstrack.ambulance.MainActivity;
 import org.emstrack.ambulance.R;
+import org.emstrack.ambulance.dialogs.SimpleAlertDialog;
 import org.emstrack.ambulance.services.AmbulanceForegroundService;
 import org.emstrack.models.GPSLocation;
 import org.emstrack.models.Location;
 import org.emstrack.models.Waypoint;
 
 import java.net.URLEncoder;
-import java.text.DecimalFormat;
 import java.util.Locale;
 
 /**
@@ -187,7 +187,7 @@ public class WaypointViewHolder extends RecyclerView.ViewHolder {
                     } else {
 
                         // Alert that it could not open google maps
-                        new org.emstrack.ambulance.dialogs.AlertDialog(activity,
+                        new SimpleAlertDialog(activity,
                                 activity.getString(R.string.directions))
                                 .alert(activity.getString(R.string.couldNotOpenGoogleMaps));
 

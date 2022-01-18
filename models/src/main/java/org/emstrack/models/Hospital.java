@@ -1,18 +1,20 @@
 package org.emstrack.models;
 
+import android.content.Context;
+
 import androidx.annotation.NonNull;
 
 import java.util.Calendar;
+import java.util.Locale;
 
 /**
  * A class representing a hospital.
  * @author mauricio
  * @since 3/11/2018
  */
-public class Hospital extends Address {
+public class Hospital extends NamedAddress {
 
     private int id;
-    private String name;
     private String comment;
     private int updatedBy;
     private Calendar updatedOn;
@@ -31,10 +33,9 @@ public class Hospital extends Address {
                     String comment,
                     int updatedBy, Calendar updatedOn
                     ) {
-        super(number, street, unit, neighborhood, city, state, zipcode, country, location);
+        super(name, number, street, unit, neighborhood, city, state, zipcode, country, location);
 
         this.id = id;
-        this.name = name;
         this.comment = comment;
         this.updatedBy = updatedBy;
         this.updatedOn = updatedOn;
@@ -47,14 +48,6 @@ public class Hospital extends Address {
 
     public void setId(int id) {
         this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
     }
 
     public String getComment() {
@@ -84,11 +77,12 @@ public class Hospital extends Address {
     @NonNull
     @Override
     public String toString() {
-        return name;
+        return getName();
     }
 
     @NonNull
-    public String toAddress() {
-        return super.toString();
+    @Override
+    public String toAddress(Context context) {
+        return context.getResources().getString(R.string.Hospital).toUpperCase(Locale.getDefault()) +"\n" + super.toString();
     }
 }

@@ -50,13 +50,17 @@ import androidx.recyclerview.widget.LinearSnapHelper;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.recyclerview.widget.SnapHelper;
 
+import com.google.android.libraries.places.api.Places;
+import com.google.android.libraries.places.api.net.PlacesClient;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigationrail.NavigationRailView;
 
 import org.emstrack.ambulance.adapters.WaypointInfoRecyclerAdapter;
 import org.emstrack.ambulance.dialogs.AlertSnackbar;
+import org.emstrack.ambulance.dialogs.SimpleAlertDialog;
 import org.emstrack.ambulance.fragments.EquipmentFragment;
 import org.emstrack.ambulance.fragments.MessagesFragment;
+import org.emstrack.ambulance.fragments.SelectLocationFragment;
 import org.emstrack.ambulance.fragments.SettingsFragment;
 import org.emstrack.ambulance.models.AmbulanceAppData;
 import org.emstrack.ambulance.services.AmbulanceForegroundService;
@@ -109,6 +113,7 @@ public class MainActivity extends AppCompatActivity {
     private HashMap<String, Integer> ambulanceStatusTextColorMap;
 
     private boolean promptingNextWaypoint;
+    private PlacesClient placesClient;
 
     public enum BackButtonMode {
         UP,
@@ -142,6 +147,7 @@ public class MainActivity extends AppCompatActivity {
     private BottomNavigationView bottomNavigationView;
     private NavigationRailView navigationRailView;
     private Menu actionBarMenu;
+    private boolean actionBarButtonsVisible;
     private BackButtonMode backButtonMode;
 
     public class MainActivityBroadcastReceiver extends BroadcastReceiver {
@@ -270,6 +276,14 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+
+    /**
+     * @return the places client
+     */
+    public PlacesClient getPlacesClient() {
+        return placesClient;
+    }
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
 
@@ -277,13 +291,14 @@ public class MainActivity extends AppCompatActivity {
         getMenuInflater().inflate(R.menu.action_bar, menu);
 
         // save menu
-        this.actionBarMenu = menu;
+        actionBarMenu = menu;
+        actionBarButtonsVisible = true;
 
         // Hide video button if video is not enabled
         hideVideoCallButton();
 
         // Online icon
-        onlineIcon = menu.findItem(R.id.onlineIcon).getIcon();
+        onlineIcon = menu.findItem(R.id.onlineButton).getIcon();
         if (AmbulanceForegroundService.isOnline())
             onlineIcon.setAlpha(enabledAlpha);
         else
@@ -370,6 +385,16 @@ public class MainActivity extends AppCompatActivity {
 
         // call on new intent
         onNewIntent(getIntent());
+
+        // enable google places
+        String apiKey = getString(R.string.GoogleMapsKey);
+        if (!Places.isInitialized()) {
+            Places.initialize(this, apiKey);
+        }
+
+        // Create a new Places client instance.
+        placesClient = Places.createClient(this);
+
     }
 
     public void initialize() {
@@ -492,12 +517,14 @@ public class MainActivity extends AppCompatActivity {
         if (fragment != null) {
 
             if (fragment.getClass().equals(SettingsFragment.class) ||
-                    fragment.getClass().equals(EquipmentFragment.class)||
-                    fragment.getClass().equals(MessagesFragment.class)) {
+                    fragment.getClass().equals(EquipmentFragment.class) ||
+                    fragment.getClass().equals(MessagesFragment.class) ||
+                    fragment.getClass().equals(SelectLocationFragment.class)) {
 
                 // hide action bar and bottom navigation bar
                 hideBottomNavigationBar();
                 hideNavigationRail();
+                setActionBarButtonsVisible(!fragment.getClass().equals(SelectLocationFragment.class));
 
                 // set back button as up
                 setBackButtonMode(BackButtonMode.UP);
@@ -508,8 +535,10 @@ public class MainActivity extends AppCompatActivity {
                         actionBar.setTitle(R.string.settings);
                     } else if (fragment.getClass().equals(MessagesFragment.class)) {
                             actionBar.setTitle(R.string.messages);
+                    } else if (fragment.getClass().equals(EquipmentFragment.class)) {
+                            actionBar.setTitle(R.string.equipment);
                     } else {
-                        actionBar.setTitle(R.string.equipment);
+                        actionBar.setTitle(R.string.Waypoints);
                     }
                     actionBar.setDisplayHomeAsUpEnabled(true);
                 }
@@ -520,6 +549,7 @@ public class MainActivity extends AppCompatActivity {
 
             // set back button as logout
             setBackButtonMode(BackButtonMode.LOGOUT);
+            setActionBarButtonsVisible(true);
 
             // set title
             if (actionBar != null) {
@@ -599,6 +629,20 @@ public class MainActivity extends AppCompatActivity {
         Settings settings = appData.getSettings();
         if (settings != null && !settings.isEnableVideo()) {
             actionBarMenu.findItem(R.id.videoCallButton).setVisible(visible);
+        }
+    }
+
+    private void setActionBarButtonsVisible(boolean visible) {
+        if (actionBarMenu != null && actionBarButtonsVisible != visible) {
+            actionBarButtonsVisible = visible;
+            actionBarMenu.findItem(R.id.videoCallButton)
+                    .setVisible(visible);
+            actionBarMenu.findItem(R.id.onlineButton)
+                    .setVisible(visible);
+            actionBarMenu.findItem(R.id.panicButton)
+                    .setVisible(visible);
+            actionBarMenu.findItem(R.id.settingsButton)
+                    .setVisible(visible);
         }
     }
 
@@ -685,8 +729,8 @@ public class MainActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         Log.d(TAG, String.format("onOptionsItemsSelected: %1$d", item.getItemId()));
         int itemId = item.getItemId();
-        if (itemId == R.id.settingsFragment) {
-            navigate(R.id.settingsFragment);
+        if (itemId == R.id.settingsButton) {
+            navigate(R.id.settingsButton);
             return true;
         } else if (itemId == R.id.panicButton) {
             panicPopUp();
@@ -694,7 +738,7 @@ public class MainActivity extends AppCompatActivity {
         } else if (itemId == R.id.videoCallButton) {
             promptVideoCallNew();
             return true;
-        } else if (itemId == R.id.onlineIcon) {
+        } else if (itemId == R.id.onlineButton) {
             alertOnline();
             return true;
         } else if (itemId == android.R.id.home) {
@@ -1011,7 +1055,7 @@ public class MainActivity extends AppCompatActivity {
 
         }
                 .setFailureMessage(getResources().getString(R.string.couldNotRetrieveAmbulance, ambulanceIdentifier))
-                .setAlert(new org.emstrack.ambulance.dialogs.AlertDialog(this,
+                .setAlert(new SimpleAlertDialog(this,
                         getResources().getString(R.string.couldNotStartLocationUpdates)))
                 .start();
 
@@ -1946,7 +1990,7 @@ public class MainActivity extends AppCompatActivity {
                             R.string.approachedAParticularWaypoint :
                             R.string.leftAParticularWaypoint,
                     waypoint.getLocation().toAddress(this));
-            org.emstrack.ambulance.dialogs.AlertDialog alert = new org.emstrack.ambulance.dialogs.AlertDialog(this, getString(R.string.alert_warning_title));
+            SimpleAlertDialog alert = new SimpleAlertDialog(this, getString(R.string.alert_warning_title));
             alert.alert(message);
 
             // dismiss dialog automatically
@@ -1961,7 +2005,7 @@ public class MainActivity extends AppCompatActivity {
     public void sendPanicMessage() {
         Log.d(TAG,"PANIC!!!");
 
-        new org.emstrack.ambulance.dialogs.AlertDialog(this, getString(R.string.alert_warning_title))
+        new SimpleAlertDialog(this, getString(R.string.alert_warning_title))
                 .alert(getString(R.string.notImplementedYet));
 
     }
@@ -1997,7 +2041,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void alertOnline() {
 
-        new org.emstrack.ambulance.dialogs.AlertDialog(this, getString(R.string.alert_warning_title))
+        new SimpleAlertDialog(this, getString(R.string.alert_warning_title))
                 .alert(getString(R.string.alertOnline, getString(AmbulanceForegroundService.isOnline() ? R.string.online : R.string.offline)));
 
     }

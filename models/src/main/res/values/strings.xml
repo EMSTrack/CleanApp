@@ -6,4 +6,6 @@
     <string name="locationTypeOther">location</string>
     <string name="locationTypeAED">automatic defibrillator</string>
     <string name="locationTypeWaypoint">waypoint</string>
+
+    <string name="Hospital">Hospital</string>
 </resources>

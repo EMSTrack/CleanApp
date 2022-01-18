@@ -5,8 +5,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
-import android.text.Editable;
-import android.text.TextWatcher;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -25,23 +23,21 @@ import androidx.recyclerview.widget.RecyclerView;
 import org.emstrack.ambulance.MainActivity;
 import org.emstrack.ambulance.R;
 import org.emstrack.ambulance.adapters.MessageRecyclerAdapter;
-import org.emstrack.ambulance.dialogs.AlertDialog;
+import org.emstrack.ambulance.dialogs.SimpleAlertDialog;
 import org.emstrack.ambulance.models.AmbulanceAppData;
 import org.emstrack.ambulance.models.MessageType;
 import org.emstrack.ambulance.services.AmbulanceForegroundService;
+import org.emstrack.ambulance.util.ViewTextWatcher;
 import org.emstrack.models.Ambulance;
 import org.emstrack.models.AmbulanceNote;
 import org.emstrack.models.Call;
-import org.emstrack.models.CallNote;
 import org.emstrack.models.CallStack;
-import org.emstrack.models.Note;
 import org.emstrack.models.api.APIService;
 import org.emstrack.models.api.APIServiceGenerator;
 import org.emstrack.models.api.OnAPICallComplete;
 import org.emstrack.models.util.BroadcastActions;
 import org.emstrack.models.util.OnServiceComplete;
 
-import java.util.Collections;
 import java.util.List;
 
 public class MessagesFragment extends Fragment {
@@ -110,20 +106,7 @@ public class MessagesFragment extends Fragment {
         sendIcon = rootView.findViewById(R.id.message_send_icon);
 
         // enable send button only if text edit is not empty
-        sendText.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-                sendIcon.setEnabled(charSequence.toString().trim().length() != 0);
-            }
-
-            @Override
-            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-            }
-
-            @Override
-            public void afterTextChanged(Editable editable) {
-            }
-        });
+        sendText.addTextChangedListener(new ViewTextWatcher(sendIcon));
 
         sendIcon.setEnabled(false);
         sendIcon.setOnClickListener(v -> {
@@ -305,7 +288,7 @@ public class MessagesFragment extends Fragment {
                 }
 
             }       .setFailureMessage(null)
-                    .setAlert(new AlertDialog(activity,
+                    .setAlert(new SimpleAlertDialog(activity,
                             getResources().getString(R.string.couldNotSendMessage)))
                     .start();
 

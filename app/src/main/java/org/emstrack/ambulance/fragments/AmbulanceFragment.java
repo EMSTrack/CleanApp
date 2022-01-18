@@ -2,7 +2,6 @@ package org.emstrack.ambulance.fragments;
 
 import static org.emstrack.ambulance.util.FormatUtils.formatDateTime;
 
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -15,11 +14,9 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
-import androidx.fragment.app.Fragment;
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -28,10 +25,12 @@ import com.google.android.material.button.MaterialButton;
 import org.emstrack.ambulance.MainActivity;
 import org.emstrack.ambulance.R;
 import org.emstrack.ambulance.adapters.CallRecyclerAdapter;
+import org.emstrack.ambulance.dialogs.SimpleAlertDialog;
 import org.emstrack.ambulance.models.AmbulanceAppData;
 import org.emstrack.ambulance.models.EquipmentType;
 import org.emstrack.ambulance.models.MessageType;
 import org.emstrack.ambulance.services.AmbulanceForegroundService;
+import org.emstrack.ambulance.util.FragmentWithLocalBroadcastReceiver;
 import org.emstrack.models.Ambulance;
 import org.emstrack.models.AmbulanceCall;
 import org.emstrack.models.Call;
@@ -45,7 +44,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class AmbulanceFragment extends Fragment {
+public class AmbulanceFragment extends FragmentWithLocalBroadcastReceiver {
 
     private static final String TAG = AmbulanceFragment.class.getSimpleName();
 
@@ -54,8 +53,6 @@ public class AmbulanceFragment extends Fragment {
     private TextView capabilityText;
     private TextView updatedOnText;
     private TextView commentText;
-
-    private AmbulancesUpdateBroadcastReceiver receiver;
 
     private TextView callInformationText;
 
@@ -70,71 +67,65 @@ public class AmbulanceFragment extends Fragment {
     private View commentLabel;
     private RecyclerView ambulanceCallRecyclerView;
 
-    public class AmbulancesUpdateBroadcastReceiver extends BroadcastReceiver {
+    @Override
+    public void onReceive(Context context, @NonNull Intent intent ) {
+        final String action = intent.getAction();
+        if (action != null) {
 
-        @Override
-        public void onReceive(Context context, Intent intent ) {
-            if (intent != null) {
+            AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
+            Ambulance ambulance = appData.getAmbulance();
 
-                AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
-                Ambulance ambulance = appData.getAmbulance();
+            switch (action) {
 
-                final String action = intent.getAction();
-                if (action != null) {
-                    switch (action) {
+                case AmbulanceForegroundService.BroadcastActions.AMBULANCE_UPDATE:
 
-                        case AmbulanceForegroundService.BroadcastActions.AMBULANCE_UPDATE:
-
-                            Log.i(TAG, "AMBULANCE_UPDATE");
-                            if (ambulance != null) {
-                                updateAmbulance(ambulance);
-                            } else {
-                                try {
-                                    // setup navigation bar
-                                    ((MainActivity) requireActivity()).navigate(R.id.ambulancesFragment);
-                                } catch (IllegalStateException e) {
-                                    Log.d(TAG, "Activity out of context. Ignoring");
-                                }
-                            }
-
-                            break;
-
-                        case AmbulanceForegroundService.BroadcastActions.CALL_DECLINED:
-
-                            Log.i(TAG, "CALL_DECLINED");
-                            updateCall(ambulance);
-                            break;
-
-                        case AmbulanceForegroundService.BroadcastActions.CALL_UPDATE:
-
-                            Log.i(TAG, "CALL_UPDATE");
-                            updateCall(ambulance);
-                            break;
-
-                        case AmbulanceForegroundService.BroadcastActions.CALL_COMPLETED:
-
-                            Log.i(TAG, "CALL_COMPLETED");
-                            updateCall(ambulance);
-
-                            try {
-                                // setup navigation bar
-                                ((MainActivity) requireActivity()).setupNavigationBar();
-                            } catch (IllegalStateException e) {
-                                Log.d(TAG, "Activity out of context. Ignoring");
-                            }
-
-                            break;
-
-                        default:
-                            Log.i(TAG, "Unknown broadcast action");
-
+                    Log.i(TAG, "AMBULANCE_UPDATE");
+                    if (ambulance != null) {
+                        updateAmbulance(ambulance);
+                    } else {
+                        try {
+                            // setup navigation bar
+                            ((MainActivity) requireActivity()).navigate(R.id.ambulancesFragment);
+                        } catch (IllegalStateException e) {
+                            Log.d(TAG, "Activity out of context. Ignoring");
+                        }
                     }
-                } else {
-                    Log.i(TAG, "Action is null");
-                }
 
+                    break;
+
+                case AmbulanceForegroundService.BroadcastActions.CALL_DECLINED:
+
+                    Log.i(TAG, "CALL_DECLINED");
+                    updateCall(ambulance);
+                    break;
+
+                case AmbulanceForegroundService.BroadcastActions.CALL_UPDATE:
+
+                    Log.i(TAG, "CALL_UPDATE");
+                    updateCall(ambulance);
+                    break;
+
+                case AmbulanceForegroundService.BroadcastActions.CALL_COMPLETED:
+
+                    Log.i(TAG, "CALL_COMPLETED");
+                    updateCall(ambulance);
+
+                    try {
+                        // setup navigation bar
+                        ((MainActivity) requireActivity()).setupNavigationBar();
+                    } catch (IllegalStateException e) {
+                        Log.d(TAG, "Activity out of context. Ignoring");
+                    }
+
+                    break;
+
+                default:
+                    Log.i(TAG, "Unknown broadcast action");
             }
+        } else {
+            Log.i(TAG, "Action is null");
         }
+
     }
 
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -234,7 +225,7 @@ public class AmbulanceFragment extends Fragment {
             if (AmbulanceForegroundService.getAppData().getCalls().getCurrentCallId() >= 0) {
                 // handling a call, alert and quit
 
-                new org.emstrack.ambulance.dialogs.AlertDialog(activity, getString(R.string.alert_warning_title))
+                new SimpleAlertDialog(activity, getString(R.string.alert_warning_title))
                         .alert(getString(R.string.cannotUpdateStatusDuringACall));
 
                 return;
@@ -296,7 +287,7 @@ public class AmbulanceFragment extends Fragment {
                                         // enable button after update is submitted
                                         ambulanceStatusButton.setEnabled(true);
 
-                                        new org.emstrack.ambulance.dialogs.AlertDialog(activity, getString(R.string.alert_warning_title))
+                                        new SimpleAlertDialog(activity, getString(R.string.alert_warning_title))
                                                 .alert(getString(R.string.couldNotUpdateAmbulanceStatus));
 
                                     }
@@ -315,6 +306,14 @@ public class AmbulanceFragment extends Fragment {
         updateAmbulance(ambulance);
         updateCall(ambulance);
 
+        // Register receiver
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(AmbulanceForegroundService.BroadcastActions.AMBULANCE_UPDATE);
+        filter.addAction(AmbulanceForegroundService.BroadcastActions.CALL_UPDATE);
+        filter.addAction(AmbulanceForegroundService.BroadcastActions.CALL_COMPLETED);
+        filter.addAction(AmbulanceForegroundService.BroadcastActions.CALL_DECLINED);
+        setupReceiver(filter);
+
         return view;
     }
 
@@ -327,27 +326,6 @@ public class AmbulanceFragment extends Fragment {
         // get activity
         MainActivity activity = (MainActivity) requireActivity();
         activity.setupNavigationBar();
-
-        // Register receiver
-        IntentFilter filter = new IntentFilter();
-        filter.addAction(AmbulanceForegroundService.BroadcastActions.AMBULANCE_UPDATE);
-        filter.addAction(AmbulanceForegroundService.BroadcastActions.CALL_UPDATE);
-        filter.addAction(AmbulanceForegroundService.BroadcastActions.CALL_COMPLETED);
-        filter.addAction(AmbulanceForegroundService.BroadcastActions.CALL_DECLINED);
-        receiver = new AmbulanceFragment.AmbulancesUpdateBroadcastReceiver();
-        getLocalBroadcastManager().registerReceiver(receiver, filter);
-
-    }
-
-    @Override
-    public void onPause() {
-        super.onPause();
-
-        // Unregister receiver
-        if (receiver != null) {
-            getLocalBroadcastManager().unregisterReceiver(receiver);
-            receiver = null;
-        }
 
     }
 
@@ -423,15 +401,6 @@ public class AmbulanceFragment extends Fragment {
         ambulanceStatusButton.setTextColor(ambulanceStatusTextColorList.get(position));
         ambulanceStatusButton.setBackgroundColor(ambulanceStatusBackgroundColorList.get(position));
 
-    }
-
-    /**
-     * Get LocalBroadcastManager
-     *
-     * @return the LocalBroadcastManager
-     */
-    private LocalBroadcastManager getLocalBroadcastManager() {
-        return LocalBroadcastManager.getInstance(requireContext());
     }
 
 }

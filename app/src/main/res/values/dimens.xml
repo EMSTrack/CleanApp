@@ -23,4 +23,9 @@
     <dimen name="preference_icon_height">50dp</dimen>
     <dimen name="preference_margin_start">60dp</dimen>
 
+    <dimen name="selectLocationIconWidth">20dp</dimen>
+    <dimen name="selectLocationIconHeight">20dp</dimen>
+    <dimen name="selectLocationSearchIconWidth">18dp</dimen>
+    <dimen name="selectLocationSearchIconHeight">18dp</dimen>
+
 </resources>

@@ -407,5 +407,10 @@
     <string name="open_source_icons" translatable="false">- <a href="https://fontawesome.com">FontAwesome</a></string>
     <string name="open_source_servers" translatable="false">- <a href="https://www.djangoproject.com">Django</a>\n- <a href="https://mosquitto.org">Eclipse Mosquitto</a>\n- <a href="https://www.postgresql.org">PostgreSQL</a></string>
     <string name="EMSTrackURL">For more information contact\n\n<a href="https://emstrack.org/web">emstrack.org</a></string>
+    <string name="Other">Location</string>
+    <string name="Search">Search</string>
+    <string name="Waypoints">Waypoints</string>
+    <string name="confirmNewWaypoint">Do you want to add the following waypoint to the current call?  %1$s</string>
+    <string name="addWaypointButtonLabel">Add Waypoint</string>
 
 </resources>

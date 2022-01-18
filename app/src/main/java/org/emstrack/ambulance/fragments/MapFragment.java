@@ -2,7 +2,6 @@ package org.emstrack.ambulance.fragments;
 
 import static org.emstrack.ambulance.util.LatLon.calculateDistanceHaversine;
 
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -20,8 +19,6 @@ import android.widget.ImageView;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
-import androidx.fragment.app.Fragment;
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
@@ -45,6 +42,7 @@ import org.emstrack.ambulance.models.AmbulanceAppData;
 import org.emstrack.ambulance.services.AmbulanceForegroundService;
 import org.emstrack.ambulance.util.BitmapUtils;
 import org.emstrack.ambulance.util.DragHelper;
+import org.emstrack.ambulance.util.FragmentWithLocalBroadcastReceiver;
 import org.emstrack.ambulance.util.LatLngInterpolator;
 import org.emstrack.ambulance.util.MarkerAnimation;
 import org.emstrack.ambulance.util.SparseArrayUtils;
@@ -64,7 +62,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleMap.OnCameraIdleListener {
+public class MapFragment extends FragmentWithLocalBroadcastReceiver implements OnMapReadyCallback, GoogleMap.OnCameraIdleListener {
 
     public final int ZOOM_LEVEL_STOPPED = 19;
     public final int ZOOM_LEVEL_SMALL_SPEEDS = 18;
@@ -108,7 +106,6 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
     private float bearing;
 
     private GoogleMap googleMap;
-    private MapFragmentBroadcastReceiver receiver;
 
     private GPSLocation defaultLocation;
 
@@ -126,7 +123,6 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
     private AnimateBuffer animateBuffer;
 
     private static final Map<String, BitmapDescriptor> iconBitmapDescriptors = new HashMap<>();
-    private boolean processBroadcasts;
 
     private static void initializeMarkers(Context context) {
 
@@ -303,63 +299,59 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
 
     }
 
-    private class MapFragmentBroadcastReceiver extends BroadcastReceiver {
+    @Override
+    public void onReceive(Context context, @NonNull Intent intent ) {
+        final String action = intent.getAction();
+        if (action != null && googleMap != null) {
 
-        @Override
-        public void onReceive(Context context, Intent intent ) {
-            if (processBroadcasts && intent != null) {
+            switch (action) {
+                case AmbulanceForegroundService.BroadcastActions.AMBULANCE_UPDATE: {
 
-                final String action = intent.getAction();
-                assert action != null;
+                    Log.i(TAG, "AMBULANCE_UPDATE");
 
-                switch (action) {
-                    case AmbulanceForegroundService.BroadcastActions.AMBULANCE_UPDATE: {
-
-                        Log.i(TAG, "AMBULANCE_UPDATE");
-
-                        if (!centerCurrentAmbulance || fusedLocationClient == null) {
-                            // update ambulance marker only if location service is not on
-                            Ambulance ambulance = AmbulanceForegroundService.getAppData().getAmbulance();
-                            updateAmbulanceMarker(ambulance);
-                        }
-                        break;
+                    if (!centerCurrentAmbulance || fusedLocationClient == null) {
+                        // update ambulance marker only if location service is not on
+                        Ambulance ambulance = AmbulanceForegroundService.getAppData().getAmbulance();
+                        updateAmbulanceMarker(ambulance);
                     }
-
-                    case AmbulanceForegroundService.BroadcastActions.OTHER_AMBULANCES_UPDATE: {
-
-                        Log.i(TAG, "OTHER_AMBULANCES_UPDATE");
-                        int ambulanceId = intent.getIntExtra(AmbulanceForegroundService.BroadcastExtras.AMBULANCE_ID, -1);
-
-                        if (ambulanceId == -1) {
-                            // update all markers
-                            LatLngBounds.Builder builder = new LatLngBounds.Builder();
-                            updateAmbulanceMarkers(builder);
-
-                            // update current ambulance as well
-                            Ambulance ambulance = AmbulanceForegroundService.getAppData().getAmbulance();
-                            updateAmbulanceMarker(ambulance);
-                        } else {
-                            SparseArray<Ambulance> ambulances = AmbulanceForegroundService.getAppData().getAmbulances();
-                            updateAmbulanceMarker(ambulances.get(ambulanceId));
-                        }
-                        break;
-                    }
-
-                    case AmbulanceForegroundService.BroadcastActions.CALL_COMPLETED:
-
-                        Log.i(TAG, "CALL_COMPLETED");
-
-                    case AmbulanceForegroundService.BroadcastActions.CALL_UPDATE:
-
-                        Log.i(TAG, "CALL_UPDATE");
-
-                        // updateAmbulance markers without centering
-                        LatLngBounds.Builder builder = new LatLngBounds.Builder();
-                        updateWaypointMarkers(builder);
-                        break;
+                    break;
                 }
 
+                case AmbulanceForegroundService.BroadcastActions.OTHER_AMBULANCES_UPDATE: {
+
+                    Log.i(TAG, "OTHER_AMBULANCES_UPDATE");
+                    int ambulanceId = intent.getIntExtra(AmbulanceForegroundService.BroadcastExtras.AMBULANCE_ID, -1);
+
+                    if (ambulanceId == -1) {
+                        // update all markers
+                        LatLngBounds.Builder builder = new LatLngBounds.Builder();
+                        updateAmbulanceMarkers(builder);
+
+                        // update current ambulance as well
+                        Ambulance ambulance = AmbulanceForegroundService.getAppData().getAmbulance();
+                        updateAmbulanceMarker(ambulance);
+                    } else {
+                        SparseArray<Ambulance> ambulances = AmbulanceForegroundService.getAppData().getAmbulances();
+                        updateAmbulanceMarker(ambulances.get(ambulanceId));
+                    }
+                    break;
+                }
+
+                case AmbulanceForegroundService.BroadcastActions.CALL_COMPLETED:
+
+                    Log.i(TAG, "CALL_COMPLETED");
+
+                case AmbulanceForegroundService.BroadcastActions.CALL_UPDATE:
+
+                    Log.i(TAG, "CALL_UPDATE");
+
+                    // updateAmbulance markers without centering
+                    LatLngBounds.Builder builder = new LatLngBounds.Builder();
+                    updateWaypointMarkers(builder);
+                    break;
             }
+        } else {
+            Log.d(TAG, "action or google maps is null");
         }
     }
 
@@ -500,8 +492,14 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
         // set done on resume to false
         doneOnResume = false;
 
-        return rootView;
+        // Register receiver
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(AmbulanceForegroundService.BroadcastActions.OTHER_AMBULANCES_UPDATE);
+        filter.addAction(AmbulanceForegroundService.BroadcastActions.AMBULANCE_UPDATE);
+        filter.addAction(AmbulanceForegroundService.BroadcastActions.CALL_UPDATE);
+        setupReceiver(filter);
 
+        return rootView;
     }
 
     @Override
@@ -509,6 +507,11 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
         super.onResume();
 
         Log.d(TAG, "onResume");
+
+        // disable broadcasts
+        setReceiverActive(false);
+
+        // setup navigation
         activity.setupNavigationBar();
 
         // configure buttons
@@ -558,7 +561,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
 
         } else {
 
-            // already got map
+            // did not get map, will call initialize map in onMapReady
             Log.d(TAG, "Did not initialized map in onResume");
 
             SupportMapFragment mapFragment = (SupportMapFragment) getChildFragmentManager()
@@ -567,16 +570,6 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
 
         }
 
-        // Register receiver
-        Log.d(TAG, "Registering receiver");
-        IntentFilter filter = new IntentFilter();
-        filter.addAction(AmbulanceForegroundService.BroadcastActions.OTHER_AMBULANCES_UPDATE);
-        filter.addAction(AmbulanceForegroundService.BroadcastActions.AMBULANCE_UPDATE);
-        filter.addAction(AmbulanceForegroundService.BroadcastActions.CALL_UPDATE);
-        receiver = new MapFragmentBroadcastReceiver();
-        processBroadcasts = false;
-        getLocalBroadcastManager().registerReceiver(receiver, filter);
-
     }
 
     @Override
@@ -584,15 +577,6 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
         super.onPause();
 
         Log.d(TAG, "onPause");
-
-        // Unregister receiver
-        if (receiver != null) {
-            getLocalBroadcastManager().unregisterReceiver(receiver);
-            processBroadcasts = false;
-            receiver = null;
-        } else {
-            Log.d(TAG, "DID NOT REMOVE RECEIVER!");
-        }
 
         // show toolbar
         showToolbar = toolbarDragHelper.isDown();
@@ -622,6 +606,8 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
 
         // set done on resume to false
         doneOnResume = false;
+
+        // TODO: do we need to reinitialize map?
         googleMap = null;
 
         // stop location updates
@@ -666,7 +652,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
 
     private void initializeMap() {
 
-        Log.d(TAG, "initializeMapAndReceiver");
+        Log.d(TAG, "initializeMap");
 
         // Update markers and center map
         updateMarkers();
@@ -688,7 +674,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
         googleMap.setOnCameraIdleListener(this);
 
         // enable broadcasts
-        processBroadcasts = true;
+        setReceiverActive(true);
 
     }
 
@@ -1413,15 +1399,6 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
 
         }
 
-    }
-
-    /**
-     * Get LocalBroadcastManager
-     *
-     * @return the LocalBroadcastManager
-     */
-    private LocalBroadcastManager getLocalBroadcastManager() {
-        return LocalBroadcastManager.getInstance(requireContext());
     }
 
 }

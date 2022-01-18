@@ -29,7 +29,7 @@
             app:destination="@id/hospitalsFragment" />
         <action
             android:id="@+id/action_map_to_settings"
-            app:destination="@id/settingsFragment" />
+            app:destination="@id/settingsButton" />
     </fragment>
 
     <fragment
@@ -87,7 +87,7 @@
     </fragment>
 
     <fragment
-        android:id="@+id/settingsFragment"
+        android:id="@+id/settingsButton"
         android:name="org.emstrack.ambulance.fragments.SettingsFragment"
         android:label="@string/settings" />
 
@@ -135,6 +135,18 @@
         <action
             android:id="@+id/action_call_to_map"
             app:destination="@id/mapFragment" />
+        <action
+            android:id="@+id/action_call_to_selectLocation"
+            app:destination="@id/selectLocationFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
     </fragment>
+
+    <fragment
+        android:id="@+id/selectLocationFragment"
+        android:name="org.emstrack.ambulance.fragments.SelectLocationFragment"
+        android:label="SelectLocationFragment" />
 
 </navigation>

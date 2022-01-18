@@ -1,6 +1,5 @@
 package org.emstrack.ambulance.fragments;
 
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -12,8 +11,6 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
-import androidx.fragment.app.Fragment;
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -22,6 +19,7 @@ import org.emstrack.ambulance.R;
 import org.emstrack.ambulance.adapters.AmbulanceRecyclerAdapter;
 import org.emstrack.ambulance.models.AmbulanceAppData;
 import org.emstrack.ambulance.services.AmbulanceForegroundService;
+import org.emstrack.ambulance.util.FragmentWithLocalBroadcastReceiver;
 import org.emstrack.ambulance.util.RequestPermission;
 import org.emstrack.models.Ambulance;
 import org.emstrack.models.UpdatedOn;
@@ -29,31 +27,25 @@ import org.emstrack.models.UpdatedOn;
 import java.util.ArrayList;
 import java.util.Collections;
 
-public class AmbulancesFragment extends Fragment {
+public class AmbulancesFragment extends FragmentWithLocalBroadcastReceiver {
 
     private static final String TAG = AmbulanceFragment.class.getSimpleName();
     private MainActivity activity;
     private RecyclerView recyclerView;
-    private AmbulancesUpdateBroadcastReceiver receiver;
     private RequestPermission requestPermission;
 
-    public class AmbulancesUpdateBroadcastReceiver extends BroadcastReceiver {
+    @Override
+    public void onReceive(Context context, @NonNull Intent intent) {
+        final String action = intent.getAction();
+        if (action != null) {
+            if (action.equals(AmbulanceForegroundService.BroadcastActions.OTHER_AMBULANCES_UPDATE)) {
 
-        @Override
-        public void onReceive(Context context, Intent intent ) {
-            if (intent != null) {
-                final String action = intent.getAction();
-                if (action != null) {
-                    if (action.equals(AmbulanceForegroundService.BroadcastActions.OTHER_AMBULANCES_UPDATE)) {
+                // TODO: update only what changed
 
-                        // TODO: update only what changed
+                Log.i(TAG, "AMBULANCES_UPDATE");
+                AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
+                refreshData(appData.getAmbulances());
 
-                        Log.i(TAG, "AMBULANCES_UPDATE");
-                        AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
-                        refreshData(appData.getAmbulances());
-
-                    }
-                }
             }
         }
     }
@@ -67,6 +59,11 @@ public class AmbulancesFragment extends Fragment {
         recyclerView = rootView.findViewById(R.id.ambulances_recycler_view);
 
         requestPermission = new RequestPermission(this);
+
+        // Register receiver
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(AmbulanceForegroundService.BroadcastActions.OTHER_AMBULANCES_UPDATE);
+        setupReceiver(filter);
 
         return rootView;
     }
@@ -82,24 +79,6 @@ public class AmbulancesFragment extends Fragment {
 
         // updateAmbulance UI
         refreshData(appData.getAmbulances());
-
-        // Register receiver
-        IntentFilter filter = new IntentFilter();
-        filter.addAction(AmbulanceForegroundService.BroadcastActions.OTHER_AMBULANCES_UPDATE);
-        receiver = new AmbulancesUpdateBroadcastReceiver();
-        getLocalBroadcastManager().registerReceiver(receiver, filter);
-
-    }
-
-    @Override
-    public void onPause() {
-        super.onPause();
-
-        // Unregister receiver
-        if (receiver != null) {
-            getLocalBroadcastManager().unregisterReceiver(receiver);
-            receiver = null;
-        }
 
     }
 
@@ -132,15 +111,6 @@ public class AmbulancesFragment extends Fragment {
     public void selectAmbulance(int ambulanceId) {
         requestPermission.setOnPermissionGranted(granted -> activity.selectAmbulance(ambulanceId));
         requestPermission.check();
-    }
-
-    /**
-     * Get LocalBroadcastManager
-     *
-     * @return the LocalBroadcastManager
-     */
-    private LocalBroadcastManager getLocalBroadcastManager() {
-        return LocalBroadcastManager.getInstance(requireContext());
     }
 
 }

@@ -359,5 +359,10 @@
     <string name="panicMessage">Si hace clic en \'%1$s\', se transmitirá un mensaje de pánico a nuestro servidores.\n\nSi no lo hace, este cuadro de diálogo se cerrará automáticamente en %2$ds sin enviar un mensaje.\n\nIMPORTANTE: esta función aún no es compatible con su servidor actual.</string>
 
     <string name="EMSTrackURL">Para más informacion contacte\n\n<a href="https://emstrack.org/web">emstrack.org</a></string>
+    <string name="Other">Ubicación</string>
+    <string name="Search">Búsqueda</string>
+    <string name="Waypoints">Punto de ruta</string>
+    <string name="confirmNewWaypoint">¿Desea agregar el siguiente punto de ruta a la llamada actual?\\n\\n%1$s</string>
+    <string name="addWaypointButtonLabel">Agregar punto de ruta</string>
 
 </resources>

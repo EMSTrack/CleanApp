@@ -20,7 +20,7 @@ import androidx.fragment.app.Fragment;
 
 import org.emstrack.ambulance.MainActivity;
 import org.emstrack.ambulance.R;
-import org.emstrack.ambulance.dialogs.AlertDialog;
+import org.emstrack.ambulance.dialogs.SimpleAlertDialog;
 import org.emstrack.ambulance.dialogs.AlertSnackbar;
 import org.emstrack.ambulance.dialogs.DemoLoginDialog;
 import org.emstrack.ambulance.models.AmbulanceAppData;
@@ -166,7 +166,7 @@ public class LoginFragment extends Fragment {
                             }
                         }
                                 .setFailureMessage(null)
-                                .setAlert(new AlertDialog(activity,
+                                .setAlert(new SimpleAlertDialog(activity,
                                         getResources().getString(R.string.couldNotLoginUser, username)))
                                 .start();
 

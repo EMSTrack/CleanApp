@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
-        android:id="@+id/onlineIcon"
+        android:id="@+id/onlineButton"
         android:title="@string/online"
         app:showAsAction="always"
         android:icon="@drawable/ic_wifi" />
@@ -21,7 +21,7 @@
         android:icon="@drawable/ic_exclamation_triangle" />
 
     <item
-        android:id="@+id/settingsFragment"
+        android:id="@+id/settingsButton"
         android:title="@string/settings"
         app:showAsAction="always"
         android:icon="@drawable/ic_cog_solid" />

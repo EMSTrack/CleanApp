@@ -13,23 +13,23 @@ import org.emstrack.models.util.Alert;
  * @since 02/10/2019
  */
 
-public class AlertDialog extends Alert {
+public class SimpleAlertDialog extends Alert {
 
-    private static String TAG = AlertDialog.class.getSimpleName();
+    private static String TAG = SimpleAlertDialog.class.getSimpleName();
 
     private final android.app.AlertDialog.Builder builder;
     private final DialogInterface.OnClickListener onClickListener;
     private android.app.AlertDialog alert;
 
-    public AlertDialog(String TAG) {
+    public SimpleAlertDialog(String TAG) {
         this.TAG = TAG;
         this.builder = null;
         this.onClickListener = null;
         this.alert = null;
     }
 
-    public AlertDialog(Activity activity, String title,
-                       DialogInterface.OnClickListener onClickListener) {
+    public SimpleAlertDialog(Activity activity, String title,
+                             DialogInterface.OnClickListener onClickListener) {
 
         // create builder
         this.builder = new android.app.AlertDialog.Builder(activity);
@@ -40,7 +40,7 @@ public class AlertDialog extends Alert {
 
     }
 
-    public AlertDialog(Activity activity, String title) {
+    public SimpleAlertDialog(Activity activity, String title) {
         this(activity, title, (dialog, which) -> { /* do nothing */ });
     }
 

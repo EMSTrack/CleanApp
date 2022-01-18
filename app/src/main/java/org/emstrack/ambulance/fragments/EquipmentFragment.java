@@ -9,7 +9,6 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -17,7 +16,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import org.emstrack.ambulance.MainActivity;
 import org.emstrack.ambulance.R;
 import org.emstrack.ambulance.adapters.EquipmentRecyclerAdapter;
-import org.emstrack.ambulance.dialogs.AlertDialog;
+import org.emstrack.ambulance.dialogs.SimpleAlertDialog;
 import org.emstrack.ambulance.models.EquipmentType;
 import org.emstrack.ambulance.util.SwipeController;
 import org.emstrack.ambulance.util.SwipeControllerActions;
@@ -57,7 +56,7 @@ public class EquipmentFragment extends Fragment {
         swipeController = new SwipeController(requireContext(), new SwipeControllerActions(){
             @Override
             public void onLeftClicked(int position) {
-                new AlertDialog(getActivity(), getString(R.string.editEquipment))
+                new SimpleAlertDialog(getActivity(), getString(R.string.editEquipment))
                         .alert(getString(R.string.notImplementedYet));
             }
         },
@@ -175,16 +174,6 @@ public class EquipmentFragment extends Fragment {
             }
                     .start();
         }
-    }
-
-
-    /**
-     * Get LocalBroadcastManager
-     *
-     * @return the LocalBroadcastManager
-     */
-    private LocalBroadcastManager getLocalBroadcastManager() {
-        return LocalBroadcastManager.getInstance(requireContext());
     }
 
 }

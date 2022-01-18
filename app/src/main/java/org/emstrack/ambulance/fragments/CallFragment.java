@@ -1,14 +1,10 @@
 package org.emstrack.ambulance.fragments;
 
-import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
 import android.os.Handler;
-import android.text.Editable;
-import android.text.TextWatcher;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -21,9 +17,8 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
-import androidx.fragment.app.Fragment;
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.LinearSnapHelper;
 import androidx.recyclerview.widget.RecyclerView;
@@ -36,9 +31,12 @@ import org.emstrack.ambulance.MainActivity;
 import org.emstrack.ambulance.R;
 import org.emstrack.ambulance.adapters.PatientRecyclerAdapter;
 import org.emstrack.ambulance.adapters.WaypointInfoRecyclerAdapter;
+import org.emstrack.ambulance.dialogs.SimpleAlertDialog;
 import org.emstrack.ambulance.models.AmbulanceAppData;
 import org.emstrack.ambulance.models.MessageType;
 import org.emstrack.ambulance.services.AmbulanceForegroundService;
+import org.emstrack.ambulance.util.FragmentWithLocalBroadcastReceiver;
+import org.emstrack.ambulance.util.ViewTextWatcher;
 import org.emstrack.ambulance.views.WaypointViewHolder;
 import org.emstrack.models.Ambulance;
 import org.emstrack.models.AmbulanceCall;
@@ -53,12 +51,11 @@ import java.util.Locale;
 import java.util.Map;
 
 @com.google.android.material.badge.ExperimentalBadgeUtils
-public class CallFragment extends Fragment {
+public class CallFragment extends FragmentWithLocalBroadcastReceiver {
 
     private static final String TAG = CallFragment.class.getSimpleName();
     private static final int MAX_RETRIES = 10;
 
-    private CallUpdateBroadcastReceiver receiver;
     private MainActivity activity;
 
     private LinearLayoutManager waypointLinearLayoutManager;
@@ -94,39 +91,33 @@ public class CallFragment extends Fragment {
     private WaypointInfoRecyclerAdapter waypointAdapter;
     private Bundle arguments;
 
-    public class CallUpdateBroadcastReceiver extends BroadcastReceiver {
-
-        @Override
-        public void onReceive(Context context, Intent intent ) {
-            if (intent != null) {
-
-                final String action = intent.getAction();
-                if (action != null) {
-                    switch (action) {
-                        case AmbulanceForegroundService.BroadcastActions.AMBULANCE_UPDATE:
-                            Log.i(TAG, "AMBULANCE_UPDATE");
-                            if (waypointAdapter != null) {
-                                waypointAdapter.notifyDataSetChanged();
-                            }
-                            break;
-                        case AmbulanceForegroundService.BroadcastActions.CALL_UPDATE:
-                            Log.i(TAG, "CALL_UPDATE");
-                            refreshData();
-                            break;
-                        case AmbulanceForegroundService.BroadcastActions.CALL_COMPLETED:
-                            Log.i(TAG, "CALL_COMPLETED");
-                            activity.navigate(R.id.ambulanceFragment);
-                            break;
-                        default:
-                            Log.i(TAG, "Unknown broadcast action");
-                            break;
+    @Override
+    public void onReceive(Context context, @NonNull Intent intent) {
+        final String action = intent.getAction();
+        if (action != null) {
+            switch (action) {
+                case AmbulanceForegroundService.BroadcastActions.AMBULANCE_UPDATE:
+                    Log.i(TAG, "AMBULANCE_UPDATE");
+                    if (waypointAdapter != null) {
+                        waypointAdapter.notifyDataSetChanged();
                     }
-                } else {
-                    Log.i(TAG, "Action is null");
-                }
-
+                    break;
+                case AmbulanceForegroundService.BroadcastActions.CALL_UPDATE:
+                    Log.i(TAG, "CALL_UPDATE");
+                    refreshData();
+                    break;
+                case AmbulanceForegroundService.BroadcastActions.CALL_COMPLETED:
+                    Log.i(TAG, "CALL_COMPLETED");
+                    activity.navigate(R.id.ambulanceFragment);
+                    break;
+                default:
+                    Log.i(TAG, "Unknown broadcast action");
+                    break;
             }
+        } else {
+            Log.i(TAG, "Action is null");
         }
+
     }
 
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -193,20 +184,7 @@ public class CallFragment extends Fragment {
 
 
         // enable plus only when text is not empty
-        callAddPatientNameEditText.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-                callPatientAddIcon.setEnabled(charSequence.toString().trim().length() != 0);
-            }
-
-            @Override
-            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-            }
-
-            @Override
-            public void afterTextChanged(Editable editable) {
-            }
-        });
+        callAddPatientNameEditText.addTextChangedListener(new ViewTextWatcher(callPatientAddIcon));
 
         // Set patient recycler view
         patientRecyclerView = callLayout.findViewById(R.id.patientRecyclerView);
@@ -258,15 +236,18 @@ public class CallFragment extends Fragment {
 
         waypointToolbarUndoButton
                 .setOnClickListener(v -> {
-                    new org.emstrack.ambulance.dialogs.AlertDialog(getActivity(), getString(R.string.alert_warning_title))
+                    new SimpleAlertDialog(getActivity(), getString(R.string.alert_warning_title))
                             .alert(getString(R.string.notImplementedYet));
                 });
 
         waypointToolbarAddWaypointButton
                 .setOnClickListener(v -> {
-                    Call call = AmbulanceForegroundService.getAppData().getCalls().getCurrentCall();
-                    activity.promptNextWaypointDialog(call.getId());
+                    activity.navigate(R.id.action_call_to_selectLocation);
                 });
+//                .setOnClickListener(v -> {
+//                    Call call = AmbulanceForegroundService.getAppData().getCalls().getCurrentCall();
+//                    activity.promptNextWaypointDialog(call.getId());
+//                });
 
         waypointToolbarSkipButton
                 .setOnClickListener(v -> {
@@ -327,6 +308,13 @@ public class CallFragment extends Fragment {
         // get arguments
         arguments = getArguments();
 
+        // Register receiver
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(AmbulanceForegroundService.BroadcastActions.AMBULANCE_UPDATE);
+        filter.addAction(AmbulanceForegroundService.BroadcastActions.CALL_UPDATE);
+        filter.addAction(AmbulanceForegroundService.BroadcastActions.CALL_COMPLETED);
+        setupReceiver(filter);
+
         return view;
     }
 
@@ -337,28 +325,8 @@ public class CallFragment extends Fragment {
         Log.d(TAG, "onResume");
         activity.setupNavigationBar();
 
-        // Register receiver
-        IntentFilter filter = new IntentFilter();
-        filter.addAction(AmbulanceForegroundService.BroadcastActions.AMBULANCE_UPDATE);
-        filter.addAction(AmbulanceForegroundService.BroadcastActions.CALL_UPDATE);
-        filter.addAction(AmbulanceForegroundService.BroadcastActions.CALL_COMPLETED);
-        receiver = new CallFragment.CallUpdateBroadcastReceiver();
-        getLocalBroadcastManager().registerReceiver(receiver, filter);
-
         // process arguments
         processArguments();
-
-    }
-
-    @Override
-    public void onPause() {
-        super.onPause();
-
-        // Unregister receiver
-        if (receiver != null) {
-            getLocalBroadcastManager().unregisterReceiver(receiver);
-            receiver = null;
-        }
 
     }
 
@@ -415,7 +383,7 @@ public class CallFragment extends Fragment {
 
                 if (invalidCall) {
                     Log.d(TAG, String.format("Ambulance '%d', call '%d' and waypoint '%d' are not current", ambulanceId, callId, waypointId));
-                    new org.emstrack.ambulance.dialogs.AlertDialog(activity, getString(R.string.alert_warning_title))
+                    new SimpleAlertDialog(activity, getString(R.string.alert_warning_title))
                             .alert(getString(R.string.invalidNotification), (dialogInterface, i) -> activity.navigate(R.id.mapFragment));
                 }
 
@@ -725,17 +693,8 @@ public class CallFragment extends Fragment {
     }
 
     private void addPatient() {
-        new org.emstrack.ambulance.dialogs.AlertDialog(requireActivity(), getString(R.string.alert_warning_title))
+        new SimpleAlertDialog(requireActivity(), getString(R.string.alert_warning_title))
                 .alert(getString(R.string.notImplementedYet));
-    }
-
-    /**
-     * Get LocalBroadcastManager
-     *
-     * @return the LocalBroadcastManager
-     */
-    private LocalBroadcastManager getLocalBroadcastManager() {
-        return LocalBroadcastManager.getInstance(requireContext());
     }
 
 }
