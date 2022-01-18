@@ -28,6 +28,13 @@ public class Location extends NamedAddress {
         this.id = -1;
         this.type = type;
     }
+
+    public Location(String name, String type, Address address) {
+        super(name, address);
+        this.id = -1;
+        this.type = type;
+    }
+
     public Location(String name, String type,
                     String number, String street, String unit, String neighborhood, String city,
                     String state, String zipcode, String country,
@@ -88,7 +95,7 @@ public class Location extends NamedAddress {
     @NonNull
     @Override
     public String toString() {
-        return String.format("{id:'%1$d', type:'%2$s', value:'%3$s'}", this.id, this.type, super.toString());
+        return String.format(Locale.getDefault(), "{id:'%1$d', type:'%2$s', value:'%3$s'}", this.id, this.type, super.toString());
     }
 
     /**

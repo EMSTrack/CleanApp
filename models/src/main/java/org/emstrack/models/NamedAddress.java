@@ -63,6 +63,17 @@ public class NamedAddress extends Address {
     }
 
     /**
+     * A named address from an address
+     *
+     * @param name    the address name
+     * @param address the address
+     */
+    public NamedAddress(String name, Address address) {
+        super(address);
+        this.name = name;
+    }
+
+    /**
      * An address with only a GPS location.
      *
      * @param name         the address name
@@ -84,7 +95,7 @@ public class NamedAddress extends Address {
     @Override
     @NonNull
     public String toString() {
-        return this.name + "\n" + super.toString();
+        return (!this.name.equals("") ? this.name + "\n" : "") + super.toString();
     }
 
     @NonNull

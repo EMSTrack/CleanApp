@@ -31,6 +31,7 @@ import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.libraries.places.api.model.AddressComponents;
 import com.google.android.libraries.places.api.model.AutocompletePrediction;
 import com.google.android.libraries.places.api.model.AutocompleteSessionToken;
 import com.google.android.libraries.places.api.model.Place;
@@ -39,6 +40,9 @@ import com.google.android.libraries.places.api.model.TypeFilter;
 import com.google.android.libraries.places.api.net.FetchPlaceRequest;
 import com.google.android.libraries.places.api.net.FindAutocompletePredictionsRequest;
 import com.google.android.libraries.places.api.net.PlacesClient;
+import com.google.gson.FieldNamingPolicy;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 import org.emstrack.ambulance.MainActivity;
 import org.emstrack.ambulance.R;
@@ -47,6 +51,7 @@ import org.emstrack.ambulance.adapters.PlacesRecyclerAdapter;
 import org.emstrack.ambulance.models.AmbulanceAppData;
 import org.emstrack.ambulance.models.SelectLocationType;
 import org.emstrack.ambulance.services.AmbulanceForegroundService;
+import org.emstrack.models.Address;
 import org.emstrack.models.Ambulance;
 import org.emstrack.models.AmbulanceCall;
 import org.emstrack.models.Call;
@@ -54,10 +59,15 @@ import org.emstrack.models.GPSLocation;
 import org.emstrack.models.Hospital;
 import org.emstrack.models.Location;
 import org.emstrack.models.NamedAddress;
+import org.emstrack.models.Waypoint;
+import org.emstrack.models.gson.ExcludeAnnotationExclusionStrategy;
 import org.emstrack.models.util.BroadcastActions;
+import org.emstrack.models.util.CalendarDateTypeAdapter;
 import org.emstrack.models.util.OnServiceComplete;
 
+import java.nio.file.Watchable;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 import java.util.Objects;
 
@@ -345,32 +355,39 @@ public class SelectLocationFragment
 
             // build waypoint
             Context context = requireContext();
-            String waypoint;
+            String waypointJson;
             String message;
             switch(type) {
                 case HOSPITAL:
                     Hospital hospital = (Hospital) selectedLocation;
-                    waypoint = "{\"order\":" + maximumOrder + ",\"location_id\":" + hospital.getId() + "}";
+                    waypointJson = "{\"order\":" + maximumOrder + ",\"location_id\":" + hospital.getId() + "}";
                     message = getString(R.string.confirmNewWaypoint, hospital.toAddress(context));
                     break;
 
                 case OTHER:
                 case BASE:
                     Location location = (Location) selectedLocation;
-                    waypoint = "{\"order\":" + maximumOrder + ",\"location_id\":" + location.getId() + "}";
+                    waypointJson = "{\"order\":" + maximumOrder + ",\"location_id\":" + location.getId() + "}";
                     message = getString(R.string.confirmNewWaypoint, location.toAddress(context));
                     break;
 
                 default:
                 case SELECT:
-                    // TODO: add selected waypoint
-                    waypoint = null;
-                    message = null;
+                    Location newLocation = (Location) selectedLocation;
+                    Gson gson = new GsonBuilder()
+                            .registerTypeHierarchyAdapter(Calendar.class, new CalendarDateTypeAdapter())
+                            .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
+                            .addSerializationExclusionStrategy(new ExcludeAnnotationExclusionStrategy())
+                            .addSerializationExclusionStrategy(new Waypoint.WaypointCreationExclusionStrategy())
+                            .create();
+                    Waypoint waypoint = new Waypoint(maximumOrder, Waypoint.STATUS_CREATED, newLocation);
+                    waypointJson = gson.toJson(waypoint);
+                    message = getString(R.string.confirmNewWaypoint, newLocation.toAddress(context));
                     break;
             }
 
             // Publish waypoint
-            if (waypoint != null) {
+            if (waypointJson != null) {
 
                 int ambulanceId = ambulance.getId();
                 int callId = call.getId();
@@ -382,14 +399,12 @@ public class SelectLocationFragment
                                 (dialog, id) -> {
 
                                     Log.i(TAG, "Waypoint selected");
-
-                                    // -1 means create waypoint
-                                    int waypointId = -1;
+                                    Log.d(TAG, String.format("waypointJson = %s", waypointJson));
 
                                     Intent serviceIntent = new Intent(requireActivity(), AmbulanceForegroundService.class);
                                     serviceIntent.setAction(AmbulanceForegroundService.Actions.WAYPOINT_ADD);
-                                    serviceIntent.putExtra(AmbulanceForegroundService.BroadcastExtras.WAYPOINT_UPDATE, waypoint);
-                                    serviceIntent.putExtra(AmbulanceForegroundService.BroadcastExtras.WAYPOINT_ID, waypointId);
+                                    serviceIntent.putExtra(AmbulanceForegroundService.BroadcastExtras.WAYPOINT_UPDATE, waypointJson);
+                                    serviceIntent.putExtra(AmbulanceForegroundService.BroadcastExtras.WAYPOINT_ID, -1); // -1 means create waypoint
                                     serviceIntent.putExtra(AmbulanceForegroundService.BroadcastExtras.AMBULANCE_ID, ambulanceId);
                                     serviceIntent.putExtra(AmbulanceForegroundService.BroadcastExtras.CALL_ID, callId);
 
@@ -451,6 +466,7 @@ public class SelectLocationFragment
         // fetch place
         List<Place.Field> fields = new ArrayList<>();
         fields.add(Place.Field.LAT_LNG);
+        fields.add(Place.Field.ADDRESS_COMPONENTS);
         FetchPlaceRequest request = FetchPlaceRequest.builder(prediction.getPlaceId(), fields)
                 .setSessionToken(googlePlacesToken)
                 .build();
@@ -465,30 +481,40 @@ public class SelectLocationFragment
                 .addOnSuccessListener(response -> {
 
                     // create location
-                    LatLng latLng = response.getPlace().getLatLng();
-                    GPSLocation location = new GPSLocation(latLng.latitude, latLng.longitude);
+                    Place place = response.getPlace();
+                    LatLng latLng = place.getLatLng();
+                    AddressComponents addressComponents = place.getAddressComponents();
+                    if (latLng != null) {
 
-                    // set selected
-                    // TODO: add address
-                    selectedLocation = new Location("", Location.TYPE_WAYPOINT, location);
+                        // parse address and set selected
+                        if (addressComponents != null) {
+                            Address address = Address.parseAddressComponents(latLng, addressComponents);
+                            Log.d(TAG, String.format("parsed address = %s", address));
+                            selectedLocation = new Location("", Location.TYPE_WAYPOINT, address);
+                        } else {
+                            selectedLocation = new Location("", Location.TYPE_WAYPOINT, new GPSLocation(latLng));
+                        }
 
-                    // set marker (draggable)
-                    setLocationMarker(true);
+                        // set marker (draggable)
+                        setLocationMarker(true);
 
-                    // enable button
-                    selectButtonOk.setEnabled(true);
+                        // enable button
+                        selectButtonOk.setEnabled(true);
 
-                    // set map visible
-                    mapFragmentLayout.setVisibility(View.VISIBLE);
-                    selectButtonOkLayout.setVisibility(View.VISIBLE);
+                        // set map visible
+                        mapFragmentLayout.setVisibility(View.VISIBLE);
+                        selectButtonOkLayout.setVisibility(View.VISIBLE);
 
-                    // hide keyboard
-                    // Check if no view has focus:
-                    FragmentActivity activity = requireActivity();
-                    View view = activity.getCurrentFocus();
-                    if (view != null) {
-                        InputMethodManager imm = (InputMethodManager) activity.getSystemService(Context.INPUT_METHOD_SERVICE);
-                        imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+                        // hide keyboard
+                        // Check if no view has focus:
+                        FragmentActivity activity = requireActivity();
+                        View view = activity.getCurrentFocus();
+                        if (view != null) {
+                            InputMethodManager imm = (InputMethodManager) activity.getSystemService(Context.INPUT_METHOD_SERVICE);
+                            imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+                        }
+                    } else {
+                        Log.d(TAG, "Did not get LatLng");
                     }
 
                 })
