@@ -16,12 +16,15 @@ import org.emstrack.models.Settings;
 import org.emstrack.models.Token;
 import org.emstrack.models.TokenLogin;
 import org.emstrack.models.Version;
+import org.emstrack.models.Waypoint;
 
 import java.util.List;
 
 import retrofit2.http.Body;
 import retrofit2.http.GET;
 import retrofit2.http.Header;
+import retrofit2.http.Headers;
+import retrofit2.http.PATCH;
 import retrofit2.http.POST;
 import retrofit2.Call;
 import retrofit2.http.Path;
@@ -179,6 +182,27 @@ public interface APIService {
      */
     @POST("/en/api/call/{id}/note/")
     Call<CallNote> addCallNote(@Path("id") int id, @Body CallNote callNote);
+
+    /**
+     * Create call waypoint
+     *
+     * IMPORTANT: Add language to PATCH request
+     *
+     * @return the api call
+     */
+    @Headers("Content-Type: application/json")
+    @POST("/en/api/call/{callId}/ambulance/{ambulanceId}/waypoint/")
+    Call<Waypoint> postCallWaypoint(@Path("callId") int callId, @Path("ambulanceId") int ambulanceId, @Body String waypoint);
+
+    /**
+     * Patch call waypoint
+     *
+     * IMPORTANT: Add language to PATCH request
+     *
+     * @return the api call
+     */
+    @PATCH("/en/api/call/{callId}/ambulance/{ambulanceId}/waypoint/")
+    Call<Waypoint> patchCallWaypoint(@Path("callId") int callId, @Path("ambulanceId") int ambulanceId, @Body Waypoint waypoint);
 
     /**
      * Retrieve api version

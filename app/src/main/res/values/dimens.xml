@@ -27,5 +27,6 @@
     <dimen name="selectLocationIconHeight">20dp</dimen>
     <dimen name="selectLocationSearchIconWidth">18dp</dimen>
     <dimen name="selectLocationSearchIconHeight">18dp</dimen>
+    <dimen name="selectLocationMarginHorizontal">10dp</dimen>
 
 </resources>

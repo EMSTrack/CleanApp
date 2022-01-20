@@ -58,6 +58,7 @@ import com.google.android.material.navigationrail.NavigationRailView;
 import org.emstrack.ambulance.adapters.WaypointInfoRecyclerAdapter;
 import org.emstrack.ambulance.dialogs.AlertSnackbar;
 import org.emstrack.ambulance.dialogs.SimpleAlertDialog;
+import org.emstrack.ambulance.fragments.CallFragment;
 import org.emstrack.ambulance.fragments.EquipmentFragment;
 import org.emstrack.ambulance.fragments.MessagesFragment;
 import org.emstrack.ambulance.fragments.SelectLocationFragment;
@@ -104,6 +105,7 @@ public class MainActivity extends AppCompatActivity {
     public static final String ACTION_MARK_AS_VISITING = "MARK_AS_VISITING";
     public static final String ACTION_MARK_AS_VISITED = "MARK_AS_VISITED";
     public static final String ACTION_OPEN_CALL_FRAGMENT = "OPEN_CALL_FRAGMENT";
+    public static final String ACTION_ADD_WAYPOINT = "ADD_WAYPOINT";
 
     private static final String TAG = MainActivity.class.getSimpleName();
 
@@ -114,6 +116,7 @@ public class MainActivity extends AppCompatActivity {
 
     private boolean promptingNextWaypoint;
     private PlacesClient placesClient;
+    private boolean actionBarButtonsVisible;
 
     public enum BackButtonMode {
         UP,
@@ -147,7 +150,6 @@ public class MainActivity extends AppCompatActivity {
     private BottomNavigationView bottomNavigationView;
     private NavigationRailView navigationRailView;
     private Menu actionBarMenu;
-    private boolean actionBarButtonsVisible;
     private BackButtonMode backButtonMode;
 
     public class MainActivityBroadcastReceiver extends BroadcastReceiver {
@@ -292,10 +294,12 @@ public class MainActivity extends AppCompatActivity {
 
         // save menu
         actionBarMenu = menu;
-        actionBarButtonsVisible = true;
 
         // Hide video button if video is not enabled
         hideVideoCallButton();
+
+        // hide other buttons
+        setActionBarButtonsVisible(actionBarButtonsVisible);
 
         // Online icon
         onlineIcon = menu.findItem(R.id.onlineButton).getIcon();
@@ -333,6 +337,9 @@ public class MainActivity extends AppCompatActivity {
                 customTabsClient = null;
             }
         });
+
+        // show all icons
+        actionBarButtonsVisible = true;
 
         // Do not logout
         logoutAfterFinish = false;
@@ -506,50 +513,58 @@ public class MainActivity extends AppCompatActivity {
         this.backButtonMode = backButtonMode;
     }
 
-    public void setupNavigationBar() {
-        setupNavigationBar(null);
+    private Fragment getCurrentFragment() {
+
+        // get current fragment
+        // https://stackoverflow.com/questions/50689206/how-i-can-retrieve-current-fragment-in-navhostfragment
+        return navHostFragment.getChildFragmentManager().getFragments().get(0);
+
     }
 
-    public void setupNavigationBar(Fragment fragment) {
+    public void setupNavigationBar() {
         Log.i(TAG, "setupNavigationBar");
 
+        // get current fragment
+        Fragment fragment = getCurrentFragment();
+        Log.d(TAG, "fragment = " + fragment);
+
         ActionBar actionBar = getSupportActionBar();
-        if (fragment != null) {
+        if (fragment instanceof SettingsFragment ||
+                fragment instanceof EquipmentFragment ||
+                fragment instanceof MessagesFragment ||
+                fragment instanceof SelectLocationFragment) {
 
-            if (fragment.getClass().equals(SettingsFragment.class) ||
-                    fragment.getClass().equals(EquipmentFragment.class) ||
-                    fragment.getClass().equals(MessagesFragment.class) ||
-                    fragment.getClass().equals(SelectLocationFragment.class)) {
+            // hide action bar and bottom navigation bar
+            hideBottomNavigationBar();
+            hideNavigationRail();
 
-                // hide action bar and bottom navigation bar
-                hideBottomNavigationBar();
-                hideNavigationRail();
-                setActionBarButtonsVisible(!fragment.getClass().equals(SelectLocationFragment.class));
+            // set buttons visibility
+            actionBarButtonsVisible = !(fragment instanceof SelectLocationFragment);
 
-                // set back button as up
-                setBackButtonMode(BackButtonMode.UP);
+            // set back button as up
+            setBackButtonMode(BackButtonMode.UP);
 
-                // set title
-                if (actionBar != null) {
-                    if (fragment.getClass().equals(SettingsFragment.class)) {
-                        actionBar.setTitle(R.string.settings);
-                    } else if (fragment.getClass().equals(MessagesFragment.class)) {
-                            actionBar.setTitle(R.string.messages);
-                    } else if (fragment.getClass().equals(EquipmentFragment.class)) {
-                            actionBar.setTitle(R.string.equipment);
-                    } else {
-                        actionBar.setTitle(R.string.Waypoints);
-                    }
-                    actionBar.setDisplayHomeAsUpEnabled(true);
+            // set title
+            if (actionBar != null) {
+                if (fragment instanceof SettingsFragment) {
+                    actionBar.setTitle(R.string.settings);
+                } else if (fragment instanceof MessagesFragment) {
+                    actionBar.setTitle(R.string.messages);
+                } else if (fragment instanceof EquipmentFragment) {
+                    actionBar.setTitle(R.string.equipment);
+                } else {
+                    actionBar.setTitle(R.string.Waypoints);
                 }
-
+                actionBar.setDisplayHomeAsUpEnabled(true);
             }
 
         } else {
 
+            // set buttons visibility
+            actionBarButtonsVisible = true;
+
             // set back button as logout
             setBackButtonMode(BackButtonMode.LOGOUT);
-            setActionBarButtonsVisible(true);
 
             // set title
             if (actionBar != null) {
@@ -633,8 +648,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void setActionBarButtonsVisible(boolean visible) {
-        if (actionBarMenu != null && actionBarButtonsVisible != visible) {
-            actionBarButtonsVisible = visible;
+        Log.d(TAG, "setActionBarButtonsVisible: actionBarMenu = " + actionBarMenu);
+        if (actionBarMenu != null) {
             actionBarMenu.findItem(R.id.videoCallButton)
                     .setVisible(visible);
             actionBarMenu.findItem(R.id.onlineButton)
@@ -1714,197 +1729,45 @@ public class MainActivity extends AppCompatActivity {
 
     public void promptNextWaypointDialog(final int callId) {
 
-        if (this.promptingNextWaypoint) {
-            Log.i(TAG, "Already prompting next waypoint. Returning...");
+        // get current fragment
+        Fragment fragment = getCurrentFragment();
+        if (fragment instanceof SelectLocationFragment) {
+            Log.i(TAG, "Already prompting next waypoint. Aborting...");
             return;
         }
 
-        Log.i(TAG, "Creating next waypoint dialog");
-
-        // Get app data
-        AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
-
-        // Gather call details
-        final Call call = appData.getCalls().getCurrentCall();
-        if (call == null) {
-
-            // Not currently handling call
-            Log.d(TAG, "Not currently handling call");
-            return;
-
-        } else if (call.getId() != callId) {
-
-            // Not currently handling this call
-            Log.d(TAG, "Not currently handling call " + call.getId());
-            return;
-
-        }
-
-        // Get current ambulance
-        final Ambulance ambulance = appData.getAmbulance();
-        if (ambulance == null) {
-            Log.d(TAG, "Can't find ambulance; should never happen");
-            return;
-        }
-
-        // Get ambulanceCall
-        AmbulanceCall ambulanceCall = call.getAmbulanceCall(ambulance.getId());
-        if (ambulanceCall == null) {
-            Log.d(TAG, "Can't find ambulanceCall");
-            return;
-        }
-
-        // Get waypoints
-        final int maximumOrder = ambulanceCall.getNextNewWaypointOrder();
+        Log.d(TAG, "Will prompt for next waypoint");
 
         // Use the Builder class for convenient dialog construction
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-
-        // Create call view
-        View view = getLayoutInflater().inflate(R.layout.next_waypoint_dialog, null);
-
-        // Create hospital spinner
-        final Spinner hospitalSpinner = view.findViewById(R.id.spinnerHospitals);
-        hospitalSpinner.setAdapter(hospitalListAdapter);
-
-        // Create base spinner
-        final Spinner baseSpinner = view.findViewById(R.id.spinnerBases);
-        baseSpinner.setAdapter(baseListAdapter);
-
-        // Create base spinner
-        final Spinner othersSpinner = view.findViewById(R.id.spinnerOthers);
-        othersSpinner.setAdapter(othersListAdapter);
-
-        // Set spinner click listeners to make sure only base or hospital are selected
-        hospitalSpinner.setOnItemSelectedListener(
-                new OnItemSelectedListener() {
-                    @Override
-                    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                        if (position > 0 && baseSpinner.getSelectedItemPosition() > 0) {
-                            baseSpinner.setSelection(0);
-                        }
-                        if (position > 0 && othersSpinner.getSelectedItemPosition() > 0) {
-                            othersSpinner.setSelection(0);
-                        }
-                    }
-
-                    @Override
-                    public void onNothingSelected(AdapterView<?> parent) {
-
-                    }
-                }
-        );
-
-        baseSpinner.setOnItemSelectedListener(
-                new OnItemSelectedListener() {
-                    @Override
-                    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                        if (position > 0 && hospitalSpinner.getSelectedItemPosition() > 0) {
-                            hospitalSpinner.setSelection(0);
-                        }
-                        if (position > 0 && othersSpinner.getSelectedItemPosition() > 0) {
-                            othersSpinner.setSelection(0);
-                        }
-                    }
-
-                    @Override
-                    public void onNothingSelected(AdapterView<?> parent) {
-
-                    }
-                }
-        );
-
-        othersSpinner.setOnItemSelectedListener(
-                new OnItemSelectedListener() {
-                    @Override
-                    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                        if (position > 0 && hospitalSpinner.getSelectedItemPosition() > 0) {
-                            hospitalSpinner.setSelection(0);
-                        }
-                        if (position > 0 && baseSpinner.getSelectedItemPosition() > 0) {
-                            baseSpinner.setSelection(0);
-                        }
-                    }
-
-                    @Override
-                    public void onNothingSelected(AdapterView<?> parent) {
-
-                    }
-                }
-        );
-
-        // build dialog
-        promptingNextWaypoint = true;
-        builder.setTitle(R.string.selectNextWaypoint)
-                .setView(view)
-                .setCancelable(false)
-                .setPositiveButton(R.string.select,
+        new AlertDialog.Builder(this)
+                .setTitle(R.string.selectNextWaypoint)
+                .setMessage(R.string.promptNextWaypointMessage)
+                .setPositiveButton(R.string.addNewWaypointButtonLabel,
                         (dialog, id) -> {
 
-                            Log.i(TAG, "Waypoint selected");
+                            AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
+                            Ambulance ambulance = appData.getAmbulance();
+                            Call call = appData.getCalls().getCurrentCall();
 
-                            int waypointId = -1;
+                            if (ambulance != null && call != null) {
 
-                            String waypoint = null;
-                            int selectedHospital = hospitalSpinner.getSelectedItemPosition();
-                            if (selectedHospital > 0) {
-                                HospitalPermission hospital = hospitalPermissions.get(selectedHospital - 1);
-                                waypoint = "{\"order\":" + maximumOrder + ",\"location_id\":" + hospital.getHospitalId() + "}";
+                                Log.d(TAG, "Will navigate to select location");
+
+                                // navigate to selectLocation
+                                Bundle bundle = new Bundle();
+                                bundle.putString(MainActivity.ACTION, MainActivity.ACTION_ADD_WAYPOINT);
+                                bundle.putInt("ambulanceId", ambulance.getId());
+                                bundle.putInt("callId", call.getId());
+                                navigate(R.id.selectLocationFragment, bundle);
+
+                            } else {
+                                Log.d(TAG, "No ambulance or call. Aborting...");
                             }
 
-                            int selectedBase = baseSpinner.getSelectedItemPosition();
-                            if (selectedBase > 0) {
-                                Location base = bases.get(selectedBase - 1);
-                                Log.d( TAG, "base = " + base);
-                                waypoint = "{\"order\":" + maximumOrder + ",\"location_id\":" + base.getId() + "}";
-                            }
-
-                            int selectedOthers = othersSpinner.getSelectedItemPosition();
-                            if (selectedOthers > 0) {
-                                Location others = otherLocations.get(selectedOthers - 1);
-                                Log.d( TAG, "other = " + others);
-                                waypoint = "{\"order\":" + maximumOrder + ",\"location_id\":" + others.getId() + "}";
-                            }
-
-                            // Publish waypoint
-                            if (waypoint != null) {
-
-                                Intent serviceIntent = new Intent(MainActivity.this, AmbulanceForegroundService.class);
-                                serviceIntent.setAction(AmbulanceForegroundService.Actions.WAYPOINT_ADD);
-                                serviceIntent.putExtra(AmbulanceForegroundService.BroadcastExtras.WAYPOINT_UPDATE, waypoint);
-                                serviceIntent.putExtra(AmbulanceForegroundService.BroadcastExtras.WAYPOINT_ID, waypointId);
-                                serviceIntent.putExtra(AmbulanceForegroundService.BroadcastExtras.AMBULANCE_ID, ambulance.getId());
-                                serviceIntent.putExtra(AmbulanceForegroundService.BroadcastExtras.CALL_ID, callId);
-                                startService(serviceIntent);
-                            }
-
-                            promptingNextWaypoint = false;
                         })
-                .setNegativeButton(android.R.string.cancel,
-                        (dialog, id) -> {
-
-                            Log.i(TAG, "No waypoint selected");
-
-                            /*
-                            Intent serviceIntent = new Intent(MainActivity.this, AmbulanceForegroundService.class);
-                            serviceIntent.setAction(AmbulanceForegroundService.Actions.CALL_DECLINE);
-                            serviceIntent.putExtra(AmbulanceForegroundService.BroadcastExtras.CALL_ID, callId);
-                            startService(serviceIntent);
-                            */
-
-                            promptingNextWaypoint = false;
-                        })
-                .setNeutralButton(R.string.endCall,
-                        (dialog, id) -> {
-
-                            Log.i(TAG, "Ending call");
-
-                            promptingNextWaypoint = false;
-                            promptEndCallDialog(callId);
-                        });
-
-        // Create the AlertDialog object and display it
-        builder.create().show();
+                .setNegativeButton(android.R.string.cancel, null)
+                .create()
+                .show();
 
     }
 
@@ -2014,7 +1877,6 @@ public class MainActivity extends AppCompatActivity {
         final long DIALOG_DISMISS_TIME = 10000; // milliseconds
 
         AlertDialog alertDialog = new AlertDialog.Builder(this)
-                .setCancelable(false)
                 .setTitle(R.string.panicTitle)
                 .setMessage(getString(R.string.panicMessage, getString(android.R.string.ok), DIALOG_DISMISS_TIME/1000))
                 .setPositiveButton(R.string.confirm, (dialog, which) -> sendPanicMessage() )

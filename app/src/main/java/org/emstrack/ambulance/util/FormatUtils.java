@@ -92,6 +92,14 @@ public class FormatUtils {
         return updatedOn;
     }
 
+    public static String formatDistance(double distance, String unitSystem) {
+        if (isImperial(unitSystem)) {
+            return String.format(Locale.getDefault(), "%.1f mi", distance / MILES_TO_KM );
+        } else { //if (unitSystem.isMetric()) {
+            return String.format(Locale.getDefault(), "%.1f km", distance);
+        }
+    }
+
     public static String formatDistance(float distance, String unitSystem) {
         if (isImperial(unitSystem)) {
             return String.format(Locale.getDefault(), "%.1f mi", distance / MILES_TO_KM );

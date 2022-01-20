@@ -58,7 +58,7 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         super.onResume();
 
         Log.d(TAG, "onResume");
-        activity.setupNavigationBar(this);
+        activity.setupNavigationBar();
 
     }
 

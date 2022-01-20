@@ -46,6 +46,10 @@ public class GPSLocation {
         return location;
     }
 
+    public LatLng toLatLng() {
+        return new LatLng(getLatitude(), getLongitude());
+    }
+
     @Override
     public String toString() {
         return "{latitude:" + latitude + ",longitude:" + longitude + "}";

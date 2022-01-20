@@ -1,7 +1,7 @@
 package org.emstrack.ambulance.adapters;
 
 import android.app.Activity;
-import android.util.Log;
+import android.os.Build;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -10,11 +10,16 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import org.emstrack.ambulance.R;
+import org.emstrack.ambulance.models.NamedAddressWithDistance;
 import org.emstrack.ambulance.models.SelectLocationType;
 import org.emstrack.ambulance.views.LocationViewHolder;
+import org.emstrack.models.GPSLocation;
 import org.emstrack.models.NamedAddress;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.IntStream;
 
 /**
  * Connects NamedAddress data to the RecyclerView
@@ -31,20 +36,53 @@ public class LocationRecyclerAdapter extends RecyclerView.Adapter<LocationViewHo
     private static final String TAG = LocationRecyclerAdapter.class.getSimpleName();
     private final Activity activity;
     private final SelectLocation selectLocation;
-    private final List<? extends NamedAddress> locations;
+    private final ArrayList<NamedAddressWithDistance> locations;
     private final SelectLocationType type;
     private int selectedPosition;
 
-    public LocationRecyclerAdapter(Activity activity, SelectLocationType type, List<? extends NamedAddress> locations, SelectLocation selectLocation) {
+    public LocationRecyclerAdapter(Activity activity,
+                                   SelectLocationType type, List<? extends NamedAddress> locations, GPSLocation target,
+                                   SelectLocation selectLocation) {
         this.activity = activity;
-        this.locations = locations;
         this.selectLocation = selectLocation;
         this.type = type;
         selectedPosition = RecyclerView.NO_POSITION;
+
+        // create sorted list of locations
+        this.locations = new ArrayList<NamedAddressWithDistance>();
+        for (NamedAddress location: locations) {
+            this.locations.add(new NamedAddressWithDistance(location, target));
+        }
+        Collections.sort(this.locations, new NamedAddressWithDistance.SortAscending());
+
+    }
+
+    public int getPosition(NamedAddress location) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            return IntStream.range(0, locations.size())
+                    .filter(i -> locations.get(i).getNamedAddress() == location)
+                    .findFirst()
+                    .orElse(-1);
+        } else {
+            for (int i = 0; i < locations.size(); i++) {
+                if (locations.get(i).getNamedAddress() == location) {
+                    return i;
+                }
+            }
+            return -1;
+        }
     }
 
     public int getSelectedPosition() {
         return selectedPosition;
+    }
+
+    public void setSelectedPosition(int position) {
+        if (selectedPosition != position) {
+            notifyItemChanged(selectedPosition);
+            selectedPosition = position;
+            notifyItemChanged(selectedPosition);
+        }
     }
 
     @NonNull
@@ -56,17 +94,15 @@ public class LocationRecyclerAdapter extends RecyclerView.Adapter<LocationViewHo
 
     @Override
     public void onBindViewHolder(@NonNull LocationViewHolder holder, int position) {
-        NamedAddress item = locations.get(position);
+        NamedAddressWithDistance item = locations.get(position);
         holder.setLocation(type, item, activity, (type, location) -> {
             // update selected item
-            notifyItemChanged(selectedPosition);
-            selectedPosition = holder.getLayoutPosition();
-            notifyItemChanged(selectedPosition);
+            setSelectedPosition(holder.getLayoutPosition());
 
             // perform click
             selectLocation.selectLocation(type, location);
         });
-        Log.d(TAG, String.format("> position = %d, selectedPosition = %d", position, selectedPosition));
+        // Log.d(TAG, String.format("> position = %d, selectedPosition = %d", position, selectedPosition));
         holder.itemView.setSelected(position == selectedPosition);
     }
 

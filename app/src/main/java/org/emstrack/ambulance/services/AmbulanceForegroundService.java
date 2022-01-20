@@ -771,8 +771,11 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                 if (action.equals(Actions.WAYPOINT_ADD)) {
 
                     // New waypoint
-                    updateWaypoint(bundle.getString(BroadcastExtras.WAYPOINT_UPDATE),
-                            waypointId, ambulance.getId(), call.getId());
+//                    updateWaypoint(bundle.getString(BroadcastExtras.WAYPOINT_UPDATE),
+//                            waypointId, ambulance.getId(), call.getId());
+
+                    createWaypoint(bundle.getString(BroadcastExtras.WAYPOINT_UPDATE),
+                            ambulance.getId(), call.getId(), uuid);
 
                 } else {
 
@@ -789,11 +792,12 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                         updateWaypointStatus(Waypoint.STATUS_SKIPPED, waypoint,
                                 ambulance.getId(), call.getId());
                     }
-                }
 
-                // Broadcast success
-                Intent localIntent = new Intent(org.emstrack.models.util.BroadcastActions.SUCCESS);
-                sendBroadcastWithUUID(localIntent, uuid);
+                    // Broadcast success
+                    Intent localIntent = new Intent(org.emstrack.models.util.BroadcastActions.SUCCESS);
+                    sendBroadcastWithUUID(localIntent, uuid);
+
+                }
 
             } catch (Exception e) {
 
@@ -1241,7 +1245,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
     }
 
     /**
-     * Send waypoint updates to server
+     * Send waypoint updates to server via MQTT
      *
      * @param update      the update json <code>String</code>
      * @param waypointId  the waypoint id
@@ -1251,9 +1255,46 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
     public void updateWaypoint(String update, int waypointId, int ambulanceId, int callId) {
 
         // Form topic and send message
-        String topic = String.format("ambulance/%1$d/call/%2$d/waypoint/%3$d/data",
+        String topic = String.format(Locale.ENGLISH, "ambulance/%1$d/call/%2$d/waypoint/%3$d/data",
                 ambulanceId, callId, waypointId);
         sendMQTTMessage(topic, update);
+
+    }
+
+    /**
+     * Create waypoint updates to server via REST API
+     *
+     * @param json      the update json <code>String</code>
+     * @param ambulanceId the ambulance id
+     * @param callId      the call id
+     */
+    public void createWaypoint(String json, int ambulanceId, int callId, String uuid) {
+
+        // Post waypoint
+        APIService service = APIServiceGenerator.createService(APIService.class);
+        retrofit2.Call<Waypoint> waypointCreateCall = service.postCallWaypoint(callId, ambulanceId, json);
+        new OnAPICallComplete<Waypoint>(waypointCreateCall) {
+
+            @Override
+            public void onSuccess(Waypoint waypoint) {
+                Log.d(TAG, "Successfully posted waypoint");
+
+                // broadcast success
+                broadcastSuccess(getString(R.string.successfullyPostWaypoint), uuid);
+
+            }
+
+            @Override
+            public void onFailure(Throwable t) {
+                super.onFailure(t);
+
+                // Broadcast failure
+                broadcastFailure(getString(R.string.couldNotPostWaypoint), uuid);
+
+            }
+
+        }
+                .start();
 
     }
 

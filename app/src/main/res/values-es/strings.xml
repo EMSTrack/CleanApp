@@ -157,7 +157,6 @@
     <string name="skip">Saltar</string>
     <string name="visiting">Visitando</string>
     <string name="visited">Visitado</string>
-    <string name="addWaypoint">Nueva Ruta</string>
     <string name="endCall">Terminar</string>
     <string name="detailsLabel">Detalles:</string>
     <string name="detailsText">Detalles</string>
@@ -364,5 +363,10 @@
     <string name="Waypoints">Punto de ruta</string>
     <string name="confirmNewWaypoint">¿Desea agregar el siguiente punto de ruta a la llamada actual?\n\n%1$s</string>
     <string name="addWaypointButtonLabel">Agregar punto de ruta</string>
+    <string name="promptNextWaypointMessage">Has dejado el último punto de ruta de la llamada actual.\n\n¿Te gustaría añadir un nuevo punto de ruta?</string>
+    <string name="addNewWaypointButtonLabel">Nuevo Punto de Ruta</string>
+    <string name="successfullyPostWaypoint">Nuevo punto de ruta publicado con éxito.</string>
+    <string name="couldNotPostWaypoint">No se pudo publicar el nuevo punto de ruta.</string>
+    <string name="cannotAddWaypoint">No es posible agregar un nuevo punto de ruta en este momento.\n\nAsegúrese de que el vehículo y la llamada sigan vigentes.</string>
 
 </resources>

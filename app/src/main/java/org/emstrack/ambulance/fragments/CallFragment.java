@@ -89,7 +89,6 @@ public class CallFragment extends FragmentWithLocalBroadcastReceiver {
     private ImageView callMessageButton;
     private FrameLayout callMessageButtonFrameLayout;
     private WaypointInfoRecyclerAdapter waypointAdapter;
-    private Bundle arguments;
 
     @Override
     public void onReceive(Context context, @NonNull Intent intent) {
@@ -305,8 +304,8 @@ public class CallFragment extends FragmentWithLocalBroadcastReceiver {
         // update call
         refreshData();
 
-        // get arguments
-        arguments = getArguments();
+        // process arguments
+        processArguments();
 
         // Register receiver
         IntentFilter filter = new IntentFilter();
@@ -325,12 +324,10 @@ public class CallFragment extends FragmentWithLocalBroadcastReceiver {
         Log.d(TAG, "onResume");
         activity.setupNavigationBar();
 
-        // process arguments
-        processArguments();
-
     }
 
     public void processArguments() {
+        Bundle arguments = getArguments();
         if (arguments != null) {
             Log.d(TAG, "Has arguments");
             String action = arguments.getString(MainActivity.ACTION);
@@ -346,37 +343,40 @@ public class CallFragment extends FragmentWithLocalBroadcastReceiver {
 
                 boolean invalidCall = true;
                 if (ambulance != null && call != null) {
+
+                    // get ambulance call and waypoint
                     AmbulanceCall ambulanceCall = call.getCurrentAmbulanceCall();
                     Waypoint waypoint = ambulanceCall.getNextWaypoint();
                     if (ambulance.getId() == ambulanceId &&
                             ambulanceCall.getAmbulanceId() == ambulanceId &&
-                            call.getId() == callId &&
-                            waypoint.getId() == waypointId) {
-                        if (action.equals(MainActivity.ACTION_MARK_AS_VISITING)) {
-                            if (waypoint.isCreated()) {
-                                Log.d(TAG, "Will prompt to mark visiting");
-                                promptSkipVisitingOrVisited(Waypoint.STATUS_VISITING,
-                                        waypointId, callId, ambulanceId,
-                                        getString(R.string.pleaseConfirm),
-                                        getString(R.string.visitCurrentWaypoint,
-                                                waypoint.getLocation().toAddress(requireContext())),
-                                        getString(R.string.visitingWaypoint));
-                                invalidCall = false;
-                            }
-                        } else if (action.equals(MainActivity.ACTION_MARK_AS_VISITED)) {
-                            if (waypoint.isVisiting()) {
-                                Log.d(TAG, "Will prompt to mark visited");
-                                promptSkipVisitingOrVisited(Waypoint.STATUS_VISITED,
-                                        waypointId, callId, ambulanceId,
-                                        getString(R.string.pleaseConfirm),
-                                        getString(R.string.visitedCurrentWaypoint,
-                                                waypoint.getLocation().toAddress(requireContext())),
-                                        getString(R.string.visitedWaypoint));
-                                invalidCall = false;
-                            }
-                        } else if (action.equals(MainActivity.ACTION_OPEN_CALL_FRAGMENT)) {
+                            call.getId() == callId) {
+                        if (action.equals(MainActivity.ACTION_OPEN_CALL_FRAGMENT)) {
                             Log.d(TAG, "Will simply open call fragment");
                             invalidCall = false;
+                        } else if (waypoint.getId() == waypointId) {
+                            if (action.equals(MainActivity.ACTION_MARK_AS_VISITING)) {
+                                if (waypoint.isCreated()) {
+                                    Log.d(TAG, "Will prompt to mark visiting");
+                                    promptSkipVisitingOrVisited(Waypoint.STATUS_VISITING,
+                                            waypointId, callId, ambulanceId,
+                                            getString(R.string.pleaseConfirm),
+                                            getString(R.string.visitCurrentWaypoint,
+                                                    waypoint.getLocation().toAddress(requireContext())),
+                                            getString(R.string.visitingWaypoint));
+                                    invalidCall = false;
+                                }
+                            } else if (action.equals(MainActivity.ACTION_MARK_AS_VISITED)) {
+                                if (waypoint.isVisiting()) {
+                                    Log.d(TAG, "Will prompt to mark visited");
+                                    promptSkipVisitingOrVisited(Waypoint.STATUS_VISITED,
+                                            waypointId, callId, ambulanceId,
+                                            getString(R.string.pleaseConfirm),
+                                            getString(R.string.visitedCurrentWaypoint,
+                                                    waypoint.getLocation().toAddress(requireContext())),
+                                            getString(R.string.visitedWaypoint));
+                                    invalidCall = false;
+                                }
+                            }
                         }
                     }
                 }
@@ -388,8 +388,6 @@ public class CallFragment extends FragmentWithLocalBroadcastReceiver {
                 }
 
             }
-            // make sure it gets executed only once
-            arguments = null;
         } else {
             Log.d(TAG, "Has no arguments");
         }

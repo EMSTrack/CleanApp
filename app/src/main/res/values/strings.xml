@@ -178,7 +178,6 @@
     <string name="skip">Skip</string>
     <string name="visiting">Visiting</string>
     <string name="visited">Visited</string>
-    <string name="addWaypoint">Waypoint</string>
     <string name="detailsLabel">Details:</string>
     <string name="detailsText">Details</string>
     <string name="patients">Patients:</string>
@@ -227,7 +226,6 @@
     <string name="switchAmbulance">Switch vehicle</string>
     <string name="switchToAmbulance">Do you want to switch to vehicle \'%1$s\'?</string>
     <string name="acceptCall">Accept Incoming Call?</string>
-    <string name="selectNextWaypoint">Select next waypoint</string>
     <string name="endCall">End Call</string>
     <string name="loggingIn">Logging in \'%1$s\'</string>
     <string name="pleaseSelectAmbulance">Please select vehicle</string>
@@ -412,5 +410,12 @@
     <string name="Waypoints">Waypoints</string>
     <string name="confirmNewWaypoint">Do you want to add the following waypoint to the current call?\n\n%1$s</string>
     <string name="addWaypointButtonLabel">Add Waypoint</string>
+
+    <string name="selectNextWaypoint">Select next waypoint</string>
+    <string name="promptNextWaypointMessage">You have left the last waypoint of the current call.\n\nWould you like to add a new waypoint?</string>
+    <string name="addNewWaypointButtonLabel">New Waypoint</string>
+    <string name="successfullyPostWaypoint">Successfully posted new waypoint.</string>
+    <string name="couldNotPostWaypoint">Could not post new waypoint.</string>
+    <string name="cannotAddWaypoint">It is not possible to add a new waypoint at this time.\n\nMake sure that the vehicle and call are still current.</string>
 
 </resources>

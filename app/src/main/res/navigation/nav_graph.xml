@@ -136,6 +136,9 @@
             android:id="@+id/action_call_to_map"
             app:destination="@id/mapFragment" />
         <action
+            android:id="@+id/action_call_to_self"
+            app:destination="@id/callFragment" />
+        <action
             android:id="@+id/action_call_to_selectLocation"
             app:destination="@id/selectLocationFragment"
             app:enterAnim="@anim/slide_in_right"

@@ -91,7 +91,7 @@ public class EquipmentFragment extends Fragment {
         super.onResume();
 
         // setup navigation
-        activity.setupNavigationBar(this);
+        activity.setupNavigationBar();
 
         // Refresh data
         refreshData();
