@@ -15,4 +15,50 @@
         <item>@color/statusGreen</item>
     </integer-array>
 
+    <string-array name="navigationAppEntries">
+        <item>@string/GoogleMaps</item>
+        <item>@string/Waze</item>
+    </string-array>
+
+    <string-array name="navigationAppValues">
+        <item>google_maps</item>
+        <item>waze</item>
+    </string-array>
+
+    <string-array name="waypointEnterDetectionEntries">
+        <item>@string/markAsVisiting</item>
+        <item>@string/notifyUser</item>
+        <item>@string/ignore</item>
+    </string-array>
+
+    <string-array name="waypointExitDetectionEntries">
+        <item>@string/markAsVisited</item>
+        <item>@string/notifyUser</item>
+        <item>@string/ignore</item>
+    </string-array>
+
+    <string-array name="waypointDetectionValues">
+        <item>mark</item>
+        <item>notify</item>
+        <item>ignore</item>
+    </string-array>
+
+    <string-array name="unitsEntries">
+        <item>@string/kilometers</item>
+        <item>@string/miles</item>
+    </string-array>
+
+    <string-array name="unitsValues">
+        <item>metric</item>
+        <item>imperial</item>
+    </string-array>
+
+    <string name="GoogleMaps">Google Maps</string>
+    <string name="Waze">Waze</string>
+    <string name="ignore">Ignore</string>
+    <string name="notifyUser">Notify user</string>
+    <string name="markAsVisiting">Mark as visiting</string>
+    <string name="markAsVisited">Mark as visited</string>
+    <string name="kilometers">kilometers</string>
+    <string name="miles">miles</string>
 </resources>

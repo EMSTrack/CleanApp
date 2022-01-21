@@ -66,7 +66,7 @@ public class GeofenceBroadcastReceiver extends BroadcastReceiver {
                 context.startService(localIntent);
 
                 Log.i(TAG, "GEOFENCE_TRIGGERED: ENTER");
-            } else if (geofenceTransition == Geofence.GEOFENCE_TRANSITION_EXIT) {
+            } else { // if (geofenceTransition == Geofence.GEOFENCE_TRANSITION_EXIT) {
 
                 // broadcast change on ambulance status when it exits geofence
                 Intent localIntent = new Intent(context, AmbulanceForegroundService.class);

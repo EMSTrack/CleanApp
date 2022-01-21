@@ -1,5 +1,7 @@
 package org.emstrack.models;
 
+import org.emstrack.models.gson.Exclude;
+
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -38,6 +40,15 @@ public class Settings {
 
     private boolean enableVideo;
     private Map<String, String> turnServer;
+
+    @Exclude
+    private String units;
+
+    @Exclude
+    private String waypointEnterDetection;
+
+    @Exclude
+    private String waypointExitDetection;
 
     private Defaults defaults;
 
@@ -328,6 +339,48 @@ public class Settings {
     }
 
     /**
+     * @return the measurement units
+     */
+    public String getUnits() {
+        return units;
+    }
+
+    /**
+     * @param units the measurement units
+     */
+    public void setUnits(String units) {
+        this.units = units;
+    }
+
+    /**
+     * @return the waypoint enter detection mode
+     */
+    public String getWaypointEnterDetection() {
+        return waypointEnterDetection;
+    }
+
+    /**
+     * @param waypointEnterDetection the waypoint enter detection mode
+     */
+    public void setWaypointEnterDetection(String waypointEnterDetection) {
+        this.waypointEnterDetection = waypointEnterDetection;
+    }
+
+    /**
+     * @return the waypoint exit detection mode
+     */
+    public String getWaypointExitDetection() {
+        return waypointExitDetection;
+    }
+
+    /**
+     * @param waypointExitDetection the waypoint exit detection mode
+     */
+    public void setWaypointExitDetection(String waypointExitDetection) {
+        this.waypointExitDetection = waypointExitDetection;
+    }
+
+    /**
      *
      * @param ambulanceStatus the ambulance status map
      * @param ambulanceStatusOrder the ambulance status order list
@@ -345,6 +398,9 @@ public class Settings {
      * @param guestUsername the guest user name
      * @param enableVideo enable user flag
      * @param turnServer the turn server settings
+     * @param units the measurement units
+     * @param waypointEnterDetection the waypoint enter detection mode
+     * @param waypointExitDetection the waypoint exit detection mode
      * @param defaults the defaults map
      */
     public Settings(Map<String,String> ambulanceStatus,
@@ -363,6 +419,9 @@ public class Settings {
                     String guestUsername,
                     boolean enableVideo,
                     Map<String, String> turnServer,
+                    String units,
+                    String waypointEnterDetection,
+                    String waypointExitDetection,
                     Defaults defaults) {
         this.ambulanceStatus = ambulanceStatus;
         this.ambulanceStatusOrder = ambulanceStatusOrder;
@@ -381,6 +440,9 @@ public class Settings {
         this.enableVideo = enableVideo;
         this.turnServer = turnServer;
         this.defaults = defaults;
+        this.units = units;
+        this.waypointEnterDetection = waypointEnterDetection;
+        this.waypointExitDetection = waypointExitDetection;
     }
 
     /**
@@ -401,6 +463,9 @@ public class Settings {
                 "\nguestUsername = " + guestUsername +
                 "\nenableVideo = " + enableVideo +
                 "\nturnServer = " + turnServer +
+                "\nunits = " + units +
+                "\nwaypointEnterDetection" + waypointEnterDetection +
+                "\nwaypointExitDetection" + waypointExitDetection +
                 "\ndefaults = " + defaults;
     }
 }

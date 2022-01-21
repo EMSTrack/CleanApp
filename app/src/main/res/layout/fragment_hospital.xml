@@ -1,19 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/hospital_fragment"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="?android:windowBackground"
-    android:gravity="top"
-    android:orientation="vertical"
-    tools:context="org.emstrack.ambulance.fragments.HospitalFragment">
+    tools:context="org.emstrack.ambulance.fragments.HospitalsFragment">
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/hospital_recycler_view"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:clipToPadding="false"
-        android:overScrollMode="never" />
+        android:layout_height="wrap_content" />
 
-</LinearLayout>
+</RelativeLayout>

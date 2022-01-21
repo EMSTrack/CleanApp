@@ -5,21 +5,10 @@ import androidx.test.core.app.ApplicationProvider;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import android.util.Log;
 
-import com.google.gson.FieldNamingPolicy;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-
 import org.eclipse.paho.android.service.MqttAndroidClient;
-import org.eclipse.paho.client.mqttv3.MqttException;
-import org.eclipse.paho.client.mqttv3.MqttMessage;
-import org.emstrack.models.Ambulance;
-import org.emstrack.models.AmbulancePermission;
-import org.emstrack.models.Hospital;
-import org.emstrack.models.HospitalPermission;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.util.List;
 import java.util.UUID;
 
 import static org.junit.Assert.*;

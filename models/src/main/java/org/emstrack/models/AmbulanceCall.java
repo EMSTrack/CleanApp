@@ -1,10 +1,8 @@
 package org.emstrack.models;
 
+import java.util.Calendar;
 import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * A class representing an ambulance call.
@@ -24,10 +22,10 @@ public class AmbulanceCall {
     private boolean sorted;
     private String comment;
     private int updatedBy;
-    private Date updatedOn;
+    private Calendar updatedOn;
 
     public AmbulanceCall(int id, int ambulanceId, String status,
-                         String comment, int updatedBy, Date updatedOn,
+                         String comment, int updatedBy, Calendar updatedOn,
                          List<Waypoint> waypointSet) {
         this.id = id;
         this.ambulanceId = ambulanceId;
@@ -87,11 +85,11 @@ public class AmbulanceCall {
         this.updatedBy = updatedBy;
     }
 
-    public Date getUpdatedOn() {
+    public Calendar getUpdatedOn() {
         return updatedOn;
     }
 
-    public void setUpdatedOn(Date updatedOn) {
+    public void setUpdatedOn(Calendar updatedOn) {
         this.updatedOn = updatedOn;
     }
 
@@ -135,6 +133,31 @@ public class AmbulanceCall {
 
         // Otherwise return null
         return null;
+    }
+
+    public int getNextWaypointPosition() {
+        return getNextWaypointPosition(null);
+    }
+
+    public int getNextWaypointPosition(String type) {
+        // Sort first
+        sortWaypoints();
+
+        // Find first non-visited waypoint
+        int position = 0;
+        for (Waypoint waypoint : this.waypointSet) {
+            if ((type == null || waypoint.getLocation().getType().equals(type))
+                    && !(waypoint.isSkipped() || waypoint.isVisited()))
+                return position;
+            position++;
+        }
+
+        // Otherwise return last
+        if (position == waypointSet.size()) {
+            // go to last if they are all visited or skipped
+            position--;
+        }
+        return position;
     }
 
     public Waypoint getWaypoint(int id) {

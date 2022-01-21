@@ -1,5 +1,6 @@
 package org.emstrack.models;
 
+import com.google.android.gms.maps.model.LatLng;
 import com.google.gson.annotations.Expose;
 
 /**
@@ -15,6 +16,11 @@ public class GPSLocation {
     public GPSLocation(double latitude, double longitude) {
         this.latitude = latitude;
         this.longitude = longitude;
+    }
+
+    public GPSLocation(LatLng latLng) {
+        this.latitude = latLng.latitude;
+        this.longitude = latLng.longitude;
     }
 
     public double getLatitude() {
@@ -38,6 +44,10 @@ public class GPSLocation {
         location.setLatitude(this.getLatitude());
         location.setLongitude(this.getLongitude());
         return location;
+    }
+
+    public LatLng toLatLng() {
+        return new LatLng(getLatitude(), getLongitude());
     }
 
     @Override

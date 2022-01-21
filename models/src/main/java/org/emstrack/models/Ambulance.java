@@ -2,15 +2,16 @@ package org.emstrack.models;
 
 import com.google.gson.annotations.Expose;
 
+import java.util.Calendar;
 import java.util.Collections;
-import java.util.Date;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 
 /**
  * A class representing an ambulance.
  */
-public class Ambulance {
+public class Ambulance implements UpdatedOn {
 
     public static final String STATUS_UNKNOWN = "UK";
     public static final String STATUS_AVAILABLE= "AV";
@@ -80,15 +81,15 @@ public class Ambulance {
     @Expose
     private GPSLocation location;
     @Expose
-    private Date timestamp;
+    private Calendar timestamp;
     private String clientId;
     private String comment;
     private int updatedBy;
-    private Date updatedOn;
+    private Calendar updatedOn;
 
     public Ambulance(int id, String identifier, String capability, String status,
-                     double orientation, GPSLocation location, Date timestamp,
-                     String comment, int updatedBy, Date updatedOn) {
+                     double orientation, GPSLocation location, Calendar timestamp,
+                     String comment, int updatedBy, Calendar updatedOn) {
         this.id = id;
         this.identifier = identifier;
         this.capability = capability;
@@ -121,7 +122,8 @@ public class Ambulance {
         // Update ambulance
         location = new GPSLocation(lastLocation.getLatitude(),lastLocation.getLongitude());
         orientation = lastLocation.getBearing();
-        timestamp = new Date(lastLocation.getTime());
+        timestamp = Calendar.getInstance();
+        timestamp.setTimeInMillis(lastLocation.getTime());
 
     }
 
@@ -173,11 +175,11 @@ public class Ambulance {
         this.location = location;
     }
 
-    public Date getTimestamp() {
+    public Calendar getTimestamp() {
         return timestamp;
     }
 
-    public void setTimestamp(Date timestamp) {
+    public void setTimestamp(Calendar timestamp) {
         this.timestamp = timestamp;
     }
 
@@ -201,11 +203,11 @@ public class Ambulance {
         this.updatedBy = updatedBy;
     }
 
-    public Date getUpdatedOn() {
+    public Calendar getUpdatedOn() {
         return updatedOn;
     }
 
-    public void setUpdatedOn(Date updatedOn) {
+    public void setUpdatedOn(Calendar updatedOn) {
         this.updatedOn = updatedOn;
     }
 

@@ -1,61 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    tools:context="org.emstrack.ambulance.fragments.MapFragment"
+    android:orientation="vertical">
 
-    <fragment
-        android:id="@+id/map"
+    <androidx.fragment.app.FragmentContainerView
+        android:id="@+id/mapFragment"
         android:name="com.google.android.gms.maps.SupportMapFragment"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"/>
+        android:layout_height="match_parent" />
 
-    <ImageView
-        android:id="@+id/showLocationButton"
-        android:layout_width="40dp"
-        android:layout_height="36dp"
-        android:layout_alignParentRight="true"
-        android:layout_gravity="center_horizontal"
-        android:layout_marginRight="12dp"
-        android:layout_marginTop="20dp"
-        android:background="@color/mapButtonOff"
-        android:padding="5dp"
-        app:srcCompat="@drawable/ic_location_arrow" />
+    <LinearLayout
+        android:id="@+id/mapToolbarLayout"
+        android:layout_width="wrap_content"
+        android:background="@drawable/rounded_pulltab"
+        android:layout_height="@dimen/mapToolbarLayoutHeight"
+        android:layout_alignParentEnd="true"
+        android:elevation="4dp"
+        android:layout_alignParentTop="true"
+        android:layout_marginTop="@dimen/mapToolbarMargin"
+        android:layout_marginEnd="-1dp">
 
-    <ImageView
-        android:id="@+id/showAmbulancesButton"
-        android:layout_width="40dp"
-        android:layout_height="36dp"
-        android:layout_alignParentRight="true"
-        android:layout_gravity="center_horizontal"
-        android:layout_marginRight="12dp"
-        android:layout_marginTop="60dp"
-        android:background="@color/mapButtonOff"
-        android:padding="5dp"
-        app:srcCompat="@drawable/ic_ambulance" />
+        <include layout="@layout/map_toolbar"
+            android:id="@+id/mapToolbar"
+            android:layout_width="wrap_content"
+            android:layout_marginStart="1dp"
+            android:layout_height="@dimen/mapToolbarHeight" />
 
-    <ImageView
-        android:id="@+id/showHospitalsButton"
-        android:layout_width="40dp"
-        android:layout_height="36dp"
-        android:layout_alignParentRight="true"
-        android:layout_gravity="center_horizontal"
-        android:layout_marginRight="12dp"
-        android:layout_marginTop="100dp"
-        android:background="@color/mapButtonOff"
-        android:padding="5dp"
-        app:srcCompat="@drawable/ic_hospital" />
-
-    <ImageView
-        android:id="@+id/showWaypointsButton"
-        android:layout_width="40dp"
-        android:layout_height="36dp"
-        android:layout_alignParentRight="true"
-        android:layout_gravity="center_horizontal"
-        android:layout_marginRight="12dp"
-        android:layout_marginTop="140dp"
-        android:background="@color/mapButtonOff"
-        android:padding="5dp"
-        app:srcCompat="@drawable/ic_map_marker" />
+    </LinearLayout>
 
 </RelativeLayout>

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingTop="8dp"
+        android:background="@drawable/rounded_bottomsheet"
+        android:layout_marginBottom="-1dp">
+
+        <LinearLayout
+            android:id="@+id/selectButtonOkLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="@dimen/selectLocationMarginHorizontal">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/selectButtonOk"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:backgroundTint="@color/bootstrapPrimary"
+                android:text="@string/addWaypointButtonLabel"
+                android:layout_weight="1"/>
+
+        </LinearLayout>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/selectRecyclerView"
+        android:layout_width="match_parent"
+        android:layout_height="150dp" />
+
+    </LinearLayout>
+
+</FrameLayout>

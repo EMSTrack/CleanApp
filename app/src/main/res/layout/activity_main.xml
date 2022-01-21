@@ -1,136 +1,75 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/activity_main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="org.emstrack.ambulance.MainActivity">
+    tools:context=".MainActivity">
 
-    <androidx.drawerlayout.widget.DrawerLayout
-        android:id="@+id/drawer_layout"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent">
-
-        <RelativeLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
-
-            <androidx.appcompat.widget.Toolbar
-                android:id="@+id/toolbar"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_alignParentLeft="true"
-                android:layout_alignParentStart="true"
-                android:layout_alignParentTop="true"
-                android:background="@color/colorPrimary"
-                android:textColor="@android:color/black"
-                android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar">
-
-                <ImageButton
-                    android:id="@+id/panicButton"
-                    android:layout_width="30dp"
-                    android:layout_height="30dp"
-                    android:layout_gravity="right"
-                    android:layout_marginRight="10dp"
-                    android:adjustViewBounds="true"
-                    android:background="@drawable/button_states"
-                    android:scaleType="fitCenter"
-                    app:srcCompat="@drawable/ic_exclamation_triangle" />
-
-                <ImageButton
-                    android:id="@+id/videoCallButton"
-                    android:layout_width="30dp"
-                    android:layout_height="30dp"
-                    android:layout_gravity="right"
-                    android:scaleX="1.5"
-                    android:scaleY="1.5"
-                    android:layout_marginRight="10dp"
-                    android:adjustViewBounds="true"
-                    android:background="@drawable/button_states"
-                    android:scaleType="fitCenter"
-                    app:srcCompat="@drawable/ic_video_call" />
-
-                <ImageView
-                    android:id="@+id/onlineIcon"
-                    android:layout_width="30dp"
-                    android:layout_height="30dp"
-                    android:layout_gravity="right"
-                    android:layout_marginRight="10dp"
-                    android:adjustViewBounds="true"
-                    android:background="@drawable/button_states"
-                    android:scaleType="fitCenter"
-                    app:srcCompat="@drawable/ic_wifi" />
-
-                <ImageView
-                    android:id="@+id/trackingIcon"
-                    android:layout_width="30dp"
-                    android:layout_height="30dp"
-                    android:layout_gravity="right"
-                    android:layout_marginRight="10dp"
-                    android:adjustViewBounds="true"
-                    android:background="@drawable/button_states"
-                    android:scaleType="fitCenter"
-                    app:srcCompat="@drawable/ic_shipping_fast" />
-
-                <!--TextView
-                    android:id="@+id/identifierText"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginRight="10dp"
-                    android:textColor="@android:color/black"
-                    android:textSize="25sp" /-->
-
-                <Button
-                    android:id="@+id/ambulanceButton"
-                    android:layout_width="fill_parent"
-                    android:layout_height="wrap_content"
-                    android:text="@string/ambulanceButtonDefaultText"
-                    android:textColor="@android:color/black"
-                    android:textSize="24sp"
-                    android:textAllCaps="false"
-                    android:layout_marginRight="10dp"
-                    android:background="?attr/selectableItemBackgroundBorderless"
-                    android:gravity="left|center_vertical" />
-
-            </androidx.appcompat.widget.Toolbar>
-
-            <com.google.android.material.tabs.TabLayout
-                android:id="@+id/tab_layout_home"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_alignParentLeft="true"
-                android:layout_alignParentStart="true"
-                android:layout_below="@+id/toolbar"
-                android:background="#EFEFEF"
-                app:tabMode="fixed" />
-
-            <androidx.viewpager.widget.ViewPager
-                android:id="@+id/pager"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_alignParentBottom="true"
-                android:layout_alignParentLeft="true"
-                android:layout_alignParentStart="true"
-                android:layout_below="@+id/tab_layout_home" />
-
-        </RelativeLayout>
-
-        <!-- The navigation drawer that comes from the left -->
-        <!-- Note that `android:layout_gravity` needs to be set to 'start' -->
-
-        <com.google.android.material.navigation.NavigationView
-            android:id="@+id/nvView"
-            android:layout_width="wrap_content"
+        <com.google.android.material.navigationrail.NavigationRailView
+            android:id="@+id/navigationRail"
+            style="@style/Widget.MaterialComponents.NavigationRailView.Compact"
+            android:layout_width="80dp"
             android:layout_height="match_parent"
-            android:layout_gravity="start"
-            android:background="@android:color/white"
-            app:headerLayout="@layout/nav_header"
-            android:theme="@style/drawer_menu_theme"
-            app:menu="@menu/drawer_view" >
+            app:labelVisibilityMode="auto"
+            app:layout_constraintEnd_toStartOf="@+id/coordinatorLayout"
+            app:layout_constraintHorizontal_bias="0.5"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:menuGravity="center"
+            app:menu="@menu/bottom_navigation_bar" />
 
-        </com.google.android.material.navigation.NavigationView>
+        <androidx.coordinatorlayout.widget.CoordinatorLayout
+            android:id="@+id/coordinatorLayout"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            app:layout_constrainedHeight="true"
+            app:layout_constrainedWidth="true"
+            app:layout_constraintBottom_toTopOf="@id/bottomNavigationBar"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/navigationRail"
+            app:layout_constraintTop_toTopOf="parent" >
 
-    </androidx.drawerlayout.widget.DrawerLayout>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical" >
 
-</androidx.coordinatorlayout.widget.CoordinatorLayout>
+                <com.google.android.material.appbar.AppBarLayout
+                    android:id="@+id/toolbarLayout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar" >
+
+                <androidx.appcompat.widget.Toolbar
+                    android:id="@+id/toolbar"
+                    android:layout_width="match_parent"
+                    android:layout_height="?attr/actionBarSize"
+                    app:layout_collapseMode="pin"
+                    app:title="@string/app_name"
+                    android:background="?attr/colorPrimary"
+                    app:popupTheme="@style/ThemeOverlay.AppCompat.Light" />
+
+                </com.google.android.material.appbar.AppBarLayout>
+
+                <androidx.fragment.app.FragmentContainerView
+                    android:id="@+id/nav_host_fragment"
+                    android:name="androidx.navigation.fragment.NavHostFragment"
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    app:defaultNavHost="true"
+                    android:layout_weight="1"
+                    app:navGraph="@navigation/nav_graph" />
+
+        </LinearLayout>
+
+        </androidx.coordinatorlayout.widget.CoordinatorLayout>
+
+        <com.google.android.material.bottomnavigation.BottomNavigationView
+            android:id="@+id/bottomNavigationBar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:menu="@menu/bottom_navigation_bar" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

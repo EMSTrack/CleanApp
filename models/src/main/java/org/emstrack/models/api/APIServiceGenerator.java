@@ -8,7 +8,9 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 import org.emstrack.models.gson.ExcludeAnnotationExclusionStrategy;
+import org.emstrack.models.util.CalendarDateTypeAdapter;
 
+import java.util.Calendar;
 import java.util.Locale;
 
 import okhttp3.OkHttpClient;
@@ -16,6 +18,7 @@ import okhttp3.Request;
 import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
+import retrofit2.converter.scalars.ScalarsConverterFactory;
 
 /**
  * Convenience class to build retrofit api service calls
@@ -29,13 +32,16 @@ public class APIServiceGenerator {
     private static String BASE_URL = "https://cruzroja.ucsd.edu/api/";
 
     private static Gson gson = new GsonBuilder()
+            .registerTypeHierarchyAdapter(Calendar.class, new CalendarDateTypeAdapter())
             .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
             .addSerializationExclusionStrategy(new ExcludeAnnotationExclusionStrategy())
+            .serializeNulls()
             .create();
 
     private static Retrofit.Builder builder
             = new Retrofit.Builder()
             .baseUrl(BASE_URL)
+            .addConverterFactory(ScalarsConverterFactory.create())
             .addConverterFactory(GsonConverterFactory.create(gson));
 
     private static Retrofit retrofit = builder.build();

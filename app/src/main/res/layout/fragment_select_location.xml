@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:id="@+id/selectToolbar"
+        android:layout_alignParentTop="true"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:paddingVertical="10dp"
+        android:elevation="4dp"
+        android:background="@color/bootstrapLight">
+
+        <LinearLayout
+            android:id="@+id/selectHospitalButtonLayout"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center_horizontal"
+            android:layout_weight="1">
+
+            <ImageView
+                android:id="@android:id/icon"
+                android:layout_width="@dimen/selectLocationIconWidth"
+                android:layout_height="@dimen/selectLocationIconHeight"
+                app:srcCompat="@drawable/ic_hospital"
+                app:tint="@color/bootstrapDark" />
+
+            <TextView
+                android:id="@android:id/title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:text="@string/Hospital" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/selectBaseButtonLayout"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center_horizontal"
+            android:layout_weight="1" >
+
+            <ImageView
+                android:id="@android:id/icon"
+                android:layout_width="@dimen/selectLocationIconWidth"
+                android:layout_height="@dimen/selectLocationIconHeight"
+                android:src="@drawable/ic_home_solid"
+                app:tint="@color/bootstrapDark"/>
+
+            <TextView
+                android:id="@android:id/title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:text="@string/Base" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/selectOtherButtonLayout"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center_horizontal"
+            android:layout_weight="1" >
+
+            <ImageView
+                android:id="@android:id/icon"
+                android:layout_width="@dimen/selectLocationIconWidth"
+                android:layout_height="@dimen/selectLocationIconHeight"
+                android:src="@drawable/ic_map_marker_alt_solid"
+                app:tint="@color/bootstrapDark"/>
+
+            <TextView
+                android:id="@android:id/title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:text="@string/Other" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/selectSelectButtonLayout"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center_horizontal"
+            android:layout_weight="1" >
+
+            <ImageView
+                android:id="@android:id/icon"
+                android:layout_width="@dimen/selectLocationIconWidth"
+                android:layout_height="@dimen/selectLocationIconHeight"
+                android:src="@drawable/ic_search_location_solid"
+                app:tint="@color/bootstrapDark"/>
+
+            <TextView
+                android:id="@android:id/title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:text="@string/Search" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/searchLayout"
+        android:layout_below="@id/selectToolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:visibility="gone" >
+
+        <EditText
+            android:id="@+id/searchText"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"/>
+
+        <ImageView
+            android:id="@+id/searchCloseButton"
+            android:layout_width="@dimen/selectLocationSearchIconWidth"
+            android:layout_height="@dimen/selectLocationSearchIconHeight"
+            android:layout_marginHorizontal="5dp"
+            app:srcCompat="@drawable/ic_times_circle_solid"
+            app:tint="@color/bootstrapDark"
+            android:layout_gravity="center_vertical"/>
+
+        <ImageView
+            android:id="@+id/searchButton"
+            android:layout_width="@dimen/selectLocationSearchIconWidth"
+            android:layout_height="@dimen/selectLocationSearchIconHeight"
+            android:layout_marginHorizontal="5dp"
+            app:srcCompat="@drawable/ic_search_location_solid"
+            app:tint="@color/bootstrapDark"
+            android:layout_gravity="center_vertical"/>
+
+    </LinearLayout>
+
+    <FrameLayout
+        android:layout_below="@id/searchLayout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" >
+
+        <androidx.fragment.app.FragmentContainerView
+            android:id="@+id/mapFragment"
+            android:name="com.google.android.gms.maps.SupportMapFragment"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+        <androidx.coordinatorlayout.widget.CoordinatorLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <include
+                layout="@layout/select_location"
+                android:id="@+id/selectLocationBottomSheet"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:behavior_peekHeight="8dp"
+                app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior"
+                style="?attr/bottomSheetStyle" />
+
+            <!--
+                app:behavior_fitToContents="false"
+                app:behavior_expandedOffset="150dp"
+                app:behavior_halfExpandedRatio="0.3"
+            -->
+
+        </androidx.coordinatorlayout.widget.CoordinatorLayout>
+
+    </FrameLayout>
+
+</RelativeLayout>

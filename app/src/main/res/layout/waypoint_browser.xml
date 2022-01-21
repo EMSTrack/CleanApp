@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:card_view="http://schemas.android.com/tools">
+
+    <androidx.cardview.widget.CardView
+        android:id="@+id/waypointBrowserCardView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        card_view:cardElevation="2dp"
+        card_view:cardCornerRadius="5dp"
+        card_view:contentPadding="5dp">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/waypointBrowserRecyclerView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+    </androidx.cardview.widget.CardView>
+
+    <include layout="@layout/waypoint_toolbar"
+        android:layout_below="@id/waypointBrowserCardView"
+        android:layout_height="wrap_content"
+        android:layout_width="match_parent"
+        android:id="@+id/waypointBrowserToolbar" />
+
+</RelativeLayout>

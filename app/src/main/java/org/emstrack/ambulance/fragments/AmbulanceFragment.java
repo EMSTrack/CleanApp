@@ -1,279 +1,153 @@
 package org.emstrack.ambulance.fragments;
 
-import android.content.BroadcastReceiver;
+import static org.emstrack.ambulance.util.FormatUtils.formatDateTime;
+
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.net.Uri;
 import android.os.Bundle;
-import androidx.fragment.app.Fragment;
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
-import androidx.appcompat.app.AlertDialog;
 import android.util.Log;
 import android.util.Pair;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.ImageButton;
-import android.widget.LinearLayout;
-import android.widget.RelativeLayout;
-import android.widget.Spinner;
+import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.google.android.material.button.MaterialButton;
 
 import org.emstrack.ambulance.MainActivity;
 import org.emstrack.ambulance.R;
+import org.emstrack.ambulance.adapters.CallRecyclerAdapter;
+import org.emstrack.ambulance.dialogs.SimpleAlertDialog;
 import org.emstrack.ambulance.models.AmbulanceAppData;
+import org.emstrack.ambulance.models.EquipmentType;
+import org.emstrack.ambulance.models.MessageType;
 import org.emstrack.ambulance.services.AmbulanceForegroundService;
+import org.emstrack.ambulance.util.FragmentWithLocalBroadcastReceiver;
 import org.emstrack.models.Ambulance;
 import org.emstrack.models.AmbulanceCall;
 import org.emstrack.models.Call;
-import org.emstrack.models.CallNote;
 import org.emstrack.models.CallStack;
-import org.emstrack.models.Location;
-import org.emstrack.models.Patient;
-import org.emstrack.models.PriorityCode;
-import org.emstrack.models.RadioCode;
 import org.emstrack.models.Settings;
-import org.emstrack.models.Waypoint;
+import org.emstrack.models.util.BroadcastActions;
+import org.emstrack.models.util.OnServiceComplete;
 
-import java.net.URLEncoder;
-import java.text.DecimalFormat;
+import java.text.DateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
-public class AmbulanceFragment extends Fragment {
+public class AmbulanceFragment extends FragmentWithLocalBroadcastReceiver {
 
     private static final String TAG = AmbulanceFragment.class.getSimpleName();
 
-    private static DecimalFormat df = new DecimalFormat();
-
-    private View view;
-
-    private Button statusButton;
+    private MaterialButton ambulanceStatusButton;
 
     private TextView capabilityText;
-    private TextView callNotesText;
     private TextView updatedOnText;
     private TextView commentText;
 
-    private AmbulancesUpdateBroadcastReceiver receiver;
-
-    private LinearLayout callLayout;
-    private TextView callDescriptionTextView;
-    private TextView callRadioCodeTextView;
-    private TextView callPriorityPrefixTextView;
-    private TextView callPriorityTextView;
-    private TextView callPrioritySuffixTextView;
-    private TextView callAddressTextView;
-    private Button callEndButton;
-    private TextView callPatientsTextView;
-    private TextView callDistanceTextView;
-    private Button callAddWaypointButton;
-    private TextView callNextWaypointTypeTextView;
-    private TextView callNumberWaypointsView;
-    private ImageButton toMapsButton;
-
-    private RelativeLayout callInformationLayout;
     private TextView callInformationText;
-
-    private LinearLayout callResumeLayout;
-    private Spinner callResumeSpinner;
-    private Button callResumeButton;
-
-    private View callSkipLayout;
-    private Button callSkipWaypointButton;
-    private Button callVisitingWaypointButton;
-
-    private Button addCallNoteButton;
 
     private Map<String,String> ambulanceStatus;
     private List<String> ambulanceStatusList;
     private ArrayList<Integer> ambulanceStatusBackgroundColorList;
     private ArrayList<Integer> ambulanceStatusTextColorList;
     private Map<String,String> ambulanceCapabilities;
-    private List<String> ambulanceCapabilityList;
 
-    private int currentCallId;
-    private View callNextWaypointLayout;
-    private StatusButtonClickListener statusButtonClickListener;
+    private TextView ambulanceLabel;
 
-    public class AmbulancesUpdateBroadcastReceiver extends BroadcastReceiver {
+    private View commentLabel;
+    private RecyclerView ambulanceCallRecyclerView;
 
-        @Override
-        public void onReceive(Context context, Intent intent ) {
-            if (intent != null) {
+    @Override
+    public void onReceive(Context context, @NonNull Intent intent ) {
+        final String action = intent.getAction();
+        if (action != null) {
 
-                // Get app data
-                AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
+            AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
+            Ambulance ambulance = appData.getAmbulance();
 
-                // Get calls
-                CallStack calls = appData.getCalls();
+            switch (action) {
 
-                final String action = intent.getAction();
-                switch (action) {
-                    case AmbulanceForegroundService.BroadcastActions.AMBULANCE_UPDATE:
+                case AmbulanceForegroundService.BroadcastActions.AMBULANCE_UPDATE:
 
-                        Log.i(TAG, "AMBULANCE_UPDATE");
-                        updateAmbulance(appData.getAmbulance());
-
-                        break;
-                    case AmbulanceForegroundService.BroadcastActions.CALL_UPDATE:
-
-                        Log.i(TAG, "CALL_UPDATE");
-                        if (currentCallId > 0)
-                            updateCall(appData.getAmbulance(), calls.getCurrentCall());
-
-                        break;
-                    case AmbulanceForegroundService.BroadcastActions.CALL_ACCEPTED: {
-
-                        Log.i(TAG, "CALL_ACCEPTED");
-
-                        // Toast to warn user
-                        Toast.makeText(getContext(), R.string.CallStarted, Toast.LENGTH_LONG).show();
-
-                        int callId = intent.getIntExtra(AmbulanceForegroundService.BroadcastExtras.CALL_ID, -1);
-                        currentCallId = -1;
-                        updateCall(appData.getAmbulance(), calls.getCurrentCall());
-
-                        break;
+                    Log.i(TAG, "AMBULANCE_UPDATE");
+                    if (ambulance != null) {
+                        updateAmbulance(ambulance);
+                    } else {
+                        try {
+                            // setup navigation bar
+                            ((MainActivity) requireActivity()).navigate(R.id.ambulancesFragment);
+                        } catch (IllegalStateException e) {
+                            Log.d(TAG, "Activity out of context. Ignoring");
+                        }
                     }
-                    case AmbulanceForegroundService.BroadcastActions.CALL_COMPLETED: {
 
-                        Log.i(TAG, "CALL_COMPLETED");
+                    break;
 
-                        // Toast to warn user
-                        Toast.makeText(getContext(), R.string.CallFinished, Toast.LENGTH_LONG).show();
+                case AmbulanceForegroundService.BroadcastActions.CALL_DECLINED:
 
-                        int callId = intent.getIntExtra(AmbulanceForegroundService.BroadcastExtras.CALL_ID, -1);
-                        Ambulance ambulance = appData.getAmbulance();
-                        if (currentCallId == callId)
-                            updateCall(ambulance, null);
-                        else
-                            /* makes sure that requested and suspended get updated */
-                            updateAmbulance(ambulance);
+                    Log.i(TAG, "CALL_DECLINED");
+                    updateCall(ambulance);
+                    break;
 
-                        break;
+                case AmbulanceForegroundService.BroadcastActions.CALL_UPDATE:
+
+                    Log.i(TAG, "CALL_UPDATE");
+                    updateCall(ambulance);
+                    break;
+
+                case AmbulanceForegroundService.BroadcastActions.CALL_COMPLETED:
+
+                    Log.i(TAG, "CALL_COMPLETED");
+                    updateCall(ambulance);
+
+                    try {
+                        // setup navigation bar
+                        ((MainActivity) requireActivity()).setupNavigationBar();
+                    } catch (IllegalStateException e) {
+                        Log.d(TAG, "Activity out of context. Ignoring");
                     }
-                }
 
+                    break;
+
+                default:
+                    Log.i(TAG, "Unknown broadcast action");
             }
-        }
-    }
-
-    public class StatusButtonClickListener implements View.OnClickListener {
-
-        private boolean enabled;
-        ArrayAdapter<String> ambulanceListAdapter;
-
-        public StatusButtonClickListener() {
-            this.enabled = true;
-
-            // Create the adapter
-            this.ambulanceListAdapter =
-                    new ArrayAdapter<>(AmbulanceFragment.this.getContext(),
-                            android.R.layout.simple_spinner_dropdown_item,
-                            ambulanceStatusList);
-            ambulanceListAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-
+        } else {
+            Log.i(TAG, "Action is null");
         }
 
-        public void setEnabled(boolean enabled) {
-            this.enabled = enabled;
-        }
-
-        public boolean isEnabled() {
-            return enabled;
-        }
-
-        @Override
-        public void onClick(View v) {
-
-            // short return if disabled
-            if (!enabled)
-                return;
-
-            new AlertDialog.Builder(
-                    getActivity())
-                    .setTitle(R.string.selectAmbulanceStatus)
-                    .setAdapter(ambulanceListAdapter,
-                            (dialog, which) -> {
-
-                                // Get selected status
-                                Log.i(TAG, "Status at position '" + which + "' selected.");
-
-                                // Update ambulance status
-                                updateAmbulanceStatus(which);
-
-                            })
-                    .create()
-                    .show();
-        }
     }
 
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
         Log.d(TAG, "onCreateView");
 
-        // set formatter
-        df.setMaximumFractionDigits(3);
-
         // inflate view
-        view = inflater.inflate(R.layout.fragment_ambulance, container, false);
+        View view = inflater.inflate(R.layout.fragment_ambulance, container, false);
+        MainActivity activity = (MainActivity) requireActivity();
 
-        // retrieveObject callInformationLayout
-        callInformationLayout = view.findViewById(R.id.callInformationLayout);
+        // retrieve ambulance selection button
+        ambulanceLabel = view.findViewById(R.id.ambulanceLabel);
 
         // Retrieve callInformationLayout parts
-        callInformationText = callInformationLayout.findViewById(R.id.callInformationText);
+        callInformationText = view.findViewById(R.id.callInformationText);
 
-        // retrieveObject callResumeLayout
-        callResumeLayout = view.findViewById(R.id.callResumeLayout);
+        // retrieve call recycler view
+        ambulanceCallRecyclerView = view.findViewById(R.id.ambulanceCallRecyclerView);
 
-        // Retrieve callResumeLayout parts
-        callResumeSpinner = callResumeLayout.findViewById(R.id.callResumeSpinner);
-        callResumeButton= callResumeLayout.findViewById(R.id.callResumeButton);
-        
-        // setup callLayout
-        callLayout = view.findViewById(R.id.callLayout);
-
-        // Retrieve callLayout parts
-        callPriorityTextView = callLayout.findViewById(R.id.callPriorityTextView);
-        callPriorityPrefixTextView = callLayout.findViewById(R.id.callPriorityPrefix);
-        callPrioritySuffixTextView = callLayout.findViewById(R.id.callPrioritySuffix);
-        callRadioCodeTextView = callLayout.findViewById(R.id.callRadioCodeText);
-        callDescriptionTextView = callLayout.findViewById(R.id.callDetailsText);
-        callPatientsTextView = callLayout.findViewById(R.id.callPatientsText);
-        callNumberWaypointsView = callLayout.findViewById(R.id.callNumberWaypointsText);
-
-        callEndButton = callLayout.findViewById(R.id.callEndButton);
-        callAddWaypointButton = callLayout.findViewById(R.id.callAddWaypointButton);
-
-        toMapsButton = callLayout.findViewById(R.id.toMapsButton);
-        toMapsButton.setVisibility(View.VISIBLE);
-
-        // setup callNextWaypointLayout
-        callNextWaypointLayout = callLayout.findViewById(R.id.callNextWaypointLayout);
-
-        // Retrieve callNextWaypointLayout parts
-        callDistanceTextView = callLayout.findViewById(R.id.callDistanceText);
-        callNextWaypointTypeTextView = callLayout.findViewById(R.id.callWaypointTypeText);
-        callAddressTextView = callLayout.findViewById(R.id.callAddressText);
-
-        // setup callSkipLayout
-        callSkipLayout = callLayout.findViewById(R.id.callSkipLayout);
-
-        callSkipWaypointButton = callSkipLayout.findViewById(R.id.callSkipWaypointButton);
-        callVisitingWaypointButton = callSkipLayout.findViewById(R.id.callVisitingWaypointButton);
-
-        addCallNoteButton = callLayout.findViewById(R.id.addCallNoteButton);
-
+        // Get appData
         AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
+
         Settings settings = appData.getSettings();
         if (settings != null) {
 
@@ -291,57 +165,154 @@ public class AmbulanceFragment extends Fragment {
                     if (value.equals(entry.getValue())) {
                         ambulanceStatusBackgroundColorList
                                 .add(getResources()
-                                        .getColor(Ambulance
-                                                .statusBackgroundColorMap.get(entry.getKey())));
+                                        .getColor(Ambulance.statusBackgroundColorMap.get(entry.getKey())));
                         ambulanceStatusTextColorList
                                 .add(getResources()
-                                        .getColor(Ambulance
-                                                .statusTextColorMap.get(entry.getKey())));
+                                        .getColor(Ambulance.statusTextColorMap.get(entry.getKey())));
                     }
-
             ambulanceCapabilities = settings.getAmbulanceCapability();
-            ambulanceCapabilityList = new ArrayList<>();
-            for (String status : settings.getAmbulanceCapabilityOrder())
-                ambulanceCapabilityList.add(ambulanceCapabilities.get(status));
-            // Collections.sort(ambulanceCapabilityList);
-
         } else {
-            
             ambulanceStatusList = new ArrayList<>();
-            ambulanceCapabilityList = new ArrayList<>();
         }
 
         // Other text
         capabilityText = view.findViewById(R.id.capabilityText);
-        callNotesText = view.findViewById(R.id.callNotesText);
         updatedOnText = view.findViewById(R.id.updatedOnText);
-
         commentText = view.findViewById(R.id.commentText);
+        commentLabel = view.findViewById(R.id.commentLabel);
+
+        // Set login button
+        view.findViewById(R.id.ambulanceLogin).setVisibility(View.GONE);
+
+        // Set logout button
+        ImageView ambulanceLogoutButton = view.findViewById(R.id.ambulanceLogout);
+        ambulanceLogoutButton.setOnClickListener(v -> activity.logoutAmbulance() );
+
+        // Set location button
+        ImageView ambulanceLocationButton = view.findViewById(R.id.ambulanceLocation);
+        ambulanceLocationButton.setOnClickListener(v -> activity.navigate(R.id.action_ambulance_to_map) );
+
+        // Set equipment button
+        ImageView ambulanceEquipmentButton = view.findViewById(R.id.ambulanceEquipment);
+        ambulanceEquipmentButton.setOnClickListener(v -> {
+            int ambulanceId = AmbulanceForegroundService.getAppData().getAmbulanceId();
+            Bundle bundle = new Bundle();
+            bundle.putSerializable("type", EquipmentType.AMBULANCE);
+            bundle.putInt("id", ambulanceId);
+            activity.navigate(R.id.action_ambulance_to_equipment, bundle);
+        });
+
+        // set ambulance message button
+        ImageView ambulanceMessageButton = view.findViewById(R.id.ambulanceMessage);
+        ambulanceMessageButton.setOnClickListener(v -> {
+            int ambulanceId = AmbulanceForegroundService.getAppData().getAmbulanceId();
+            Bundle bundle = new Bundle();
+            bundle.putSerializable("type", MessageType.AMBULANCE);
+            bundle.putInt("id", ambulanceId);
+            activity.navigate(R.id.action_ambulance_to_messages, bundle);
+        });
 
         // Set status button
-        statusButton = view.findViewById(R.id.statusButton);
+        // Create the adapter
+        ArrayAdapter<String> ambulanceStatusListAdapter = new ArrayAdapter<>(AmbulanceFragment.this.requireContext(),
+                android.R.layout.simple_spinner_dropdown_item,
+                ambulanceStatusList);
+        ambulanceStatusListAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 
-        // Set the ambulance button's adapter
-        statusButtonClickListener = new StatusButtonClickListener();
-        statusButton.setOnClickListener(statusButtonClickListener);
+        ambulanceStatusButton = view.findViewById(R.id.statusButton);
+        ambulanceStatusButton.setOnClickListener(v -> {
+
+            if (AmbulanceForegroundService.getAppData().getCalls().getCurrentCallId() >= 0) {
+                // handling a call, alert and quit
+
+                new SimpleAlertDialog(activity, getString(R.string.alert_warning_title))
+                        .alert(getString(R.string.cannotUpdateStatusDuringACall));
+
+                return;
+            }
+
+            new AlertDialog.Builder(activity, R.style.ambulance_status_dialog_style)
+                    .setTitle(R.string.selectAmbulanceStatus)
+                    .setAdapter(ambulanceStatusListAdapter,
+                            (dialog, which) -> {
+                                // Get selected status
+                                Log.i(TAG, String.format("Status at position '%d' selected.", which));
+
+                                // Get selected status
+                                String status = ambulanceStatusList.get(which);
+
+                                // Search for entry in ambulanceStatus map
+                                String statusCode = "";
+                                for (Map.Entry<String, String> entry : ambulanceStatus.entrySet()) {
+                                    if (status.equals(entry.getValue())) {
+                                        statusCode = entry.getKey();
+                                        break;
+                                    }
+                                }
+
+                                // Update on server
+                                Ambulance ambulance = AmbulanceForegroundService.getAppData().getAmbulance();
+                                Intent intent = new Intent(getContext(), AmbulanceForegroundService.class);
+                                intent.setAction(AmbulanceForegroundService.Actions.UPDATE_AMBULANCE_STATUS);
+                                Bundle bundle = new Bundle();
+                                bundle.putInt(AmbulanceForegroundService.BroadcastExtras.AMBULANCE_ID, ambulance.getId());
+                                bundle.putString(AmbulanceForegroundService.BroadcastExtras.AMBULANCE_STATUS, statusCode);
+                                intent.putExtras(bundle);
+
+                                // disable button before updating
+                                ambulanceStatusButton.setEnabled(false);
+
+                                new OnServiceComplete(requireContext(),
+                                        AmbulanceForegroundService.BroadcastActions.AMBULANCE_UPDATE,
+                                        BroadcastActions.FAILURE,
+                                        intent) {
+
+                                    @Override
+                                    public void onSuccess(Bundle extras) {
+
+                                        Log.d(TAG, "Successfully updated status");
+
+                                        // enable button after update is submitted
+                                        ambulanceStatusButton.setEnabled(true);
+
+
+                                    }
+
+                                    @Override
+                                    public void onFailure(Bundle extras) {
+                                        super.onFailure(extras);
+
+                                        Log.d(TAG, "Failed to update status");
+
+                                        // enable button after update is submitted
+                                        ambulanceStatusButton.setEnabled(true);
+
+                                        new SimpleAlertDialog(activity, getString(R.string.alert_warning_title))
+                                                .alert(getString(R.string.couldNotUpdateAmbulanceStatus));
+
+                                    }
+                                }
+                                        .setSuccessIdCheck(false)
+                                        .start();
+
+                            })
+                    .setCancelable(true)
+                    .create()
+                    .show();
+        });
 
         // Update ambulance
         Ambulance ambulance = appData.getAmbulance();
-        if (ambulance != null)
-            updateAmbulance(ambulance);
-        else
-            callLayout.setVisibility(View.GONE);
+        updateAmbulance(ambulance);
+        updateCall(ambulance);
 
-        // Is there a current call?
-        currentCallId = -1;
-        Call call = appData.getCalls().getCurrentCall();
-        if (call != null) {
-            Log.d(TAG, String.format("Is currently handling call '%1$d'", call.getId()));
-            updateCall(ambulance, call);
-        } else {
-            Log.d(TAG, "Is currently not handling any call");
-            callResumeLayout.setVisibility(View.GONE);
-        }
+        // Register receiver
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(AmbulanceForegroundService.BroadcastActions.AMBULANCE_UPDATE);
+        filter.addAction(AmbulanceForegroundService.BroadcastActions.CALL_UPDATE);
+        filter.addAction(AmbulanceForegroundService.BroadcastActions.CALL_COMPLETED);
+        filter.addAction(AmbulanceForegroundService.BroadcastActions.CALL_DECLINED);
+        setupReceiver(filter);
 
         return view;
     }
@@ -352,630 +323,84 @@ public class AmbulanceFragment extends Fragment {
 
         Log.d(TAG, "onResume");
 
-        // Set auxiliary panels gone
-        callLayout.setVisibility(View.GONE);
-        callResumeLayout.setVisibility(View.GONE);
-
-        // Get app data
-        AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
-
-        // Update ambulance
-        Ambulance ambulance = appData.getAmbulance();
-        if (ambulance != null)
-            updateAmbulance(ambulance);
-
-        // Are there any call been currently handled?
-        currentCallId = -1;
-        Call call = appData.getCalls().getCurrentCall();
-        if (call != null) {
-            Log.d(TAG, String.format("Is currently handling call '%1$d'", call.getId()));
-            updateCall(ambulance, call);
-        }
-
-        // Register receiver
-        IntentFilter filter = new IntentFilter();
-        filter.addAction(AmbulanceForegroundService.BroadcastActions.AMBULANCE_UPDATE);
-        filter.addAction(AmbulanceForegroundService.BroadcastActions.CALL_UPDATE);
-        filter.addAction(AmbulanceForegroundService.BroadcastActions.CALL_ACCEPTED);
-        filter.addAction(AmbulanceForegroundService.BroadcastActions.CALL_COMPLETED);
-        filter.addAction(AmbulanceForegroundService.BroadcastActions.CALL_DECLINED);
-        receiver = new AmbulanceFragment.AmbulancesUpdateBroadcastReceiver();
-        getLocalBroadcastManager().registerReceiver(receiver, filter);
-
-    }
-
-    @Override
-    public void onPause() {
-        super.onPause();
-
-        // Unregister receiver
-        if (receiver != null) {
-            getLocalBroadcastManager().unregisterReceiver(receiver);
-            receiver = null;
-        }
-
-    }
-
-    public void updateCall(final Ambulance ambulance, final Call call) {
-
-        if ((call == null ^ currentCallId <= 0)) {
-
-            Log.d(TAG, "Call changed, will initialize layout");
-
-            // create new layout
-            if (call == null) {
-
-                Log.d(TAG, "NO CALL Layout");
-
-                callInformationLayout.setVisibility(View.VISIBLE);
-                callLayout.setVisibility(View.GONE);
-                currentCallId = -1;
-
-                // update ambulance to show resume panel
-                updateAmbulance(ambulance);
-
-                statusButtonClickListener.setEnabled(true);
-
-            } else {
-
-                Log.d(TAG, "CALL Layout");
-
-                callInformationLayout.setVisibility(View.GONE);
-                callResumeLayout.setVisibility(View.GONE);
-                callLayout.setVisibility(View.VISIBLE);
-                currentCallId = call.getId();
-
-                callEndButton.setOnClickListener(
-                        v -> {
-                            // Prompt end of call
-                            ((MainActivity) getActivity()).promptEndCallDialog(call.getId());
-                        }
-                );
-
-                callAddWaypointButton.setOnClickListener(
-                        v -> {
-                            // Prompt add new waypoint
-                            ((MainActivity) getActivity()).promptNextWaypointDialog(call.getId());
-                        }
-                );
-
-                statusButtonClickListener.setEnabled(false);
-
-            }
-
-        }
-
-        // Update call content
-        if (call != null) {
-
-            Log.d(TAG, "Creating call layout");
-
-            // retrieveObject ambulanceCall
-            AmbulanceCall ambulanceCall = call.getCurrentAmbulanceCall();
-            if (ambulanceCall == null)
-                Log.d(TAG, "Call does not have a current ambulance!");
-
-            ((TextView) view.findViewById(R.id.callPriorityLabel)).setText(R.string.currentCall);
-
-            // Get app data
-            AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
-
-            // set priority
-            callPriorityTextView.setText(call.getPriority());
-            callPriorityTextView.setBackgroundColor(
-                    ((MainActivity) getActivity())
-                            .getCallPriorityBackgroundColors()
-                            .get(call.getPriority()));
-            callPriorityTextView.setTextColor(
-                    ((MainActivity) getActivity())
-                            .getCallPriorityForegroundColors()
-                            .get(call.getPriority()));
-
-            int priorityCodeInt = call.getPriorityCode();
-            if (priorityCodeInt < 0) {
-                callPriorityPrefixTextView.setText("");
-                callPrioritySuffixTextView.setText("");
-            } else {
-                PriorityCode priorityCode = appData.getPriorityCodes().get(priorityCodeInt);
-                callPriorityPrefixTextView.setText(priorityCode.getPrefix() + "-");
-                callPrioritySuffixTextView.setText("-" + priorityCode.getSuffix());
-            }
-
-            //set call notes
-            List<CallNote> callNoteSet = call.getCallnoteSet();
-            Log.d(TAG, String.format("Retrieved '%1$d' call notes", callNoteSet.size()));
-            if (callNoteSet.size() == 0){
-                callNotesText.setText(R.string.noCallNotesAvailable);
-            }
-            else {
-                callNotesText.setText("");
-                for (int i = 0; i < callNoteSet.size(); i++) {
-                    callNotesText.append(callNoteSet.get(i).getComment());
-                    callNotesText.append(" (" + callNoteSet.get(i).getUpdatedOn() + ")\n");
-                }
-            }
-
-            // Set radio code
-            int radioCodeInt = call.getRadioCode();
-            if (radioCodeInt < 0) {
-                callRadioCodeTextView.setText(R.string.unavailable);
-            } else {
-                RadioCode radioCode = appData.getRadioCodes().get(radioCodeInt);
-                callRadioCodeTextView.setText(radioCode.getId() + ": " + radioCode.getLabel());
-            }
-
-            // set details
-            callDescriptionTextView.setText(call.getDetails());
-
-            // patients
-            List<Patient> patients = call.getPatientSet();
-            if (patients != null && patients.size() > 0) {
-                String text = "";
-                for (Patient patient : patients) {
-                    if (!text.isEmpty())
-                        text += ", ";
-                    text += patient.getName();
-                    if (patient.getAge() != null)
-                        text += " (" + patient.getAge() + ")";
-                }
-
-                callPatientsTextView.setText(text);
-            } else
-                callPatientsTextView.setText(R.string.noPatientAvailable);
-
-            int numberOfWaypoints =
-                    (ambulanceCall == null ? 0 : ambulanceCall.getWaypointSet().size());
-            callNumberWaypointsView.setText(String.valueOf(numberOfWaypoints));
-
-            final Waypoint waypoint =
-                    (ambulanceCall != null
-                            ? ambulanceCall.getNextWaypoint()
-                            : null);
-
-            if (waypoint != null) {
-
-                Log.d(TAG, "Setting up next waypoint");
-
-                // Get Location
-                Location location = waypoint.getLocation();
-
-                // Update waypoint type
-                callNextWaypointTypeTextView.setText(
-                        appData.getSettings()
-                                .getLocationType()
-                                .get(location.getType()));
-
-                // Update address
-                callAddressTextView.setText(location.toAddress());
-
-
-                //create intent for google maps here
-                // to launch google turn by turn navigation
-                // google.navigation:q=a+street+address
-                // google.navigation:q=latitude,longitude
-                try {
-
-                    String query = URLEncoder.encode(location.toAddress(), "utf-8");
-
-                    Uri gmmIntentUri = Uri.parse("google.navigation:q=" + query);
-                    Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
-                    mapIntent.setPackage("com.google.android.apps.maps");
-
-                    toMapsButton.setOnClickListener(v -> {
-
-                        //checks if google maps or any other map app is installed
-                        if ( mapIntent.resolveActivity(getActivity().getPackageManager()) != null) {
-
-                            // Alert before opening in google maps
-                            new AlertDialog.Builder(
-                                    getActivity())
-                                    .setTitle(getString(R.string.directions))
-                                    .setMessage(R.string.wouldYouLikeToGoogleMaps)
-                                    .setPositiveButton( android.R.string.ok,
-                                            (dialog, which) -> startActivity( mapIntent ))
-                                    .setNegativeButton( android.R.string.cancel,
-                                            (dialog, which) -> { /* do nothing */ } )
-                                    .create()
-                                    .show();
-
-                        } else {
-
-                            // Alert that it could not open google maps
-                            new org.emstrack.ambulance.dialogs.AlertDialog(getActivity(),
-                                    getString(R.string.directions))
-                                    .alert(getString(R.string.couldNotOpenGoogleMaps));
-
-                        }
-
-                    });
-
-
-
-                } catch (java.io.UnsupportedEncodingException e) {
-                    Log.d( TAG, "Could not parse location into url for map intent" );
-                }
-
-                // Update call distance to next waypoint
-                callDistanceTextView.setText(updateCallDistance(location));
-
-                // Setup visiting button text
-                String visitingWaypointText; // = "Mark as ";
-                if (waypoint.isCreated()) {
-                    // visitingWaypointText += Waypoint.statusLabel.get(Waypoint.STATUS_VISITING);
-                    visitingWaypointText = getString(R.string.markAsVisiting);
-                    callVisitingWaypointButton.setBackgroundColor(getResources().getColor(R.color.bootstrapWarning));
-                    callVisitingWaypointButton.setTextColor(getResources().getColor(R.color.bootstrapDark));
-                } else { // if (waypoint.isVisting())
-                    // visitingWaypointText += Waypoint.statusLabel.get(Waypoint.STATUS_VISITED);
-                    visitingWaypointText = getString(R.string.markAsVisited);
-                    callVisitingWaypointButton.setBackgroundColor(getResources().getColor(R.color.bootstrapInfo));
-                    callVisitingWaypointButton.setTextColor(getResources().getColor(R.color.bootstrapLight));
-                }
-                callVisitingWaypointButton.setText(visitingWaypointText);
-
-                // Make callNextWaypointLayout visible
-                callNextWaypointLayout.setVisibility(View.VISIBLE);
-
-                // Make callSkipLayout visible
-                callSkipLayout.setVisibility(View.VISIBLE);
-
-                // Setup skip buttons
-                callSkipWaypointButton.setOnClickListener(
-                        v -> promptSkipVisitingOrVisited(Waypoint.STATUS_SKIPPED,
-                                waypoint.getId(), call.getId(), ambulance.getId(),
-                                getString(R.string.pleaseConfirm),
-                                getString(R.string.skipCurrentWaypoint),
-                                getString(R.string.skippingWaypoint))
-                );
-
-                callVisitingWaypointButton.setOnClickListener(
-                        v -> {
-
-                            if (waypoint.isCreated())
-
-                                promptSkipVisitingOrVisited(Waypoint.STATUS_VISITING,
-                                        waypoint.getId(), call.getId(), ambulance.getId(),
-                                        getString(R.string.pleaseConfirm),
-                                        getString(R.string.visitCurrentWaypoint),
-                                        getString(R.string.visitingWaypoint));
-                            else
-
-                                promptSkipVisitingOrVisited(Waypoint.STATUS_VISITED,
-                                        waypoint.getId(), call.getId(), ambulance.getId(),
-                                        getString(R.string.pleaseConfirm),
-                                        getString(R.string.visitedCurrentWaypoint),
-                                        getString(R.string.visitedWaypoint));
-
-                        }
-                );
-
-                // Setup add call note button
-                addCallNoteButton.setOnClickListener(
-                        v -> promptAddCallNote(call.getId(), getString(R.string.addCallNote))
-                );
-
-            } else {
-
-                Log.d(TAG, "Call does not have a next waypoint!");
-
-                callNextWaypointTypeTextView.setText(R.string.nextWaypointHasntBeenSetYet);
-                callAddressTextView.setText("---");
-                callDistanceTextView.setText("---");
-
-                // Make callNextWaypointLayout invisible
-                callNextWaypointLayout.setVisibility(View.GONE);
-
-                // Make callSkipLayout invisible
-                callSkipLayout.setVisibility(View.GONE);
-
-            }
-
-        } else
-            // update ambulance to set suspended/requested count correct
-            updateAmbulance(ambulance);
+        // get activity
+        MainActivity activity = (MainActivity) requireActivity();
+        activity.setupNavigationBar();
 
     }
 
     public void updateAmbulance(Ambulance ambulance) {
 
+        // quick return if null
+        if (ambulance == null) {
+            return;
+        }
+
+        // set selection button label
+        ambulanceLabel.setText(ambulance.getIdentifier());
+
         // set status button
-        setStatusButton(ambulanceStatusList.indexOf(ambulanceStatus.get(ambulance.getStatus())));
+        setAmbulanceStatusButton(ambulanceStatusList.indexOf(ambulanceStatus.get(ambulance.getStatus())));
 
-        // set identifier
-        ((MainActivity) getActivity()).setAmbulanceButtonText(ambulance.getIdentifier());
-
-        Log.d(TAG,"Summarizing pending call_current");
-
-        // get calls
-        CallStack calls = AmbulanceForegroundService.getAppData().getCalls();
-
-        // Set call_current info
-        AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
-        Map<String, Integer> callSummary
-                = calls.summary(appData.getSettings().getAmbulancecallStatus().keySet(),
-                                ambulance.getId());
-        Log.d(TAG, "Call summary = " + callSummary.toString());
-        final String summaryText = String.format(getString(R.string.requestedSuspended),
-                callSummary.get(AmbulanceCall.STATUS_REQUESTED),
-                callSummary.get(AmbulanceCall.STATUS_SUSPENDED));
-        callInformationText.setText(summaryText);
-
-        // deploy resume panel
-        if (currentCallId < 0 &&
-                (callSummary.get(AmbulanceCall.STATUS_REQUESTED) +
-                        callSummary.get(AmbulanceCall.STATUS_SUSPENDED)) > 0) {
-
-            Log.d(TAG,"Will add resume call view");
-
-            // List of call_current
-            ArrayList<String> pendingCallList = new ArrayList<>();
-
-            // Create lists of suspended call_current
-            final ArrayList<Pair<Call,AmbulanceCall>> suspendedCallList = new ArrayList<>();
-            if (callSummary.get(AmbulanceCall.STATUS_SUSPENDED) > 0) {
-                for (Map.Entry<Integer, Pair<Call,AmbulanceCall>> ambulanceCallEntry : calls
-                        .filter(ambulance.getId(),
-                                AmbulanceCall.STATUS_SUSPENDED)
-                        .entrySet()) {
-                    Pair<Call,AmbulanceCall> ambulanceCallPair = ambulanceCallEntry.getValue();
-                    suspendedCallList.add(ambulanceCallPair);
-                    pendingCallList.add("(S) " + ambulanceCallPair.second.getUpdatedOn());
-                }
-            }
-
-            // Create lists of requested call_current
-            final ArrayList<Pair<Call,AmbulanceCall>> requestedCallList = new ArrayList<>();
-            if (callSummary.get(AmbulanceCall.STATUS_REQUESTED) > 0) {
-                for (Map.Entry<Integer, Pair<Call,AmbulanceCall>> ambulanceCallEntry : calls
-                        .filter(ambulance.getId(),
-                                AmbulanceCall.STATUS_REQUESTED)
-                        .entrySet()) {
-                    Pair<Call,AmbulanceCall> ambulanceCall = ambulanceCallEntry.getValue();
-                    requestedCallList.add(ambulanceCall);
-                    pendingCallList.add("(R) " + ambulanceCall.second.getUpdatedOn());
-                }
-            }
-
-            // Create the spinner adapter
-            ArrayAdapter<String> pendingCallListAdapter = new ArrayAdapter<>(getContext(),
-                    android.R.layout.simple_spinner_dropdown_item, pendingCallList);
-            pendingCallListAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-
-            // set adapter
-            callResumeSpinner.setAdapter(pendingCallListAdapter);
-
-            //final Button callResumeButton= child.findViewById(R.id.callResumeButton);
-            callResumeButton.setOnClickListener(
-                    v -> {
-
-                        // retrieve spinner selection
-                        int position = callResumeSpinner.getSelectedItemPosition();
-
-                        // retrieve corresponding call
-                        Call call = (position < suspendedCallList.size() ?
-                                suspendedCallList.get(position).first :
-                                requestedCallList.get(position - suspendedCallList.size()).first);
-
-                        // prompt user
-                        Log.d(TAG,"Will prompt user to accept call");
-                        ((MainActivity) getActivity()).promptCallAccept(call.getId());
-
-                    });
-
-            callResumeLayout.setVisibility(View.VISIBLE);
-
+        // set comment
+        String comment = ambulance.getComment();
+        if (comment != null && !comment.equals("")) {
+            commentText.setText(comment);
+            commentText.setVisibility(View.VISIBLE);
+            commentLabel.setVisibility(View.VISIBLE);
         } else {
-            callResumeLayout.setVisibility(View.GONE);
+            commentText.setVisibility(View.GONE);
+            commentLabel.setVisibility(View.GONE);
         }
 
-        // update call distance?
-        if (currentCallId > 0) {
-
-            Call call = AmbulanceForegroundService.getAppData().getCalls().getCurrentCall();
-            if (call != null) {
-
-                AmbulanceCall ambulanceCall = call.getCurrentAmbulanceCall();
-
-                Waypoint waypoint = ambulanceCall.getNextWaypoint();
-                if (waypoint != null) {
-
-                    String distanceText = updateCallDistance(waypoint.getLocation());
-                    callDistanceTextView.setText(distanceText);
-                } else
-                    callDistanceTextView.setText("---");
-
-            } else
-                callDistanceTextView.setText("---");
-
-        }
-
-        // set status and comment
-        commentText.setText(ambulance.getComment());
-        updatedOnText.setText(ambulance.getUpdatedOn().toString());
+        // set updated on
+        updatedOnText.setText(formatDateTime(ambulance.getUpdatedOn(), DateFormat.SHORT));
 
         // set capability
         capabilityText.setText(ambulanceCapabilities.get(ambulance.getCapability()));
 
     }
 
-    public String updateCallDistance(Location location) {
+    private void updateCall(Ambulance ambulance) {
 
-        if (location == null)
-            return null;
-
-        Log.d(TAG,"Will calculate distance");
-
-        // Get current location
-        android.location.Location lastLocation = AmbulanceForegroundService.getLastLocation();
-
-        // Calculate distance to patient
-        float distance = -1;
-        if (lastLocation != null) {
-            Log.d(TAG,"last location = " + lastLocation);
-            distance = lastLocation.distanceTo(location.getLocation().toLocation()) / 1000;
-        }
-        String distanceText = getString(R.string.noDistanceAvailable);
-        Log.d(TAG,"Distance = " + distance);
-        if (distance > 0) {
-            distanceText = df.format(distance) + " km";
+        if (ambulance == null) {
+            Log.d(TAG, "Ambulance is null");
+            return;
         }
 
-        return distanceText;
+        Log.d(TAG,"Updating call information");
+        AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
+
+        // get calls
+        CallStack calls = appData.getCalls();
+
+        // Set call_current info
+        Map<String, Integer> callSummary = calls.summary(appData.getSettings().getAmbulancecallStatus().keySet(), ambulance.getId());
+        Log.d(TAG, "Call summary = " + callSummary.toString());
+
+        final String summaryText = getString(R.string.requestedSuspended,
+                callSummary.get(AmbulanceCall.STATUS_REQUESTED),
+                callSummary.get(AmbulanceCall.STATUS_SUSPENDED));
+        callInformationText.setText(summaryText);
+
+        // sort current calls
+        List<Pair<Call, AmbulanceCall>> callList = new ArrayList<>(calls.filter(ambulance.getId()).values());
+
+        // Install adapter
+        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(requireContext());
+        CallRecyclerAdapter adapter =  new CallRecyclerAdapter(getActivity(), callList);
+        ambulanceCallRecyclerView.setLayoutManager(linearLayoutManager);
+        ambulanceCallRecyclerView.setAdapter(adapter);
 
     }
 
-    public void setStatusButton(int position) {
+    public void setAmbulanceStatusButton(int position) {
 
         // set status button
-        statusButton.setText(ambulanceStatusList.get(position));
-        statusButton.setTextColor(ambulanceStatusTextColorList.get(position));
-        statusButton.setBackgroundColor(ambulanceStatusBackgroundColorList.get(position));
+        ambulanceStatusButton.setText(ambulanceStatusList.get(position));
+        ambulanceStatusButton.setTextColor(ambulanceStatusTextColorList.get(position));
+        ambulanceStatusButton.setBackgroundColor(ambulanceStatusBackgroundColorList.get(position));
 
-    }
-
-    public void updateAmbulanceStatus(int position) {
-
-        try {
-
-            if (!((MainActivity) getActivity()).canWrite()) {
-
-                // Toast to warn user
-                Toast.makeText(getContext(),
-                        R.string.cantModifyAmbulance,
-                        Toast.LENGTH_LONG).show();
-
-                // Return
-                return;
-
-            }
-
-            // Get selected status
-            String status = ambulanceStatusList.get(position);
-
-            // Search for entry in ambulanceStatus map
-            String statusCode = "";
-            for (Map.Entry<String, String> entry : ambulanceStatus.entrySet()) {
-                if (status.equals(entry.getValue())) {
-                    statusCode = entry.getKey();
-                    break;
-                }
-            }
-
-            // format timestamp
-            // DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
-            // df.setTimeZone(TimeZone.getTimeZone("UTC"));
-            // String timestamp = df.format(new Date());
-
-            // Set updateAmbulance string
-            // String updateString = "{\"status\":\"" + statusCode + "\",\"timestamp\":\"" + timestamp + "\"}";
-
-            // Update on server
-            // TODO: Update along with locations because it will be recorded with
-            //       the wrong location on the server
-            Ambulance ambulance = AmbulanceForegroundService.getAppData().getAmbulance();
-            Intent intent = new Intent(getContext(), AmbulanceForegroundService.class);
-            intent.setAction(AmbulanceForegroundService.Actions.UPDATE_AMBULANCE_STATUS);
-            Bundle bundle = new Bundle();
-            bundle.putInt(AmbulanceForegroundService.BroadcastExtras.AMBULANCE_ID, ambulance.getId());
-            bundle.putString(AmbulanceForegroundService.BroadcastExtras.AMBULANCE_STATUS, statusCode);
-            intent.putExtras(bundle);
-            getActivity().startService(intent);
-
-        } catch (Exception e) {
-
-            Log.i(TAG, "updateAmbulanceStatus exception: " + e);
-
-        }
-
-    }
-
-    public void promptSkipVisitingOrVisited(final String status,
-                                            final int waypointId, final int callId, final int ambulanceId,
-                                            final String title, final String message, final String doneMessage) {
-
-        Log.d(TAG, "Creating promptSkipVisitingOrVisited dialog");
-
-        // Use the Builder class for convenient dialog construction
-        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
-        builder.setTitle(title)
-                .setMessage(message)
-                .setNegativeButton(R.string.no,
-                        (dialog, id) -> Log.i(TAG, "Continuing..."))
-                .setPositiveButton(R.string.yes,
-                        (dialog, id) -> {
-
-                            Log.i(TAG, String.format("Will mark as '%1$s'", status));
-
-                            Toast.makeText(getContext(), doneMessage, Toast.LENGTH_SHORT).show();
-
-                            String action;
-                            if (status == Waypoint.STATUS_SKIPPED)
-                                action = AmbulanceForegroundService.Actions.WAYPOINT_SKIP;
-                            else if (status == Waypoint.STATUS_VISITING)
-                                action = AmbulanceForegroundService.Actions.WAYPOINT_ENTER;
-                            else // if (status == Waypoint.STATUS_VISITED)
-                                action = AmbulanceForegroundService.Actions.WAYPOINT_EXIT;
-
-                            // update waypoint status on server
-                            Intent intent = new Intent(getContext(),
-                                    AmbulanceForegroundService.class);
-                            intent.setAction(action);
-                            Bundle bundle = new Bundle();
-                            bundle.putInt(AmbulanceForegroundService.BroadcastExtras.WAYPOINT_ID, waypointId);
-                            bundle.putInt(AmbulanceForegroundService.BroadcastExtras.AMBULANCE_ID, ambulanceId);
-                            bundle.putInt(AmbulanceForegroundService.BroadcastExtras.CALL_ID, callId);
-                            intent.putExtras(bundle);
-                            getActivity().startService(intent);
-
-                        });
-
-        // Create the AlertDialog object and return it
-        builder.create().show();
-    }
-
-    public void promptAddCallNote(final int callId, final String title) {
-
-        Log.d(TAG, "Creating promptAddCallNote dialog");
-
-        // Use the Builder class for convenient dialog construction
-        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
-        final View callNoteDialog = getLayoutInflater().inflate(R.layout.add_callnote_dialog, null);
-
-        builder.setView(callNoteDialog)
-                .setTitle(title)
-                //.setMessage(message)
-                .setNegativeButton(R.string.cancel,
-                        (dialog, id) -> Log.i(TAG, "Cancelling add call note"))
-                .setPositiveButton(R.string.add,
-                        (dialog, id) -> {
-
-                            EditText editText = callNoteDialog.findViewById(R.id.dialog_text);
-                            Toast.makeText(getContext(), editText.getText().toString(), Toast.LENGTH_SHORT).show();
-
-                            // post call note on server
-                            Intent intent = new Intent(getContext(),
-                                    AmbulanceForegroundService.class);
-                            intent.setAction(AmbulanceForegroundService.Actions.CALLNOTE_CREATE);
-                            Bundle bundle = new Bundle();
-                            bundle.putString(AmbulanceForegroundService.BroadcastExtras.CALLNOTE_COMMENT, editText.getText().toString());
-                            bundle.putInt(AmbulanceForegroundService.BroadcastExtras.CALL_ID, callId);
-                            intent.putExtras(bundle);
-                            getActivity().startService(intent);
-
-
-                        });
-
-        // Create the AlertDialog object and return it
-        builder.create().show();
-    }
-
-    /**
-     * Get LocalBroadcastManager
-     *
-     * @return the LocalBroadcastManager
-     */
-    private LocalBroadcastManager getLocalBroadcastManager() {
-        return LocalBroadcastManager.getInstance(getContext());
     }
 
 }

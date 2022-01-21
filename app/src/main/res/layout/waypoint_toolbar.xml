@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="horizontal"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/waypointToolbarVisitingButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="5dp"
+        android:backgroundTint="@color/bootstrapPrimary"
+        android:text="@string/visiting"
+        android:layout_weight="1"/>
+<!--
+        app:icon="@drawable/ic_map_marker"
+        app:iconSize="20dp"
+-->
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/waypointToolbarUndoButton"
+        style="@style/Widget.App.Button.IconOnly"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="5dp"
+        android:backgroundTint="@color/bootstrapDanger"
+        app:icon="@drawable/ic_undo_solid"
+        app:iconSize="20dp" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/waypointToolbarAddWaypointButton"
+        style="@style/Widget.App.Button.IconOnly"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="5dp"
+        android:backgroundTint="@color/bootstrapSuccess"
+        app:icon="@drawable/ic_plus_square_solid"
+        app:iconSize="20dp" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/waypointToolbarSkipButton"
+        style="@style/Widget.App.Button.IconOnly"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="5dp"
+        android:backgroundTint="@color/bootstrapSecondary"
+        app:icon="@drawable/ic_times_circle_solid"
+        app:iconSize="20dp" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/waypointToolbarNextButton"
+        style="@style/Widget.App.Button.IconOnly"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:backgroundTint="@color/bootstrapSecondary"
+        app:icon="@drawable/ic_step_forward_solid"
+        app:iconSize="20dp" />
+
+</LinearLayout>

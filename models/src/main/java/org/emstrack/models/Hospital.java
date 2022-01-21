@@ -1,28 +1,23 @@
 package org.emstrack.models;
 
-import java.util.Date;
+import android.content.Context;
+
+import androidx.annotation.NonNull;
+
+import java.util.Calendar;
+import java.util.Locale;
 
 /**
  * A class representing a hospital.
  * @author mauricio
  * @since 3/11/2018
  */
-public class Hospital{
+public class Hospital extends NamedAddress {
 
     private int id;
-    private String number;
-    private String street;
-    private String unit;
-    private String neighborhood;
-    private String city;
-    private String state;
-    private String zipcode;
-    private String country;
-    private GPSLocation location;
-    private String name;
     private String comment;
     private int updatedBy;
-    private Date updatedOn;
+    private Calendar updatedOn;
 
     public Hospital(int id,
                     String number,
@@ -36,22 +31,11 @@ public class Hospital{
                     String name,
                     GPSLocation location,
                     String comment,
-                    int updatedBy, Date updatedOn
+                    int updatedBy, Calendar updatedOn
                     ) {
+        super(name, number, street, unit, neighborhood, city, state, zipcode, country, location);
+
         this.id = id;
-
-        this.number = number;
-        this.street= street;
-        this.unit = unit;
-        this.neighborhood= neighborhood;
-        this.city = city;
-        this.state = state;
-        this.zipcode = zipcode;
-        this.country = country;
-
-        this.name = name;
-
-        this.location = location;
         this.comment = comment;
         this.updatedBy = updatedBy;
         this.updatedOn = updatedOn;
@@ -64,86 +48,6 @@ public class Hospital{
 
     public void setId(int id) {
         this.id = id;
-    }
-
-    public String getNumber() {
-        return number;
-    }
-
-    public void setNumber(String number) {
-        this.number = number;
-    }
-
-    public String getStreet() {
-        return street;
-    }
-
-    public void setStreet(String street) {
-        this.street = street;
-    }
-
-    public String getUnit() {
-        return unit;
-    }
-
-    public void setUnit(String unit) {
-        this.unit = unit;
-    }
-
-    public String getNeighborhood() {
-        return neighborhood;
-    }
-
-    public void setNeighborhood(String neighborhood) {
-        this.neighborhood = neighborhood;
-    }
-
-    public String getCity() {
-        return city;
-    }
-
-    public void setCity(String city) {
-        this.city = city;
-    }
-
-    public String getState() {
-        return state;
-    }
-
-    public void setState(String state) {
-        this.state = state;
-    }
-
-    public String getZipcode() {
-        return zipcode;
-    }
-
-    public void setZipcode(String zipcode) {
-        this.zipcode = zipcode;
-    }
-
-    public String getCountry() {
-        return country;
-    }
-
-    public void setCountry(String country) {
-        this.country = country;
-    }
-
-    public GPSLocation getLocation() {
-        return location;
-    }
-
-    public void setLocation(GPSLocation location) {
-        this.location = location;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
     }
 
     public String getComment() {
@@ -162,17 +66,23 @@ public class Hospital{
         this.updatedBy = updatedBy;
     }
 
-    public Date getUpdatedOn() {
+    public Calendar getUpdatedOn() {
         return updatedOn;
     }
 
-    public void setUpdatedOn(Date updatedOn) {
+    public void setUpdatedOn(Calendar updatedOn) {
         this.updatedOn = updatedOn;
     }
 
+    @NonNull
     @Override
     public String toString() {
-        return name;
+        return getName();
     }
 
+    @NonNull
+    @Override
+    public String toAddress(Context context) {
+        return context.getResources().getString(R.string.Hospital).toUpperCase(Locale.getDefault()) +"\n" + super.toString();
+    }
 }

@@ -1,6 +1,6 @@
 package org.emstrack.ambulance.adapters;
 
-import android.content.Context;
+import android.app.Activity;
 import android.util.SparseArray;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -9,13 +9,9 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import org.emstrack.ambulance.views.HospitalViewHolder;
 import org.emstrack.ambulance.R;
-import org.emstrack.ambulance.views.EquipmentRecyclerViewViewHolder;
-import org.emstrack.ambulance.views.HospitalRecyclerViewViewHolder;
-import org.emstrack.models.EquipmentItem;
 import org.emstrack.models.Hospital;
-
-import java.util.List;
 
 /**
  * Connects Equipment data to the RecyclerView (called from EquipmentFragment)
@@ -23,30 +19,30 @@ import java.util.List;
  * @since 7/07/2020
  */
 
-public class HospitalRecyclerAdapter extends RecyclerView.Adapter<HospitalRecyclerViewViewHolder> {
+public class HospitalRecyclerAdapter extends RecyclerView.Adapter<HospitalViewHolder> {
 
     private static final String TAG = HospitalRecyclerAdapter.class.getSimpleName();
-    private Context context;
+    private final Activity activity;
     SparseArray<Hospital> hospitals;
 
-    public HospitalRecyclerAdapter(Context context, SparseArray<Hospital> hospitals) {
-        this.context = context;
+    public HospitalRecyclerAdapter(Activity activity, SparseArray<Hospital> hospitals) {
+        this.activity = activity;
         this.hospitals = hospitals;
     }
 
     @NonNull
     @Override
     //initialize ViewHolder
-    public HospitalRecyclerViewViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+    public HospitalViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         final View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.hospital_item, parent, false);
-        return new HospitalRecyclerViewViewHolder(context, view);
+        return new HospitalViewHolder(view);
     }
 
     @Override
-    public void onBindViewHolder(@NonNull HospitalRecyclerViewViewHolder holder, int position) {
+    public void onBindViewHolder(@NonNull HospitalViewHolder holder, int position) {
 
         Hospital item = hospitals.valueAt(position);
-        holder.setHospital(item, context);
+        holder.setHospital(item, activity);
 
     }
 

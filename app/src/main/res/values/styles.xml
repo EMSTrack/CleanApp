@@ -1,30 +1,68 @@
 <resources>
 
     <!-- Base application theme. -->
-    <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
-        <!-- Customize your theme here. -->
-        <item name="colorPrimary">@color/colorPrimary</item>
-        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
-        <item name="colorAccent">@color/colorAccent</item>
+    <style name="AppTheme" parent="Theme.MaterialComponents.Light.NoActionBar">
+
+        <item name="colorPrimary">@color/bootstrapPrimary</item>
+        <item name="colorPrimaryVariant">@color/bootstrapSecondary</item>
+        <item name="colorOnPrimary">#FFFFFF</item>
+        <item name="colorSecondary">#2962FF</item>
+        <item name="colorSecondaryVariant">#0039CB</item>
+        <item name="colorOnSecondary">#FFFFFF</item>
+        <item name="colorError">@color/bootstrapDanger</item>
+        <item name="colorOnError">#FFFFFF</item>
+
+        <item name="colorSurface">#FFFFFF</item>
+        <item name="colorOnSurface">#212121</item>
+
+        <item name="android:actionButtonStyle">@style/ActionButtonStyle</item>
+        <item name="preferenceTheme">@style/AppPreferenceTheme</item>
+
     </style>
 
-    <style name="CustomTabLayoutStyle" parent="Base.Widget.Design.TabLayout">
-        <item name="tabTextAppearance">@style/CustomTabTextStyle</item>
-        <item name="tabSelectedTextColor">@color/colorPrimaryDark</item>
+    <style name="Widget.App.Button.IconOnly" parent="Widget.MaterialComponents.Button">
+        <item name="iconPadding">0dp</item>
+        <item name="android:insetTop">0dp</item>
+        <item name="android:insetBottom">0dp</item>
+        <item name="android:paddingLeft">6dp</item>
+        <item name="android:paddingRight">6dp</item>
+        <item name="android:minWidth">32dp</item>
+        <item name="android:minHeight">36dp</item>
     </style>
 
-    <style name="CustomTabTextStyle" parent="TextAppearance.Design.Tab">
-        <item name="android:textSize">14sp</item>
-        <item name="android:textColor">@color/colorAccent</item>
+    <style name="primary.Button" parent="Widget.MaterialComponents.Button">
+        <item name="backgroundTint">?attr/colorPrimary</item>
     </style>
 
-    <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
+    <style name="secondary.Button" parent="Widget.AppCompat.Button.Colored">
+        <item name="backgroundTint">?attr/colorSecondary</item>
+    </style>
 
-    <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
+    <!-- action bar button style -->
+    <style name="ActionButtonStyle" parent="Widget.AppCompat.ActionButton">
+        <item name="android:minWidth">0dip</item>
+        <item name="android:paddingStart">0dip</item>
+        <item name="android:paddingEnd">3dip</item>
+        <item name="colorControlNormal">@color/bootstrapDark</item>
+    </style>
 
-    <style name="drawer_menu_theme">navatormenu
-        <item name="android:textSize">20sp</item><!-- text size in menu-->
-        <item name="android:listPreferredItemHeightSmall">40dp</item><!-- item size in menu-->
+    <!-- https://github.com/jakobulbrich/preferences-demo -->
+    <style name="AppPreferenceTheme"
+        parent="@style/PreferenceThemeOverlay.v14.Material">
+        <item name="preferenceFragmentCompatStyle">
+            @style/AppPreferenceFragmentCompatStyle
+        </item>
+    </style>
+
+    <!-- Custom Style for PreferenceFragmentCompat -->
+    <style name="AppPreferenceFragmentCompatStyle"
+        parent="@style/PreferenceFragment.Material">
+        <item name="android:layout">@layout/pref_screen</item>
+    </style>
+
+    <!-- Custom style for ambulance status dialog -->
+    <style name="ambulance_status_dialog_style" parent="Theme.MaterialComponents.Light.Dialog.Alert">
+        <item name="windowFixedHeightMajor">60%</item>
     </style>
 
 </resources>

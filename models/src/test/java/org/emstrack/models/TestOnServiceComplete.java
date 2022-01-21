@@ -1,5 +1,7 @@
 package org.emstrack.models;
 
+import static android.os.Looper.getMainLooper;
+
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -26,9 +28,10 @@ import static junit.framework.Assert.assertFalse;
 import static junit.framework.Assert.assertNotNull;
 import static junit.framework.TestCase.assertTrue;
 import static org.junit.Assert.assertSame;
+import static org.robolectric.Shadows.shadowOf;
 
 @RunWith(RobolectricTestRunner.class)
-@Config(sdk=Build.VERSION_CODES.P)
+@Config(sdk= Build.VERSION_CODES.R)
 public class TestOnServiceComplete {
 
     static {
@@ -73,6 +76,7 @@ public class TestOnServiceComplete {
         instance.sendBroadcast(new Intent("com.bar"));
         assertFalse(called[0]);
         instance.sendBroadcast(new Intent("com.foo"));
+        shadowOf(getMainLooper()).idle();
         assertTrue(called[0]);
     }
 

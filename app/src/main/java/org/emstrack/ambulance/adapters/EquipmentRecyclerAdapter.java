@@ -9,7 +9,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import org.emstrack.ambulance.R;
-import org.emstrack.ambulance.views.EquipmentRecyclerViewViewHolder;
+import org.emstrack.ambulance.views.EquipmentViewHolder;
 import org.emstrack.models.EquipmentItem;
 
 import java.util.List;
@@ -20,10 +20,10 @@ import java.util.List;
  * @since 2/17/2020
  */
 
-public class EquipmentRecyclerAdapter extends RecyclerView.Adapter<EquipmentRecyclerViewViewHolder> {
+public class EquipmentRecyclerAdapter extends RecyclerView.Adapter<EquipmentViewHolder> {
 
     private static final String TAG = EquipmentRecyclerAdapter.class.getSimpleName();
-    private Context context;
+    private final Context context;
     List<EquipmentItem> equipments;
 
     public EquipmentRecyclerAdapter(Context context, List<EquipmentItem> equipments) {
@@ -33,13 +33,13 @@ public class EquipmentRecyclerAdapter extends RecyclerView.Adapter<EquipmentRecy
 
     @NonNull
     @Override
-    public EquipmentRecyclerViewViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+    public EquipmentViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         final View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.equipment_item, parent, false);
-        return new EquipmentRecyclerViewViewHolder(context, view);
+        return new EquipmentViewHolder(context, view);
     }
 
     @Override
-    public void onBindViewHolder(@NonNull EquipmentRecyclerViewViewHolder holder, int position) {
+    public void onBindViewHolder(@NonNull EquipmentViewHolder holder, int position) {
 
         EquipmentItem item = equipments.get(position);
         holder.setEquipment(item, context);

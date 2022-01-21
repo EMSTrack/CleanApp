@@ -2,7 +2,7 @@ package org.emstrack.models;
 
 import org.emstrack.models.gson.Exclude;
 
-import java.util.Date;
+import java.util.Calendar;
 
 /**
  * A class representing the API client
@@ -26,7 +26,7 @@ public class Client {
     private Integer ambulance;
     private Integer hospital;
     @Exclude
-    private Date updatedOn;
+    private Calendar updatedOn;
 
     /**
      *
@@ -140,7 +140,7 @@ public class Client {
      *
      * @return the update date
      */
-    public Date getUpdatedOn() {
+    public Calendar getUpdatedOn() {
         return updatedOn;
     }
 
@@ -148,7 +148,7 @@ public class Client {
      *
      * @param updatedOn the update date
      */
-    public void setUpdatedOn(Date updatedOn) {
+    public void setUpdatedOn(Calendar updatedOn) {
         this.updatedOn = updatedOn;
     }
 

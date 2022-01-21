@@ -16,38 +16,15 @@
         android:paddingVertical="6dp"
         android:paddingHorizontal="2dp">
 
-        <LinearLayout
+        <include layout="@layout/hospital_header"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content" />
 
-            <ImageView
-                android:id="@+id/hospital_thumbnail"
-                android:layout_width="20dp"
-                android:layout_height="20dp"
-                android:layout_gravity="center_vertical"
-                android:layout_marginLeft="4dp"
-                android:scaleType="fitCenter"
-                android:src="@drawable/hospital_symbol" />
-
-            <TextView
-                android:id="@+id/hospital_name"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:gravity="center_vertical"
-                android:layout_marginLeft="30dp"
-                android:textSize="24sp"
-                android:textStyle="bold"
-                android:text="Hospital" />
-
-        </LinearLayout>
-
-        <include layout="@layout/fragment_equipment"
-            android:id="@+id/hospital_equipment"
+        <include layout="@layout/hospital_detail"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:visibility="gone"
-            android:text="@string/equipment"
-            android:textSize="16sp"/>
+            android:layout_marginStart="35dp"
+            android:visibility="gone" />
 
     </LinearLayout>
 

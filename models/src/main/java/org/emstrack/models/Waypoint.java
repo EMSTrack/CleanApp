@@ -1,10 +1,12 @@
 package org.emstrack.models;
 
-import java.util.Collections;
+import com.google.gson.ExclusionStrategy;
+import com.google.gson.FieldAttributes;
+
+import org.emstrack.models.gson.Exclude;
+
+import java.util.Calendar;
 import java.util.Comparator;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * A class representing a waypoint.
@@ -18,6 +20,15 @@ public class Waypoint {
         }
     }
 
+    public enum WaypointEvent {
+        ENTER,
+        EXIT
+    };
+
+    public static final String DETECTION_MARK = "mark";
+    public static final String DETECTION_NOTIFY = "notify";
+    public static final String DETECTION_DISABLED = "notify";
+
     public static final String STATUS_CREATED = "C";
     public static final String STATUS_VISITING = "V";
     public static final String STATUS_VISITED = "D";
@@ -29,12 +40,31 @@ public class Waypoint {
     private String status;
     private Location location;
     private String comment;
+    @Exclude
     private int updatedBy;
-    private Date updatedOn;
+    @Exclude
+    private Calendar updatedOn;
+
+    public static class WaypointCreationExclusionStrategy implements ExclusionStrategy {
+
+        @Override
+        public boolean shouldSkipField(FieldAttributes f) {
+            return (
+                    (f.getDeclaringClass() == Waypoint.class && (f.getName().equals("id") || f.getName().equals("ambulanceCallId")))
+                            ||
+                            (f.getDeclaringClass() == Location.class && (f.getName().equals("id")))
+            );
+        }
+
+        public boolean shouldSkipClass(Class<?> arg0) {
+            return false;
+        }
+
+    }
 
     public Waypoint(int id, int ambulanceCallId,
                     int order, String status, Location location,
-                    String comment, int updatedBy, Date updatedOn) {
+                    String comment, int updatedBy, Calendar updatedOn) {
         this.id = id;
         this.ambulanceCallId = ambulanceCallId;
         this.order = order;
@@ -47,7 +77,7 @@ public class Waypoint {
 
     public Waypoint(int order, String status, Location location) {
         this(-1, -1, order, status, location,
-                "", -1, new Date());
+                "", -1, Calendar.getInstance());
     }
 
     public int getId() {
@@ -122,12 +152,21 @@ public class Waypoint {
         this.updatedBy = updatedBy;
     }
 
-    public Date getUpdatedOn() {
+    public Calendar getUpdatedOn() {
         return updatedOn;
     }
 
-    public void setUpdatedOn(Date updatedOn) {
+    public void setUpdatedOn(Calendar updatedOn) {
         this.updatedOn = updatedOn;
+    }
+
+    public float calculateDistance(android.location.Location lastLocation) {
+        // Calculate distance to patient in kilometers
+        if (lastLocation != null) {
+            return lastLocation.distanceTo(location.getLocation().toLocation()) / 1000;
+        } else {
+            return -1;
+        }
     }
 
 }

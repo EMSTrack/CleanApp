@@ -7,8 +7,6 @@
     <color name="colorWhite">#ffffffff</color>
     <color name="colorBlack">#000000</color>
     <color name="common_action_bar_splitter">#000000</color>
-    <color name="mapButtonOff">#8FFF</color>
-    <color name="mapButtonOn">#8888</color>
     <color name="colorRed">#FFFF0000</color>
     <color name="colorAvailable">#4CAF50</color>
 
@@ -32,5 +30,16 @@
     <color name="bootstrapSecondary">#ff868e96</color>
     <color name="bootstrapDark">#ff343a40</color>
     <color name="bootstrapYellow">#ffF5E234</color>
+
+    <color name="iconColor">#fff8f9fa</color>
+    <color name="iconColorDark">#ff343a40</color>
+    <color name="iconCallAccepted">#f4cccc</color>
+
+    <color name="tabBackground">#CFCFCF</color>
+    <color name="messageBackground">#cfcfcf</color>
+
+    <color name="mapButtonOn">@color/bootstrapDark</color>
+    <color name="mapButtonOff">@color/bootstrapLight</color>
+    <color name="mapButtonAlert">@color/bootstrapWarning</color>
 
 </resources>

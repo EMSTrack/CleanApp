@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:paddingVertical="5dp"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingHorizontal="@dimen/selectLocationMarginHorizontal"
+    android:background="@drawable/selector_location_background" >
+
+    <TextView
+        android:id="@+id/locationName"
+        android:textColor="@drawable/selector_location_foreground"
+        android:textAppearance="?attr/textAppearanceListItemSecondary"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1" />
+
+    <TextView
+        android:id="@+id/locationDistance"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+
+</LinearLayout>

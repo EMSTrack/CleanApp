@@ -2,7 +2,7 @@
 <resources>
 
     <string name="app_name">EMSTrack</string>
-    <string name="app_version" translatable="false">0_6_5</string>
+    <string name="app_version" translatable="false">0_9_11</string>
     <string name="client_name" translatable="false">AndroidClient</string>
 
     <string name="drawer_open">Open navigation drawer</string>
@@ -31,8 +31,8 @@
     <string name="error_invalid_server">Please select server.</string>
 
     <string name="equipment_boolean_image">Checkbox</string>
-    <string name="equipment_bolean_button_positive_text">Update</string>
-    <string name="equipment_bolean_button_negative_text">Cancel</string>
+    <string name="equipment_boolean_button_positive_text">Update</string>
+    <string name="equipment_boolean_button_negative_text">Cancel</string>
     <string name="equipment_boolean_message">Is this equipment available?</string>
     <string name="equipment_boolean_true">Available</string>
     <string name="equipment_boolean_false">Not available</string>
@@ -70,32 +70,31 @@
     <string name="gpsTimestampLabel">Timestamp:</string>
     <string name="gpsOrientationLabel">Orientation:</string>
     <string name="degrees">deg</string>
-    <string name="gpsStatusLabel">Status:</string>
+    <string name="ambulanceStatusLabel">Status:</string>
     <string name="gpsIdentifierLabel">Identifier:</string>
-    <string name="gpsCapabilityLabel">Capability:</string>
+    <string name="ambulanceCapabilityLabel">Capability:</string>
     <string name="callNotesLabel">Notes:</string>
     <string name="gpsLastUpdatedOnLabel">Last update:</string>
     <string name="gpsCommentsLabel">Comments:</string>
-    <string name="access_token" translatable="false">pk.eyJ1IjoieWFuZ2Y5NiIsImEiOiJjaXltYTNmbTcwMDJzMzNwZnpzM3Z6ZW9kIn0.gjEwLiCIbYhVFUGud9B56w</string>
-    <string name="failedToConnectToBrocker">Failed to connected to broker.</string>
+    <string name="failedToConnectToBroker">Failed to connected to broker.</string>
     <string name="Exception">Exception:</string>
     <string name="loginSuccessMessage">User \'%1$s\' successfully logged in.</string>
     <string name="couldNotLoginUser">Could not login user \'%1$s\'</string>
-    <string name="invalidAmbulanceId">Invalid ambulance id.</string>
-    <string name="couldNotParseAmbulance">Could not parse ambulance update.</string>
-    <string name="couldNotSubscribeToAmbulance">Could not subscribe to ambulance.</string>
+    <string name="invalidAmbulanceId">Invalid vehicle id.</string>
+    <string name="couldNotParseAmbulance">Could not parse vehicle update.</string>
+    <string name="couldNotSubscribeToAmbulance">Could not subscribe to vehicle.</string>
     <string name="couldNotSubscribeToHospital">Could not subscribe to hospital.</string>
-    <string name="couldNotRetrieveAmbulance">Could not retrieve ambulance \'%1$s\'.</string>
+    <string name="couldNotRetrieveAmbulance">Could not retrieve vehicle \'%1$s\'.</string>
     <string name="couldNotRetrieveHospitals">Could not retrieve hospitals.</string>
-    <string name="couldNotUpdateAmbulanceOnServer">Could not update ambulance on server.</string>
-    <string name="failedToDisconnectFromBroker">Failed to disconnect from brocker.</string>
+    <string name="couldNotUpdateAmbulanceOnServer">Could not update vehicle on server.</string>
+    <string name="failedToDisconnectFromBroker">Failed to disconnect from broker.</string>
     <string name="couldNotLogout">Could not logout.</string>
-    <string name="couldNotRetrieveAmbulances">Could not retrieve ambulances.</string>
-    <string name="couldNotUnsubscribeToAmbulances">Could not unsubscribe to ambulances.</string>
-    <string name="cantModifyAmbulance">You do not have permission to modify this ambulance.</string>
+    <string name="couldNotRetrieveAmbulances">Could not retrieve vehicles.</string>
+    <string name="couldNotUnsubscribeToAmbulances">Could not unsubscribe to vehicles.</string>
+    <string name="cantModifyAmbulance">You do not have permission to modify this vehicle.</string>
     <string name="anotherClientIsStreamingLocations">Another client is currently streaming updates.</string>
     <string name="startedStreamingLocation">Started streaming updates.</string>
-    <string name="couldNotStartLocationUpdates">Could not start sending updates to server. This probably means another user is logged in on the same ambulance.</string>
+    <string name="couldNotStartLocationUpdates">Could not start sending updates to server. This probably means another user is logged in on the same vehicle.</string>
     <string name="forcingLocationUpdates">Forcing updates…</string>
     <string name="anotherClientRequestedLocations">Another client requested to stream updates.</string>
     <string name="requestingToStreamLocation">Requesting to stream updates.</string>
@@ -104,7 +103,7 @@
     <string name="localBufferIsEmpty">Server is online, local buffer is empty.</string>
     <string name="serverIsOfflineBufferingUpdate">Server is offline. Buffering updates.</string>
     <string name="cannotUseLocationServices">Application cannot use location services. Please modify permissions on Settings.</string>
-    <string name="noAmbulanceSelected">No ambulance is currently selected.</string>
+    <string name="noAmbulanceSelected">No vehicle is currently selected.</string>
     <string name="inadequateLocationSettings">Location settings are inadequate, and cannot be fixed here.</string>
     <string name="failedToStartLocationUpdates">Failed to start sending updates.</string>
     <string name="anotherClientReporting">Another client is currently reporting updates.</string>
@@ -121,12 +120,7 @@
     <string name="couldNotStartService">Could not start foreground service.</string>
     <string name="serverError">Server error: %1$s.</string>
     <string name="stopText">Stop.</string>
-    <string name="stopedStreamingLocation">Stopped streaming updates.</string>
-    <string name="app_descrip">Use this app to track emergency resources using the EMSTrack system.</string>
-    <string name="app_credits">The following open source projects were used to build this app:</string>
-    <string name="credits">Credits:</string>
-    <string name="build_date">Build date:</string>
-    <string name="build_version">Build version:</string>
+    <string name="stoppedStreamingLocation">Stopped streaming updates.</string>
     <string name="about">About:</string>
     <string name="failedToAddGeofence">Failed to add geofence.</string>
     <string name="failedToRemoveGeofence">Failed to remove geofence.</string>
@@ -136,14 +130,14 @@
     <string name="couldNotParseStatus">Could not parse status.</string>
     <string name="couldNotPublish">Could not publish to %1$s.</string>
     <string name="couldNotSubscribe">Could not subscribe to %1$s.</string>
-    <string name="couldNotFindAmbulance">Could not find ambulance.</string>
+    <string name="couldNotFindAmbulance">Could not find vehicle.</string>
     <string name="couldNotParseCallData">Could not parse call data.</string>
     <string name="couldNotDeclineCall">Cannot decline call. Currently serving another call.</string>
     <string name="willNotProcessNextCall">Will not process next call. Currently serving call.</string>
     <string name="cannotSetCallAccepted">Can\'t set call as accepted: already servicing call</string>
     <string name="requestToStreamLocation">Requesting to stream updates…</string>
-    <string name="selectAmbulance">Select ambulance:</string>
-    <string name="ambulanceButtonDefaultText">Select ambulance</string>
+    <string name="selectAmbulance">Select vehicle:</string>
+    <string name="ambulanceButtonDefaultText">Select vehicle</string>
     <string name="noIncomingCallsText">No incoming calls</string>
     <string name="equipment_sting_button_negative_text">Cancel</string>
     <string name="couldNotSuspendCall">Could not suspend call.</string>
@@ -165,27 +159,26 @@
 
     <string name="server_select">Select server:</string>
     <string name="nextWaypointNotAvailable">Next waypoint is not available</string>
-    <string name="couldNotFindAmbulanceCall">Could not find ambulance information for the current call.</string>
+    <string name="couldNotFindAmbulanceCall">Could not find vehicle information for the current call.</string>
     <string name="couldNotForceUpdates">Could not force updates.</string>
     <string name="couldNotSetCurrentCall">Could not set current call</string>
     <string name="couldNotFinishCall">Could not finish call</string>
-    <string name="selectAmbulanceStatus">Select ambulance status:</string>
+    <string name="selectAmbulanceStatus">Select vehicle status:</string>
     <string name="couldNotRetrieveBases">Could not retrieve bases</string>
     <string name="nextCall">Next Call:</string>
     <string name="nextWaypointHasntBeenSetYet">Next waypoint hasn\'t been set yet.</string>
     <string name="requestedSuspended">requested (%1$d), suspended (%2$d)</string>
     <string name="pleaseConfirm">Please confirm</string>
-    <string name="skipCurrentWaypoint">Do you want to skip the current waypoint?</string>
-    <string name="visitCurrentWaypoint">Are you visiting this location?</string>
-    <string name="visitedCurrentWaypoint">Are you done visiting this location?</string>
+    <string name="skipCurrentWaypoint">Do you want to skip this waypoint?\n\n%1$s</string>
+    <string name="visitCurrentWaypoint">Are you currently visiting the waypoint:\n\n%1$s</string>
+    <string name="visitedCurrentWaypoint">Have you left the waypoint:\n\n%1$s</string>
     <string name="skippingWaypoint">Skipping waypoint</string>
     <string name="visitingWaypoint">Mark waypoint as visiting</string>
     <string name="visitedWaypoint">Marking waypoint as visited</string>
     <string name="skip">Skip</string>
-    <string name="markAsVisiting">Mark as Visiting</string>
-    <string name="markAsVisited">Mark as Visited</string>
-    <string name="addWaypoint">Add Waypoint</string>
-    <string name="details">Details:</string>
+    <string name="visiting">Visiting</string>
+    <string name="visited">Visited</string>
+    <string name="detailsLabel">Details:</string>
     <string name="detailsText">Details</string>
     <string name="patients">Patients:</string>
     <string name="noPatientInformationAvailable">No patient information available</string>
@@ -207,7 +200,7 @@
     <string name="enterPassword">Enter password</string>
     <string name="signIn">Sign In</string>
     <string name="currentCall">Current Call:</string>
-    <string name="ambulance">Ambulance</string>
+    <string name="ambulance">Vehicle</string>
     <string name="map">Map</string>
     <string name="hospitals">Hospitals</string>
     <string name="callAccepted">Call accepted</string>
@@ -216,45 +209,38 @@
     <string name="endingCall">Ending call</string>
     <string name="checkingResources">Please be patient. Checking permissions…</string>
     <string name="permissionsSatisfied">Location permissions satisfied.</string>
-    <string name="expectLimitedFuncionality">Location permissions not satisfied. Expect limited functionality.</string>
+    <string name="expectLimitedFunctionality">Location permissions not satisfied. Expect limited functionality.</string>
     <string name="settingsAreInadequate">GPSLocation settings are inadequate, and cannot be fixed here. Fix in Settings.</string>
     <string name="decline">Decline</string>
     <string name="accept">Accept</string>
-    <string name="no">No</string>
-    <string name="yes">Yes</string>
     <string name="add">Add</string>
     <string name="confirm">Confirm</string>
     <string name="end">End</string>
     <string name="select">Select</string>
-    <string name="ok">OK</string>
-    <string name="mustChooseAmbulance">You must choose an ambulance or logout to proceed</string>
+    <string name="mustChooseAmbulance">You must choose a vehicle or logout to proceed</string>
     <string name="logout">Logout</string>
     <string name="currentlyHandlingCall">Currently handling call</string>
     <string name="whatDoYouWantToDo">What do you want to do?</string>
     <string name="suspend">Suspend</string>
     <string name="toContinue">Continue</string>
-    <string name="switchAmbulance">Switch ambulance</string>
-    <string name="switchToAmbulance">Do you want to switch to ambulance %1$s?</string>
-    <string name="panicMessage">Message</string>
-    <string name="panicTitle">Panic!</string>
+    <string name="switchAmbulance">Switch vehicle</string>
+    <string name="switchToAmbulance">Do you want to switch to vehicle \'%1$s\'?</string>
     <string name="acceptCall">Accept Incoming Call?</string>
-    <string name="selectNextWaypoint">Select next waypoint</string>
-    <string name="cancel">Cancel</string>
     <string name="endCall">End Call</string>
     <string name="loggingIn">Logging in \'%1$s\'</string>
-    <string name="pleaseSelectAmbulance">Please select ambulance</string>
+    <string name="pleaseSelectAmbulance">Please select vehicle</string>
     <string name="selectHospital">Select hospital:</string>
     <string name="selectBase">Select base:</string>
     <string name="newCallRequest">You have a new call request waiting.</string>
-    <string name="couldNotLoginToAmbulance">Could not login to ambulance</string>
+    <string name="couldNotLoginToAmbulance">Could not login to vehicle</string>
     <string name="couldNotParseHospitalUpdate">Could not parse hospital update.</string>
-    <string name="couldNotRemoveAmbulance">Could not remove ambulance</string>
+    <string name="couldNotRemoveAmbulance">Could not remove vehicle</string>
     <string name="information">About</string>
     <string name="equipment">Equipment</string>
     <string name="couldNotCleanUpCall">Could not clean up call</string>
     <string name="couldNotStopCallUpdates">Could not stop call updates</string>
     <string name="couldNotRetrieveCalls">Could not retrieve calls</string>
-    <string name="pleaseChooseAnotherAmbulance">Please choose another ambulance or logout.</string>
+    <string name="pleaseChooseAnotherAmbulance">Please choose another vehicle or logout.</string>
     <string name="couldNotStopUpdatingLocations">Could not stop updating locations.</string>
     <string name="lastLocationUpdate">Last location update at %1$s</string>
     <string name="lastServerUpdate">Last server update at %1$s</string>
@@ -266,7 +252,7 @@
     <string name="link_to_google_maps">Link to Google Maps</string>
     <string name="directions">Directions</string>
     <string name="couldNotOpenGoogleMaps">Could not open Google Maps.</string>
-    <string name="wouldYouLikeToGoogleMaps">Would you like to get directions on Google Maps?</string>
+    <string name="wouldYouLikeToNavigate">Would you like to get directions on %1$s?</string>
     <string name="other">Other:</string>
     <string name="selectOthers">Select other locations:</string>
     <string name="radio_code">Radio Code</string>
@@ -280,7 +266,7 @@
     <string name="couldNotRedirectToBrowser">Could not redirect to browser</string>
     <string name="new_video_call_title">New video call</string>
     <string name="select_user">Select user:</string>
-    <string name="could_not_retrieve_onilne_clients">Could not retrieve online clients</string>
+    <string name="could_not_retrieve_online_clients">Could not retrieve online clients</string>
     <string name="error_invalid_client">Please select an existing user</string>
     <string name="calling_client">Calling user…</string>
     <string name="call">Call</string>
@@ -290,13 +276,35 @@
     <string name="at">At:</string>
     <string name="video_call_cancelled">Video call cancelled</string>
     <string name="youHaveANewVideoCall">You have a new video call</string>
-    <string name="anotherUserIsLoggedIn">Another user is logged in at this ambulance</string>
+    <string name="anotherUserIsLoggedIn">Another user is logged in at this vehicle</string>
     <string name="equipment_detail_text">comments: %1$s\nupdated on: %2$s</string>
     <string name="refreshingData">Refreshing data…</string>
     <string name="couldNotRetrieveEquipments">Could not retrieve equipments.</string>
     <string name="DELETE">DELETE</string>
     <string name="EDIT">EDIT</string>
     <string name="editEquipment">Edit equipment</string>
+    <string name="equipmentNotAvailable">List of equipment is only available if vehicle is selected</string>
+    <string name="noAmbulanceMessage">Loading vehicle…</string>
+    <string name="release">Release</string>
+    <string name="releaseAmbulance">Release vehicle</string>
+    <string name="confirmAmbulanceReleaseMessage">Are you sure that you want to release the current vehicle?</string>
+    <string name="couldNotReleaseAmbulance">Could not release vehicle</string>
+    <string name="versionRPermissionOption">" by selecting the \'(%1$s)\' option"</string>
+    <string name="locationPermissionMessage">Access to this device\'s precise location is necessary to enable vehicle tracking and call dispatching.\n\nIt is also necessary to access the device\'s location in the background for the application to be able to receive calls."</string>
+    <string name="locationPermissionMessageVersionRMessage1">You will be asked to enable locations twice, one time to enable foreground location, and a second time to enable background location in the application\'s settings page."</string>
+    <string name="locationPermissionMessageVersionRMessage2">Congratulations, your foreground location has been successfully enabled!"</string>
+    <string name="locationPermissionSettingsMessage">After clicking \'%1$s\' you will be taken to the application\'s settings page where you can enable background location for this device%2$s in the \'Permissions\' settings.</string>
+    <string name="needPermissions">Need permissions</string>
+    <string name="login_as_demo">Demo</string>
+    <string name="demoUsername" translatable="false">test</string>
+    <string name="demoPassword" translatable="false">testuser</string>
+    <string name="demoServer" translatable="false">ssl://cruzroja.ucsd.edu:8883</string>
+    <string name="demoLoginMessage">Click \'%1$s\' to obtain credentials to demo the application.</string>
+    <string name="tracking">Tracking</string>
+    <string name="panic">Panic</string>
+    <string name="preferences_build_version">Version %1$s</string>
+    <string name="versionKey" translatable="false">version</string>
+    <string name="useApproximateLocationAccuracyPreferenceKey" translatable="false">use_approximate_location_accuracy</string>
     <string-array name="spinner_list_item_array_server">
         <item>@string/server_select</item>
         <item>Tijuana Red Cross:tijuana.emstrack.org:8883</item>
@@ -312,5 +320,102 @@
         <item>E:@color/bootstrapInfo:@color/bootstrapLight</item>
         <item>O:@color/bootstrapSecondary:@color/bootstrapLight</item>
     </string-array>
+    <string name="useApproximateLocationAccuracyDefault" translatable="false">true</string>
+    <string name="updatingServers">Updating servers…</string>
+    <string name="aboutLabel">About</string>
+    <string name="version">Version</string>
+    <string name="approximateLocation">Approximate location</string>
+    <string name="approximateLocationExplanation">Use coarse location while vehicle is not in a call to save battery.</string>
+    <string name="selectVehicleFirst">Select a vehicle first to enable this functionality.</string>
+    <string name="message">Message</string>
+    <string name="ambulances">Vehicles</string>
+    <string name="messages">Messages</string>
+    <string name="skipped">skipped</string>
+    <string name="Hospital">Hospital</string>
+    <string name="Incident">Incident</string>
+    <string name="Base">Base</string>
+    <string name="WaypointNumber">Waypoint #%d</string>
+    <string name="Location">Location</string>
+    <string name="Waypoint">Waypoint</string>
+    <string name="messageNotAvailable">There are no messages</string>
+    <string name="couldNotRetrieveMessages">Could not retrieve messages. %1$s messages may not be supported by your server yet.</string>
+    <string name="couldNotSendMessage">Could not send message</string>
+    <string name="linkToMap">Link to map</string>
+    <string name="message_type">Message Type</string>
+    <string name="call_messages">Call Messages</string>
+    <string name="navigationAppPreferenceKey" translatable="false">navigation_app_key</string>
+    <string name="navigationAppPreferenceLabel">Navigation app</string>
+    <string name="navigationAppPreferenceSummary">Choice of external navigation app</string>
+    <string name="navigationAppPreferenceDefault" translatable="false">google_maps</string>
+    <string name="StatusLabel">Status:</string>
+    <string name="priorityLabel">Priority:</string>
+    <string name="vehicle_header" translatable="false">Vehicle header</string>
+    <string name="retrievingAmbulance">Retrieving vehicle \'%1$s\'</string>
+    <string name="call_header" translatable="false">Call header</string>
+    <string name="numberOfPatientsLabel">Number of patients:</string>
+    <string name="patient_header" translatable="false">Patient header</string>
+    <string name="name">Name</string>
+    <string name="age">Age</string>
+    <string name="logoutAmbulance">Releasing vehicle \'%1$s\'</string>
+    <string name="numberOfMessagesLabel">Number of messages:</string>
+    <string name="toCall">Call</string>
+    <string name="equipment_type">Equipment Type</string>
+    <string name="noEquipmentText">\'%1$s\' has no registered equipments</string>
+    <string name="distanceToNextWaypoint">Distance to next waypoint:</string>
+    <string name="dash" translatable="false">&#8211;</string>
+
+    <string name="waypointEnterDetectionPreferenceKey" translatable="false">waypoint_enter_preference_key</string>
+    <string name="waypointEnterDetectionPreferenceLabel">Approaching waypoint</string>
+    <string name="waypointEnterDetectionPreferenceSummary">What to do when approaching a waypoint location during a call</string>
+    <string name="waypointEnterDetectionDefault" translatable="false">mark</string>
+
+    <string name="waypointExitDetectionPreferenceKey" translatable="false">waypoint_exit_preference_key</string>
+    <string name="waypointExitDetectionPreferenceLabel">Leaving waypoint</string>
+    <string name="waypointExitDetectionPreferenceSummary">What to do when leaving a waypoint location during a call</string>
+    <string name="waypointExitDetectionDefault" translatable="false">mark</string>
+    <string name="unitsPreferenceKey" translatable="false">units_preference_key</string>
+    <string name="unitsDefault" translatable="false">metric</string>
+    <string name="invalidNotification">This notification is no longer valid.</string>
+    <string name="unitsOfMeasurement">Units of measurement</string>
+    <string name="unitOfMeasurementSummary">Choice of units for measuring distances</string>
+    <string name="approachedAWaypoint">You have approached a waypoint</string>
+    <string name="leftAWaypoint">You have left a waypoint</string>
+
+    <string name="approachedAParticularWaypoint">You have approached the waypoint:\n%1$s</string>
+    <string name="leftAParticularWaypoint">You have left the waypoint:\n%1$s</string>
+    <string name="demoSession">Demo Session</string>
+    <string name="couldNotUpdateAmbulanceStatus">Could not update vehicle status.</string>
+    <string name="cannotUpdateStatusDuringACall">Currently handling a call.\n\nVehicle status will be updated automatically as you visit the call waypoints.</string>
+    <string name="alertOnline">This icon monitors your current connection to the EMSTrack servers.\n\nYou are currently \'%1$s\'.</string>
+    <string name="offline">offline</string>
+    <string name="online">online</string>
+
+    <string name="panicTitle">Panic!</string>
+    <string name="panicMessage">If you click \'%1$s\' a panic message will be relayed to our server.\n\nIf you don\'t this dialog will automatically close in %2$ds without sending a message.\n\nIMPORTANT: this feature is not yet supported by your current server.</string>
+
+    <string name="app_description">Use this app to track emergency resources using the EMSTrack system.\n\nVisit <a href="https://emstrack.org/web">emstrack.org</a> for details.</string>
+    <string name="app_credits">The following open source projects were used to build this app:</string>
+    <string name="app_credits_icons">Icons:</string>
+    <string name="app_credits_servers">Our servers are powered by:</string>
+    <string name="credits">Credits:</string>
+    <string name="build_date">Build date:</string>
+    <string name="build_version">Build version:</string>
+
+    <string name="open_source" translatable="false">- <a href="https://square.github.io/retrofit">Retrofit</a>\n- <a href="https://www.eclipse.org/paho">Eclipse Paho</a></string>
+    <string name="open_source_icons" translatable="false">- <a href="https://fontawesome.com">FontAwesome</a></string>
+    <string name="open_source_servers" translatable="false">- <a href="https://www.djangoproject.com">Django</a>\n- <a href="https://mosquitto.org">Eclipse Mosquitto</a>\n- <a href="https://www.postgresql.org">PostgreSQL</a></string>
+    <string name="EMSTrackURL">For more information contact\n\n<a href="https://emstrack.org/web">emstrack.org</a></string>
+    <string name="Other">Location</string>
+    <string name="Search">Search</string>
+    <string name="Waypoints">Waypoints</string>
+    <string name="confirmNewWaypoint">Do you want to add the following waypoint to the current call?\n\n%1$s</string>
+    <string name="addWaypointButtonLabel">Add Waypoint</string>
+
+    <string name="selectNextWaypoint">Select next waypoint</string>
+    <string name="promptNextWaypointMessage">You have left the last waypoint of the current call.\n\nWould you like to add a new waypoint?</string>
+    <string name="addNewWaypointButtonLabel">New Waypoint</string>
+    <string name="successfullyPostWaypoint">Successfully posted new waypoint.</string>
+    <string name="couldNotPostWaypoint">Could not post new waypoint.</string>
+    <string name="cannotAddWaypoint">It is not possible to add a new waypoint at this time.\n\nMake sure that the vehicle and call are still current.</string>
 
 </resources>

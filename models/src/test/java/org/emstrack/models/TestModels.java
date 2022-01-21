@@ -5,11 +5,13 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.FieldNamingPolicy;
 
 import org.emstrack.models.gson.ExcludeAnnotationExclusionStrategy;
+import org.emstrack.models.util.CalendarDateTypeAdapter;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 
 import java.text.DateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.text.SimpleDateFormat;
 import java.util.HashMap;
@@ -36,10 +38,11 @@ public class TestModels {
         hospitals.add(new HospitalPermission(35,"Hospital Viejo", true, true));
 
         Profile profile = new Profile();
-        profile.setAmbulances(ambulances);
-        profile.setHospitals(hospitals);
+        profile.setAmbulancePermissions(ambulances);
+        profile.setHospitalPermissions(hospitals);
 
         GsonBuilder gsonBuilder = new GsonBuilder();
+        gsonBuilder.registerTypeHierarchyAdapter(Calendar.class, new CalendarDateTypeAdapter());
         gsonBuilder.setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES);
         Gson gson = gsonBuilder.create();
 
@@ -50,20 +53,20 @@ public class TestModels {
         // Check hospital permissions
         for (int i = 0; i < hospitals.size(); i++) {
 
-            Integer expectedId = profile.getHospitals().get(i).getHospitalId();
-            Integer answerId = from_json.getHospitals().get(i).getHospitalId();
+            Integer expectedId = profile.getHospitalPermissions().get(i).getHospitalId();
+            Integer answerId = from_json.getHospitalPermissions().get(i).getHospitalId();
             assertEquals(expectedId, answerId);
 
-            String expectedName = profile.getHospitals().get(i).getHospitalName();
-            String answerName = from_json.getHospitals().get(i).getHospitalName();
+            String expectedName = profile.getHospitalPermissions().get(i).getHospitalName();
+            String answerName = from_json.getHospitalPermissions().get(i).getHospitalName();
             assertEquals(expectedName, answerName);
 
-            boolean expectedCanRead = profile.getHospitals().get(i).isCanRead();
-            boolean answerCanRead = from_json.getHospitals().get(i).isCanRead();
+            boolean expectedCanRead = profile.getHospitalPermissions().get(i).isCanRead();
+            boolean answerCanRead = from_json.getHospitalPermissions().get(i).isCanRead();
             assertEquals(expectedCanRead, answerCanRead);
 
-            boolean expectedCanWrite = profile.getHospitals().get(i).isCanWrite();
-            boolean answerCanWrite = from_json.getHospitals().get(i).isCanWrite();
+            boolean expectedCanWrite = profile.getHospitalPermissions().get(i).isCanWrite();
+            boolean answerCanWrite = from_json.getHospitalPermissions().get(i).isCanWrite();
             assertEquals(expectedCanWrite, answerCanWrite);
 
         }
@@ -71,20 +74,20 @@ public class TestModels {
         // Check ambulance permissions
         for (int i = 0; i < ambulances.size(); i++) {
 
-            Integer expectedId = profile.getAmbulances().get(i).getAmbulanceId();
-            Integer answerId = from_json.getAmbulances().get(i).getAmbulanceId();
+            Integer expectedId = profile.getAmbulancePermissions().get(i).getAmbulanceId();
+            Integer answerId = from_json.getAmbulancePermissions().get(i).getAmbulanceId();
             assertEquals(expectedId, answerId);
 
-            String expectedIdentifier = profile.getAmbulances().get(i).getAmbulanceIdentifier();
-            String answerIdentifier = from_json.getAmbulances().get(i).getAmbulanceIdentifier();
+            String expectedIdentifier = profile.getAmbulancePermissions().get(i).getAmbulanceIdentifier();
+            String answerIdentifier = from_json.getAmbulancePermissions().get(i).getAmbulanceIdentifier();
             assertEquals(expectedIdentifier, answerIdentifier);
 
-            boolean expectedCanRead = profile.getAmbulances().get(i).isCanRead();
-            boolean answerCanRead = from_json.getAmbulances().get(i).isCanRead();
+            boolean expectedCanRead = profile.getAmbulancePermissions().get(i).isCanRead();
+            boolean answerCanRead = from_json.getAmbulancePermissions().get(i).isCanRead();
             assertEquals(expectedCanRead, answerCanRead);
 
-            boolean expectedCanWrite = profile.getAmbulances().get(i).isCanWrite();
-            boolean answerCanWrite = from_json.getAmbulances().get(i).isCanWrite();
+            boolean expectedCanWrite = profile.getAmbulancePermissions().get(i).isCanWrite();
+            boolean answerCanWrite = from_json.getAmbulancePermissions().get(i).isCanWrite();
             assertEquals(expectedCanWrite, answerCanWrite);
 
         }
@@ -101,26 +104,26 @@ public class TestModels {
         hospitals.add(new HospitalPermission(1,"General Hospital", true, true));
 
         profile = new Profile();
-        profile.setAmbulances(ambulances);
-        profile.setHospitals(hospitals);
+        profile.setAmbulancePermissions(ambulances);
+        profile.setHospitalPermissions(hospitals);
 
         // Check hospital permissions
         for (int i = 0; i < hospitals.size(); i++) {
 
-            Integer expectedId = profile.getHospitals().get(i).getHospitalId();
-            Integer answerId = from_json.getHospitals().get(i).getHospitalId();
+            Integer expectedId = profile.getHospitalPermissions().get(i).getHospitalId();
+            Integer answerId = from_json.getHospitalPermissions().get(i).getHospitalId();
             assertEquals(expectedId, answerId);
 
-            String expectedName = profile.getHospitals().get(i).getHospitalName();
-            String answerName = from_json.getHospitals().get(i).getHospitalName();
+            String expectedName = profile.getHospitalPermissions().get(i).getHospitalName();
+            String answerName = from_json.getHospitalPermissions().get(i).getHospitalName();
             assertEquals(expectedName, answerName);
 
-            boolean expectedCanRead = profile.getHospitals().get(i).isCanRead();
-            boolean answerCanRead = from_json.getHospitals().get(i).isCanRead();
+            boolean expectedCanRead = profile.getHospitalPermissions().get(i).isCanRead();
+            boolean answerCanRead = from_json.getHospitalPermissions().get(i).isCanRead();
             assertEquals(expectedCanRead, answerCanRead);
 
-            boolean expectedCanWrite = profile.getHospitals().get(i).isCanWrite();
-            boolean answerCanWrite = from_json.getHospitals().get(i).isCanWrite();
+            boolean expectedCanWrite = profile.getHospitalPermissions().get(i).isCanWrite();
+            boolean answerCanWrite = from_json.getHospitalPermissions().get(i).isCanWrite();
             assertEquals(expectedCanWrite, answerCanWrite);
 
         }
@@ -128,20 +131,20 @@ public class TestModels {
         // Check ambulance permissions
         for (int i = 0; i < ambulances.size(); i++) {
 
-            Integer expectedId = profile.getAmbulances().get(i).getAmbulanceId();
-            Integer answerId = from_json.getAmbulances().get(i).getAmbulanceId();
+            Integer expectedId = profile.getAmbulancePermissions().get(i).getAmbulanceId();
+            Integer answerId = from_json.getAmbulancePermissions().get(i).getAmbulanceId();
             assertEquals(expectedId, answerId);
 
-            String expectedIdentifier = profile.getAmbulances().get(i).getAmbulanceIdentifier();
-            String answerIdentifier = from_json.getAmbulances().get(i).getAmbulanceIdentifier();
+            String expectedIdentifier = profile.getAmbulancePermissions().get(i).getAmbulanceIdentifier();
+            String answerIdentifier = from_json.getAmbulancePermissions().get(i).getAmbulanceIdentifier();
             assertEquals(expectedIdentifier, answerIdentifier);
 
-            boolean expectedCanRead = profile.getAmbulances().get(i).isCanRead();
-            boolean answerCanRead = from_json.getAmbulances().get(i).isCanRead();
+            boolean expectedCanRead = profile.getAmbulancePermissions().get(i).isCanRead();
+            boolean answerCanRead = from_json.getAmbulancePermissions().get(i).isCanRead();
             assertEquals(expectedCanRead, answerCanRead);
 
-            boolean expectedCanWrite = profile.getAmbulances().get(i).isCanWrite();
-            boolean answerCanWrite = from_json.getAmbulances().get(i).isCanWrite();
+            boolean expectedCanWrite = profile.getAmbulancePermissions().get(i).isCanWrite();
+            boolean answerCanWrite = from_json.getAmbulancePermissions().get(i).isCanWrite();
             assertEquals(expectedCanWrite, answerCanWrite);
 
         }
@@ -189,7 +192,7 @@ public class TestModels {
         EquipmentItem equipment = new EquipmentItem(1,
                                                             2, "beds",'I',
                                                             "12", "000",
-                                                            1, new Date());
+                                                            1, Calendar.getInstance());
 
         Gson gson = new Gson();
 
@@ -231,10 +234,10 @@ public class TestModels {
         answerId = from_json.getUpdatedBy();
         assertEquals(expectedId, answerId);
 
-        Date expectedDate = equipment.getUpdatedOn();
-        Date answerDate = from_json.getUpdatedOn();
+        Calendar expectedDate = equipment.getUpdatedOn();
+        Calendar answerDate = from_json.getUpdatedOn();
         SimpleDateFormat df = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
-        assertEquals(df.format(expectedDate), df.format(answerDate));
+        assertEquals(df.format(expectedDate.getTime()), df.format(answerDate.getTime()));
 
     }
 
@@ -303,6 +306,10 @@ public class TestModels {
         turnServer.put("user", "turnuser");
         turnServer.put("pass", "secret");
 
+        String units = "metric";
+        String waypointEnterDetection = "mark";
+        String waypointExitDetection = "mark";
+
         Defaults defaults = new Defaults(new GPSLocation(32.5149,-117.0382),"BC","Tijuana","MX");
 
         Settings settings = new Settings(ambulanceStatus, ambulanceStatusOrder,
@@ -313,9 +320,11 @@ public class TestModels {
                 locationType, locationTypeOrder,
                 equipmentType, equipmentTypeDefaults,
                 guestUsername, enableVideo, turnServer,
+                units, waypointEnterDetection, waypointExitDetection,
                 defaults);
 
         GsonBuilder gsonBuilder = new GsonBuilder();
+        gsonBuilder.registerTypeHierarchyAdapter(Calendar.class, new CalendarDateTypeAdapter());
         gsonBuilder.setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES);
         Gson gson = gsonBuilder.create();
 
@@ -406,6 +415,7 @@ public class TestModels {
                 locationType, locationTypeOrder,
                 equipmentType, equipmentTypeDefaults,
                 guestUsername, enableVideo, turnServer,
+                units, waypointEnterDetection, waypointExitDetection,
                 defaults);
 
         expectedDefaults = settings.getDefaults();
@@ -452,8 +462,8 @@ public class TestModels {
         ambulance.setStatus("UK");
         ambulance.setOrientation(12.0);
         ambulance.setLocation(new GPSLocation(32.5149,-117.0382));
-        ambulance.setTimestamp(new Date());
-        ambulance.setUpdatedOn(new Date());
+        ambulance.setTimestamp(Calendar.getInstance());
+        ambulance.setUpdatedOn(Calendar.getInstance());
 
         Gson gson = new Gson();
 
@@ -486,10 +496,10 @@ public class TestModels {
         assertEquals(expectedLocation.getLatitude(),answerLocation.getLatitude(),epsilon);
         assertEquals(expectedLocation.getLongitude(),answerLocation.getLongitude(),epsilon);
 
-        Date expectedDate = ambulance.getTimestamp();
-        Date answerDate = from_json.getTimestamp();
+        Calendar expectedDate = ambulance.getTimestamp();
+        Calendar answerDate = from_json.getTimestamp();
         SimpleDateFormat df = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
-        assertEquals(df.format(expectedDate), df.format(answerDate));
+        assertEquals(df.format(expectedDate.getTime()), df.format(answerDate.getTime()));
 
         expectedId = ambulance.getUpdatedBy();
         answerId = from_json.getUpdatedBy();
@@ -497,15 +507,22 @@ public class TestModels {
 
         expectedDate = ambulance.getUpdatedOn();
         answerDate = ambulance.getUpdatedOn();
-        assertEquals(df.format(expectedDate), df.format(answerDate));
+        assertEquals(df.format(expectedDate.getTime()), df.format(answerDate.getTime()));
 
-        // Test partial serialization
-        gson = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().create();
+//        gson = new GsonBuilder()
+//                .excludeFieldsWithoutExposeAnnotation()
+//                .create();
+
+        GsonBuilder gsonBuilder = new GsonBuilder();
+        gsonBuilder.registerTypeHierarchyAdapter(Calendar.class, new CalendarDateTypeAdapter());
+        gsonBuilder.setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES);
+        gsonBuilder.excludeFieldsWithoutExposeAnnotation();
+        gson = gsonBuilder.create();
 
         to_json = gson.toJson(ambulance);
 
-        df = new SimpleDateFormat("MMM d, y h:mm:ss a");
-        String expected_to_json = "{\"capability\":\"B\",\"status\":\"UK\",\"orientation\":12.0,\"location\":{\"latitude\":32.5149,\"longitude\":-117.0382},\"timestamp\":\"" + df.format(ambulance.getTimestamp()) + "\"}";
+        df = new SimpleDateFormat("MMM d, y, h:mm:ss a");
+        String expected_to_json = "{\"capability\":\"B\",\"status\":\"UK\",\"orientation\":12.0,\"location\":{\"latitude\":32.5149,\"longitude\":-117.0382},\"timestamp\":\"" + df.format(ambulance.getTimestamp().getTime()) + "\"}";
 
         assertEquals(expected_to_json, to_json);
 
@@ -524,17 +541,17 @@ public class TestModels {
         equipment.add(new EquipmentItem(1,
                 2, "beds",'I',
                 "12", "",
-                1, new Date()));
+                1, Calendar.getInstance()));
         equipment.add(new EquipmentItem(1,
                 3, "x-rays",'B',
                 "True", "no comment",
-                1, new Date()));
+                1, Calendar.getInstance()));
 
         Hospital hospital = new Hospital(1,
                 "123","Some Street", null, null,
                 "Tijuana","BCN","28334","MX",
                 "Hospital Viejo", new GPSLocation(32.5149,-117.0382),
-                "No comments",1, new Date());
+                "No comments",1, Calendar.getInstance());
 
         Gson gson = new Gson();
 
@@ -597,10 +614,10 @@ public class TestModels {
         answerId = from_json.getUpdatedBy();
         assertEquals(expectedId, answerId);
 
-        Date expectedDate = hospital.getUpdatedOn();
-        Date answerDate = hospital.getUpdatedOn();
+        Calendar expectedDate = hospital.getUpdatedOn();
+        Calendar answerDate = hospital.getUpdatedOn();
         SimpleDateFormat df = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
-        assertEquals(df.format(expectedDate), df.format(answerDate));
+        assertEquals(df.format(expectedDate.getTime()), df.format(answerDate.getTime()));
 
         /*
 
@@ -801,9 +818,10 @@ public class TestModels {
         List<Waypoint> waypointSet = new ArrayList<>();
         waypointSet.add(waypoint);
         
-        AmbulanceCall ambulanceCall = new AmbulanceCall(1,2,AmbulanceCall.STATUS_SUSPENDED, "", 1, new Date(), waypointSet);
+        AmbulanceCall ambulanceCall = new AmbulanceCall(1,2,AmbulanceCall.STATUS_SUSPENDED, "", 1, Calendar.getInstance(), waypointSet);
 
         GsonBuilder gsonBuilder = new GsonBuilder();
+        gsonBuilder.registerTypeHierarchyAdapter(Calendar.class, new CalendarDateTypeAdapter());
         gsonBuilder.setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES);
         Gson gson = gsonBuilder.create();
 
@@ -845,11 +863,12 @@ public class TestModels {
         String answerStreet = answerLocation.getStreet();
         assertEquals(expectedStreet, answerStreet);
 
-        DateFormat df = new SimpleDateFormat("MMM d, y K:mm:ss a");
+        DateFormat df = new SimpleDateFormat("MMM d, y, K:mm:ss a");
 
-        to_json = "{\"id\":1,\"ambulance_id\":2,\"status\":\"S\",\"updated_on\":\"" + df.format(ambulanceCall.getUpdatedOn()) + "\",\"waypoint_set\":[{\"order\":0,\"status\":\"C\",\"location\":{\"type\":\"i\",\"number\":\"\",\"street\":\"Bonifácio Avilés\",\"unit\":null,\"neighborhood\":null,\"city\":\"Tijuana\",\"state\":\"BCN\",\"zipcode\":\"\",\"country\":\"MX\",\"waypoint\":{\"latitude\":\"32.51543632662701\",\"longitude\":\"-117.03812250149775\"},\"updated_on\":\"2018-11-14T22:33:46.055339Z\",\"pending_at\":\"2018-11-14T22:33:46.054955Z\",\"started_at\":\"2018-11-14T22:34:50.329321Z\",\"ended_at\":null,\"comment\":null,\"updated_by\":1,\"updated_on\":\"2018-11-14T22:34:50.329428Z\"}}]}";
-        from_json = gson.fromJson(to_json, AmbulanceCall.class);
+        to_json = "{\"id\":1,\"ambulance_id\":2,\"status\":\"S\",\"updated_on\":\"" + df.format(ambulanceCall.getUpdatedOn().getTime()) + "\",\"waypoint_set\":[{\"order\":0,\"status\":\"C\",\"location\":{\"type\":\"i\",\"number\":\"\",\"street\":\"Bonifácio Avilés\",\"unit\":null,\"neighborhood\":null,\"city\":\"Tijuana\",\"state\":\"BCN\",\"zipcode\":\"\",\"country\":\"MX\",\"waypoint\":{\"latitude\":\"32.51543632662701\",\"longitude\":\"-117.03812250149775\"},\"updated_on\":\"2018-11-14T22:33:46.055339Z\",\"pending_at\":\"2018-11-14T22:33:46.054955Z\",\"started_at\":\"2018-11-14T22:34:50.329321Z\",\"ended_at\":null,\"comment\":null,\"updated_by\":1,\"updated_on\":\"2018-11-14T22:34:50.329428Z\"}}]}";
         System.out.println("to_json = '" + to_json + "'");
+        from_json = gson.fromJson(to_json, AmbulanceCall.class);
+        System.out.println("from_json = '" + from_json + "'");
 
         expectedId = ambulanceCall.getId();
         answerId = from_json.getId();
@@ -902,14 +921,14 @@ public class TestModels {
         List<Waypoint> waypointSet = new ArrayList<>();
         waypointSet.add(waypoint);
 
-        AmbulanceCall ambulanceCall = new AmbulanceCall(1,2,AmbulanceCall.STATUS_SUSPENDED, "", 1, new Date(), waypointSet);
+        AmbulanceCall ambulanceCall = new AmbulanceCall(1,2,AmbulanceCall.STATUS_SUSPENDED, "", 1, Calendar.getInstance(), waypointSet);
         List<AmbulanceCall> ambulanceCallSet = new ArrayList<>();
         ambulanceCallSet.add(ambulanceCall);
 
         List<CallNote> callNoteSet = new ArrayList<>();
-        CallNote callNote = new CallNote("new note after call", 1, new Date());
+        CallNote callNote = new CallNote("new note after call", "user", 1, Calendar.getInstance());
         callNoteSet.add(callNote);
-        CallNote secondCallNote = new CallNote("note made after creation of call", 1, new Date());
+        CallNote secondCallNote = new CallNote("note made after creation of call", "user", 1, Calendar.getInstance());
         callNoteSet.add(secondCallNote);
 
         Call call = new Call(
@@ -922,6 +941,7 @@ public class TestModels {
         double epsilon = 1e-4;
 
         GsonBuilder gsonBuilder = new GsonBuilder();
+        gsonBuilder.registerTypeHierarchyAdapter(Calendar.class, new CalendarDateTypeAdapter());
         gsonBuilder.setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES);
         Gson gson = gsonBuilder.create();
 
@@ -975,19 +995,19 @@ public class TestModels {
         String answerStreet = answerLocation.getStreet();
         assertEquals(expectedStreet, answerStreet);
 
-        DateFormat df = new SimpleDateFormat("MMM d, y K:mm:ss a");
-        String ambulance_call_json = "{\"id\":1,\"ambulance_id\":2,\"status\":\"S\",\"updated_on\":\"" + df.format(ambulanceCall.getUpdatedOn()) + "\",\"waypoint_set\":[{\"order\":0,\"status\":\"C\",\"location\":{\"type\":\"i\",\"number\":\"\",\"street\":\"Bonifácio Avilés\",\"unit\":null,\"neighborhood\":null,\"city\":\"Tijuana\",\"state\":\"BCN\",\"zipcode\":\"\",\"country\":\"MX\",\"waypoint\":{\"latitude\":\"32.51543632662701\",\"longitude\":\"-117.03812250149775\"},\"updated_on\":\"2018-11-14T22:33:46.055339Z\",\"pending_at\":\"2018-11-14T22:33:46.054955Z\",\"started_at\":\"2018-11-14T22:34:50.329321Z\",\"ended_at\":null,\"comment\":null,\"updated_by\":1,\"updated_on\":\"2018-11-14T22:34:50.329428Z\"}}]}";
+        DateFormat df = new SimpleDateFormat("MMM d, y, K:mm:ss a");
+        String ambulance_call_json = "{\"id\":1,\"ambulance_id\":2,\"status\":\"S\",\"updated_on\":\"" + df.format(ambulanceCall.getUpdatedOn().getTime()) + "\",\"waypoint_set\":[{\"order\":0,\"status\":\"C\",\"location\":{\"type\":\"i\",\"number\":\"\",\"street\":\"Bonifácio Avilés\",\"unit\":null,\"neighborhood\":null,\"city\":\"Tijuana\",\"state\":\"BCN\",\"zipcode\":\"\",\"country\":\"MX\",\"waypoint\":{\"latitude\":\"32.51543632662701\",\"longitude\":\"-117.03812250149775\"},\"updated_on\":\"2018-11-14T22:33:46.055339Z\",\"pending_at\":\"2018-11-14T22:33:46.054955Z\",\"started_at\":\"2018-11-14T22:34:50.329321Z\",\"ended_at\":null,\"comment\":null,\"updated_by\":1,\"updated_on\":\"2018-11-14T22:34:50.329428Z\"}}]}";
         to_json = "{\"id\":64,\"status\":\"S\",\"details\":\"ads asd\",\"priority\":\"O\",\"updated_on\":\"2018-11-14T22:33:46.055339Z\",\"pending_at\":\"2018-11-14T22:33:46.054955Z\",\"started_at\":\"2018-11-14T22:34:50.329321Z\",\"ended_at\":null,\"comment\":null,\"updated_by\":1,\"updated_on\":\"2018-11-14T22:34:50.329428Z\",\"ambulancecall_set\":[" + ambulance_call_json + "],\"patient_set\":[{\"id\":31,\"name\":\"Maria\",\"age\":null},{\"id\":30,\"name\":\"Jose\",\"age\":13}],\n" +
                 "    \"callnote_set\": [\n" +
                 "        {\n" +
                 "            \"comment\": \"new note after call\",\n" +
                 "            \"updated_by\": 1,\n" +
-                "            \"updated_on\": \"" + df.format(callNote.getUpdatedOn()) + "\"\n" +
+                "            \"updated_on\": \"" + df.format(callNote.getUpdatedOn().getTime()) + "\"\n" +
                 "        },\n" +
                 "        {\n" +
                 "            \"comment\": \"note made after creation of call\",\n" +
                 "            \"updated_by\": 1,\n" +
-                "            \"updated_on\": \"" + df.format(secondCallNote.getUpdatedOn()) + "\"\n" +
+                "            \"updated_on\": \"" + df.format(secondCallNote.getUpdatedOn().getTime()) + "\"\n" +
                 "        }\n" +
                 "    ]}";
 
@@ -1009,9 +1029,9 @@ public class TestModels {
         answerId = answerCallNote.getUpdatedBy();
         assertEquals(expectedId, answerId);
 
-        Date expectedDate = expectedCallNote.getUpdatedOn();
-        Date answerDate = answerCallNote.getUpdatedOn();
-        assertEquals(df.format(expectedDate), df.format(answerDate));
+        Calendar expectedDate = expectedCallNote.getUpdatedOn();
+        Calendar answerDate = answerCallNote.getUpdatedOn();
+        assertEquals(df.format(expectedDate.getTime()), df.format(answerDate.getTime()));
 
         // call note 1
         expectedCallNote = call.getCallnoteSet().get(1);
@@ -1027,7 +1047,7 @@ public class TestModels {
 
         expectedDate = expectedCallNote.getUpdatedOn();
         answerDate = answerCallNote.getUpdatedOn();
-        assertEquals(df.format(expectedDate), df.format(answerDate));
+        assertEquals(df.format(expectedDate.getTime()), df.format(answerDate.getTime()));
 
         // test call
 
@@ -1084,7 +1104,7 @@ public class TestModels {
         EquipmentItem equipment = new EquipmentItem(1,
                 2, "gauze",'I',
                 "20", "2 packages",
-                1, new Date());
+                1, Calendar.getInstance());
 
         Gson gson = new Gson();
 
@@ -1120,10 +1140,10 @@ public class TestModels {
         answerId = from_json.getUpdatedBy();
         assertEquals(expectedId, answerId);
 
-        Date expectedDate = equipment.getUpdatedOn();
-        Date answerDate = from_json.getUpdatedOn();
+        Calendar expectedDate = equipment.getUpdatedOn();
+        Calendar answerDate = from_json.getUpdatedOn();
         SimpleDateFormat df = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
-        assertEquals(df.format(expectedDate), df.format(answerDate));
+        assertEquals(df.format(expectedDate.getTime()), df.format(answerDate.getTime()));
 
     }
 

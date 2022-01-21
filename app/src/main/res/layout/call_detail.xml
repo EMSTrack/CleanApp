@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/call_detail"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/callRadioCodeLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/radio_code_label" />
+
+    <TextView
+        android:id="@+id/callRadioCodeText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:text="radio code" />
+
+    <TextView
+        android:id="@+id/callDetailsLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/callRadioCodeText"
+        android:text="@string/detailsLabel" />
+
+    <TextView
+        android:id="@+id/callDetailsText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/callRadioCodeText"
+        android:layout_alignParentEnd="true"
+        android:text="Details" />
+
+    <TextView
+        android:id="@+id/callNumberOfWaypointsLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/callDetailsText"
+        android:text="@string/numberOfWaypoints" />
+
+    <TextView
+        android:id="@+id/callNumberOfWaypointsText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/callDetailsText"
+        android:layout_alignParentEnd="true"
+        android:text="0" />
+
+    <TextView
+        android:id="@+id/callDistanceToLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/callNumberOfWaypointsText"
+        android:text="@string/distanceToNextWaypoint" />
+
+    <TextView
+        android:id="@+id/callDistanceToText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/callNumberOfWaypointsText"
+        android:layout_alignParentEnd="true"
+        android:text="" />
+
+    <TextView
+        android:id="@+id/callNumberOfPatientsLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/callDistanceToText"
+        android:text="@string/numberOfPatientsLabel" />
+
+    <TextView
+        android:id="@+id/callNumberOfPatientsText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/callDistanceToText"
+        android:layout_alignParentEnd="true"
+        android:text="0" />
+
+    <TextView
+        android:id="@+id/callNumberOfMessagesLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/callNumberOfPatientsText"
+        android:text="@string/numberOfMessagesLabel" />
+
+    <TextView
+        android:id="@+id/callNumberOfMessagesText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/callNumberOfPatientsText"
+        android:layout_alignParentEnd="true"
+        android:text="0" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_below="@id/callNumberOfMessagesText"
+        android:layout_marginTop="5dp"
+        android:gravity="end">
+
+        <ImageView
+            android:id="@+id/callLogout"
+            android:layout_height="@dimen/ambulanceToolbarIconHeight"
+            android:layout_width="@dimen/ambulanceToolbarIconWidth"
+            app:srcCompat="@drawable/ic_sign_out_alt"
+            app:tint="@color/iconColorDark"
+            android:visibility="gone"
+            android:layout_marginStart="10dp" />
+
+        <ImageView
+            android:id="@+id/callLogin"
+            android:layout_height="@dimen/ambulanceToolbarIconHeight"
+            android:layout_width="@dimen/ambulanceToolbarIconWidth"
+            app:srcCompat="@drawable/ic_sign_in_alt_solid"
+            app:tint="@color/iconColorDark"
+            android:layout_marginStart="10dp" />
+
+    </LinearLayout>
+
+</RelativeLayout>
