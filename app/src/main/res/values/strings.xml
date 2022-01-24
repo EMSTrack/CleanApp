@@ -423,9 +423,9 @@
     <string name="waypointSkipped">skipped on %1$s</string>
     <string name="waypointVisited">visited on %1$s</string>
     <string name="waypointVisiting">visiting since %1$s</string>
-    <string name="waypointNext">Next waypoint</string>
+    <string name="waypointNext">next waypoint</string>
     <string name="skipWaypoint">Skip Waypoint?</string>
-    <string name="successfullyPatchWaypoint">Succesfully patched waypoint</string>
+    <string name="successfullyPatchWaypoint">Successfully patched waypoint</string>
     <string name="couldNotPatchWaypoint">Could not patch waypoint</string>
 
 </resources>
