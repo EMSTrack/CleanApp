@@ -212,6 +212,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         public final static String WAYPOINT_EXIT = "org.emstrack.ambulance.ambulanceforegroundservice.action.WAYPOINT_EXIT";
         public final static String WAYPOINT_SKIP = "org.emstrack.ambulance.ambulanceforegroundservice.action.WAYPOINT_SKIP";
         public final static String WAYPOINT_ADD = "org.emstrack.ambulance.ambulanceforegroundservice.action.WAYPOINT_ADD";
+        public final static String WAYPOINT_UPDATE = "org.emstrack.ambulance.ambulanceforegroundservice.action.WAYPOINT_UPDATE";
         public final static String WEBRTC_MESSAGE = "org.emstrack.ambulance.ambulanceforegroundservice.action.WEBRTC_DECLINE";
     }
 
@@ -374,21 +375,22 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
             // Login intent
             Intent notificationIntent = new Intent(AmbulanceForegroundService.this, MainActivity.class);
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK;
             notificationIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
             PendingIntent loginPendingIntent = PendingIntent.getActivity(AmbulanceForegroundService.this, 0,
-                    notificationIntent, 0);
+                    notificationIntent, Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M ? PendingIntent.FLAG_IMMUTABLE : 0);
 
             // Logout intent
             Intent restartServiceIntent = new Intent(AmbulanceForegroundService.this, AmbulanceForegroundService.class);
             restartServiceIntent.setAction(Actions.LOGOUT);
             PendingIntent restartServicePendingIntent = PendingIntent.getActivity(AmbulanceForegroundService.this, 0,
-                    restartServiceIntent, 0);
+                    restartServiceIntent, Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M ? PendingIntent.FLAG_IMMUTABLE : 0);
 
             // Stop intent
             Intent stopServiceIntent = new Intent(AmbulanceForegroundService.this, AmbulanceForegroundService.class);
             stopServiceIntent.setAction(Actions.STOP_SERVICE);
             PendingIntent stopServicePendingIntent = PendingIntent.getService(AmbulanceForegroundService.this, 0,
-                    stopServiceIntent, 0);
+                    stopServiceIntent, Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M ? PendingIntent.FLAG_IMMUTABLE : 0);
 
             // Icon
             Bitmap icon = BitmapFactory.decodeResource(getResources(),
@@ -743,7 +745,8 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         } else if (action.equals(Actions.WAYPOINT_ENTER)
                 || action.equals(Actions.WAYPOINT_EXIT)
                 || action.equals(Actions.WAYPOINT_SKIP)
-                || action.equals(Actions.WAYPOINT_ADD)) {
+                || action.equals(Actions.WAYPOINT_ADD)
+                || action.equals(Actions.WAYPOINT_UPDATE)) {
 
             Log.i(TAG, "WAYPOINT_ENTER/EXIT/SKIP/ADD Foreground Intent");
 
@@ -771,10 +774,13 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                 if (action.equals(Actions.WAYPOINT_ADD)) {
 
                     // New waypoint
-//                    updateWaypoint(bundle.getString(BroadcastExtras.WAYPOINT_UPDATE),
-//                            waypointId, ambulance.getId(), call.getId());
-
                     createWaypoint(bundle.getString(BroadcastExtras.WAYPOINT_UPDATE),
+                            ambulance.getId(), call.getId(), uuid);
+
+                } else if (action.equals(Actions.WAYPOINT_UPDATE)) {
+
+                    // New waypoint
+                    updateWaypoint(bundle.getString(BroadcastExtras.WAYPOINT_UPDATE),
                             ambulance.getId(), call.getId(), uuid);
 
                 } else {
@@ -1262,7 +1268,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
     }
 
     /**
-     * Create waypoint updates to server via REST API
+     * Create waypoint via REST API
      *
      * @param json      the update json <code>String</code>
      * @param ambulanceId the ambulance id
@@ -1290,6 +1296,43 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
                 // Broadcast failure
                 broadcastFailure(getString(R.string.couldNotPostWaypoint), uuid);
+
+            }
+
+        }
+                .start();
+
+    }
+
+    /**
+     * Update waypoint via REST API
+     *
+     * @param json      the update json <code>String</code>
+     * @param ambulanceId the ambulance id
+     * @param callId      the call id
+     */
+    public void updateWaypoint(String json, int ambulanceId, int callId, String uuid) {
+
+        // Post waypoint
+        APIService service = APIServiceGenerator.createService(APIService.class);
+        retrofit2.Call<Waypoint> waypointCreateCall = service.patchCallWaypoint(callId, ambulanceId, json);
+        new OnAPICallComplete<Waypoint>(waypointCreateCall) {
+
+            @Override
+            public void onSuccess(Waypoint waypoint) {
+                Log.d(TAG, "Successfully patched waypoint");
+
+                // broadcast success
+                broadcastSuccess(getString(R.string.successfullyPatchWaypoint), uuid);
+
+            }
+
+            @Override
+            public void onFailure(Throwable t) {
+                super.onFailure(t);
+
+                // Broadcast failure
+                broadcastFailure(getString(R.string.couldNotPatchWaypoint), uuid);
 
             }
 
@@ -1464,19 +1507,19 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         Intent notificationIntent = new Intent(AmbulanceForegroundService.this, MainActivity.class);
         notificationIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         PendingIntent pendingIntent = PendingIntent.getActivity(AmbulanceForegroundService.this, 0,
-                notificationIntent, 0);
+                notificationIntent, Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M ? PendingIntent.FLAG_IMMUTABLE : 0);
 
         // Logout intent
         Intent logoutServiceIntent = new Intent(AmbulanceForegroundService.this, AmbulanceForegroundService.class);
         logoutServiceIntent.setAction(Actions.LOGOUT);
         PendingIntent logoutServicePendingIntent = PendingIntent.getActivity(AmbulanceForegroundService.this, 0,
-                logoutServiceIntent, 0);
+                logoutServiceIntent, Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M ? PendingIntent.FLAG_IMMUTABLE : 0);
 
         // Stop intent
         Intent stopServiceIntent = new Intent(AmbulanceForegroundService.this, AmbulanceForegroundService.class);
         stopServiceIntent.setAction(Actions.STOP_SERVICE);
         PendingIntent stopServicePendingIntent = PendingIntent.getActivity(AmbulanceForegroundService.this, 0,
-                stopServiceIntent, 0);
+                stopServiceIntent, Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M ? PendingIntent.FLAG_IMMUTABLE : 0);
 
         Notification notification =
                 new NotificationCompat.Builder(this,
@@ -3320,7 +3363,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                             Intent notificationIntent = new Intent(AmbulanceForegroundService.this, MainActivity.class);
                             notificationIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                             PendingIntent pendingIntent = PendingIntent.getActivity(AmbulanceForegroundService.this, 0,
-                                    notificationIntent, 0);
+                                    notificationIntent, Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M ? PendingIntent.FLAG_IMMUTABLE : 0);
 
                             // Create notification
                             NotificationCompat.Builder builder =
@@ -4769,7 +4812,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                 Intent notificationIntent = new Intent(AmbulanceForegroundService.this, MainActivity.class);
                 notificationIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                 PendingIntent pendingIntent = PendingIntent.getActivity(AmbulanceForegroundService.this, 0,
-                        notificationIntent, 0);
+                        notificationIntent, Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M ? PendingIntent.FLAG_IMMUTABLE : 0);
 
                 // Create notification
                 NotificationCompat.Builder builder =
@@ -5604,7 +5647,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         // We use FLAG_UPDATE_CURRENT so that we get the same pending intent back when
         // calling addGeofences() and removeAllGeofences().
         geofenceIntent = PendingIntent.getBroadcast(this, 0,
-                intent, PendingIntent.FLAG_UPDATE_CURRENT);
+                intent, Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M ? PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE : PendingIntent.FLAG_UPDATE_CURRENT);
 
         return geofenceIntent;
     }

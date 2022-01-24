@@ -1,72 +1,91 @@
 package org.emstrack.ambulance.adapters;
 
-/**
- * Created By: Andrew N. Sanchez
- * Created On: May 30, 2019
- *
- * WaypointInfoAdapter
+/*
+  Created By: Mauricio de Oliveira
+  Created On: Jan 22, 2022
  */
 
 import android.app.Activity;
-import android.util.Log;
+import android.content.DialogInterface;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
-import androidx.recyclerview.widget.RecyclerView;
-
-import java.util.List;
+import androidx.appcompat.app.AlertDialog;
+import androidx.recyclerview.widget.ItemTouchHelper;
 
 import org.emstrack.ambulance.R;
+import org.emstrack.ambulance.dialogs.SimpleAlertDialog;
+import org.emstrack.ambulance.util.RecyclerAdapterWithSelectedPosition;
 import org.emstrack.ambulance.views.WaypointViewHolder;
 import org.emstrack.models.Waypoint;
 
-public class WaypointInfoRecyclerAdapter extends RecyclerView.Adapter<WaypointViewHolder>{
+import java.util.List;
+
+public class WaypointInfoRecyclerAdapter extends RecyclerAdapterWithSelectedPosition<Waypoint, WaypointViewHolder> {
 
     private static final String TAG = WaypointInfoRecyclerAdapter.class.getSimpleName();
     private final Activity activity;
-    private final List<Waypoint> waypoints;
+    private final ItemTouchHelper itemTouchHelper;
     private final boolean hideButtons;
+    private final boolean hideMessage;
+    private boolean hideLeftPanel;
+    private boolean hideRightPanel;
 
-    public WaypointInfoRecyclerAdapter(Activity activity, List<Waypoint> waypointList, boolean hideButtons) {
+    public WaypointInfoRecyclerAdapter(Activity activity, List<Waypoint> waypointList,
+                                       boolean hideButtons, boolean hideLeftPanel, boolean hideRightPanel,
+                                       boolean hideMessage) {
+        super(waypointList, null);
+        setSelectOnClick(false);
         this.activity = activity;
-        this.waypoints = waypointList;
         this.hideButtons = hideButtons;
+        this.hideMessage = hideMessage;
+        this.hideLeftPanel = hideLeftPanel;
+        this.hideRightPanel = hideRightPanel;
+        this.itemTouchHelper = new ItemTouchHelper(new ItemTouch());
     }
 
     public WaypointInfoRecyclerAdapter(Activity activity, List<Waypoint> waypointList) {
-        this(activity, waypointList, false);
+        this(activity, waypointList, false, false, false, false);
+    }
+
+    public ItemTouchHelper getItemTouchHelper() {
+        return itemTouchHelper;
+    }
+
+    public void setHideRightPanel(boolean hideRightPanel) {
+        this.hideRightPanel = hideRightPanel;
+    }
+
+    public void setHideLeftPanel(boolean hideLeftPanel) {
+        this.hideLeftPanel = hideLeftPanel;
     }
 
     @NonNull
     @Override
     public WaypointViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.waypoint_info, parent, false);
-        return new WaypointViewHolder(activity, view, hideButtons);
+        return new WaypointViewHolder(activity, view, itemTouchHelper, hideButtons, hideLeftPanel, hideRightPanel, hideMessage);
     }
 
     @Override
-    public void onBindViewHolder(WaypointViewHolder holder, int position) {
-        Waypoint waypoint = waypoints.get(position);
-        holder.setWaypoint(waypoint, activity, position);
+    public boolean moveItem(int from, int to) {
+        int selectedPosition = getSelectedPosition();
+        if (from > selectedPosition && to > selectedPosition) {
+            // actually move
+            return super.moveItem(from, to);
+        }
+        // otherwise ignore
+        return false;
     }
 
     @Override
-    public void onViewAttachedToWindow(@NonNull WaypointViewHolder holder) {
-        super.onViewAttachedToWindow(holder);
-        Log.d(TAG, "View attached to window!");
+    public void onItemMoved(int from, int to) {
+        new SimpleAlertDialog(activity, activity.getString(R.string.alert_warning_title))
+                .alert(activity.getString(R.string.notImplementedYet),
+                (d, i) -> {
+                    super.moveItem(to, from);
+                });
     }
-
-    @Override
-    public void onViewDetachedFromWindow(@NonNull WaypointViewHolder holder) {
-        super.onViewDetachedFromWindow(holder);
-        Log.d(TAG, "View detached from window!");
-    }
-
-    @Override
-    public int getItemCount() {
-        return waypoints.size();
-    }
-
 }

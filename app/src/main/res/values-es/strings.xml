@@ -368,5 +368,14 @@
     <string name="successfullyPostWaypoint">Nuevo punto de ruta publicado con éxito.</string>
     <string name="couldNotPostWaypoint">No se pudo publicar el nuevo punto de ruta.</string>
     <string name="cannotAddWaypoint">No es posible agregar un nuevo punto de ruta en este momento.\n\nAsegúrese de que el vehículo y la llamada sigan vigentes.</string>
+    <string name="distanceLabel">Distancia:</string>
+    <string name="waypointNotVisitedYet">todavía no visitado</string>
+    <string name="waypointSkipped">saltado a las %1$s</string>
+    <string name="waypointVisited">visitado a las %1$s</string>
+    <string name="waypointVisiting">visitando desde las %1$s</string>
+    <string name="waypointNext">Próximo punto de referencia</string>
+    <string name="skipWaypoint">¿Saltar punto de ruta?</string>
+    <string name="successfullyPatchWaypoint">Waypoint parcheado con éxito</string>
+    <string name="couldNotPatchWaypoint">No se pudo parchear el waypoint</string>
 
 </resources>

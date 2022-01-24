@@ -1,75 +1,138 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_height="wrap_content"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content" >
+    android:layout_marginEnd="2pt"
+    android:layout_marginVertical="2dp">
 
-    <TextView
-        android:id="@+id/waypointAddressLine0"
-        android:layout_width="wrap_content"
-        android:layout_height="@dimen/ambulanceToolbarIconHeight"
-        android:text="Line 0"
-        android:textStyle="bold" />
+    <LinearLayout
+        android:id="@+id/waypointLeftPanel"
+        android:layout_width="35dp"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingVertical="2dp">
 
-    <ImageView
-        android:id="@+id/callNextWaypointLocationButton"
-        android:layout_height="@dimen/ambulanceToolbarIconHeight"
-        android:layout_width="@dimen/ambulanceToolbarIconWidth"
-        app:srcCompat="@drawable/ic_location_arrow"
-        android:layout_alignParentEnd="true"
-        android:layout_alignParentTop="true"
-        app:tint="@color/iconColorDark"
-        android:contentDescription="@string/linkToMap" />
+        <ImageView
+            android:id="@+id/waypointDoneButton"
+            android:layout_height="@dimen/ambulanceToolbarIconHeight"
+            android:layout_width="@dimen/ambulanceToolbarIconWidth"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginVertical="2dp"
+            app:srcCompat="@drawable/ic_check_circle_solid"
+            app:tint="@color/iconColorDark"
+            android:contentDescription="@string/linkToMap" />
 
-    <ImageView
-        android:id="@+id/callNextWaypointToMapsButton"
-        android:layout_height="@dimen/ambulanceToolbarIconHeight"
-        android:layout_width="@dimen/ambulanceToolbarIconWidth"
-        app:srcCompat="@drawable/ic_map"
-        android:layout_toStartOf="@id/callNextWaypointLocationButton"
-        android:layout_marginEnd="10dp"
-        android:contentDescription="@string/link_to_google_maps" />
+    </LinearLayout>
 
-    <RelativeLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_below="@id/waypointAddressLine0"
-        android:layout_marginTop="2pt"
-        android:padding="2pt"
-        android:id="@+id/waypointInfoLayout">
+    <androidx.cardview.widget.CardView
+        xmlns:card_view="http://schemas.android.com/apk/res-auto"
+        android:id="@+id/waypointBrowserCardView"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:paddingVertical="2dp"
+        android:layout_marginEnd="5dp"
+        card_view:cardElevation="2dp"
+        card_view:cardCornerRadius="5dp"
+        card_view:contentPadding="3dp"
+        android:layout_weight="1">
 
-        <TextView
-            android:id="@+id/waypointAddressLine1"
-            android:layout_width="wrap_content"
+        <RelativeLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Line1"
-            android:textStyle="bold" />
+            android:id="@+id/waypointInfoLayout">
 
-        <TextView
-            android:id="@+id/waypointAddressLine2"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/waypointAddressLine1"
-            android:text="University City, CA 92121, US"/>
+            <TextView
+                android:id="@+id/waypointAddressLine1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Line1"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/waypointAddressLine2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/waypointAddressLine1"
+                android:lines="2"
+                android:text="University City, CA 92121, US" />
+
+            <TextView
+                android:id="@+id/waypointAddressLine3"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignWithParentIfMissing="true"
+                android:gravity="bottom"
+                android:layout_below="@id/waypointAddressLine2"
+                android:layout_alignBottom="@id/waypointToMapsButton"
+                android:text="Visited at" />
+
+            <TextView
+                android:id="@+id/waypointDistance"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/waypointAddressLine2"
+                android:layout_alignParentTop="true"
+                android:layout_marginEnd="2pt"
+                android:layout_toStartOf="@id/waypointSkipButton"
+                android:layout_alignWithParentIfMissing="true"
+                android:text="1.984 km" />
+
+            <ImageView
+                android:id="@+id/waypointToMapsButton"
+                android:layout_height="@dimen/ambulanceToolbarIconHeight"
+                android:layout_width="@dimen/ambulanceToolbarIconWidth"
+                android:layout_alignParentEnd="true"
+                android:layout_below="@id/waypointLocationButton"
+                android:layout_marginBottom="2pt"
+                app:srcCompat="@drawable/ic_map"
+                android:contentDescription="@string/link_to_google_maps" />
+
+            <ImageView
+                android:id="@+id/waypointLocationButton"
+                android:layout_width="@dimen/ambulanceToolbarIconWidth"
+                android:layout_height="@dimen/ambulanceToolbarIconHeight"
+                android:layout_below="@id/waypointSkipButton"
+                android:layout_alignParentEnd="true"
+                android:layout_marginBottom="2pt"
+                android:contentDescription="@string/linkToMap"
+                app:srcCompat="@drawable/ic_location_arrow"
+                app:tint="@color/iconColorDark" />
+
+            <ImageView
+                android:id="@+id/waypointSkipButton"
+                android:layout_height="@dimen/ambulanceToolbarIconHeight"
+                android:layout_width="@dimen/ambulanceToolbarIconWidth"
+                android:layout_alignParentTop="true"
+                android:layout_alignParentEnd="true"
+                android:layout_marginBottom="2pt"
+                app:srcCompat="@drawable/ic_times_circle_solid"
+                app:tint="@color/iconColorDark"
+                android:contentDescription="@string/linkToMap" />
 
 
-        <TextView
-            android:id="@+id/waypointDistanceLabel"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/waypointAddressLine2"
-            android:textStyle="bold"
-            android:text="Distance:"/>
+        </RelativeLayout>
 
-        <TextView
-            android:id="@+id/waypointDistance"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/waypointAddressLine2"
-            android:layout_toEndOf="@id/waypointDistanceLabel"
-            android:paddingStart="5dp"
-            android:text="1.984 km" />
+    </androidx.cardview.widget.CardView>
 
-    </RelativeLayout>
+    <LinearLayout
+        android:id="@+id/waypointRightPanel"
+        android:layout_width="30dp"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingVertical="2dp">
 
-</RelativeLayout>
+        <ImageView
+            android:id="@+id/waypointBarsButton"
+            android:layout_height="@dimen/ambulanceToolbarIconHeight"
+            android:layout_width="@dimen/ambulanceToolbarIconWidth"
+            android:layout_gravity="start"
+            app:srcCompat="@drawable/ic_bars_solid"
+            app:tint="@color/iconColorDark"
+            android:contentDescription="@string/linkToMap" />
+
+    </LinearLayout>
+
+</LinearLayout>
+

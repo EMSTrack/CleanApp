@@ -114,7 +114,6 @@ public class MainActivity extends AppCompatActivity {
     private HashMap<String, Integer> ambulanceStatusBackgroundColorMap;
     private HashMap<String, Integer> ambulanceStatusTextColorMap;
 
-    private boolean promptingNextWaypoint;
     private PlacesClient placesClient;
     private boolean actionBarButtonsVisible;
 
@@ -383,9 +382,6 @@ public class MainActivity extends AppCompatActivity {
 
         // set back as UP
         backButtonMode = BackButtonMode.UP;
-
-        // not prompting next waypoint
-        promptingNextWaypoint = false;
 
         // setup navigation
         setUpNavigation();
@@ -1512,7 +1508,8 @@ public class MainActivity extends AppCompatActivity {
 
         // Install adapter
         WaypointInfoRecyclerAdapter adapter =
-                new WaypointInfoRecyclerAdapter(this, ambulanceCall.getWaypointSet(), true);
+                new WaypointInfoRecyclerAdapter(this, ambulanceCall.getWaypointSet(),
+                        true, true, true, false);
         waypointBrowserRecyclerView.setAdapter(adapter);
 
         // go to next waypoint
