@@ -373,9 +373,9 @@
     <string name="waypointSkipped">saltado a las %1$s</string>
     <string name="waypointVisited">visitado a las %1$s</string>
     <string name="waypointVisiting">visitando desde las %1$s</string>
-    <string name="waypointNext">próximo punto de referencia</string>
+    <string name="waypointNext">próximo punto de ruta</string>
     <string name="skipWaypoint">¿Saltar punto de ruta?</string>
-    <string name="successfullyPatchWaypoint">Waypoint parcheado con éxito</string>
-    <string name="couldNotPatchWaypoint">No se pudo parchear el waypoint</string>
+    <string name="successfullyPatchWaypoint">Punto de ruta parcheado con éxito</string>
+    <string name="couldNotPatchWaypoint">No se pudo parchear el punto de ruta</string>
 
 </resources>
