@@ -362,8 +362,10 @@ public class MapFragment extends FragmentWithLocalBroadcastReceiver implements O
                 sharedPreferences.contains(AmbulanceForegroundService.PREFERENCES_MAP_LATITUDE)) {
             target = new LatLng(sharedPreferences.getFloat(AmbulanceForegroundService.PREFERENCES_MAP_LATITUDE, 0),
                     sharedPreferences.getFloat(AmbulanceForegroundService.PREFERENCES_MAP_LONGITUDE, 0));
-            bearing = sharedPreferences.getFloat(AmbulanceForegroundService.PREFERENCES_MAP_BEARING, 0);
+        } else {
+            target = new LatLng(defaultLocation.getLatitude(), defaultLocation.getLongitude());
         }
+        bearing = sharedPreferences.getFloat(AmbulanceForegroundService.PREFERENCES_MAP_BEARING, 0);
 
         // show toolbar?
         if ((showToolbar && toolbarDragHelper.isUp()) || (!showToolbar && toolbarDragHelper.isDown())) {
