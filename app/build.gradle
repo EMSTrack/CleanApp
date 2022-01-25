@@ -6,8 +6,8 @@ android {
         applicationId 'org.emstrack.ambulance'
         minSdkVersion 21
         targetSdkVersion 31
-        versionCode 26
-        versionName "0.9.13"
+        versionCode 27
+        versionName "0.9.14"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
 
