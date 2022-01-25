@@ -5703,8 +5703,9 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
         // We use FLAG_UPDATE_CURRENT so that we get the same pending intent back when
         // calling addGeofences() and removeAllGeofences().
+        // https://www.flybuy.com/android-12-pendingintent-mutability-and-geofences
         geofenceIntent = PendingIntent.getBroadcast(this, 0,
-                intent, Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M ? PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE : PendingIntent.FLAG_UPDATE_CURRENT);
+                intent, Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S ? PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_MUTABLE : PendingIntent.FLAG_UPDATE_CURRENT);
 
         return geofenceIntent;
     }
