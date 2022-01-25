@@ -2,7 +2,6 @@ package org.emstrack.models;
 
 import android.content.Context;
 
-import androidx.test.annotation.UiThreadTest;
 import androidx.test.core.app.ApplicationProvider;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
@@ -37,18 +36,18 @@ public class ModelInstrumentedTest {
 
     }
 
-    @UiThreadTest
     public void test_retrofit() throws Exception {
 
         Log.d(TAG, "test_retrofit_broadcast()");
 
         APIService service = APIServiceGenerator.createService(APIService.class);
+        Context appContext = ApplicationProvider.getApplicationContext();
 
         Log.d(TAG, "api");
 
-        String username = "admin";
-        String password = "cruzrojaadmin";
-        String serverURI = "https://cruzroja.ucsd.edu/";
+        String username = appContext.getString(R.string.apiUser);
+        String password = appContext.getString(R.string.apiPassword);
+        String serverURI = appContext.getString(R.string.apiServerUrl);
         Credentials credentials = new Credentials(username, password, serverURI, "");
 
         retrofit2.Call<Token> callSync = service.getToken(credentials);

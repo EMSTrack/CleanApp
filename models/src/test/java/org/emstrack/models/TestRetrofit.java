@@ -1,5 +1,6 @@
 package org.emstrack.models;
 
+import android.content.Context;
 import android.os.Build;
 
 import org.emstrack.models.api.APIService;
@@ -8,6 +9,7 @@ import org.emstrack.models.api.OnAPICallComplete;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
+import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
 import org.robolectric.shadows.ShadowLooper;
 
@@ -35,9 +37,10 @@ public class TestRetrofit {
         assertTrue(servers.size() > 0);
         System.out.println("servers = " + servers);
 
-        String username = "admin";
-        String password = "cruzrojaadmin";
-        String serverURI = "https://cruzroja.ucsd.edu/";
+        final Context application = RuntimeEnvironment.getApplication();
+        String username = application.getString(R.string.apiUser);
+        String password = application.getString(R.string.apiPassword);
+        String serverURI = application.getString(R.string.apiServerUrl);
         Credentials credentials = new Credentials(username, password, serverURI, "");
 
         retrofit2.Call<Token> callSync = service.getToken(credentials);
@@ -73,8 +76,11 @@ public class TestRetrofit {
 
         System.out.println("test_retrofit_with_credentials()");
 
-        Credentials credentials = new Credentials("admin", "cruzrojaadmin",
-                "https://cruzroja.ucsd.edu", "");
+        final Context application = RuntimeEnvironment.getApplication();
+        String username = application.getString(R.string.apiUser);
+        String password = application.getString(R.string.apiPassword);
+        String serverURI = application.getString(R.string.apiServerUrl);
+        Credentials credentials = new Credentials(username, password, serverURI, "");
 
         // Retrieve token
         APIServiceGenerator.setServerUri(credentials.getApiServerUri());

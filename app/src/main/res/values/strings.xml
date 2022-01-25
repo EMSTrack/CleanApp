@@ -296,8 +296,6 @@
     <string name="locationPermissionSettingsMessage">After clicking \'%1$s\' you will be taken to the application\'s settings page where you can enable background location for this device%2$s in the \'Permissions\' settings.</string>
     <string name="needPermissions">Need permissions</string>
     <string name="login_as_demo">Demo</string>
-    <string name="demoUsername" translatable="false">test</string>
-    <string name="demoPassword" translatable="false">testuser</string>
     <string name="demoServer" translatable="false">ssl://cruzroja.ucsd.edu:8883</string>
     <string name="demoLoginMessage">Click \'%1$s\' to obtain credentials to demo the application.</string>
     <string name="tracking">Tracking</string>

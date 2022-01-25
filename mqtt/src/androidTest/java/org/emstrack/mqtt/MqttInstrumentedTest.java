@@ -34,10 +34,10 @@ public class MqttInstrumentedTest {
 
         assertEquals("org.emstrack.mqtt.test", appContext.getPackageName());
 
-        final String serverUri = "ssl://cruzroja.ucsd.edu:8883";
+        final String serverUri = appContext.getString(R.string.mqttServer);
         final String clientId = "TestClient_" + UUID.randomUUID().toString();
-        final String username = "admin";
-        final String password = "cruzrojaadmin";
+        final String username = appContext.getString(R.string.mqttUser);
+        final String password = appContext.getString(R.string.mqttPassword);
 
         MqttAsyncClient client = new MqttAsyncClient(serverUri, clientId, null);
         final MqttProfileClient profileClient = new MqttProfileClient(client);
