@@ -49,7 +49,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
-import org.eclipse.paho.android.service.MqttAndroidClient;
+import org.eclipse.paho.client.mqttv3.MqttAsyncClient;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.emstrack.ambulance.MainActivity;
 import org.emstrack.ambulance.R;
@@ -449,7 +449,12 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                     Log.d(TAG, "STOP_SERVICE::onSuccess.");
 
                     // close client
-                    client.close();
+                    try {
+                        client.close();
+                    } catch (MqttException e) {
+                        e.printStackTrace();
+                        Log.d(TAG, "Could not close MQTT client");
+                    }
 
                     // set client to null
                     client = null;
@@ -989,8 +994,15 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
             String clientId = context.getString(R.string.client_name) + "_"
                     + context.getString(R.string.app_version) + "_"
                     + deviceAppUID;
-            MqttAndroidClient androidClient = new MqttAndroidClient(context, _serverUri, clientId);
-            client = new MqttProfileClient(androidClient);
+//            MqttAndroidClient androidClient = new MqttAndroidClient(context, _serverUri, clientId);
+//            client = new MqttProfileClient(androidClient);
+            try {
+                MqttAsyncClient androidClient = new MqttAsyncClient(_serverUri, clientId, null);
+                client = new MqttProfileClient(androidClient);
+            } catch (MqttException e) {
+                Log.d(TAG, "Could not initialize MQTTClient");
+                e.printStackTrace();
+            }
 
         }
 

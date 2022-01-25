@@ -11,12 +11,11 @@ import java.util.regex.Pattern;
 
 import android.util.Log;
 
-import org.eclipse.paho.android.service.MqttAndroidClient;
-
 import org.eclipse.paho.client.mqttv3.DisconnectedBufferOptions;
 import org.eclipse.paho.client.mqttv3.IMqttActionListener;
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
 import org.eclipse.paho.client.mqttv3.IMqttToken;
+import org.eclipse.paho.client.mqttv3.MqttAsyncClient;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
@@ -48,13 +47,15 @@ public class MqttProfileClient implements MqttCallbackExtended {
 
     private String username;
 
-    private final MqttAndroidClient mqttClient;
+    // private final MqttAndroidClient mqttClient;
+    private final MqttAsyncClient mqttClient;
 
     private Map<String,CallbackTuple> subscribedTopics;
     private MqttProfileCallback callback;
     private Map<IMqttDeliveryToken, MqttDeliveryCallback> mqttDeliveryCallback;
 
-    public MqttProfileClient(MqttAndroidClient mqttClient) {
+    //    public MqttProfileClient(MqttAndroidClient mqttClient) {
+    public MqttProfileClient(MqttAsyncClient mqttClient) {
         this.mqttClient = mqttClient;
         this.subscribedTopics = new HashMap<>();
         this.mqttDeliveryCallback = new HashMap<>();
@@ -68,10 +69,10 @@ public class MqttProfileClient implements MqttCallbackExtended {
         return username;
     }
 
-    public void close() {
+    public void close() throws MqttException {
         if (mqttClient != null) {
-            mqttClient.unregisterResources();
-            // mqttClient.close();
+            // mqttClient.unregisterResources();
+            mqttClient.close();
         }
     }
 
@@ -90,12 +91,6 @@ public class MqttProfileClient implements MqttCallbackExtended {
         this.mqttDeliveryCallback.put(token, callback);
     }
 
-    public IMqttDeliveryToken publish(String topic, String payload, int qos, boolean retained, MqttDeliveryCallback callback) throws MqttException {
-        IMqttDeliveryToken token = MqttProfileClient.this.publish(topic, payload, qos, retained);
-        this.setMqttDeliveryCallback(token, callback);
-        return token;
-    }
-
     public void disconnect() throws MqttException { disconnect(null); }
 
     public void disconnect(final MqttProfileCallback disconnectCallback) throws MqttException {
@@ -103,60 +98,60 @@ public class MqttProfileClient implements MqttCallbackExtended {
         // if connected, disconnect
         if (isConnected()) {
 
+            Log.d(TAG, "Will publish offline.");
+
+            // Publish to connect topic
+            final String topic = String.format(connectTopic, username, mqttClient.getClientId());
             try {
 
-                Log.d(TAG, "Will publish offline.");
+                IMqttDeliveryToken token =
+                        MqttProfileClient.this.publish(topic, Client.STATUS_OFFLINE,2, false);
 
-                // Publish to connect topic
-                final String topic = String.format(connectTopic, username, mqttClient.getClientId());
-                MqttProfileClient.this.publish(topic, Client.STATUS_OFFLINE, 2, false,
-                        new MqttDeliveryCallback() {
-
-                            // TODO: timeout?
-
-                            @Override
-                            public void onSuccess() {
-                                // published
-
-                                Log.d(TAG, "Will disconnect.");
-
-                                // try to disconnect
-                                try {
-                                    MqttProfileClient.this.mqttClient.disconnect(null,
-                                            new IMqttActionListener() {
-
-                                                @Override
-                                                public void onSuccess(IMqttToken asyncActionToken) {
-
-                                                    Log.d(TAG, "Successfully disconnected from broker.");
-                                                    setUsername("");
-
-                                                    // Forward callback
-                                                    if (disconnectCallback != null)
-                                                        disconnectCallback.onSuccess();
-                                                }
-
-                                                @Override
-                                                public void onFailure(IMqttToken asyncActionToken, Throwable exception) {
-
-                                                    Log.d(TAG, "Failed to disconnect to broker failed");
-                                                    Log.e(TAG, exception.getMessage());
-
-                                                    // Forward callback
-                                                    if (disconnectCallback != null)
-                                                        disconnectCallback.onFailure(exception);
-                                                }
-                                            });
-                                } catch (MqttException e) {
-                                    Log.e(TAG, "Could not disconnect.");
-                                }
-
-                            }
-                        }
-                );
+                // wait for completion of logout
+                token.waitForCompletion(2000);
 
             } catch (MqttException e) {
                 Log.e(TAG, "Could not publish client information.");
+                e.printStackTrace();
+                if (disconnectCallback != null)
+                    disconnectCallback.onFailure(e);
+                return;
+            }
+
+            // try to disconnect
+            Log.d(TAG, "Will disconnect.");
+            try {
+                MqttProfileClient.this.mqttClient.disconnect(null,
+                        new IMqttActionListener() {
+
+                            @Override
+                            public void onSuccess(IMqttToken asyncActionToken) {
+
+                                Log.d(TAG, "Successfully disconnected from broker.");
+                                setUsername("");
+
+                                // Forward callback
+                                if (disconnectCallback != null)
+                                    disconnectCallback.onSuccess();
+                            }
+
+                            @Override
+                            public void onFailure(IMqttToken asyncActionToken, Throwable exception) {
+
+                                Log.d(TAG, "Failed to disconnect to broker failed");
+                                exception.printStackTrace();
+
+                                // Forward callback
+                                if (disconnectCallback != null)
+                                    disconnectCallback.onFailure(exception);
+
+                            }
+                        });
+            } catch (MqttException e) {
+                Log.e(TAG, "Could not disconnect.");
+                e.printStackTrace();
+                if (disconnectCallback != null)
+                    disconnectCallback.onFailure(e);
             }
 
         } else {
@@ -196,6 +191,12 @@ public class MqttProfileClient implements MqttCallbackExtended {
         } else {
             Log.d(TAG, "Unhandled exception '" + exception + "'");
         }
+    }
+
+    public IMqttDeliveryToken publish(String topic, String payload, int qos, boolean retained, MqttDeliveryCallback callback) throws MqttException {
+        IMqttDeliveryToken token = MqttProfileClient.this.publish(topic, payload, qos, retained);
+        this.setMqttDeliveryCallback(token, callback);
+        return token;
     }
 
     public IMqttDeliveryToken publish(String topic, String payload, int qos, boolean retained) throws MqttException {
