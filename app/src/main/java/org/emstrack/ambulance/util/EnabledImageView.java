@@ -1,6 +1,5 @@
 package org.emstrack.ambulance.util;
 
-import android.content.res.Resources;
 import android.view.View;
 import android.widget.ImageView;
 

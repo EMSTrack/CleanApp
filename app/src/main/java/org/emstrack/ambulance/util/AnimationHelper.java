@@ -1,7 +1,5 @@
 package org.emstrack.ambulance.util;
 
-import static java.lang.Integer.getInteger;
-
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.view.View;

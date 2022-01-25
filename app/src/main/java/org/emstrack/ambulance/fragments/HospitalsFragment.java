@@ -87,12 +87,17 @@ public class HospitalsFragment extends FragmentWithLocalBroadcastReceiver {
 
         Log.i(TAG,"Updating hospitals UI.");
 
-        // Install adapter
-        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(requireContext());
-        HospitalRecyclerAdapter adapter =
-                new HospitalRecyclerAdapter(getActivity(), hospitals);
-        recyclerView.setLayoutManager(linearLayoutManager);
-        recyclerView.setAdapter(adapter);
+        try {
+            // Install adapter
+            LinearLayoutManager linearLayoutManager = new LinearLayoutManager(requireContext());
+            HospitalRecyclerAdapter adapter =
+                    new HospitalRecyclerAdapter(requireActivity(), hospitals);
+            recyclerView.setLayoutManager(linearLayoutManager);
+            recyclerView.setAdapter(adapter);
+        } catch (IllegalStateException e) {
+            Log.e(TAG, "Illegal activity");
+            e.printStackTrace();
+        }
 
     }
 

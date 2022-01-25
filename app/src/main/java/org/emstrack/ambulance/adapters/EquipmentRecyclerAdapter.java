@@ -15,7 +15,7 @@ import org.emstrack.models.EquipmentItem;
 import java.util.List;
 
 /**
- * Connects Equipment data to the RecyclerView (called from EquipmentFragment)
+ * Recycler view for equipment
  * @author James Basa
  * @since 2/17/2020
  */
@@ -23,10 +23,11 @@ import java.util.List;
 public class EquipmentRecyclerAdapter extends RecyclerView.Adapter<EquipmentViewHolder> {
 
     private static final String TAG = EquipmentRecyclerAdapter.class.getSimpleName();
-    private final Context context;
-    List<EquipmentItem> equipments;
 
-    public EquipmentRecyclerAdapter(Context context, List<EquipmentItem> equipments) {
+    private final Context context;
+    private final List<EquipmentItem> equipments;
+
+    public EquipmentRecyclerAdapter(@NonNull Context context, @NonNull List<EquipmentItem> equipments) {
         this.context = context;
         this.equipments = equipments;
     }
@@ -35,7 +36,7 @@ public class EquipmentRecyclerAdapter extends RecyclerView.Adapter<EquipmentView
     @Override
     public EquipmentViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         final View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.equipment_item, parent, false);
-        return new EquipmentViewHolder(context, view);
+        return new EquipmentViewHolder(view);
     }
 
     @Override

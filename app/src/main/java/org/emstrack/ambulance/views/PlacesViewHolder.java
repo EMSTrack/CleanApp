@@ -1,16 +1,16 @@
 package org.emstrack.ambulance.views;
 
-import android.text.SpannableString;
 import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 
-import androidx.recyclerview.widget.RecyclerView;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.google.android.libraries.places.api.model.AutocompletePrediction;
 
 import org.emstrack.ambulance.R;
-import org.emstrack.ambulance.adapters.PlacesRecyclerAdapter;
+import org.emstrack.ambulance.util.ViewHolderWithSelectedPosition;
 
 /**
  * Holds the location data
@@ -18,19 +18,20 @@ import org.emstrack.ambulance.adapters.PlacesRecyclerAdapter;
  * @since 7/07/2020
  */
 
-public class PlacesViewHolder extends RecyclerView.ViewHolder {
+public class PlacesViewHolder extends ViewHolderWithSelectedPosition<AutocompletePrediction> {
 
     private static final String TAG = PlacesViewHolder.class.getSimpleName();
-    private final TextView locationNameText;
-    private final View view;
 
-    public PlacesViewHolder(View view) {
+    private final TextView locationNameText;
+
+    public PlacesViewHolder(@NonNull View view) {
         super(view);
         locationNameText = view.findViewById(R.id.locationName);
-        this.view = view;
     }
 
-    public void setLocation(AutocompletePrediction prediction, PlacesRecyclerAdapter.SelectPrediction selectPrediction) {
+    @Override
+    public void set(@NonNull AutocompletePrediction prediction, @Nullable OnClick<AutocompletePrediction> onClick) {
+        super.set(prediction, onClick);
 
         String location = prediction.getFullText(null).toString();
         Log.d(TAG, "location = " + location);
@@ -38,8 +39,6 @@ public class PlacesViewHolder extends RecyclerView.ViewHolder {
         // set text
         locationNameText.setText(location);
 
-        // set click listener
-        view.setOnClickListener(v -> selectPrediction.selectLocation(prediction));
     }
 
 }

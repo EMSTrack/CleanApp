@@ -14,7 +14,7 @@ import org.emstrack.ambulance.R;
 import org.emstrack.models.Hospital;
 
 /**
- * Connects Equipment data to the RecyclerView (called from EquipmentFragment)
+ * Recyclerview for hospitals
  * @author Mauricio de Oliveira
  * @since 7/07/2020
  */
@@ -22,17 +22,17 @@ import org.emstrack.models.Hospital;
 public class HospitalRecyclerAdapter extends RecyclerView.Adapter<HospitalViewHolder> {
 
     private static final String TAG = HospitalRecyclerAdapter.class.getSimpleName();
-    private final Activity activity;
-    SparseArray<Hospital> hospitals;
 
-    public HospitalRecyclerAdapter(Activity activity, SparseArray<Hospital> hospitals) {
+    private final Activity activity;
+    private final SparseArray<Hospital> hospitals;
+
+    public HospitalRecyclerAdapter(@NonNull Activity activity, @NonNull SparseArray<Hospital> hospitals) {
         this.activity = activity;
         this.hospitals = hospitals;
     }
 
     @NonNull
     @Override
-    //initialize ViewHolder
     public HospitalViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         final View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.hospital_item, parent, false);
         return new HospitalViewHolder(view);

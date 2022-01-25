@@ -1,6 +1,6 @@
 package org.emstrack.ambulance.fragments;
 
-import android.app.MediaRouteButton;
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -49,7 +49,6 @@ import org.emstrack.models.Waypoint;
 
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 
 @com.google.android.material.badge.ExperimentalBadgeUtils
 public class CallFragment extends FragmentWithLocalBroadcastReceiver {
@@ -66,7 +65,6 @@ public class CallFragment extends FragmentWithLocalBroadcastReceiver {
 
     private ImageView bottomSheetNextIcon;
     private ImageView bottomSheetAddIcon;
-//    private ImageView bottomSheetCloseIcon;
     private ImageView bottomSheetUndoIcon;
 
     private TextView callPriorityTextView;
@@ -78,13 +76,8 @@ public class CallFragment extends FragmentWithLocalBroadcastReceiver {
     private TextView ambulanceIdentifierText;
     private TextView ambulanceStatusText;
 
-    private TextView gsTextView;
     private ImageView callPatientShowAddIcon;
-    private EditText callAddPatientNameEditText;
-    private EditText callAddPatientAgeEditText;
     private View callPatientAddLayout;
-    private ImageView callPatientAddIcon;
-    private ImageView callPatientCancelAddIcon;
     private ImageView callMessageButton;
     private FrameLayout callMessageButtonFrameLayout;
     private WaypointInfoRecyclerAdapter waypointAdapter;
@@ -95,6 +88,7 @@ public class CallFragment extends FragmentWithLocalBroadcastReceiver {
     private View callPatientsTextView;
     private View bottomFillerView;
 
+    @SuppressLint("NotifyDataSetChanged")
     @Override
     public void onReceive(Context context, @NonNull Intent intent) {
         final String action = intent.getAction();
@@ -177,17 +171,15 @@ public class CallFragment extends FragmentWithLocalBroadcastReceiver {
         callPatientShowAddIcon = view.findViewById(R.id.callPatientShowAddIcon);
         callPatientShowAddIcon.setOnClickListener(v -> togglePatientAddVisibility() );
 
-        callAddPatientNameEditText = callPatientAddLayout.findViewById(R.id.patientNameEditText);
-        callAddPatientAgeEditText = callPatientAddLayout.findViewById(R.id.patientAgeEditText);
+        EditText callAddPatientNameEditText = callPatientAddLayout.findViewById(R.id.patientNameEditText);
+        EditText callAddPatientAgeEditText = callPatientAddLayout.findViewById(R.id.patientAgeEditText);
 
-        callPatientAddIcon = callPatientAddLayout.findViewById(R.id.patientAddIcon);
+        ImageView callPatientAddIcon = callPatientAddLayout.findViewById(R.id.patientAddIcon);
         callPatientAddIcon.setEnabled(false);
         callPatientAddIcon.setOnClickListener(v -> addPatient());
 
-        callPatientCancelAddIcon = callPatientAddLayout.findViewById(R.id.patientCancelAddIcon);
-        callPatientCancelAddIcon.setOnClickListener(v -> {
-            togglePatientAddVisibility();
-        });
+        ImageView callPatientCancelAddIcon = callPatientAddLayout.findViewById(R.id.patientCancelAddIcon);
+        callPatientCancelAddIcon.setOnClickListener(v -> togglePatientAddVisibility());
 
 
         // enable plus only when text is not empty
@@ -228,7 +220,6 @@ public class CallFragment extends FragmentWithLocalBroadcastReceiver {
         snapHelper.attachToRecyclerView(waypointBrowserRecyclerView);
 
         // set waypoint arrows
-//        ImageView waypointsIcon = view.findViewById(R.id.callWaypointsIcon);
         waypointMaximize = view.findViewById(R.id.waypointMaximize);
         waypointMinimize = view.findViewById(R.id.waypointMinimize);
         waypointMaximize.setOnClickListener(v -> {
@@ -245,33 +236,17 @@ public class CallFragment extends FragmentWithLocalBroadcastReceiver {
             waypointAdapter.setHideRightPanel(true);
             waypointBrowserRecyclerView.setAdapter(waypointAdapter);
         });
-//        bottomSheetCloseIcon.setOnClickListener(v -> {
-//            bottomSheetUndoIcon.setVisibility(View.GONE);
-//            bottomSheetNextIcon.setVisibility(View.GONE);
-//            bottomSheetAddIcon.setVisibility(View.GONE);
-//            bottomSheetCloseIcon.setVisibility(View.GONE);
-//            bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
-//        });
 
         // set up toolbar
         bottomSheetNextIcon
-                .setOnClickListener(v -> {
-                    AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
-                    Call call = appData.getCalls().getCurrentCall();
-                    AmbulanceCall ambulanceCall = call.getCurrentAmbulanceCall();
-                    waypointBrowserRecyclerView.smoothScrollToPosition(getNextWaypointPosition());
-                });
+                .setOnClickListener(v -> waypointBrowserRecyclerView.smoothScrollToPosition(getNextWaypointPosition()));
 
         bottomSheetAddIcon
-                .setOnClickListener(v -> {
-                    activity.navigate(R.id.action_call_to_selectLocation);
-                });
+                .setOnClickListener(v -> activity.navigate(R.id.action_call_to_selectLocation));
 
         bottomSheetUndoIcon
-                .setOnClickListener(v-> {
-                    new SimpleAlertDialog(getActivity(), getString(R.string.alert_warning_title))
-                            .alert(getString(R.string.notImplementedYet));
-                });
+                .setOnClickListener(v-> new SimpleAlertDialog(requireActivity(), getString(R.string.alert_warning_title))
+                        .alert(getString(R.string.notImplementedYet)));
 
         // bottom sheet callback
         bottomSheetBehavior.addBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback() {
@@ -282,16 +257,13 @@ public class CallFragment extends FragmentWithLocalBroadcastReceiver {
                     if (orientation == LinearLayoutManager.VERTICAL) {
                         waypointMaximize.setVisibility(View.GONE);
                         waypointMinimize.setVisibility(View.VISIBLE);
-                        bottomSheetUndoIcon.setVisibility(View.VISIBLE);
-                        bottomSheetNextIcon.setVisibility(View.VISIBLE);
-                        bottomSheetAddIcon.setVisibility(View.VISIBLE);
                     } else {
                         waypointMaximize.setVisibility(View.VISIBLE);
                         waypointMinimize.setVisibility(View.GONE);
-                        bottomSheetUndoIcon.setVisibility(View.VISIBLE);
-                        bottomSheetNextIcon.setVisibility(View.VISIBLE);
-                        bottomSheetAddIcon.setVisibility(View.VISIBLE);
                     }
+                    bottomSheetUndoIcon.setVisibility(View.VISIBLE);
+                    bottomSheetNextIcon.setVisibility(View.VISIBLE);
+                    bottomSheetAddIcon.setVisibility(View.VISIBLE);
                 } else if (newState == BottomSheetBehavior.STATE_COLLAPSED) {
                     waypointMaximize.setVisibility(View.GONE);
                     waypointMinimize.setVisibility(View.GONE);
@@ -408,6 +380,11 @@ public class CallFragment extends FragmentWithLocalBroadcastReceiver {
 
         // Get app data
         AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
+        Ambulance ambulance = appData.getAmbulance();
+        if (ambulance == null) {
+            Log.d(TAG, "No current ambulance");
+            return;
+        }
 
         // get current call
         Call call = appData.getCalls().getCurrentCall();
@@ -423,17 +400,15 @@ public class CallFragment extends FragmentWithLocalBroadcastReceiver {
             return;
         }
 
-        // get ambulanceCapabilities
+        // get settings
         Settings settings = appData.getSettings();
-        Map<String, String> ambulanceStatusMap = settings.getAmbulanceStatus();
-
-        // set ambulance identifier
-        Ambulance ambulance = appData.getAmbulance();
-        ambulanceIdentifierText.setText(ambulance.getIdentifier());
 
         // set ambulance status
         String status = ambulance.getStatus();
-        ambulanceStatusText.setText(ambulanceStatusMap.get(status));
+        ambulanceStatusText.setText(settings != null ? settings.getAmbulanceStatus().get(status) : "");
+
+        // set ambulance identifier
+        ambulanceIdentifierText.setText(ambulance.getIdentifier());
 
         // set call priority
         String priority = call.getPriority();
@@ -472,7 +447,7 @@ public class CallFragment extends FragmentWithLocalBroadcastReceiver {
 
         // Install patients adapter
         List<Patient> patientSet = call.getPatientSet();
-        PatientRecyclerAdapter patientAdapter = new PatientRecyclerAdapter(requireActivity(), patientSet);
+        PatientRecyclerAdapter patientAdapter = new PatientRecyclerAdapter(patientSet);
         patientRecyclerView.setAdapter(patientAdapter);
         if (patientSet.size() > 0) {
             callPatientsTextView.setVisibility(View.GONE);

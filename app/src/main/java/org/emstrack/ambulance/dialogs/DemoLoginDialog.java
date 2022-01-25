@@ -6,6 +6,8 @@ import android.text.method.LinkMovementMethod;
 import android.view.View;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 
 import org.emstrack.ambulance.R;
@@ -18,7 +20,7 @@ public class DemoLoginDialog {
 
     private static final String TAG = DemoLoginDialog.class.getSimpleName();
 
-    public static AlertDialog create(final Activity activity, DialogInterface.OnClickListener onClickListener) {
+    public static AlertDialog create(@NonNull Activity activity, @Nullable DialogInterface.OnClickListener onClickListener) {
 
         // Inflate the about message contents
         View messageView = activity.getLayoutInflater().inflate(R.layout.dialog_demo, null, false);

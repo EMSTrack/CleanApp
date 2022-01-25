@@ -2,9 +2,10 @@ package org.emstrack.models;
 
 import android.util.Pair;
 
+import androidx.annotation.NonNull;
+
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -28,15 +29,15 @@ import java.util.Set;
  * @author mauricio
  * @since 10/1/2018
  */
-public class CallStack implements Iterable {
+public class CallStack implements Iterable<Map.Entry<Integer, Call>> {
 
-    private Map<Integer, Call> stack;
+    private final Map<Integer, Call> stack;
     private int currentCallId;
 
     /**
      * Exception class to report {@link CallStack} exceptions
      */
-    public class CallStackException extends Exception {
+    public static class CallStackException extends Exception {
 
         /**
          *
@@ -236,9 +237,7 @@ public class CallStack implements Iterable {
      * @return the next call
      */
     public Call getNextCall(int ambulanceId, String status) {
-        CallStackIterator iterator = iterator();
-        while (iterator.hasNext()) {
-            Map.Entry<Integer, Call> entry = iterator.next();
+        for (Map.Entry<Integer, Call> entry : this) {
             Call call = entry.getValue();
             if (call.getAmbulanceCall(ambulanceId).getStatus().equals(status))
                 return call;
@@ -276,8 +275,7 @@ public class CallStack implements Iterable {
 
         // then requested
         call = getNextCall(ambulanceId, AmbulanceCall.STATUS_REQUESTED);
-        if (call != null)
-            return call;
+        return call;
 
         /*
         // then suspended
@@ -287,7 +285,6 @@ public class CallStack implements Iterable {
         */
 
         // Ignore STATUS_SUSPENDED, STATUS_COMPLETED, and STATUS_DECLINED calls
-        return null;
     }
 
     /**
@@ -308,9 +305,7 @@ public class CallStack implements Iterable {
             map.put(label, 0);
 
         // Loop through call stack
-        CallStackIterator iterator = iterator();
-        while (iterator.hasNext()) {
-            Map.Entry<Integer, Call> entry = iterator.next();
+        for (Map.Entry<Integer, Call> entry : this) {
             String status = entry.getValue().getStatus();
             map.put(status, map.get(status) + 1);
         }
@@ -337,9 +332,7 @@ public class CallStack implements Iterable {
             map.put(label, 0);
 
         // Loop through call stack
-        CallStackIterator iterator = iterator();
-        while (iterator.hasNext()) {
-            Map.Entry<Integer, Call> entry = iterator.next();
+        for (Map.Entry<Integer, Call> entry : this) {
             String status = entry.getValue().getAmbulanceCall(ambulanceId).getStatus();
             map.put(status, map.get(status) + 1);
         }
@@ -357,9 +350,7 @@ public class CallStack implements Iterable {
     public Map<Integer,Pair<Call,AmbulanceCall>> filter(int ambulanceId, String status) {
         // Loop through call stack
         Map<Integer, Pair<Call,AmbulanceCall>> map = new HashMap<>();
-        CallStackIterator iterator = iterator();
-        while (iterator.hasNext()) {
-            Map.Entry<Integer, Call> entry = iterator.next();
+        for (Map.Entry<Integer, Call> entry : this) {
             Call call = entry.getValue();
             AmbulanceCall ambulanceCall = call.getAmbulanceCall(ambulanceId);
             if (status == null || ambulanceCall.getStatus().equals(status))
@@ -383,6 +374,7 @@ public class CallStack implements Iterable {
      *
      * @return the iterator
      */
+    @NonNull
     public CallStackIterator iterator() {
         return new CallStackIterator();
     }

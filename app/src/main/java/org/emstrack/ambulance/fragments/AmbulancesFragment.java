@@ -99,12 +99,17 @@ public class AmbulancesFragment extends FragmentWithLocalBroadcastReceiver {
         }
         Collections.sort(ambulanceList, new UpdatedOn.SortDescending());
 
-        // Install adapter
-        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(requireContext());
-        AmbulanceRecyclerAdapter adapter =
-                new AmbulanceRecyclerAdapter(getActivity(), ambulanceList, this::selectAmbulance);
-        recyclerView.setLayoutManager(linearLayoutManager);
-        recyclerView.setAdapter(adapter);
+        try {
+            // Install adapter
+            LinearLayoutManager linearLayoutManager = new LinearLayoutManager(requireContext());
+            AmbulanceRecyclerAdapter adapter =
+                    new AmbulanceRecyclerAdapter(requireActivity(), ambulanceList, this::selectAmbulance);
+            recyclerView.setLayoutManager(linearLayoutManager);
+            recyclerView.setAdapter(adapter);
+        } catch (IllegalStateException e) {
+            Log.e(TAG, "Invalid context or activity");
+            e.printStackTrace();
+        }
 
     }
 

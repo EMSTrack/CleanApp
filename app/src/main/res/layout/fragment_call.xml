@@ -167,7 +167,7 @@
                 android:layout_height="wrap_content"
                 android:gravity="end"
                 android:layout_marginStart="35dp"
-                android:text="@string/noPatientInformationAvailable" />
+                android:text="@string/noPatientAvailable" />
 
             <include layout="@layout/patient_edit_item"
                 android:id="@+id/callPatientAddLayout"

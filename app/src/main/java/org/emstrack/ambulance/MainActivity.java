@@ -19,8 +19,6 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.AdapterView;
-import android.widget.AdapterView.OnItemSelectedListener;
 import android.widget.ArrayAdapter;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -58,7 +56,6 @@ import com.google.android.material.navigationrail.NavigationRailView;
 import org.emstrack.ambulance.adapters.WaypointInfoRecyclerAdapter;
 import org.emstrack.ambulance.dialogs.AlertSnackbar;
 import org.emstrack.ambulance.dialogs.SimpleAlertDialog;
-import org.emstrack.ambulance.fragments.CallFragment;
 import org.emstrack.ambulance.fragments.EquipmentFragment;
 import org.emstrack.ambulance.fragments.MessagesFragment;
 import org.emstrack.ambulance.fragments.SelectLocationFragment;
@@ -91,6 +88,7 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 
@@ -128,12 +126,6 @@ public class MainActivity extends AppCompatActivity {
 
     private List<AmbulancePermission> ambulancePermissions;
     private List<HospitalPermission> hospitalPermissions;
-    private List<Location> bases;
-    private List<Location> otherLocations;
-
-    private ArrayAdapter<String> hospitalListAdapter;
-    private ArrayAdapter<String> baseListAdapter;
-    private ArrayAdapter<String> othersListAdapter;
 
     private Drawable onlineIcon;
     private MainActivityBroadcastReceiver receiver;
@@ -213,8 +205,8 @@ public class MainActivity extends AppCompatActivity {
 
                         Log.i(TAG, "PROMPT_NEXT_WAYPOINT");
 
-                        callId = intent.getIntExtra(AmbulanceForegroundService.BroadcastExtras.CALL_ID, -1);
-                        promptNextWaypointDialog(callId);
+                        // callId = intent.getIntExtra(AmbulanceForegroundService.BroadcastExtras.CALL_ID, -1);
+                        promptNextWaypointDialog();
 
                         break;
                     case AmbulanceForegroundService.BroadcastActions.CALL_COMPLETED:
@@ -423,8 +415,8 @@ public class MainActivity extends AppCompatActivity {
         }
 
         // bases and other locations
-        bases = appData.getBases();
-        otherLocations = appData.getOtherLocations();
+        List<Location> bases = appData.getBases();
+        List<Location> otherLocations = appData.getOtherLocations();
 
         // Creates list of hospital names
         ArrayList<String> hospitalList = new ArrayList<>();
@@ -433,7 +425,7 @@ public class MainActivity extends AppCompatActivity {
             hospitalList.add(hospitalPermission.getHospitalName());
 
         // Create the adapter
-        hospitalListAdapter = new ArrayAdapter<>(this,
+        ArrayAdapter<String> hospitalListAdapter = new ArrayAdapter<>(this,
                 android.R.layout.simple_spinner_dropdown_item, hospitalList);
         hospitalListAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 
@@ -444,7 +436,7 @@ public class MainActivity extends AppCompatActivity {
             baseList.add(base.getName());
 
         // Create the adapter
-        baseListAdapter = new ArrayAdapter<>(this,
+        ArrayAdapter<String> baseListAdapter = new ArrayAdapter<>(this,
                 android.R.layout.simple_spinner_dropdown_item, baseList);
         baseListAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 
@@ -455,7 +447,7 @@ public class MainActivity extends AppCompatActivity {
             othersList.add(other.getName());
 
         // Create the adapter
-        othersListAdapter = new ArrayAdapter<>(this,
+        ArrayAdapter<String> othersListAdapter = new ArrayAdapter<>(this,
                 android.R.layout.simple_spinner_dropdown_item, othersList);
         othersListAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 
@@ -1530,8 +1522,8 @@ public class MainActivity extends AppCompatActivity {
             ((TextView) view.findViewById(R.id.callPrioritySuffix)).setText("");
         } else {
             PriorityCode priorityCode = appData.getPriorityCodes().get(priorityCodeInt);
-            ((TextView) view.findViewById(R.id.callPriorityPrefix)).setText(String.format("%d-", priorityCode.getPrefix()));
-            ((TextView) view.findViewById(R.id.callPrioritySuffix)).setText(String.format("-%s", priorityCode.getSuffix()));
+            ((TextView) view.findViewById(R.id.callPriorityPrefix)).setText(String.format(Locale.ENGLISH, "%d-", priorityCode.getPrefix()));
+            ((TextView) view.findViewById(R.id.callPrioritySuffix)).setText(String.format(Locale.ENGLISH, "-%s", priorityCode.getSuffix()));
         }
 
         // Set radio code
@@ -1540,7 +1532,7 @@ public class MainActivity extends AppCompatActivity {
             ((TextView) view.findViewById(R.id.callRadioCodeText)).setText(R.string.unavailable);
         } else {
             RadioCode radioCode = appData.getRadioCodes().get(radioCodeInt);
-            ((TextView) view.findViewById(R.id.callRadioCodeText)).setText(String.format("%d: %s", radioCode.getId(), radioCode.getLabel()));
+            ((TextView) view.findViewById(R.id.callRadioCodeText)).setText(String.format(Locale.ENGLISH, "%d: %s", radioCode.getId(), radioCode.getLabel()));
         }
 
         ((TextView) view.findViewById(R.id.callDetailsText)).setText(call.getDetails());
@@ -1697,19 +1689,11 @@ public class MainActivity extends AppCompatActivity {
 
                         })
                 .setNeutralButton(R.string.suspend,
-                        (dialog, id) -> {
-
-                            endOrSuspendCall(call.getId(), nextCallId, nextAmbulanceId,
-                                    getString(R.string.suspendingCall), AmbulanceForegroundService.Actions.CALL_SUSPEND);
-
-                        })
+                        (dialog, id) -> endOrSuspendCall(call.getId(), nextCallId, nextAmbulanceId,
+                                getString(R.string.suspendingCall), AmbulanceForegroundService.Actions.CALL_SUSPEND))
                 .setPositiveButton(R.string.end,
-                        (dialog, id) -> {
-
-                            endOrSuspendCall(call.getId(), nextCallId, nextAmbulanceId,
-                                    getString(R.string.endingCall), AmbulanceForegroundService.Actions.CALL_FINISH);
-
-                        })
+                        (dialog, id) -> endOrSuspendCall(call.getId(), nextCallId, nextAmbulanceId,
+                                getString(R.string.endingCall), AmbulanceForegroundService.Actions.CALL_FINISH))
                 .setOnCancelListener(
                         dialog -> {
 
@@ -1724,7 +1708,7 @@ public class MainActivity extends AppCompatActivity {
         builder.create().show();
     }
 
-    public void promptNextWaypointDialog(final int callId) {
+    public void promptNextWaypointDialog() {
 
         // get current fragment
         Fragment fragment = getCurrentFragment();

@@ -3,7 +3,6 @@ package org.emstrack.ambulance.util;
 import android.location.Location;
 
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.LatLngBounds;
 
 /**
  * Created by mauricio on 3/14/2018.

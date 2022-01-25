@@ -4,7 +4,6 @@ import static org.emstrack.ambulance.util.FormatUtils.formatDateTime;
 import static org.emstrack.ambulance.util.FormatUtils.formatDistance;
 
 import android.app.Activity;
-import android.content.Context;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
@@ -21,6 +20,7 @@ import org.emstrack.models.AmbulanceCall;
 import org.emstrack.models.Call;
 import org.emstrack.models.PriorityCode;
 import org.emstrack.models.RadioCode;
+import org.emstrack.models.Settings;
 import org.emstrack.models.Waypoint;
 
 import java.text.DateFormat;
@@ -56,7 +56,7 @@ public class CallViewHolder extends RecyclerView.ViewHolder {
     private final ImageView callLogoutThumbnail;
     private final View view;
 
-    public CallViewHolder(Context context, View view) {
+    public CallViewHolder(View view) {
         super(view);
 
         // save view
@@ -187,7 +187,8 @@ public class CallViewHolder extends RecyclerView.ViewHolder {
             float distance = nextWaypoint.calculateDistance(AmbulanceForegroundService.getLastLocation());
             String distanceText = activity.getString(R.string.dash);
             if (distance > 0) {
-                distanceText = formatDistance(distance, appData.getSettings().getUnits());
+                Settings settings = appData.getSettings();
+                distanceText = formatDistance(distance, settings != null ? settings.getUnits() : FormatUtils.METRIC);
             }
             callDistanceToText.setText(distanceText);
         } else {

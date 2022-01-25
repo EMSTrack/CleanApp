@@ -2,6 +2,7 @@ package org.emstrack.ambulance.fragments;
 
 import android.graphics.Canvas;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -53,10 +54,10 @@ public class EquipmentFragment extends Fragment {
         refreshingData = rootView.findViewById(R.id.equipment_refreshing_data);
         equipmentType = rootView.findViewById(R.id.equipment_type);
 
-        swipeController = new SwipeController(requireContext(), new SwipeControllerActions(){
+        swipeController = new SwipeController(requireContext(), new SwipeControllerActions() {
             @Override
             public void onLeftClicked(int position) {
-                new SimpleAlertDialog(getActivity(), getString(R.string.editEquipment))
+                new SimpleAlertDialog(requireActivity(), getString(R.string.editEquipment))
                         .alert(getString(R.string.notImplementedYet));
             }
         },
@@ -97,12 +98,6 @@ public class EquipmentFragment extends Fragment {
         refreshData();
 
     }
-
-    @Override
-    public void onPause() {
-        super.onPause();
-    }
-
 
     /**
      * refreshData
@@ -148,12 +143,17 @@ public class EquipmentFragment extends Fragment {
                         // hide refresh label
                         refreshingData.setVisibility(View.GONE);
 
-                        // Install adapter
-                        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getContext());
-                        EquipmentRecyclerAdapter adapter =
-                                new EquipmentRecyclerAdapter(getContext(), equipments);
-                        recyclerView.setLayoutManager(linearLayoutManager);
-                        recyclerView.setAdapter(adapter);
+                        try {
+                            // Install adapter
+                            LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getContext());
+                            EquipmentRecyclerAdapter adapter =
+                                    new EquipmentRecyclerAdapter(requireContext(), equipments);
+                            recyclerView.setLayoutManager(linearLayoutManager);
+                            recyclerView.setAdapter(adapter);
+                        } catch (IllegalStateException e) {
+                            Log.e(TAG, "Illegal context");
+                            e.printStackTrace();
+                        }
 
                         recyclerView.setVisibility(View.VISIBLE);
 

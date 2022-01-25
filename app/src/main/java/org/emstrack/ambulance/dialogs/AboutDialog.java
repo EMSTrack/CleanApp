@@ -4,6 +4,7 @@ import static org.emstrack.ambulance.util.FormatUtils.formatDateTime;
 
 import android.app.Activity;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 
 import android.text.method.LinkMovementMethod;
@@ -24,7 +25,7 @@ public class AboutDialog {
 
     private static final String TAG = AboutDialog.class.getSimpleName();
 
-    public static AlertDialog create(final Activity activity) {
+    public static AlertDialog create(@NonNull Activity activity) {
 
         // Inflate the about message contents
         View messageView = activity.getLayoutInflater().inflate(R.layout.dialog_about, null, false);

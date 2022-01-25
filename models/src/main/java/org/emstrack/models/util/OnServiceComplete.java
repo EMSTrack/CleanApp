@@ -6,9 +6,12 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+
+import java.util.Locale;
 
 /**
  * Safely run and chain services by listening to success and failure actions
@@ -259,7 +262,7 @@ public abstract class OnServiceComplete extends BroadcastReceiver implements Sta
         }
 
         // Start timeout timer
-        new Handler().postDelayed(() -> {
+        new Handler(Looper.getMainLooper()).postDelayed(() -> {
 
             // unregister to prevent memory leak
             unregister(this.context);
@@ -274,7 +277,7 @@ public abstract class OnServiceComplete extends BroadcastReceiver implements Sta
                 Bundle bundle = new Bundle();
                 bundle.putString(BroadcastExtras.UUID, uuid);
                 bundle.putString(org.emstrack.models.util.BroadcastExtras.MESSAGE,
-                        String.format("Timed out without completing service in %d seconds.", this.timeout/1000));
+                        String.format(Locale.ENGLISH, "Timed out without completing service in %d seconds.", this.timeout/1000));
 
                 // Call failure
                 onFailure(bundle);

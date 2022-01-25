@@ -6,13 +6,11 @@ package org.emstrack.ambulance.adapters;
  */
 
 import android.app.Activity;
-import android.content.DialogInterface;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AlertDialog;
 import androidx.recyclerview.widget.ItemTouchHelper;
 
 import org.emstrack.ambulance.R;
@@ -26,6 +24,7 @@ import java.util.List;
 public class WaypointInfoRecyclerAdapter extends RecyclerAdapterWithSelectedPosition<Waypoint, WaypointViewHolder> {
 
     private static final String TAG = WaypointInfoRecyclerAdapter.class.getSimpleName();
+
     private final Activity activity;
     private final ItemTouchHelper itemTouchHelper;
     private final boolean hideButtons;
@@ -33,7 +32,7 @@ public class WaypointInfoRecyclerAdapter extends RecyclerAdapterWithSelectedPosi
     private boolean hideLeftPanel;
     private boolean hideRightPanel;
 
-    public WaypointInfoRecyclerAdapter(Activity activity, List<Waypoint> waypointList,
+    public WaypointInfoRecyclerAdapter(@NonNull Activity activity, @NonNull List<Waypoint> waypointList,
                                        boolean hideButtons, boolean hideLeftPanel, boolean hideRightPanel,
                                        boolean hideMessage) {
         super(waypointList, null);
@@ -46,7 +45,7 @@ public class WaypointInfoRecyclerAdapter extends RecyclerAdapterWithSelectedPosi
         this.itemTouchHelper = new ItemTouchHelper(new ItemTouch());
     }
 
-    public WaypointInfoRecyclerAdapter(Activity activity, List<Waypoint> waypointList) {
+    public WaypointInfoRecyclerAdapter(@NonNull Activity activity, @NonNull List<Waypoint> waypointList) {
         this(activity, waypointList, false, false, false, false);
     }
 
@@ -64,7 +63,7 @@ public class WaypointInfoRecyclerAdapter extends RecyclerAdapterWithSelectedPosi
 
     @NonNull
     @Override
-    public WaypointViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+    public WaypointViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.waypoint_info, parent, false);
         return new WaypointViewHolder(activity, view, itemTouchHelper, hideButtons, hideLeftPanel, hideRightPanel, hideMessage);
     }

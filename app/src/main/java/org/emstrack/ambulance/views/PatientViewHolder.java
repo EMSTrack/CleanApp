@@ -1,31 +1,12 @@
 package org.emstrack.ambulance.views;
 
-import android.app.Activity;
-import android.content.Context;
-import android.graphics.PorterDuff;
-import android.location.Location;
-import android.os.Bundle;
 import android.view.View;
-import android.widget.ImageView;
 import android.widget.TextView;
 
-import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.google.android.gms.maps.model.LatLng;
-
-import org.emstrack.ambulance.MainActivity;
 import org.emstrack.ambulance.R;
-import org.emstrack.ambulance.adapters.AmbulanceRecyclerAdapter;
-import org.emstrack.ambulance.models.EquipmentType;
-import org.emstrack.ambulance.models.MessageType;
-import org.emstrack.ambulance.services.AmbulanceForegroundService;
-import org.emstrack.models.Ambulance;
 import org.emstrack.models.Patient;
-import org.emstrack.models.Settings;
-import org.w3c.dom.Text;
-
-import java.util.Map;
 
 /**
  * Holds the patient data
@@ -39,7 +20,7 @@ public class PatientViewHolder extends RecyclerView.ViewHolder {
     private final TextView patientNameText;
     private final TextView patientAgeText;
 
-    public PatientViewHolder(Context context, View view) {
+    public PatientViewHolder(View view) {
         super(view);
 
         patientNameText = view.findViewById(R.id.patientNameText);
@@ -47,9 +28,7 @@ public class PatientViewHolder extends RecyclerView.ViewHolder {
 
     }
 
-    public void setPatient(Patient patient, Activity activity) {
-
-        MainActivity mainActivity = (MainActivity) activity;
+    public void setPatient(Patient patient) {
 
         Integer age = patient.getAge();
         if (age != null && age >= 0) {

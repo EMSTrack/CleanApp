@@ -1,6 +1,5 @@
 package org.emstrack.ambulance.fragments;
 
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -15,8 +14,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.fragment.app.Fragment;
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -27,11 +24,13 @@ import org.emstrack.ambulance.dialogs.SimpleAlertDialog;
 import org.emstrack.ambulance.models.AmbulanceAppData;
 import org.emstrack.ambulance.models.MessageType;
 import org.emstrack.ambulance.services.AmbulanceForegroundService;
+import org.emstrack.ambulance.util.FragmentWithLocalBroadcastReceiver;
 import org.emstrack.ambulance.util.ViewTextWatcher;
 import org.emstrack.models.Ambulance;
 import org.emstrack.models.AmbulanceNote;
 import org.emstrack.models.Call;
 import org.emstrack.models.CallStack;
+import org.emstrack.models.Credentials;
 import org.emstrack.models.api.APIService;
 import org.emstrack.models.api.APIServiceGenerator;
 import org.emstrack.models.api.OnAPICallComplete;
@@ -40,7 +39,7 @@ import org.emstrack.models.util.OnServiceComplete;
 
 import java.util.List;
 
-public class MessagesFragment extends Fragment {
+public class MessagesFragment extends FragmentWithLocalBroadcastReceiver {
 
     private static final String TAG = AmbulanceFragment.class.getSimpleName();
     private MainActivity activity;
@@ -51,43 +50,35 @@ public class MessagesFragment extends Fragment {
     private MessageType type;
     private int id;
     private String username;
-    private MessagesUpdateBroadcastReceiver receiver;
     private TextView messageType;
 
-    public class MessagesUpdateBroadcastReceiver extends BroadcastReceiver {
+    @Override
+    public void onReceive(Context context, @NonNull Intent intent ) {
+        final String action = intent.getAction();
+        if (action != null) {
+            switch (action) {
+                case AmbulanceForegroundService.BroadcastActions.CALL_UPDATE:
 
-        @Override
-        public void onReceive(Context context, Intent intent ) {
-            if (intent != null) {
+                    Log.i(TAG, "CALL_UPDATE");
+                    refreshData();
+                    break;
 
-                final String action = intent.getAction();
-                if (action != null) {
-                    switch (action) {
-                        case AmbulanceForegroundService.BroadcastActions.CALL_UPDATE:
+                case AmbulanceForegroundService.BroadcastActions.CALL_COMPLETED: {
 
-                            Log.i(TAG, "CALL_UPDATE");
-                            refreshData();
-                            break;
+                    Log.i(TAG, "CALL_COMPLETED");
 
-                        case AmbulanceForegroundService.BroadcastActions.CALL_COMPLETED: {
+                    // Toast to warn user
+                    Toast.makeText(getContext(), R.string.CallFinished, Toast.LENGTH_LONG).show();
 
-                            Log.i(TAG, "CALL_COMPLETED");
-
-                            // Toast to warn user
-                            Toast.makeText(getContext(), R.string.CallFinished, Toast.LENGTH_LONG).show();
-
-                            // TODO: navigate back to ambulance
-                            break;
-                        }
-                        default: {
-                            Log.i(TAG, "Unknown broadcast action");
-                        }
-                    }
-                } else {
-                    Log.i(TAG, "Action is null");
+                    // TODO: navigate back to ambulance
+                    break;
                 }
-
+                default: {
+                    Log.i(TAG, "Unknown broadcast action");
+                }
             }
+        } else {
+            Log.i(TAG, "Action is null");
         }
     }
 
@@ -97,7 +88,8 @@ public class MessagesFragment extends Fragment {
         View rootView = inflater.inflate(R.layout.fragment_messages, container, false);
         activity = (MainActivity) requireActivity();
 
-        username = AmbulanceForegroundService.getAppData().getCredentials().getUsername();
+        Credentials credentials = AmbulanceForegroundService.getAppData().getCredentials();
+        username = credentials != null ? credentials.getUsername() : "";
 
         messageType = rootView.findViewById(R.id.message_type);
         refreshingData = rootView.findViewById(R.id.message_refreshing_data);
@@ -109,9 +101,7 @@ public class MessagesFragment extends Fragment {
         sendText.addTextChangedListener(new ViewTextWatcher(sendIcon));
 
         sendIcon.setEnabled(false);
-        sendIcon.setOnClickListener(v -> {
-            sendMessage();
-        });
+        sendIcon.setOnClickListener(v -> sendMessage());
 
         // get arguments
         Bundle arguments = getArguments();
@@ -122,6 +112,12 @@ public class MessagesFragment extends Fragment {
             type = MessageType.AMBULANCE;
             id = -1;
         }
+
+        // Register receiver
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(AmbulanceForegroundService.BroadcastActions.CALL_UPDATE);
+        filter.addAction(AmbulanceForegroundService.BroadcastActions.CALL_COMPLETED);
+        setupReceiver(filter);
 
         return rootView;
     }
@@ -135,24 +131,6 @@ public class MessagesFragment extends Fragment {
 
         // Refresh data
         refreshData();
-
-        // Register receiver
-        IntentFilter filter = new IntentFilter();
-        filter.addAction(AmbulanceForegroundService.BroadcastActions.CALL_UPDATE);
-        filter.addAction(AmbulanceForegroundService.BroadcastActions.CALL_COMPLETED);
-        receiver = new MessagesUpdateBroadcastReceiver();
-        getLocalBroadcastManager().registerReceiver(receiver, filter);
-    }
-
-    @Override
-    public void onPause() {
-        super.onPause();
-
-        // Unregister receiver
-        if (receiver != null) {
-            getLocalBroadcastManager().unregisterReceiver(receiver);
-            receiver = null;
-        }
 
     }
 
@@ -298,15 +276,6 @@ public class MessagesFragment extends Fragment {
 
         }
 
-    }
-
-    /**
-     * Get LocalBroadcastManager
-     *
-     * @return the LocalBroadcastManager
-     */
-    private LocalBroadcastManager getLocalBroadcastManager() {
-        return LocalBroadcastManager.getInstance(requireContext());
     }
 
 }

@@ -32,7 +32,7 @@ public class EquipmentViewHolder extends RecyclerView.ViewHolder {
     private static final String TAG = EquipmentViewHolder.class.getSimpleName();
 
 
-    public EquipmentViewHolder(Context context, View view) {
+    public EquipmentViewHolder(View view) {
         super(view);
 
         equipmentNameTextView = view.findViewById(R.id.equipment_name);
@@ -61,9 +61,7 @@ public class EquipmentViewHolder extends RecyclerView.ViewHolder {
             int color = context.getResources().getColor(value ? R.color.bootstrapSuccess : R.color.bootstrapDanger);
             equipmentValueTextView.setVisibility(View.GONE);
             equipmentValueCheckbox.setChecked(value);
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                equipmentValueCheckbox.setButtonTintList(ColorStateList.valueOf(color));
-            }
+            equipmentValueCheckbox.setButtonTintList(ColorStateList.valueOf(color));
             equipmentNameTextView.setTextColor(color);
 
         } else {

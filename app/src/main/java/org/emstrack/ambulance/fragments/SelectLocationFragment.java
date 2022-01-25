@@ -58,8 +58,10 @@ import org.emstrack.ambulance.adapters.PlacesRecyclerAdapter;
 import org.emstrack.ambulance.dialogs.AlertSnackbar;
 import org.emstrack.ambulance.dialogs.SimpleAlertDialog;
 import org.emstrack.ambulance.models.AmbulanceAppData;
+import org.emstrack.ambulance.models.NamedAddressWithDistance;
 import org.emstrack.ambulance.models.SelectLocationType;
 import org.emstrack.ambulance.services.AmbulanceForegroundService;
+import org.emstrack.ambulance.util.ViewHolderWithSelectedPosition;
 import org.emstrack.models.Address;
 import org.emstrack.models.Ambulance;
 import org.emstrack.models.AmbulanceCall;
@@ -84,8 +86,8 @@ import java.util.Objects;
 public class SelectLocationFragment
         extends Fragment
         implements
-        LocationRecyclerAdapter.SelectLocation,
-        PlacesRecyclerAdapter.SelectPrediction,
+        LocationRecyclerAdapter.OnClick,
+        ViewHolderWithSelectedPosition.OnClick<AutocompletePrediction>,
         OnMapReadyCallback, GoogleMap.OnCameraIdleListener,
         GoogleMap.OnMarkerDragListener, GoogleMap.OnInfoWindowClickListener, GoogleMap.OnMarkerClickListener {
 
@@ -119,7 +121,7 @@ public class SelectLocationFragment
     private AutocompleteSessionToken googlePlacesToken;
 
     private Marker selectedLocationMarker;
-    private Map<Integer, Marker> markerMap = new HashMap<>();
+    private final Map<Integer, Marker> markerMap = new HashMap<>();
     private int mapHeight;
     private int mapWidth;
 
@@ -136,22 +138,18 @@ public class SelectLocationFragment
 
         // buttons
         View selectToolbar = rootView.findViewById(R.id.selectToolbar);
+
         selectHospitalButtonLayout = selectToolbar.findViewById(R.id.selectHospitalButtonLayout);
-        selectHospitalButtonLayout.setOnClickListener(v -> {
-            selectInterfaceAndRefreshData(SelectLocationType.HOSPITAL);
-        });
+        selectHospitalButtonLayout.setOnClickListener(v -> selectInterfaceAndRefreshData(SelectLocationType.HOSPITAL));
+
         selectBaseButtonLayout = selectToolbar.findViewById(R.id.selectBaseButtonLayout);
-        selectBaseButtonLayout.setOnClickListener(v -> {
-            selectInterfaceAndRefreshData(SelectLocationType.BASE);
-        });
+        selectBaseButtonLayout.setOnClickListener(v -> selectInterfaceAndRefreshData(SelectLocationType.BASE));
+
         selectOtherButtonLayout = selectToolbar.findViewById(R.id.selectOtherButtonLayout);
-        selectOtherButtonLayout.setOnClickListener(v -> {
-            selectInterfaceAndRefreshData(SelectLocationType.OTHER);
-        });
+        selectOtherButtonLayout.setOnClickListener(v -> selectInterfaceAndRefreshData(SelectLocationType.OTHER));
+
         selectSelectButtonLayout = selectToolbar.findViewById(R.id.selectSelectButtonLayout);
-        selectSelectButtonLayout.setOnClickListener(v -> {
-            selectInterfaceAndRefreshData(SelectLocationType.SELECT);
-        });
+        selectSelectButtonLayout.setOnClickListener(v -> selectInterfaceAndRefreshData(SelectLocationType.SELECT));
 
         // ok button
         selectButtonOkLayout = rootView.findViewById(R.id.selectButtonOkLayout);
@@ -436,7 +434,7 @@ public class SelectLocationFragment
         }
 
         // reset recyclerview
-        PlacesRecyclerAdapter adapter = new PlacesRecyclerAdapter(getActivity(), new ArrayList<>(), this);
+        PlacesRecyclerAdapter adapter = new PlacesRecyclerAdapter(new ArrayList<>(), this);
         recyclerView.setAdapter(adapter);
 
     }
@@ -482,70 +480,74 @@ public class SelectLocationFragment
         }
 
         Ambulance ambulance = AmbulanceForegroundService.getAppData().getAmbulance();
-        GPSLocation location = ambulance.getLocation();
+        if (ambulance != null) {
 
-        LatLngBounds.Builder builder = LatLngBounds.builder();
-        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(requireContext());
-        recyclerView.setLayoutManager(linearLayoutManager);
+            GPSLocation location = ambulance.getLocation();
 
-        if (type != SelectLocationType.SELECT) {
+            LatLngBounds.Builder builder = LatLngBounds.builder();
+            LinearLayoutManager linearLayoutManager = new LinearLayoutManager(requireContext());
+            recyclerView.setLayoutManager(linearLayoutManager);
 
-            LocationRecyclerAdapter adapter;
-            switch (type) {
+            if (type != SelectLocationType.SELECT) {
 
-                case HOSPITAL:
-                    adapter = new LocationRecyclerAdapter(getActivity(), SelectLocationType.HOSPITAL, hospitals, location, this);
-                    clearAndAddLocationMarkers(SelectLocationType.HOSPITAL, hospitals, builder);
-                    break;
+                LocationRecyclerAdapter adapter;
+                switch (type) {
 
-                case BASE:
-                    adapter = new LocationRecyclerAdapter(getActivity(), SelectLocationType.BASE, bases, location, this);
-                    clearAndAddLocationMarkers(SelectLocationType.BASE, bases, builder);
-                    break;
+                    case HOSPITAL:
+                        adapter = new LocationRecyclerAdapter(SelectLocationType.HOSPITAL, hospitals, location, this);
+                        clearAndAddLocationMarkers(SelectLocationType.HOSPITAL, hospitals, builder);
+                        break;
 
-                default:
-                case OTHER:
-                    adapter = new LocationRecyclerAdapter(getActivity(), SelectLocationType.OTHER, otherLocations, location, this);
-                    clearAndAddLocationMarkers(SelectLocationType.OTHER, otherLocations, builder);
-                    break;
-            }
-            recyclerView.setAdapter(adapter);
+                    case BASE:
+                        adapter = new LocationRecyclerAdapter(SelectLocationType.BASE, bases, location, this);
+                        clearAndAddLocationMarkers(SelectLocationType.BASE, bases, builder);
+                        break;
 
-            // add current ambulance
-            addCurrentAmbulanceMarker(ambulance, builder);
+                    default:
+                    case OTHER:
+                        adapter = new LocationRecyclerAdapter(SelectLocationType.OTHER, otherLocations, location, this);
+                        clearAndAddLocationMarkers(SelectLocationType.OTHER, otherLocations, builder);
+                        break;
+                }
+                recyclerView.setAdapter(adapter);
 
-            // calculate bounds
-            LatLngBounds mapBounds = builder.build();
+                // add current ambulance
+                addCurrentAmbulanceMarker(ambulance, builder);
 
-            // update bounds
-            if (bottomSheetBehavior.getState() == BottomSheetBehavior.STATE_EXPANDED) {
+                // calculate bounds
+                LatLngBounds mapBounds = builder.build();
 
-                // center with offset
-                int bottomSheetHeight = selectLocationBottomSheet.getMeasuredHeight();
-                LatLngBounds updatedMapBounds = padAndMatchBounds(mapBounds, .2f, mapHeight - bottomSheetHeight, mapWidth);
-                centerMap(googleMap, updatedMapBounds, 0, 0, -bottomSheetHeight/2);
+                // update bounds
+                if (bottomSheetBehavior.getState() == BottomSheetBehavior.STATE_EXPANDED) {
+
+                    // center with offset
+                    int bottomSheetHeight = selectLocationBottomSheet.getMeasuredHeight();
+                    LatLngBounds updatedMapBounds = padAndMatchBounds(mapBounds, .2f, mapHeight - bottomSheetHeight, mapWidth);
+                    centerMap(googleMap, updatedMapBounds, 0, 0, -bottomSheetHeight/2);
+
+                } else {
+
+                    // center
+                    LatLngBounds updatedMapBounds = padAndMatchBounds(mapBounds, .2f, mapHeight, mapWidth);
+                    centerMap(googleMap, updatedMapBounds, 0);
+
+                }
 
             } else {
 
-                // center
-                LatLngBounds updatedMapBounds = padAndMatchBounds(mapBounds, .2f, mapHeight, mapWidth);
-                centerMap(googleMap, updatedMapBounds, 0);
+                // clear markers
+                clearMarkers(markerMap);
+
+                // add current ambulance
+                addCurrentAmbulanceMarker(ambulance, builder);
+
+                // center map (bottom sheet is always hidden)
+                centerMap(googleMap, ambulance.getLocation().toLatLng(), 0, zoomLevel, false, 0, null);
 
             }
-
         } else {
-
-            // clear markers
-            clearMarkers(markerMap);
-
-            // add current ambulance
-            addCurrentAmbulanceMarker(ambulance, builder);
-
-            // center map (bottom sheet is always hidden)
-            centerMap(googleMap, ambulance.getLocation().toLatLng(), 0, zoomLevel, false, 0, null);
-
+            Log.d(TAG, "ambulance was null!");
         }
-
 
     }
 
@@ -679,8 +681,7 @@ public class SelectLocationFragment
     }
 
     @Override
-    public void selectLocation(SelectLocationType type, NamedAddress location) {
-
+    public void onClick(@NonNull SelectLocationType type, @NonNull NamedAddress location) {
         if (type != this.type) {
             Log.d(TAG, "Wrong type, ignore");
             return;
@@ -716,7 +717,7 @@ public class SelectLocationFragment
     }
 
     @Override
-    public void selectLocation(AutocompletePrediction prediction) {
+    public void onClick(@NonNull AutocompletePrediction prediction) {
 
         Log.d(TAG, "Select prediction");
 
@@ -782,9 +783,7 @@ public class SelectLocationFragment
                     }
 
                 })
-                .addOnFailureListener(exception -> {
-                    Log.d(TAG, "Failed to fetch place");
-                });
+                .addOnFailureListener(exception -> Log.d(TAG, "Failed to fetch place"));
 
     }
 
@@ -908,10 +907,12 @@ public class SelectLocationFragment
                         .flat(flat));
 
                 // Add entry to marker
-                marker.setTag(entry);
+                if (marker != null) {
+                    marker.setTag(entry);
 
-                // add to map
-                markerMap.put(id, marker);
+                    // add to map
+                    markerMap.put(id, marker);
+                }
 
             }
 
@@ -969,7 +970,7 @@ public class SelectLocationFragment
                     if (predictions.size() > 0) {
 
                         // set up adapter with results
-                        PlacesRecyclerAdapter adapter = new PlacesRecyclerAdapter(getActivity(), predictions, this);
+                        PlacesRecyclerAdapter adapter = new PlacesRecyclerAdapter(predictions, this);
                         recyclerView.setAdapter(adapter);
 
                         // expand sheet visible
@@ -1022,14 +1023,14 @@ public class SelectLocationFragment
             // get location
             LocationRecyclerAdapter adapter = (LocationRecyclerAdapter) recyclerView.getAdapter();
             if (adapter != null) {
-                int position = adapter.getPosition(namedAddress);
+                int position = adapter.getPosition(new NamedAddressWithDistance(namedAddress));
                 if (position >= 0) {
                     // update selected item on recycler view
                     adapter.setSelectedPosition(position);
                     recyclerView.smoothScrollToPosition(position);
 
                     // select location
-                    selectLocation(type, namedAddress);
+                    onClick(type, namedAddress);
                 }
             }
         }
@@ -1045,4 +1046,5 @@ public class SelectLocationFragment
             return false;
         }
     }
+
 }

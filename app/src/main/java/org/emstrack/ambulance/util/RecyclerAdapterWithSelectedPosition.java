@@ -25,7 +25,7 @@ public abstract class RecyclerAdapterWithSelectedPosition<T, S extends ViewHolde
         extends RecyclerView.Adapter<S> {
 
     public interface Compare<T> {
-        boolean compare(T listEntry, T entry);
+        boolean compare(@NonNull T listEntry, @NonNull T entry);
     }
 
     public class ItemTouch extends ItemTouchHelper.SimpleCallback {
@@ -91,14 +91,14 @@ public abstract class RecyclerAdapterWithSelectedPosition<T, S extends ViewHolde
     private int selectedPosition;
     private boolean selectOnClick = true;
 
-    public RecyclerAdapterWithSelectedPosition(List<T> list, OnClick<T> onClick, Compare<T> compare) {
+    public RecyclerAdapterWithSelectedPosition(@NonNull List<T> list, @Nullable OnClick<T> onClick, @NonNull Compare<T> compare) {
         this.onClick = onClick;
         this.list = list;
         selectedPosition = RecyclerView.NO_POSITION;
         this.compare = compare;
     }
 
-    public RecyclerAdapterWithSelectedPosition(List<T> list, OnClick<T> onClick) {
+    public RecyclerAdapterWithSelectedPosition(@NonNull List<T> list, @Nullable OnClick<T> onClick) {
         this(list, onClick, (listEntry, entry) -> listEntry == entry);
     }
 
@@ -175,8 +175,6 @@ public abstract class RecyclerAdapterWithSelectedPosition<T, S extends ViewHolde
         return true;
     }
 
-    public void onItemMoved(int from, int to) {
-
-    }
+    public void onItemMoved(int from, int to) { }
 
 }

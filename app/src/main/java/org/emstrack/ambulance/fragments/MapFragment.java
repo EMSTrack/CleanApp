@@ -21,7 +21,6 @@ import android.widget.ImageView;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.ContextCompat;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
@@ -33,7 +32,6 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptor;
-import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
@@ -43,12 +41,11 @@ import org.emstrack.ambulance.MainActivity;
 import org.emstrack.ambulance.R;
 import org.emstrack.ambulance.models.AmbulanceAppData;
 import org.emstrack.ambulance.services.AmbulanceForegroundService;
-import org.emstrack.ambulance.util.BitmapUtils;
 import org.emstrack.ambulance.util.DragHelper;
 import org.emstrack.ambulance.util.FragmentWithLocalBroadcastReceiver;
 import org.emstrack.ambulance.util.LatLngInterpolator;
 import org.emstrack.ambulance.util.MarkerAnimation;
-import org.emstrack.ambulance.util.SparseArrayUtils;
+import org.emstrack.ambulance.util.SparseArrayIterable;
 import org.emstrack.ambulance.util.VehicleUpdate;
 import org.emstrack.ambulance.util.VehicleUpdateFilter;
 import org.emstrack.models.Ambulance;
@@ -60,7 +57,6 @@ import org.emstrack.models.Settings;
 import org.emstrack.models.Waypoint;
 
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -820,7 +816,7 @@ public class MapFragment extends FragmentWithLocalBroadcastReceiver implements O
         if (showHospitals) {
 
             // Loop over all hospitals
-            for (Hospital hospital : SparseArrayUtils.iterable(AmbulanceForegroundService.getAppData().getHospitals())) {
+            for (Hospital hospital : SparseArrayIterable.iterable(AmbulanceForegroundService.getAppData().getHospitals())) {
 
                 // Add marker for hospital
                 Marker marker = addMarkerForHospital(hospital);
@@ -897,11 +893,11 @@ public class MapFragment extends FragmentWithLocalBroadcastReceiver implements O
         }
 
         // Update ambulances
-        SparseArray<Ambulance> ambulances = AmbulanceForegroundService.getAppData().getAmbulances();
-        if (showAmbulances && ambulances != null) {
+        if (showAmbulances) {
 
             // Loop over all ambulances
-            for (Ambulance ambulance : SparseArrayUtils.iterable(ambulances)) {
+            SparseArray<Ambulance> ambulances = AmbulanceForegroundService.getAppData().getAmbulances();
+            for (Ambulance ambulance : SparseArrayIterable.iterable(ambulances)) {
                 if (showOfflineAmbulances || ambulance.getClientId() != null) {
                     // Add marker for ambulance
                     Marker marker = addMarkerForAmbulance(ambulance);

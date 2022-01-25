@@ -4,12 +4,13 @@ import android.view.View;
 
 import androidx.annotation.CallSuper;
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.RecyclerView;
 
 public class ViewHolderWithSelectedPosition<T> extends RecyclerView.ViewHolder {
 
     public interface OnClick<S> {
-        void onClick(S entry);
+        void onClick(@NonNull S entry);
     }
 
     public ViewHolderWithSelectedPosition(@NonNull View view) {
@@ -17,7 +18,7 @@ public class ViewHolderWithSelectedPosition<T> extends RecyclerView.ViewHolder {
     }
 
     @CallSuper
-    public void set(T entry, OnClick<T> onClick) {
+    public void set(@NonNull T entry, @Nullable OnClick<T> onClick) {
         // set click listener
         if (onClick != null) {
             itemView.setOnClickListener(v -> onClick.onClick(entry));

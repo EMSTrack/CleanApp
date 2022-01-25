@@ -1,6 +1,5 @@
 package org.emstrack.ambulance.adapters;
 
-import android.app.Activity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,7 +14,7 @@ import org.emstrack.models.Patient;
 import java.util.List;
 
 /**
- * Connects Equipment data to the RecyclerView (called from EquipmentFragment)
+ * RecyclerView for patients
  * @author Mauricio de Oliveira
  * @since 7/07/2020
  */
@@ -23,11 +22,10 @@ import java.util.List;
 public class PatientRecyclerAdapter extends RecyclerView.Adapter<PatientViewHolder> {
     
     private static final String TAG = PatientRecyclerAdapter.class.getSimpleName();
-    private final Activity activity;
+
     private final List<Patient> patients;
 
-    public PatientRecyclerAdapter(Activity activity, List<Patient> patients) {
-        this.activity = activity;
+    public PatientRecyclerAdapter(@NonNull List<Patient> patients) {
         this.patients = patients;
     }
 
@@ -35,14 +33,14 @@ public class PatientRecyclerAdapter extends RecyclerView.Adapter<PatientViewHold
     @Override
     public PatientViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         final View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.patient_item, parent, false);
-        return new PatientViewHolder(activity, view);
+        return new PatientViewHolder(view);
     }
 
     @Override
     public void onBindViewHolder(@NonNull PatientViewHolder holder, int position) {
 
         Patient item = patients.get(position);
-        holder.setPatient(item, activity);
+        holder.setPatient(item);
 
     }
 

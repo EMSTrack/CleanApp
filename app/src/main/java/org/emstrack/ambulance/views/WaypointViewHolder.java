@@ -17,6 +17,8 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.cardview.widget.CardView;
 import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.ItemTouchHelper;
@@ -29,11 +31,13 @@ import org.emstrack.ambulance.dialogs.SimpleAlertDialog;
 import org.emstrack.ambulance.models.AmbulanceAppData;
 import org.emstrack.ambulance.services.AmbulanceForegroundService;
 import org.emstrack.ambulance.util.EnabledImageView;
+import org.emstrack.ambulance.util.FormatUtils;
 import org.emstrack.ambulance.util.ViewHolderWithSelectedPosition;
 import org.emstrack.models.Ambulance;
 import org.emstrack.models.Call;
 import org.emstrack.models.GPSLocation;
 import org.emstrack.models.Location;
+import org.emstrack.models.Settings;
 import org.emstrack.models.Waypoint;
 
 import java.io.UnsupportedEncodingException;
@@ -202,7 +206,7 @@ public class WaypointViewHolder extends ViewHolderWithSelectedPosition<Waypoint>
 
 
     @Override
-    public void set(Waypoint waypoint, OnClick<Waypoint> onClick) {
+    public void set(@NonNull Waypoint waypoint, @Nullable OnClick<Waypoint> onClick) {
         super.set(waypoint, onClick);
 
         // save waypoint
@@ -289,7 +293,8 @@ public class WaypointViewHolder extends ViewHolderWithSelectedPosition<Waypoint>
         float distance = waypoint.calculateDistance(AmbulanceForegroundService.getLastLocation());
         String distanceText = activity.getString(R.string.dash);
         if (distance > 0) {
-            distanceText = formatDistance(distance, AmbulanceForegroundService.getAppData().getSettings().getUnits());
+            Settings settings = AmbulanceForegroundService.getAppData().getSettings();
+            distanceText = formatDistance(distance, settings != null ? settings.getUnits() : FormatUtils.METRIC);
         }
         waypointDistance.setText(distanceText);
 

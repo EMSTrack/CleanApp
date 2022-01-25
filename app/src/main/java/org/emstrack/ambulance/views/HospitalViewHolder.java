@@ -55,9 +55,7 @@ public class HospitalViewHolder extends RecyclerView.ViewHolder {
         hospitalUpdatedOnText = hospitalDetailView.findViewById(R.id.updatedOnText);
 
         // set click action
-        view.setOnClickListener(view1 -> {
-            toggleDetail();
-        });
+        view.setOnClickListener(view1 -> toggleDetail());
 
     }
 
