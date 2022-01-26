@@ -455,6 +455,8 @@ public class SelectLocationFragment
         // reset recyclerview
         PlacesRecyclerAdapter adapter = new PlacesRecyclerAdapter(new ArrayList<>(), this);
         recyclerView.setAdapter(adapter);
+
+        // hide list
         recyclerView.setVisibility(View.GONE);
 
     }
@@ -514,6 +516,7 @@ public class SelectLocationFragment
 
             if (type != SelectLocationType.SELECT) {
 
+                // show list
                 recyclerView.setVisibility(View.VISIBLE);
 
                 LocationRecyclerAdapter adapter;
@@ -808,6 +811,20 @@ public class SelectLocationFragment
 
     }
 
+    private void selectDropMarker(LatLng latLng) {
+
+        // find address
+        Address address = reverseGeocoding(latLng);
+        Log.d(TAG, "address = " + address);
+
+        // set marker
+        setLocation(new Location("", Location.TYPE_WAYPOINT, address));
+
+        // open bottom sheet
+        openBottomSheet();
+
+    }
+
     private void setLocation(Location location) {
 
         // set selected location
@@ -827,6 +844,14 @@ public class SelectLocationFragment
         if (view != null) {
             InputMethodManager imm = (InputMethodManager) activity.getSystemService(Context.INPUT_METHOD_SERVICE);
             imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+        }
+
+        // hide list
+        recyclerView.setVisibility(View.GONE);
+
+        // show info window
+        if (selectedLocationMarker != null) {
+            selectedLocationMarker.showInfoWindow();
         }
 
     }
@@ -1032,6 +1057,9 @@ public class SelectLocationFragment
                         PlacesRecyclerAdapter adapter = new PlacesRecyclerAdapter(predictions, this);
                         recyclerView.setAdapter(adapter);
 
+                        // show list
+                        recyclerView.setVisibility(View.VISIBLE);
+
                         // open bottom sheet
                         openBottomSheet();
 
@@ -1060,22 +1088,6 @@ public class SelectLocationFragment
         // disable hideable so user can interact with the results
         if (bottomSheetBehavior.isHideable()) {
             bottomSheetBehavior.setHideable(false);
-        }
-
-    }
-
-    private void selectDropMarker(LatLng latLng) {
-
-        // find address
-        Address address = reverseGeocoding(latLng);
-        Log.d(TAG, "address = " + address);
-
-        // set marker
-        setLocation(new Location("", Location.TYPE_WAYPOINT, address));
-
-        // show info window
-        if (selectedLocationMarker != null) {
-            selectedLocationMarker.showInfoWindow();
         }
 
     }
@@ -1146,7 +1158,7 @@ public class SelectLocationFragment
                 // get dropped marker
                 openBottomSheet();
 
-                // make list invisible
+                // hide list
                 recyclerView.setVisibility(View.GONE);
 
             } else {
