@@ -16,6 +16,7 @@ import android.media.RingtoneManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.HandlerThread;
 import android.os.IBinder;
 
 import androidx.annotation.NonNull;
@@ -81,6 +82,7 @@ import org.emstrack.models.api.APIError;
 import org.emstrack.models.api.APIService;
 import org.emstrack.models.api.APIServiceGenerator;
 import org.emstrack.models.api.OnAPICallComplete;
+import org.emstrack.models.util.BroadcastActions;
 import org.emstrack.models.util.CalendarDateTypeAdapter;
 import org.emstrack.models.util.OnComplete;
 import org.emstrack.models.util.OnServiceComplete;
@@ -102,6 +104,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -184,6 +187,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
     private LocationCallback locationCallback;
     private GeofencingClient fenceClient;
     private PendingIntent geofenceIntent;
+    private HandlerThread handlerThread;
 
     public static class Actions {
         public final static String START_SERVICE = "org.emstrack.ambulance.ambulanceforegroundservice.action.START_SERVICE";
@@ -339,6 +343,22 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         // initialize app data
         appData = new AmbulanceAppData();
 
+        // create handlerthread
+        handlerThread = new HandlerThread(TAG);
+        handlerThread.start();
+
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+
+        // remove callbacks and messages
+        Handler serviceHandler = new Handler(handlerThread.getLooper());
+        serviceHandler.removeCallbacksAndMessages(null);
+
+        // terminate handlerthread
+        handlerThread.quitSafely();
     }
 
     @Override
@@ -428,7 +448,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
             new OnServiceComplete(this,
                     org.emstrack.models.util.BroadcastActions.SUCCESS,
                     org.emstrack.models.util.BroadcastActions.FAILURE,
-                    null) {
+                    handlerThread.getLooper()) {
 
                 @Override
                 public void run() {
@@ -504,7 +524,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                 new OnServiceComplete(this,
                         org.emstrack.models.util.BroadcastActions.SUCCESS,
                         org.emstrack.models.util.BroadcastActions.FAILURE,
-                        null) {
+                        handlerThread.getLooper()) {
 
                     public void run() {
 
@@ -546,7 +566,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                 }.setNext(new OnServiceComplete(this,
                         org.emstrack.models.util.BroadcastActions.SUCCESS,
                         org.emstrack.models.util.BroadcastActions.FAILURE,
-                        null) {
+                        handlerThread.getLooper()) {
 
                     public void run() {
 
@@ -665,7 +685,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
             new OnServiceComplete(this,
                     org.emstrack.models.util.BroadcastActions.SUCCESS,
                     org.emstrack.models.util.BroadcastActions.FAILURE,
-                    null) {
+                    handlerThread.getLooper()) {
 
                 @Override
                 public void run() {
@@ -1274,7 +1294,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
      * @param ambulanceId the ambulance id
      * @param callId      the call id
      */
-    public void updateWaypointStatus(String status, Waypoint waypoint, int ambulanceId, int callId) {
+    public void updateWaypointStatus(@NonNull String status, Waypoint waypoint, int ambulanceId, int callId) {
 
         Log.d(TAG, "Updating waypoint '" + waypoint.getId() + "' to status '" + status + "'");
 
@@ -1284,6 +1304,15 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         // send to server
         updateWaypoint("{\"status\":\"" + status + "\"}", waypoint.getId(),
                 ambulanceId, callId);
+
+        if (status.equals(Waypoint.STATUS_VISITED) || status.equals(Waypoint.STATUS_SKIPPED)) {
+            // remove waypoint from geofence
+            Log.d(TAG, String.format("waypoint is now '%s'. will remove geofence", status));
+            stopGeofence(null, getGeofenceId(waypoint));
+        } else if (status.equals(Waypoint.STATUS_VISITING)) {
+            // do nothing
+            Log.d(TAG, "waypoint is now visiting. will update geofence when call updates");
+        }
 
     }
 
@@ -1621,7 +1650,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         new OnServiceComplete(this,
                 org.emstrack.models.util.BroadcastActions.SUCCESS,
                 org.emstrack.models.util.BroadcastActions.FAILURE,
-                null) {
+                handlerThread.getLooper()) {
 
             @Override
             public void run() {
@@ -1654,7 +1683,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         }.setNext(new OnServiceComplete(this,
                 org.emstrack.models.util.BroadcastActions.SUCCESS,
                 org.emstrack.models.util.BroadcastActions.FAILURE,
-                null) {
+                handlerThread.getLooper()) {
 
             @Override
             public void run() {
@@ -1687,7 +1716,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         }.setNext(new OnServiceComplete(this,
                 org.emstrack.models.util.BroadcastActions.SUCCESS,
                 org.emstrack.models.util.BroadcastActions.FAILURE,
-                null) {
+                handlerThread.getLooper()) {
 
             @Override
             public void run() {
@@ -1796,7 +1825,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
         // delay to wait for disconnect message to arrive before running doReconnect
         // this can fail and lead to disconnection
-        new Handler().postDelayed(this::doReconnect, 2000);
+        new Handler(handlerThread.getLooper()).postDelayed(this::doReconnect, 2000);
     }
 
     /**
@@ -1910,7 +1939,8 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
             }.setNext(new OnServiceComplete(AmbulanceForegroundService.this,
                     org.emstrack.models.util.BroadcastActions.SUCCESS,
                     org.emstrack.models.util.BroadcastActions.FAILURE,
-                    locationUpdatesIntent) {
+                    locationUpdatesIntent,
+                    handlerThread.getLooper()) {
 
                 @Override
                 public void onSuccess(Bundle extras) {
@@ -1939,7 +1969,8 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
             }.setNext(new OnServiceComplete(AmbulanceForegroundService.this,
                     org.emstrack.models.util.BroadcastActions.SUCCESS,
                     org.emstrack.models.util.BroadcastActions.FAILURE,
-                    locationUpdatesIntent
+                    locationUpdatesIntent,
+                    handlerThread.getLooper()
             ) {
 
                 @Override
@@ -2150,7 +2181,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         new OnServiceComplete(this,
                 org.emstrack.models.util.BroadcastActions.SUCCESS,
                 org.emstrack.models.util.BroadcastActions.FAILURE,
-                null) {
+                handlerThread.getLooper()) {
 
             public void run() {
 
@@ -2474,7 +2505,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                                 }.setNext(new OnServiceComplete(AmbulanceForegroundService.this,
                                         org.emstrack.models.util.BroadcastActions.SUCCESS,
                                         org.emstrack.models.util.BroadcastActions.FAILURE,
-                                        null) {
+                                        handlerThread.getLooper()) {
 
                                     @Override
                                     public void run() {
@@ -2500,7 +2531,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                                 }.setNext(new OnServiceComplete(AmbulanceForegroundService.this,
                                         org.emstrack.models.util.BroadcastActions.SUCCESS,
                                         org.emstrack.models.util.BroadcastActions.FAILURE,
-                                        null) {
+                                        handlerThread.getLooper()) {
 
                                     @Override
                                     public void run() {
@@ -2755,7 +2786,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         new OnServiceComplete(this,
                 org.emstrack.models.util.BroadcastActions.SUCCESS,
                 org.emstrack.models.util.BroadcastActions.FAILURE,
-                null) {
+                handlerThread.getLooper()) {
 
             @Override
             public void run() {
@@ -2857,7 +2888,8 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         }.setNext(new OnServiceComplete(this,
                 org.emstrack.models.util.BroadcastActions.SUCCESS,
                 org.emstrack.models.util.BroadcastActions.FAILURE,
-                locationUpdatesIntent) {
+                locationUpdatesIntent,
+                handlerThread.getLooper()) {
 
             @Override
             public void onSuccess(Bundle extras) {
@@ -2878,7 +2910,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         }.setNext(new OnServiceComplete(this,
                 org.emstrack.models.util.BroadcastActions.SUCCESS,
                 org.emstrack.models.util.BroadcastActions.FAILURE,
-                null) {
+                handlerThread.getLooper()) {
 
             @Override
             public void run() {
@@ -2920,7 +2952,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         }.setNext(new OnServiceComplete(AmbulanceForegroundService.this,
                 org.emstrack.models.util.BroadcastActions.SUCCESS,
                 org.emstrack.models.util.BroadcastActions.FAILURE,
-                null) {
+                handlerThread.getLooper()) {
 
             @Override
             public void run() {
@@ -2992,7 +3024,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         new OnServiceComplete(this,
                 org.emstrack.models.util.BroadcastActions.SUCCESS,
                 org.emstrack.models.util.BroadcastActions.FAILURE,
-                null) {
+                handlerThread.getLooper()) {
 
             @Override
             public void run() {
@@ -3037,7 +3069,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         }.setNext(new OnServiceComplete(this,
                 org.emstrack.models.util.BroadcastActions.SUCCESS,
                 org.emstrack.models.util.BroadcastActions.FAILURE,
-                null) {
+                handlerThread.getLooper()) {
 
             @Override
             public void run() {
@@ -3691,7 +3723,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         new OnServiceComplete(AmbulanceForegroundService.this,
                 org.emstrack.models.util.BroadcastActions.SUCCESS,
                 org.emstrack.models.util.BroadcastActions.FAILURE,
-                null) {
+                handlerThread.getLooper()) {
 
             @Override
             public void run() {
@@ -3787,7 +3819,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                 new OnServiceComplete(this,
                         org.emstrack.models.util.BroadcastActions.SUCCESS,
                         org.emstrack.models.util.BroadcastActions.FAILURE,
-                        null) {
+                        handlerThread.getLooper()) {
 
                     @Override
                     public void run() {
@@ -4015,7 +4047,8 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
         try {
 
-            fusedLocationClient.requestLocationUpdates(getLocationRequest(isPrecise), locationCallback, null)
+            fusedLocationClient.requestLocationUpdates(getLocationRequest(isPrecise),
+                    locationCallback, Objects.requireNonNull(handlerThread.getLooper()))
                     .addOnSuccessListener(
                             aVoid -> {
 
@@ -4045,7 +4078,16 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                             });
 
         } catch (SecurityException e) {
-            Log.i(TAG, "Failed to start location updates");
+            Log.i(TAG, "Failed to start location updates, security exception");
+            e.printStackTrace();
+
+            // Broadcast failure
+            Intent localIntent = new Intent(org.emstrack.models.util.BroadcastActions.FAILURE);
+            localIntent.putExtra(org.emstrack.models.util.BroadcastExtras.MESSAGE, getString(R.string.failedToStartLocationUpdates));
+            sendBroadcastWithUUID(localIntent, uuid);
+
+        } catch (NullPointerException e) {
+            Log.i(TAG, "Failed to start location updates, null pointer exception");
             e.printStackTrace();
 
             // Broadcast failure
@@ -4240,7 +4282,8 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
             new OnServiceComplete(AmbulanceForegroundService.this,
                     org.emstrack.models.util.BroadcastActions.SUCCESS,
                     org.emstrack.models.util.BroadcastActions.FAILURE,
-                    locationUpdatesIntent
+                    locationUpdatesIntent,
+                    handlerThread.getLooper()
             ) {
 
                 @Override
@@ -4333,7 +4376,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                 new OnServiceComplete(AmbulanceForegroundService.this,
                         org.emstrack.models.util.BroadcastActions.SUCCESS,
                         org.emstrack.models.util.BroadcastActions.FAILURE,
-                        null) {
+                        handlerThread.getLooper()) {
 
                     @Override
                     public void run() {
@@ -4517,7 +4560,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                 new OnServiceComplete(AmbulanceForegroundService.this,
                         org.emstrack.models.util.BroadcastActions.SUCCESS,
                         org.emstrack.models.util.BroadcastActions.FAILURE,
-                        null) {
+                        handlerThread.getLooper()) {
 
                     @Override
                     public void run() {
@@ -4609,7 +4652,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         new OnServiceComplete(this,
                 org.emstrack.models.util.BroadcastActions.SUCCESS,
                 org.emstrack.models.util.BroadcastActions.FAILURE,
-                null) {
+                handlerThread.getLooper()) {
 
             @Override
             public void run() {
@@ -4664,7 +4707,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         new OnServiceComplete(this,
                 org.emstrack.models.util.BroadcastActions.SUCCESS,
                 org.emstrack.models.util.BroadcastActions.FAILURE,
-                null) {
+                handlerThread.getLooper()) {
 
             @Override
             public void run() {
@@ -4928,7 +4971,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                 new OnServiceComplete(this,
                         org.emstrack.models.util.BroadcastActions.SUCCESS,
                         org.emstrack.models.util.BroadcastActions.FAILURE,
-                        null) {
+                        handlerThread.getLooper()) {
 
                     @Override
                     public void run() {
@@ -4975,7 +5018,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         new OnServiceComplete(this,
                 org.emstrack.models.util.BroadcastActions.SUCCESS,
                 org.emstrack.models.util.BroadcastActions.FAILURE,
-                null) {
+                handlerThread.getLooper()) {
 
             @Override
             public void run() {
@@ -5076,6 +5119,11 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
         // Get current ambulance and set call to it
         Ambulance ambulance = AmbulanceForegroundService.getAppData().getAmbulance();
+        if (ambulance == null) {
+            String message = "No current ambulance";
+            throw new AmbulanceForegroundServiceException(message);
+        }
+
         call.setCurrentAmbulanceCall(ambulance.getId());
         AmbulanceCall ambulanceCall = call.getCurrentAmbulanceCall();
 
@@ -5106,31 +5154,21 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                         "'null'" :
                         "'" + nextUpdatedWaypoint.getId() + "'"));
 
-        // Update next waypoint status if update waypoint is a different waypoint
-        if (nextWaypoint == null && nextUpdatedWaypoint != null ||
-                nextWaypoint != null && nextUpdatedWaypoint == null ||
-                nextWaypoint != null && nextWaypoint.getId() != nextUpdatedWaypoint.getId())
-            updateAmbulanceNextWaypointStatus(ambulanceCall, call);
-
-        // Add geofence
-        Log.i(TAG, "Will set waypoint geofences");
-
-        // Sort waypoints
-        ambulanceCall.sortWaypoints();
-
-        // Loop through waypoints
-        for (Waypoint waypoint : ambulanceCall.getWaypointSet()) {
-
-            new OnServiceComplete(this,
+        // prepare update action
+        OnServiceComplete addNextUpdatedWaypointGeofenceService = null;
+        if (nextUpdatedWaypoint != null) {
+            addNextUpdatedWaypointGeofenceService = new OnServiceComplete(this,
                     org.emstrack.models.util.BroadcastActions.SUCCESS,
                     org.emstrack.models.util.BroadcastActions.FAILURE,
-                    null) {
+                    handlerThread.getLooper()) {
 
                 @Override
                 public void run() {
 
-                    // Retrieve location
-                    startGeofence(getUuid(), new Geofence(waypoint, _defaultGeofenceRadius));
+                    Log.d(TAG, "Starting geofence for next updated waypoint");
+                    // start geofence
+                    startGeofence(getUuid(),
+                            new Geofence(nextUpdatedWaypoint, _defaultGeofenceRadius));
 
                 }
 
@@ -5138,11 +5176,90 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                 public void onSuccess(Bundle extras) {
 
                 }
+            };
+        }
+
+        // Update next waypoint status if update waypoint is a different waypoint
+        if (nextWaypoint == null && nextUpdatedWaypoint != null ||
+                nextWaypoint != null && nextUpdatedWaypoint == null ||
+                nextWaypoint != null && nextWaypoint.getId() != nextUpdatedWaypoint.getId()) {
+
+            if (nextWaypoint != null) {
+
+                Waypoint finalNextWaypoint = nextWaypoint;
+                new OnServiceComplete(this,
+                        org.emstrack.models.util.BroadcastActions.SUCCESS,
+                        org.emstrack.models.util.BroadcastActions.FAILURE,
+                        handlerThread.getLooper()) {
+
+                    @Override
+                    public void run() {
+
+                        // stop geofence, this never fails
+                        stopGeofence(getUuid(), getGeofenceId(finalNextWaypoint));
+
+                    }
+
+                    @Override
+                    public void onSuccess(Bundle extras) {
+
+                        Log.d(TAG, "Geofence for current waypoint stopped, updating status");
+
+                        updateAmbulanceNextWaypointStatus(ambulanceCall, call);
+
+                    }
+
+                }
+                        .setNext(addNextUpdatedWaypointGeofenceService)
+                        .start();
+
+            } else {
+
+                Log.d(TAG, "No current waypoint, updating status");
+
+                updateAmbulanceNextWaypointStatus(ambulanceCall, call);
+
+                addNextUpdatedWaypointGeofenceService.start();
 
             }
-                    .start();
+
+        } else if (addNextUpdatedWaypointGeofenceService != null) {
+
+            addNextUpdatedWaypointGeofenceService.start();
 
         }
+
+//        // Add geofence
+//        Log.i(TAG, "Will set waypoint geofences");
+//
+//        // Sort waypoints
+//        ambulanceCall.sortWaypoints();
+//
+//        // Loop through waypoints
+//        for (Waypoint waypoint : ambulanceCall.getWaypointSet()) {
+//
+//            new OnServiceComplete(this,
+//                    org.emstrack.models.util.BroadcastActions.SUCCESS,
+//                    org.emstrack.models.util.BroadcastActions.FAILURE,
+//                    handlerThread.getLooper()) {
+//
+//                @Override
+//                public void run() {
+//
+//                    // Retrieve location
+//                    startGeofence(getUuid(), new Geofence(waypoint, _defaultGeofenceRadius));
+//
+//                }
+//
+//                @Override
+//                public void onSuccess(Bundle extras) {
+//
+//                }
+//
+//            }
+//                    .start();
+//
+//        }
 
     }
 
@@ -5621,7 +5738,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
                 // Entered a geofence
                 Log.i(TAG, "GEOFENCE ENTER");
-                String waypointEnterDetection = settings.getWaypointEnterDetection();
+                String waypointEnterDetection = (settings != null ? settings.getWaypointEnterDetection() : Waypoint.DETECTION_MARK);
                 if (Waypoint.DETECTION_MARK.equals(waypointEnterDetection)) {
                     // automatically mark waypoint status
                     Log.d(TAG, "Will mark status");
@@ -5641,7 +5758,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
                 // Exited a geofence
                 Log.i(TAG, "GEOFENCE EXIT");
-                String waypointExitDetection = settings.getWaypointExitDetection();
+                String waypointExitDetection = (settings != null ? settings.getWaypointExitDetection() : Waypoint.DETECTION_MARK);
                 if (Waypoint.DETECTION_MARK.equals(waypointExitDetection)) {
                     // automatically mark waypoint status
                     Log.d(TAG, "Will mark status");
@@ -5873,16 +5990,55 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
     }
 
     /**
+     * Return waypoint geofence id
+     *
+     * @param waypoint the waypoint
+     * @return the geofence id
+     */
+    @Nullable
+    private String getGeofenceId(Waypoint waypoint) {
+        for (Map.Entry<String, Geofence> entry : _geofences.entrySet()) {
+            String key = entry.getKey();
+            String[] splits = key.split(":", 2);
+            if (waypoint.getId() == Integer.parseInt(splits[0])) {
+                return entry.getKey();
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Stop geofence
+     *
+     * @param uuid the unique identifier
+     * @param requestId the request ids
+     */
+    private void stopGeofence(final String uuid, @Nullable String requestId) {
+        if (requestId != null) {
+
+            ArrayList<String> list = new ArrayList<>();
+            list.add(requestId);
+            stopGeofence(uuid, list);
+
+        } else {
+
+            // Broadcast success
+            broadcastSuccess("No geofences needed to be removed", uuid);
+
+        }
+    }
+
+    /**
      * Stop geofence
      *
      * @param uuid the unique identifier
      * @param requestIds the list if request ids
      */
-    private void stopGeofence(final String uuid, final List<String> requestIds) {
+    private void stopGeofence(final String uuid, @NonNull List<String> requestIds) {
 
         Log.i(TAG, "Stopping geofences: '" + requestIds + "'");
 
-        if (requestIds.size() > 0)
+        if (requestIds.size() > 0) {
 
             fenceClient.removeGeofences(requestIds)
                     .addOnSuccessListener(
@@ -5893,12 +6049,14 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
                                 // Loop through list of ids and remove them
                                 for (String id : requestIds) {
-                                    _geofences.remove(id).removeId(id);
-
+                                    Geofence entry = _geofences.remove(id);
+                                    if (entry != null) {
+                                        entry.removeId(id);
+                                    }
                                 }
 
                                 // Broadcast success
-                                broadcastSuccess("Succesfully removed geofences", uuid);
+                                broadcastSuccess("Successfully removed geofences", uuid);
 
                             })
                     .addOnFailureListener(
@@ -5908,6 +6066,12 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                                 broadcastFailure(getString(R.string.failedToRemoveGeofence), uuid, e);
 
                             });
+        } else {
+
+            // Broadcast success
+            broadcastSuccess("No geofences needed to be removed", uuid);
+
+        }
 
     }
 

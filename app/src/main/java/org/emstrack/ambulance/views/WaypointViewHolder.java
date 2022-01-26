@@ -290,11 +290,14 @@ public class WaypointViewHolder extends ViewHolderWithSelectedPosition<Waypoint>
         }
 
         // Calculate distance to patient
-        float distance = waypoint.calculateDistance(AmbulanceForegroundService.getLastLocation());
         String distanceText = activity.getString(R.string.dash);
-        if (distance > 0) {
-            Settings settings = AmbulanceForegroundService.getAppData().getSettings();
-            distanceText = formatDistance(distance, settings != null ? settings.getUnits() : FormatUtils.METRIC);
+        Ambulance ambulance = AmbulanceForegroundService.getAppData().getAmbulance();
+        if (ambulance != null) {
+            float distance = waypoint.calculateDistance(ambulance.getLocation().toLocation());
+            if (distance > 0) {
+                Settings settings = AmbulanceForegroundService.getAppData().getSettings();
+                distanceText = formatDistance(distance, settings != null ? settings.getUnits() : FormatUtils.METRIC);
+            }
         }
         waypointDistance.setText(distanceText);
 
@@ -383,12 +386,12 @@ public class WaypointViewHolder extends ViewHolderWithSelectedPosition<Waypoint>
             // set skip button
             waypointSkipButton.setOnClickListener(v -> {
                 AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
-                Ambulance ambulance = appData.getAmbulance();
+                Ambulance ambulance_ = appData.getAmbulance();
                 Call call = appData.getCalls().getCurrentCall();
-                if (ambulance != null && call != null) {
+                if (ambulance_ != null && call != null) {
                     promptSkipVisitingOrVisited(activity,
                             Waypoint.STATUS_SKIPPED,
-                            waypoint.getId(), call.getId(), ambulance.getId(),
+                            waypoint.getId(), call.getId(), ambulance_.getId(),
                             activity.getString(R.string.skipWaypoint),
                             activity.getString(R.string.skipCurrentWaypoint,
                                     waypoint.getLocation().toAddress(activity)),

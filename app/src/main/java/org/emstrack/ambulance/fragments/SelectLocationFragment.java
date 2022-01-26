@@ -7,6 +7,7 @@ import static org.emstrack.ambulance.util.GoogleMapsHelper.padAndMatchBounds;
 
 import android.content.Context;
 import android.content.Intent;
+import android.location.Geocoder;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.text.Editable;
@@ -76,10 +77,12 @@ import org.emstrack.models.util.BroadcastActions;
 import org.emstrack.models.util.CalendarDateTypeAdapter;
 import org.emstrack.models.util.OnServiceComplete;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 
@@ -204,6 +207,14 @@ public class SelectLocationFragment
             searchEditText.setText("");
             initializeSearch();
         });
+        ImageView searchLocationButton = rootView.findViewById(R.id.searchLocationButton);
+        searchLocationButton.setOnClickListener(v -> {
+            Ambulance ambulance = AmbulanceForegroundService.getAppData().getAmbulance();
+            if (ambulance != null) {
+                // select marker
+                selectDropMarker(ambulance.getLocation().add(.0001f, .0001f).toLatLng());
+            }
+        });
 
         // get bases and other locations
         AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
@@ -297,8 +308,16 @@ public class SelectLocationFragment
                 if (namedAddress != null) {
                     View view = getLayoutInflater().inflate(R.layout.google_maps_location_info_window, null);
 
-                    ((TextView) view.findViewById(R.id.title))
-                            .setText(namedAddress.getName());
+                    String title = namedAddress.getName();
+                    if (title != null && !title.equals("")) {
+
+                        ((TextView) view.findViewById(R.id.title)).setText(title);
+
+                    } else {
+
+                        ((TextView) view.findViewById(R.id.title)).setVisibility(View.GONE);
+
+                    }
 
                     ((TextView) view.findViewById(R.id.content))
                             .setText(namedAddress.toAddress(requireContext()));
@@ -436,6 +455,7 @@ public class SelectLocationFragment
         // reset recyclerview
         PlacesRecyclerAdapter adapter = new PlacesRecyclerAdapter(new ArrayList<>(), this);
         recyclerView.setAdapter(adapter);
+        recyclerView.setVisibility(View.GONE);
 
     }
 
@@ -445,6 +465,10 @@ public class SelectLocationFragment
     public void refreshData() {
 
         // clear selection
+        if (selectedLocation != null && selectedLocationMarker != null) {
+            // remove pin from map
+            selectedLocationMarker.remove();
+        }
         selectedLocation = null;
 
         selectButtonOk.setEnabled(false);
@@ -465,8 +489,8 @@ public class SelectLocationFragment
                 searchPlaces(currentText);
             }
 
-
         } else {
+
             searchLayout.setVisibility(View.GONE);
 
             // make bottom sheet collapsed if hidden
@@ -489,6 +513,8 @@ public class SelectLocationFragment
             recyclerView.setLayoutManager(linearLayoutManager);
 
             if (type != SelectLocationType.SELECT) {
+
+                recyclerView.setVisibility(View.VISIBLE);
 
                 LocationRecyclerAdapter adapter;
                 switch (type) {
@@ -553,9 +579,17 @@ public class SelectLocationFragment
 
     private void centerMapWithOffset(Marker marker, boolean openInfoWindow) {
 
-        // offset center if bottom sheet is expanded
-        int smallMapHeight = selectLocationBottomSheet.getMeasuredHeight();
-        centerMap(googleMap, marker.getPosition(), 0, -smallMapHeight/2);
+        if (bottomSheetBehavior.getState() == BottomSheetBehavior.STATE_EXPANDED) {
+
+            // offset center if bottom sheet is expanded
+            int smallMapHeight = selectLocationBottomSheet.getMeasuredHeight();
+            centerMap(googleMap, marker.getPosition(), 0, -smallMapHeight / 2);
+
+        } else {
+
+            centerMap(googleMap, marker.getPosition(),  0, 0);
+
+        }
 
         // open info window
         if (openInfoWindow && !marker.isInfoWindowShown()) {
@@ -692,9 +726,7 @@ public class SelectLocationFragment
         selectButtonOkLayout.setVisibility(View.VISIBLE);
 
         // open bottom sheet
-        if (bottomSheetBehavior.getState() != BottomSheetBehavior.STATE_EXPANDED) {
-            bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
-        }
+        openBottomSheet();
 
         // set selected
         selectedLocation = location;
@@ -755,35 +787,47 @@ public class SelectLocationFragment
                     if (latLng != null) {
 
                         // parse address and set selected
+                        Location location;
                         if (addressComponents != null) {
                             Address address = Address.parseAddressComponents(latLng, addressComponents);
                             Log.d(TAG, String.format("parsed address = %s", address));
-                            selectedLocation = new Location("", Location.TYPE_WAYPOINT, address);
+                            location = new Location("", Location.TYPE_WAYPOINT, address);
                         } else {
-                            selectedLocation = new Location("", Location.TYPE_WAYPOINT, new GPSLocation(latLng));
+                            location = new Location("", Location.TYPE_WAYPOINT, new GPSLocation(latLng));
                         }
 
-                        // set marker
-                        setSelectedLocationMarker();
+                        // set location
+                        setLocation(location);
 
-                        // enable button
-                        selectButtonOk.setEnabled(true);
-                        selectButtonOkLayout.setVisibility(View.VISIBLE);
-
-                        // hide keyboard
-                        // Check if no view has focus:
-                        FragmentActivity activity = requireActivity();
-                        View view = activity.getCurrentFocus();
-                        if (view != null) {
-                            InputMethodManager imm = (InputMethodManager) activity.getSystemService(Context.INPUT_METHOD_SERVICE);
-                            imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
-                        }
                     } else {
                         Log.d(TAG, "Did not get LatLng");
                     }
 
                 })
                 .addOnFailureListener(exception -> Log.d(TAG, "Failed to fetch place"));
+
+    }
+
+    private void setLocation(Location location) {
+
+        // set selected location
+        selectedLocation = location;
+
+        // set marker
+        setSelectedLocationMarker();
+
+        // enable button
+        selectButtonOk.setEnabled(true);
+        selectButtonOkLayout.setVisibility(View.VISIBLE);
+
+        // hide keyboard
+        // Check if no view has focus:
+        FragmentActivity activity = requireActivity();
+        View view = activity.getCurrentFocus();
+        if (view != null) {
+            InputMethodManager imm = (InputMethodManager) activity.getSystemService(Context.INPUT_METHOD_SERVICE);
+            imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+        }
 
     }
 
@@ -797,11 +841,17 @@ public class SelectLocationFragment
             }
 
             // add marker
-            GPSLocation gpsLocation = selectedLocation.getLocation();
-            LatLng latLng = new LatLng(gpsLocation.getLatitude(), gpsLocation.getLongitude());
+            LatLng latLng = selectedLocation.getLocation().toLatLng();
             selectedLocationMarker = googleMap.addMarker(new MarkerOptions()
                     .position(latLng)
+                    .title("title")
+                    .snippet(selectedLocation.toAddress(requireContext()))
                     .draggable(true));
+
+            if (selectedLocationMarker != null) {
+                selectedLocationMarker.setTag(selectedLocation);
+                // do not add to map!
+            }
 
             // create bounds
             LatLngBounds.Builder builder = new LatLngBounds.Builder();
@@ -813,12 +863,21 @@ public class SelectLocationFragment
             }
 
             // center map with offset
-            // bottom sheet must be open
             LatLngBounds mapBounds = builder.build();
+            LatLngBounds updatedMapBounds;
+            int state = bottomSheetBehavior.getState();
             int bottomSheetHeight = selectLocationBottomSheet.getMeasuredHeight();
             int searchLayoutHeight = searchLayout.getMeasuredHeight();
-            LatLngBounds updatedMapBounds = padAndMatchBounds(mapBounds, .2f, mapHeight - bottomSheetHeight - searchLayoutHeight, mapWidth);
-            centerMap(googleMap, updatedMapBounds, 0, 0, -bottomSheetHeight/2);
+            int yOffset = 0;
+            if (state == BottomSheetBehavior.STATE_COLLAPSED || state == BottomSheetBehavior.STATE_HIDDEN) {
+                // closed
+                updatedMapBounds = padAndMatchBounds(mapBounds, .2f, mapHeight, mapWidth);
+            } else {
+                // open
+                updatedMapBounds = padAndMatchBounds(mapBounds, .2f, mapHeight - bottomSheetHeight - searchLayoutHeight, mapWidth);
+                yOffset = -bottomSheetHeight / 2;
+            }
+            centerMap(googleMap, updatedMapBounds, 0, 0, yOffset);
 
         }
 
@@ -973,15 +1032,8 @@ public class SelectLocationFragment
                         PlacesRecyclerAdapter adapter = new PlacesRecyclerAdapter(predictions, this);
                         recyclerView.setAdapter(adapter);
 
-                        // expand sheet visible
-                        if (bottomSheetBehavior.getState() != BottomSheetBehavior.STATE_EXPANDED) {
-                            bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
-                        }
-
-                        // disable hideable so user can interact with the results
-                        if (bottomSheetBehavior.isHideable()) {
-                            bottomSheetBehavior.setHideable(false);
-                        }
+                        // open bottom sheet
+                        openBottomSheet();
 
                     }
                     // TODO: do we do anything if no results?
@@ -998,16 +1050,85 @@ public class SelectLocationFragment
                 });
     }
 
+    private void openBottomSheet() {
+
+        // expand sheet visible
+        if (bottomSheetBehavior.getState() != BottomSheetBehavior.STATE_EXPANDED) {
+            bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+        }
+
+        // disable hideable so user can interact with the results
+        if (bottomSheetBehavior.isHideable()) {
+            bottomSheetBehavior.setHideable(false);
+        }
+
+    }
+
+    private void selectDropMarker(LatLng latLng) {
+
+        // find address
+        Address address = reverseGeocoding(latLng);
+        Log.d(TAG, "address = " + address);
+
+        // set marker
+        setLocation(new Location("", Location.TYPE_WAYPOINT, address));
+
+        // show info window
+        if (selectedLocationMarker != null) {
+            selectedLocationMarker.showInfoWindow();
+        }
+
+    }
+
+    private Address reverseGeocoding(LatLng latLng) {
+
+        Geocoder geocoder = new Geocoder(requireContext(), Locale.getDefault());
+        try {
+            List<android.location.Address> addresses = geocoder.getFromLocation(latLng.latitude, latLng.longitude, 1);
+            if (addresses.size() > 0) {
+                Log.d(TAG, "addresses[0] = " + addresses.get(0));
+                return Address.parseAddress(addresses.get(0));
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
     @Override
     public void onMarkerDrag(@NonNull Marker marker) {
+
+        if (marker.isInfoWindowShown()) {
+            marker.hideInfoWindow();
+        }
 
     }
 
     @Override
     public void onMarkerDragEnd(@NonNull Marker marker) {
+
         // set new position
         LatLng position = marker.getPosition();
-        selectedLocation.setLocation(new GPSLocation(position.latitude, position.longitude));
+
+        // update address
+        Address address = reverseGeocoding(position);
+        Log.d(TAG, "address = " + address);
+        if (address != null) {
+            // update full address
+            selectedLocation.copy(address);
+            // and snippet
+            marker.setSnippet(selectedLocation.toAddress(requireContext()));
+        } else {
+            // update just the location
+            selectedLocation.setLocation(new GPSLocation(position));
+        }
+
+        // show info window
+        if (!marker.isInfoWindowShown()) {
+            marker.showInfoWindow();
+        }
+
     }
 
     @Override
@@ -1019,18 +1140,28 @@ public class SelectLocationFragment
     public void onInfoWindowClick(@NonNull Marker marker) {
         // get tag
         NamedAddress namedAddress = (NamedAddress) marker.getTag();
-        if (namedAddress != null && type != SelectLocationType.SELECT) {
-            // get location
-            LocationRecyclerAdapter adapter = (LocationRecyclerAdapter) recyclerView.getAdapter();
-            if (adapter != null) {
-                int position = adapter.getPosition(new NamedAddressWithDistance(namedAddress));
-                if (position >= 0) {
-                    // update selected item on recycler view
-                    adapter.setSelectedPosition(position);
-                    recyclerView.smoothScrollToPosition(position);
+        if (namedAddress != null) {
+            if (type == SelectLocationType.SELECT) {
 
-                    // select location
-                    onClick(type, namedAddress);
+                // get dropped marker
+                openBottomSheet();
+
+                // make list invisible
+                recyclerView.setVisibility(View.GONE);
+
+            } else {
+                // get location
+                LocationRecyclerAdapter adapter = (LocationRecyclerAdapter) recyclerView.getAdapter();
+                if (adapter != null) {
+                    int position = adapter.getPosition(new NamedAddressWithDistance(namedAddress));
+                    if (position >= 0) {
+                        // update selected item on recycler view
+                        adapter.setSelectedPosition(position);
+                        recyclerView.smoothScrollToPosition(position);
+
+                        // select location
+                        onClick(type, namedAddress);
+                    }
                 }
             }
         }
@@ -1038,13 +1169,16 @@ public class SelectLocationFragment
 
     @Override
     public boolean onMarkerClick(@NonNull Marker marker) {
-        if (bottomSheetBehavior.getState() == BottomSheetBehavior.STATE_EXPANDED) {
-            // center map with offset and stop further processing
-            centerMapWithOffset(marker, true);
-            return true;
-        } else {
-            return false;
-        }
+//        if (bottomSheetBehavior.getState() == BottomSheetBehavior.STATE_EXPANDED) {
+//            // center map with offset and stop further processing
+//            centerMapWithOffset(marker, true);
+//            return true;
+//        } else {
+//            return false;
+//        }
+        // center map and stop further processing
+        centerMapWithOffset(marker, true);
+        return true;
     }
 
 }

@@ -12,6 +12,7 @@ import android.content.SharedPreferences;
 import android.graphics.PorterDuff;
 import android.location.Location;
 import android.os.Bundle;
+import android.os.Looper;
 import android.util.Log;
 import android.util.SparseArray;
 import android.view.LayoutInflater;
@@ -579,43 +580,49 @@ public class MapFragment extends FragmentWithLocalBroadcastReceiver implements O
                     }
                 };
 
-                fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, null)
-                        .addOnSuccessListener(
-                                aVoid -> {
-                                    Log.i(TAG, "Starting location updates");
+                Looper looper = Looper.myLooper();
+                if (looper != null) {
+                    fusedLocationClient.requestLocationUpdates(locationRequest,
+                            locationCallback, looper)
+                            .addOnSuccessListener(
+                                    aVoid -> {
+                                        Log.i(TAG, "Starting location updates");
 
-                                    // set animatingMarkerAndCamera = false
-                                    isAnimatingMarkerAndCamera = false;
+                                        // set animatingMarkerAndCamera = false
+                                        isAnimatingMarkerAndCamera = false;
 
-                                    if (initialize) {
-                                        // reset zoom
-                                        zoomLevel = defaultZoom;
-                                        Ambulance ambulance = AmbulanceForegroundService.getAppData().getAmbulance();
-                                        if (ambulance != null) {
-                                            // center ambulance
-                                            centerMap(ambulance, false, 3000);
+                                        if (initialize) {
+                                            // reset zoom
+                                            zoomLevel = defaultZoom;
+                                            Ambulance ambulance = AmbulanceForegroundService.getAppData().getAmbulance();
+                                            if (ambulance != null) {
+                                                // center ambulance
+                                                centerMap(ambulance, false, 3000);
+                                            }
                                         }
-                                    }
 
-                                    // enable button
-                                    compassButton.setEnabled(true);
+                                        // enable button
+                                        compassButton.setEnabled(true);
 
-                                })
-                        .addOnFailureListener(
-                                e -> {
+                                    })
+                            .addOnFailureListener(
+                                    e -> {
 
-                                    Log.i(TAG, "Failed to start location updates");
+                                        Log.i(TAG, "Failed to start location updates");
 
-                                    // set animatingMarkerAndCamera = false
-                                    isAnimatingMarkerAndCamera = false;
+                                        // set animatingMarkerAndCamera = false
+                                        isAnimatingMarkerAndCamera = false;
 
-                                    fusedLocationClient = null;
+                                        fusedLocationClient = null;
 
-                                    // enable button
-                                    compassButton.setEnabled(true);
+                                        // enable button
+                                        compassButton.setEnabled(true);
 
-                                });
-
+                                    });
+                } else {
+                    Log.i(TAG, "Failed to start location updates. Looper is null");
+                    fusedLocationClient = null;
+                }
             } catch (SecurityException e) {
                 Log.i(TAG, "Failed to start location updates");
                 fusedLocationClient = null;

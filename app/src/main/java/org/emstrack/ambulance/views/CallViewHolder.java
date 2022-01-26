@@ -183,17 +183,15 @@ public class CallViewHolder extends RecyclerView.ViewHolder {
 
         // set call distance to
         Waypoint nextWaypoint = ambulanceCall.getNextWaypoint();
+        String distanceText = activity.getString(R.string.dash);
         if (nextWaypoint != null) {
             float distance = nextWaypoint.calculateDistance(AmbulanceForegroundService.getLastLocation());
-            String distanceText = activity.getString(R.string.dash);
             if (distance > 0) {
                 Settings settings = appData.getSettings();
                 distanceText = formatDistance(distance, settings != null ? settings.getUnits() : FormatUtils.METRIC);
             }
-            callDistanceToText.setText(distanceText);
-        } else {
-            callDistanceToText.setText(R.string.noDistanceInformationAvailable);
         }
+        callDistanceToText.setText(distanceText);
 
         // set call updated on
         callUpdatedOn.setText(formatDateTime(ambulanceCall.getUpdatedOn(), DateFormat.SHORT));

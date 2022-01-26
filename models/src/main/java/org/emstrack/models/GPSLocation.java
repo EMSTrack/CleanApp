@@ -1,5 +1,9 @@
 package org.emstrack.models;
 
+import android.location.Location;
+
+import androidx.annotation.NonNull;
+
 import com.google.android.gms.maps.model.LatLng;
 import com.google.gson.annotations.Expose;
 
@@ -18,7 +22,7 @@ public class GPSLocation {
         this.longitude = longitude;
     }
 
-    public GPSLocation(LatLng latLng) {
+    public GPSLocation(@NonNull LatLng latLng) {
         this.latitude = latLng.latitude;
         this.longitude = latLng.longitude;
     }
@@ -39,6 +43,7 @@ public class GPSLocation {
         this.longitude = longitude;
     }
 
+    @NonNull
     public android.location.Location toLocation() {
         android.location.Location location = new android.location.Location("GPS");
         location.setLatitude(this.getLatitude());
@@ -46,10 +51,40 @@ public class GPSLocation {
         return location;
     }
 
+    @NonNull
     public LatLng toLatLng() {
         return new LatLng(getLatitude(), getLongitude());
     }
 
+    @NonNull
+    public GPSLocation add(@NonNull GPSLocation location) {
+        latitude += location.latitude;
+        longitude += location.longitude;
+        return this;
+    }
+
+    @NonNull
+    public GPSLocation add(@NonNull LatLng location) {
+        latitude += location.latitude;
+        longitude += location.longitude;
+        return this;
+    }
+
+    @NonNull
+    public GPSLocation add(@NonNull Location location) {
+        latitude += location.getLatitude();
+        longitude += location.getLongitude();
+        return this;
+    }
+
+    @NonNull
+    public GPSLocation add(double lat, double lng) {
+        latitude += lat;
+        longitude += lng;
+        return this;
+    }
+
+    @NonNull
     @Override
     public String toString() {
         return "{latitude:" + latitude + ",longitude:" + longitude + "}";

@@ -1070,8 +1070,6 @@ public class MainActivity extends AppCompatActivity {
         logoutAmbulance(-1, false);
     }
 
-    public void logoutAmbulance(final int nextAmbulanceId) { logoutAmbulance(nextAmbulanceId, false); }
-
     public void logoutAmbulance(final int nextAmbulanceId, boolean skipConfirmation) {
 
         AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
