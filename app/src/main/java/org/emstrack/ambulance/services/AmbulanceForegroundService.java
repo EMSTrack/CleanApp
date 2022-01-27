@@ -1,5 +1,8 @@
 package org.emstrack.ambulance.services;
 
+import static org.emstrack.ambulance.util.FormatUtils.formatDateTime;
+import static org.emstrack.models.util.BroadcastExtras.ERROR_CODE;
+
 import android.annotation.SuppressLint;
 import android.app.Notification;
 import android.app.NotificationChannel;
@@ -18,6 +21,11 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.IBinder;
+import android.text.TextUtils;
+import android.util.Log;
+import android.util.Pair;
+import android.util.SparseArray;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -25,12 +33,6 @@ import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.preference.PreferenceManager;
-
-import android.text.TextUtils;
-import android.util.Log;
-import android.util.Pair;
-import android.util.SparseArray;
-import android.widget.Toast;
 
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -50,15 +52,17 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
+import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
+import org.eclipse.paho.client.mqttv3.IMqttToken;
 import org.eclipse.paho.client.mqttv3.MqttAsyncClient;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.emstrack.ambulance.MainActivity;
 import org.emstrack.ambulance.R;
 import org.emstrack.ambulance.models.AmbulanceAppData;
+import org.emstrack.ambulance.util.Geofence;
 import org.emstrack.ambulance.util.SparseArrayIterable;
 import org.emstrack.ambulance.util.VehicleUpdate;
 import org.emstrack.ambulance.util.VehicleUpdateFilter;
-import org.emstrack.ambulance.util.Geofence;
 import org.emstrack.models.Ambulance;
 import org.emstrack.models.AmbulanceCall;
 import org.emstrack.models.Call;
@@ -82,7 +86,6 @@ import org.emstrack.models.api.APIError;
 import org.emstrack.models.api.APIService;
 import org.emstrack.models.api.APIServiceGenerator;
 import org.emstrack.models.api.OnAPICallComplete;
-import org.emstrack.models.util.BroadcastActions;
 import org.emstrack.models.util.CalendarDateTypeAdapter;
 import org.emstrack.models.util.OnComplete;
 import org.emstrack.models.util.OnServiceComplete;
@@ -108,9 +111,6 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static org.emstrack.ambulance.util.FormatUtils.formatDateTime;
-import static org.emstrack.models.util.BroadcastExtras.ERROR_CODE;
-
 /**
  * Created by mauricio on 3/18/2018.
  */
@@ -119,6 +119,8 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
     final static String TAG = AmbulanceForegroundService.class.getSimpleName();
 
+    final static int MQTT_TIMEOUT = 10000;
+    
     // Notification channel
     public final static int NOTIFICATION_ID = 101;
     public final static String PRIMARY_CHANNEL = "default";
@@ -299,6 +301,8 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
     @Override
     public void onCreate() {
 
+        Log.d(TAG, "onCreate");
+
         // Create notification channel
         if (Build.VERSION.SDK_INT >= 26) {
 
@@ -343,7 +347,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         // initialize app data
         appData = new AmbulanceAppData();
 
-        // create handlerthread
+        // create handlerThread
         handlerThread = new HandlerThread(TAG);
         handlerThread.start();
 
@@ -353,11 +357,13 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
     public void onDestroy() {
         super.onDestroy();
 
-        // remove callbacks and messages
-        Handler serviceHandler = new Handler(handlerThread.getLooper());
-        serviceHandler.removeCallbacksAndMessages(null);
+        Log.d(TAG, "onDestroy");
 
-        // terminate handlerthread
+        // remove callbacks and messages
+        // Handler serviceHandler = new Handler(handlerThread.getLooper());
+        // serviceHandler.removeCallbacksAndMessages(null);
+
+        // terminate handlerThread
         handlerThread.quitSafely();
     }
 
@@ -1239,10 +1245,14 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
             Ambulance ambulance = getAppData().getAmbulance();
             if (ambulance != null) {
 
-                // Update ambulance
-                android.location.Location location = _lastLocation.getLocation();
-                ambulance.setLocation(new GPSLocation(location.getLatitude(), location.getLongitude()));
-                ambulance.setOrientation(_lastLocation.getBearing());
+                if (_lastLocation != null) {
+
+                    // Update ambulance
+                    android.location.Location location = _lastLocation.getLocation();
+                    ambulance.setLocation(new GPSLocation(location.getLatitude(), location.getLongitude()));
+                    ambulance.setOrientation(_lastLocation.getBearing());
+
+                }
 
                 // Broadcast ambulance update
                 Intent localIntent = new Intent(BroadcastActions.AMBULANCE_UPDATE);
@@ -1497,7 +1507,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
         }
 
-        return success;
+        return _MQTTMessageBuffer.size() == 0;
 
     }
 
@@ -1525,9 +1535,12 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
             }
 
             // Otherwise, publish to MQTT
-            profileClient.publish(String.format("user/%1$s/client/%2$s/%3$s",
+            IMqttDeliveryToken token = profileClient.publish(String.format("user/%1$s/client/%2$s/%3$s",
                     profileClient.getUsername(), profileClient.getClientId(), topic),
                     message, 2, false);
+
+            // wait until it is sent
+            token.waitForCompletion(MQTT_TIMEOUT);
 
             // Set update time
             _lastServerUpdate = Calendar.getInstance();
@@ -2109,7 +2122,8 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
         MqttProfileClient profileClient = getProfileClient(AmbulanceForegroundService.this);
 
-        profileClient.subscribe(String.format("user/%1$s/client/%2$s/error",
+        // Create notification
+        IMqttToken token = profileClient.subscribe(String.format("user/%1$s/client/%2$s/error",
                 username, profileClient.getClientId()), 1,
                 (topic, message) -> {
 
@@ -2138,6 +2152,8 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                     notificationManager.notify(notificationId.getAndIncrement(), builder.build());
 
                 });
+
+        token.waitForCompletion(MQTT_TIMEOUT);
 
     }
 
@@ -3045,7 +3061,9 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                 try {
 
                     // Unsubscribe from ambulance data
-                    profileClient.unsubscribe(String.format(Locale.ENGLISH, "ambulance/%1$d/data", ambulanceId));
+                    IMqttToken token = profileClient.unsubscribe(String.format(Locale.ENGLISH, "ambulance/%1$d/data", ambulanceId));
+
+                    token.waitForCompletion(MQTT_TIMEOUT);
 
                 } catch (MqttException exception) {
 
@@ -3134,7 +3152,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         final MqttProfileClient profileClient = getProfileClient(this);
 
         // Subscribe to ambulance
-        profileClient.subscribe(String.format(Locale.ENGLISH, "ambulance/%1$d/data", ambulanceId), 1,
+        IMqttToken token = profileClient.subscribe(String.format(Locale.ENGLISH, "ambulance/%1$d/data", ambulanceId), 1,
                 (topic, message) -> {
 
                     Log.d(TAG, "Current ambulance update");
@@ -3199,6 +3217,8 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
                 });
 
+        token.waitForCompletion(MQTT_TIMEOUT);
+
     }
 
     public void subscribeToOtherAmbulance(int ambulanceId) throws MqttException {
@@ -3207,7 +3227,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         final MqttProfileClient profileClient = getProfileClient(this);
 
         // Subscribe to ambulance
-        profileClient.subscribe(String.format(Locale.ENGLISH, "ambulance/%1$d/data", ambulanceId), 1,
+        IMqttToken token = profileClient.subscribe(String.format(Locale.ENGLISH, "ambulance/%1$d/data", ambulanceId), 1,
                 (topic, message) -> {
 
                     try {
@@ -3238,6 +3258,8 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
                 });
 
+        token.waitForCompletion(MQTT_TIMEOUT);
+
     }
 
     public void subscribeToAmbulanceCallStatus(int ambulanceId) throws MqttException {
@@ -3245,7 +3267,8 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         // Retrieve client
         final MqttProfileClient profileClient = getProfileClient(this);
 
-        profileClient.subscribe(String.format(Locale.ENGLISH, "ambulance/%1$d/call/+/status", ambulanceId), 2,
+        // Subscribe to call status
+        IMqttToken token = profileClient.subscribe(String.format(Locale.ENGLISH, "ambulance/%1$d/call/+/status", ambulanceId), 2,
                 (topic, message) -> {
 
                     // Get calls
@@ -3317,6 +3340,8 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                     }
                 });
 
+        token.waitForCompletion(MQTT_TIMEOUT);
+
     }
 
     public void subscribeToCall(int callId) throws MqttException {
@@ -3326,7 +3351,8 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         // Retrieve client
         final MqttProfileClient profileClient = getProfileClient(this);
 
-        profileClient.subscribe(String.format("call/%1$s/data", callId), 2,
+        // subscribe to call
+        IMqttToken token = profileClient.subscribe(String.format("call/%1$s/data", callId), 2,
                 (topic, message) -> {
 
                     // Keep subscription to call_current to make sure we receive latest updates
@@ -3363,6 +3389,8 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
                 });
 
+        token.waitForCompletion(MQTT_TIMEOUT);
+
     }
 
     public void subscribeToHospital(int hospitalId) throws MqttException {
@@ -3371,7 +3399,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         final MqttProfileClient profileClient = getProfileClient(this);
 
         // Subscribe to hospital
-        profileClient.subscribe(String.format(Locale.ENGLISH, "hospital/%1$d/data", hospitalId), 1,
+        IMqttToken token = profileClient.subscribe(String.format(Locale.ENGLISH, "hospital/%1$d/data", hospitalId), 1,
                 (topic, message) -> {
 
                     try {
@@ -3402,6 +3430,8 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
                 });
 
+        token.waitForCompletion(MQTT_TIMEOUT);
+
     }
 
     public void unsubscribeFromWebRTC() throws MqttException {
@@ -3410,9 +3440,11 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         final MqttProfileClient profileClient = getProfileClient(this);
 
         // Subscribe to ambulance
-        profileClient.unsubscribe(String.format("user/%1$s/client/%2$s/webrtc/message",
+        IMqttToken token = profileClient.unsubscribe(String.format("user/%1$s/client/%2$s/webrtc/message",
                 profileClient.getUsername(),
                 profileClient.getClientId()));
+
+        token.waitForCompletion(MQTT_TIMEOUT);
 
     }
 
@@ -3422,7 +3454,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
         final MqttProfileClient profileClient = getProfileClient(this);
 
         // Subscribe to ambulance
-        profileClient.subscribe(String.format("user/%1$s/client/%2$s/webrtc/message",
+        IMqttToken token = profileClient.subscribe(String.format("user/%1$s/client/%2$s/webrtc/message",
                 profileClient.getUsername(),
                 profileClient.getClientId()), 1,
                 (topic, message) -> {
@@ -3447,7 +3479,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                             Intent notificationIntent = new Intent(AmbulanceForegroundService.this, MainActivity.class);
                             notificationIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                             PendingIntent pendingIntent = PendingIntent.getActivity(AmbulanceForegroundService.this, 0,
-                                    notificationIntent, Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M ? PendingIntent.FLAG_IMMUTABLE : 0);
+                                    notificationIntent, Build.VERSION.SDK_INT >= Build.VERSION_CODES.M ? PendingIntent.FLAG_IMMUTABLE : 0);
 
                             // Create notification
                             NotificationCompat.Builder builder =
@@ -3486,6 +3518,8 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                     }
 
                 });
+
+        token.waitForCompletion(MQTT_TIMEOUT);
 
     }
 
@@ -3581,7 +3615,9 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
             try {
 
                 // Unsubscribe to hospital data
-                profileClient.unsubscribe(String.format(Locale.ENGLISH, "hospital/%1$d/data", hospital.getId()));
+                IMqttToken token = profileClient.unsubscribe(String.format(Locale.ENGLISH, "hospital/%1$d/data", hospital.getId()));
+
+                token.waitForCompletion(MQTT_TIMEOUT);
 
             } catch (MqttException exception) {
                 Log.d(TAG, "Could not unsubscribe to 'hospital/" + hospital.getId() + "/data'");
@@ -3702,7 +3738,9 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
             try {
 
                 // Unsubscribe to ambulance data
-                profileClient.unsubscribe(String.format(Locale.ENGLISH, "ambulance/%1$d/data", ambulance.getId()));
+                IMqttToken token = profileClient.unsubscribe(String.format(Locale.ENGLISH, "ambulance/%1$d/data", ambulance.getId()));
+
+                token.waitForCompletion(MQTT_TIMEOUT);
 
             } catch (MqttException exception) {
                 Log.d(TAG, "Could not unsubscribe to 'ambulance/" + ambulance.getId() + "/data'");
@@ -4521,7 +4559,11 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
             // unsubscribe from call
             Log.i(TAG, "Unsubscribe from call/" + callId + "/data");
             try {
-                profileClient.unsubscribe(String.format(Locale.ENGLISH, "call/%1$d/data", callId));
+
+                IMqttToken token = profileClient.unsubscribe(String.format(Locale.ENGLISH, "call/%1$d/data", callId));
+
+                token.waitForCompletion(MQTT_TIMEOUT);
+
             } catch (MqttException e) {
                 Log.d(TAG, "Could not unsubscribe from 'call/" + callId + "/data'");
             }
@@ -4533,7 +4575,11 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
         Log.i(TAG, "Unsubscribe from call updates");
         try {
-            profileClient.unsubscribe(String.format(Locale.ENGLISH, "ambulance/%1$d/call/+/status", ambulanceId));
+
+            IMqttToken token = profileClient.unsubscribe(String.format(Locale.ENGLISH, "ambulance/%1$d/call/+/status", ambulanceId));
+
+            token.waitForCompletion(MQTT_TIMEOUT);
+
         } catch (MqttException e) {
             Log.d(TAG, String.format(Locale.ENGLISH, "ambulance/%1$d/call/+/status", ambulanceId));
         }
@@ -4748,7 +4794,11 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
                             // unsubscribe from call
                             try {
-                                profileClient.unsubscribe(String.format(Locale.ENGLISH, "call/%1$d/data", callId));
+
+                                IMqttToken token = profileClient.unsubscribe(String.format(Locale.ENGLISH, "call/%1$d/data", callId));
+
+                                token.waitForCompletion(MQTT_TIMEOUT);
+
                             } catch (MqttException e) {
                                 Log.d(TAG, "Could not unsubscribe from 'call/" + callId + "/data'");
                             }
@@ -5664,7 +5714,9 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
 
         try {
 
-            profileClient.publish(path, payload, 2, false);
+            IMqttDeliveryToken token = profileClient.publish(path, payload, 2, false);
+
+            token.waitForCompletion(MQTT_TIMEOUT);
 
             // broadcast success
             broadcastSuccess("Successfully published to path", uuid);

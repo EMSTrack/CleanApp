@@ -10,10 +10,10 @@ import com.google.android.gms.maps.model.LatLng;
 
 public class LatLon {
 
+    public static double mphToMps = 1600f/3600;
     public final static double earthRadius = 6371e3; // in meters
     public static double stationaryRadius = 10.; // in meters
-    public static double stationaryVelocity= .1; // in meters/s
-
+    public static double stationaryVelocity= 6 * mphToMps; // 6mph
     public static double distanceToDegrees(double distance) {
         return 180 * distance / (Math.PI * LatLon.earthRadius);
     }

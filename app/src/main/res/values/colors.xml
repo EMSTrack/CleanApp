@@ -41,5 +41,6 @@
     <color name="mapButtonOn">@color/bootstrapDark</color>
     <color name="mapButtonOff">@color/bootstrapLight</color>
     <color name="mapButtonAlert">@color/bootstrapWarning</color>
+    <color name="mapButtonDisabled">@color/bootstrapSecondary</color>
 
 </resources>

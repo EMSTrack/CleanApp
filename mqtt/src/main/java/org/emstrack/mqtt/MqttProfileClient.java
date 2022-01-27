@@ -205,15 +205,15 @@ public class MqttProfileClient implements MqttCallbackExtended {
         return token;
     }
 
-    public void subscribe(String topic, int qos) throws MqttException {
-        subscribe(topic, qos, null);
+    public IMqttToken subscribe(String topic, int qos) throws MqttException {
+        return subscribe(topic, qos, null);
     }
 
-    public void subscribe(String topic, int qos, MqttProfileMessageCallback callback) throws MqttException {
+    public IMqttToken subscribe(String topic, int qos, MqttProfileMessageCallback callback) throws MqttException {
 
         // Subscribe to topic
         Log.d(TAG, "Subscribing to '" + topic + "'");
-        mqttClient.subscribe(topic, qos);
+        IMqttToken token = mqttClient.subscribe(topic, qos);
 
         // Register callback
         if (callback != null) {
@@ -240,16 +240,18 @@ public class MqttProfileClient implements MqttCallbackExtended {
             Log.d(TAG, "No callback was registered");
         }
 
+        return token;
     }
 
-    public void unsubscribe(String topic) throws MqttException {
+    public IMqttToken unsubscribe(String topic) throws MqttException {
 
         // Unsubscribe
-        mqttClient.unsubscribe(topic);
+        IMqttToken token = mqttClient.unsubscribe(topic);
 
         // Remove callback
         subscribedTopics.remove(topic);
 
+        return token;
     }
 
     /**

@@ -305,6 +305,9 @@ public class CallFragment extends FragmentWithLocalBroadcastReceiver {
         // configure waypoint editor
         configureWaypointEditor();
 
+        // set colors
+        setColors();
+
     }
 
     public void processArguments() {
@@ -366,8 +369,8 @@ public class CallFragment extends FragmentWithLocalBroadcastReceiver {
 
                 if (invalidCall) {
                     Log.d(TAG, String.format("Ambulance '%d', call '%d' and waypoint '%d' are not current", ambulanceId, callId, waypointId));
-                    new SimpleAlertDialog(activity, getString(R.string.alert_warning_title))
-                            .alert(getString(R.string.invalidNotification), (dialogInterface, i) -> activity.navigate(R.id.mapFragment));
+//                    new SimpleAlertDialog(activity, getString(R.string.alert_warning_title))
+//                            .alert(getString(R.string.invalidNotification), (dialogInterface, i) -> activity.navigate(R.id.mapFragment));
                 }
 
             }
@@ -413,15 +416,6 @@ public class CallFragment extends FragmentWithLocalBroadcastReceiver {
         // set call priority
         String priority = call.getPriority();
         callPriorityTextView.setText(priority);
-
-        // set colors
-        try {
-            ambulanceStatusText.setTextColor(activity.getAmbulanceStatusBackgroundColorMap().get(status));
-            callPriorityTextView.setBackgroundColor(activity.getCallPriorityBackgroundColors().get(priority));
-            callPriorityTextView.setTextColor(activity.getCallPriorityForegroundColors().get(priority));
-        } catch (NullPointerException e) {
-            Log.d(TAG, "Could not set colors");
-        }
 
         int priorityCodeInt = call.getPriorityCode();
         if (priorityCodeInt < 0) {
@@ -490,6 +484,36 @@ public class CallFragment extends FragmentWithLocalBroadcastReceiver {
                 }
 
             });
+        }
+
+    }
+
+    private void setColors() {
+
+        // Get app data
+        AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
+        Ambulance ambulance = appData.getAmbulance();
+        if (ambulance == null) {
+            Log.d(TAG, "No current ambulance");
+            return;
+        }
+
+        // get current call
+        Call call = appData.getCalls().getCurrentCall();
+        if (call == null) {
+            Log.d(TAG, "No current call");
+            return;
+        }
+
+        String status = ambulance.getStatus();
+        String priority = call.getPriority();
+
+        try {
+            ambulanceStatusText.setTextColor(activity.getAmbulanceStatusBackgroundColorMap().get(status));
+            callPriorityTextView.setBackgroundColor(activity.getCallPriorityBackgroundColors().get(priority));
+            callPriorityTextView.setTextColor(activity.getCallPriorityForegroundColors().get(priority));
+        } catch (NullPointerException e) {
+            Log.d(TAG, "Could not set colors");
         }
 
     }

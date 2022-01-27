@@ -377,5 +377,11 @@
     <string name="skipWaypoint">¿Saltar punto de ruta?</string>
     <string name="successfullyPatchWaypoint">Punto de ruta parcheado con éxito</string>
     <string name="couldNotPatchWaypoint">No se pudo parchear el punto de ruta</string>
+    <string name="show_call_waypoints">Visualizar puntos de ruta</string>
+    <string name="auto_zoom">Zoom automático</string>
+    <string name="drive_mode">Modo conductor</string>
+    <string name="show_own_vehicle">Visualizar vehículo</string>
+    <string name="show_other_vehicles">Visualizar otros vehículos</string>
+    <string name="show_hospitals">Visualizar hospitales</string>
 
 </resources>

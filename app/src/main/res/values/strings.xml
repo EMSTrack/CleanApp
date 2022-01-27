@@ -2,7 +2,7 @@
 <resources>
 
     <string name="app_name">EMSTrack</string>
-    <string name="app_version" translatable="false">0_9_17</string>
+    <string name="app_version" translatable="false">0_9_18</string>
     <string name="client_name" translatable="false">AndroidClient</string>
 
     <string name="drawer_open">Open navigation drawer</string>
@@ -425,5 +425,11 @@
     <string name="skipWaypoint">Skip Waypoint?</string>
     <string name="successfullyPatchWaypoint">Successfully patched waypoint</string>
     <string name="couldNotPatchWaypoint">Could not patch waypoint</string>
+    <string name="show_call_waypoints">Show call waypoints</string>
+    <string name="auto_zoom">Auto zoom</string>
+    <string name="drive_mode">Drive mode</string>
+    <string name="show_own_vehicle">Show own vehicle</string>
+    <string name="show_other_vehicles">Show other vehicles</string>
+    <string name="show_hospitals">Show hospitals</string>
 
 </resources>

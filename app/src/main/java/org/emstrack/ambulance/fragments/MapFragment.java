@@ -4,6 +4,7 @@ import static org.emstrack.ambulance.util.GoogleMapsHelper.clearMarkers;
 import static org.emstrack.ambulance.util.GoogleMapsHelper.getMarkerBitmapDescriptor;
 import static org.emstrack.ambulance.util.GoogleMapsHelper.initializeMarkers;
 import static org.emstrack.ambulance.util.LatLon.calculateDistanceHaversine;
+import static org.emstrack.ambulance.util.LatLon.mphToMps;
 
 import android.content.Context;
 import android.content.Intent;
@@ -62,12 +63,19 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-public class MapFragment extends FragmentWithLocalBroadcastReceiver implements OnMapReadyCallback, GoogleMap.OnCameraIdleListener {
+public class MapFragment extends FragmentWithLocalBroadcastReceiver
+        implements OnMapReadyCallback, GoogleMap.OnCameraIdleListener {
+
+    public final double SPEED_STOPPED = 10 * mphToMps; // 10 mph
+    public final double SPEED_SMALL = 25 * mphToMps;   // 25 mph
+    public final double SPEED_MEDIUM = 40 * mphToMps;  // 40 mph
+    public final double SPEED_HIGH = 55 * mphToMps;    // 55 mph
 
     public final int ZOOM_LEVEL_STOPPED = 19;
     public final int ZOOM_LEVEL_SMALL_SPEEDS = 18;
-    public final int ZOOM_LEVEL_MEDIUM_SPEEDS = 16;
-    public final int ZOOM_LEVEL_HIGH_SPEEDS = 15;
+    public final int ZOOM_LEVEL_MEDIUM_SPEEDS = 17;
+    public final int ZOOM_LEVEL_HIGH_SPEEDS = 16;
+    public final int ZOOM_LEVEL_MAXIMUM = 15;
 
     private static final String TAG = MapFragment.class.getSimpleName();
 
@@ -88,6 +96,9 @@ public class MapFragment extends FragmentWithLocalBroadcastReceiver implements O
 
     private ImageView compassButton;
     private boolean centerCurrentAmbulance = false;
+
+    private ImageView searchButton;
+    private boolean autoZoom = true;
 
     private ImageView showAmbulanceButton;
 
@@ -112,6 +123,7 @@ public class MapFragment extends FragmentWithLocalBroadcastReceiver implements O
     private int buttonOnColor;
     private int buttonOffColor;
     private int buttonAlertColor;
+    private int buttonDisabledColor;
 
     private LatLng centerLatLng;
     private boolean doneOnResume;
@@ -121,6 +133,9 @@ public class MapFragment extends FragmentWithLocalBroadcastReceiver implements O
     private VehicleUpdateFilter updateFilter;
     private boolean isAnimatingMarkerAndCamera;
     private AnimateBuffer animateBuffer;
+    private View mapFragmentLayout;
+    private int mapHeight = -1;
+    private int mapWidth = -1;
 
 
     @Override
@@ -187,6 +202,7 @@ public class MapFragment extends FragmentWithLocalBroadcastReceiver implements O
         buttonOnColor = getResources().getColor(R.color.mapButtonOn);
         buttonOffColor = getResources().getColor(R.color.mapButtonOff);
         buttonAlertColor = getResources().getColor(R.color.mapButtonAlert);
+        buttonDisabledColor = getResources().getColor(R.color.mapButtonDisabled);
 
         // setup toolbar
         toolbarDragHelper = new DragHelper();
@@ -200,12 +216,21 @@ public class MapFragment extends FragmentWithLocalBroadcastReceiver implements O
         compassButton = rootView.findViewById(R.id.compassButton);
         compassButton.setOnClickListener(v -> {
             // toggle center current ambulance
-            centerCurrentAmbulance = !centerCurrentAmbulance;
+            autoZoom = centerCurrentAmbulance = !centerCurrentAmbulance;
             setButtonColor(compassButton, centerCurrentAmbulance);
+            setButtonColor(searchButton, autoZoom, buttonOnColor, autoZoom ? buttonOffColor : buttonDisabledColor);
             if (centerCurrentAmbulance) {
                 startLocationUpdates();
             } else {
                 stopLocationUpdates();
+            }
+        });
+        searchButton = rootView.findViewById(R.id.searchButton);
+        searchButton.setOnClickListener(v -> {
+            if (centerCurrentAmbulance) {
+                // toggle auto zoom
+                autoZoom = !autoZoom;
+                setButtonColor(searchButton, autoZoom);
             }
         });
 
@@ -299,6 +324,7 @@ public class MapFragment extends FragmentWithLocalBroadcastReceiver implements O
         configureButtons();
 
         // Initialize map
+        mapFragmentLayout = rootView.findViewById(R.id.mapFragment);
         SupportMapFragment mapFragment = (SupportMapFragment) getChildFragmentManager()
                 .findFragmentById(R.id.mapFragment);
         Objects.requireNonNull(mapFragment).getMapAsync(this);
@@ -306,7 +332,7 @@ public class MapFragment extends FragmentWithLocalBroadcastReceiver implements O
         // get arguments
         Bundle arguments = getArguments();
         if (arguments != null) {
-            centerLatLng = (LatLng) getArguments().getParcelable("latLng");
+            centerLatLng = getArguments().getParcelable("latLng");
         } else {
             centerLatLng = null;
         }
@@ -351,7 +377,7 @@ public class MapFragment extends FragmentWithLocalBroadcastReceiver implements O
         showOfflineAmbulances = sharedPreferences.getBoolean(AmbulanceForegroundService.PREFERENCES_MAP_SHOW_OFFLINE_AMBULANCES, false);
         showHospitals = sharedPreferences.getBoolean(AmbulanceForegroundService.PREFERENCES_MAP_SHOW_HOSPITALS, false);
         showWaypoints = sharedPreferences.getBoolean(AmbulanceForegroundService.PREFERENCES_MAP_SHOW_WAYPOINTS, false);
-        centerCurrentAmbulance = sharedPreferences.getBoolean(AmbulanceForegroundService.PREFERENCES_MAP_CENTER_AMBULANCES, false);
+        autoZoom = centerCurrentAmbulance = sharedPreferences.getBoolean(AmbulanceForegroundService.PREFERENCES_MAP_CENTER_AMBULANCES, false);
 
         zoomLevel = sharedPreferences.getFloat(AmbulanceForegroundService.PREFERENCES_MAP_ZOOM, defaultZoom);
 
@@ -374,6 +400,7 @@ public class MapFragment extends FragmentWithLocalBroadcastReceiver implements O
         setButtonColor(showHospitalsButton, showHospitals);
         setButtonColor(showWaypointsButton, showWaypoints);
         setButtonColor(compassButton, centerCurrentAmbulance);
+        setButtonColor(searchButton, autoZoom, buttonOnColor, autoZoom ? buttonOffColor : buttonDisabledColor);
 
         // set done on resume to true
         doneOnResume = true;
@@ -427,7 +454,7 @@ public class MapFragment extends FragmentWithLocalBroadcastReceiver implements O
             editor.putFloat(AmbulanceForegroundService.PREFERENCES_MAP_LONGITUDE, (float) target.longitude);
             editor.putFloat(AmbulanceForegroundService.PREFERENCES_MAP_LATITUDE, (float) target.latitude);
         }
-        editor.putFloat(AmbulanceForegroundService.PREFERENCES_MAP_BEARING, (float) bearing);
+        editor.putFloat(AmbulanceForegroundService.PREFERENCES_MAP_BEARING, bearing);
         editor.apply();
 
         // set done on resume to false
@@ -460,6 +487,10 @@ public class MapFragment extends FragmentWithLocalBroadcastReceiver implements O
 
         // initialize static markers
         initializeMarkers(requireContext());
+
+        // get map dimensions
+        mapHeight = mapFragmentLayout.getMeasuredHeight();
+        mapWidth = mapFragmentLayout.getMeasuredWidth();
 
         if (doneOnResume) {
 
@@ -535,94 +566,52 @@ public class MapFragment extends FragmentWithLocalBroadcastReceiver implements O
                         .setFastestInterval(500) // 1,000 ms = .5s
                         .setMaxWaitTime(1000); // 1,000 ms = 1s = 1s
 
+                // set location callback
                 locationCallback = new LocationCallback() {
-
                     @Override
                     public void onLocationResult(@NonNull LocationResult locationResult) {
-                        Log.d(TAG, String.format("Got location results: %s", locationResult));
-
-                        Ambulance ambulance = AmbulanceForegroundService.getAppData().getAmbulance();
-
-                        if (ambulance != null && locationResult.getLocations().size() > 0) {
-
-                            updateFilter.update(locationResult.getLocations());
-
-                            if (updateFilter.hasUpdates()) {
-
-                                // Sort updates
-                                updateFilter.sort();
-
-                                // update server or buffer
-                                List<VehicleUpdate> updates = updateFilter.getFilteredUpdates();
-
-                                // get last location
-                                VehicleUpdate lastUpdate = updates.get(updates.size() - 1);
-                                Location lastLocation = lastUpdate.getLocation();
-
-                                // reset filter
-                                updateFilter.reset();
-
-                                // calculate update distance
-                                Marker currentMarker = ambulanceMarkers.get(ambulance.getId());
-                                if (currentMarker != null) {
-                                    double distance = calculateDistanceHaversine(currentMarker.getPosition(), lastLocation);
-                                    double time = distance / lastUpdate.getVelocity();
-                                    int animateTimeInMs = Math.min((int) (1000 * time), 3000);
-
-                                    // animate or buffer
-                                    animateMarkerAndCamera(ambulance, lastLocation, animateTimeInMs);
-                                } else {
-                                    Log.d(TAG, "Marker for current ambulance does not exist");
-                                }
-
-                            }
-                        }
+                        MapFragment.this.onLocationResult(locationResult);
                     }
                 };
 
-                Looper looper = Looper.myLooper();
-                if (looper != null) {
-                    fusedLocationClient.requestLocationUpdates(locationRequest,
-                            locationCallback, looper)
-                            .addOnSuccessListener(
-                                    aVoid -> {
-                                        Log.i(TAG, "Starting location updates");
+                fusedLocationClient.requestLocationUpdates(locationRequest,
+                        locationCallback, Looper.getMainLooper())
+                        .addOnSuccessListener(
+                                aVoid -> {
+                                    Log.i(TAG, "Starting location updates");
 
-                                        // set animatingMarkerAndCamera = false
-                                        isAnimatingMarkerAndCamera = false;
+                                    // set animatingMarkerAndCamera = false
+                                    isAnimatingMarkerAndCamera = false;
 
-                                        if (initialize) {
-                                            // reset zoom
-                                            zoomLevel = defaultZoom;
-                                            Ambulance ambulance = AmbulanceForegroundService.getAppData().getAmbulance();
-                                            if (ambulance != null) {
-                                                // center ambulance
-                                                centerMap(ambulance, false, 3000);
-                                            }
+                                    if (initialize) {
+                                        // reset zoom
+                                        zoomLevel = defaultZoom;
+                                        Ambulance ambulance = AmbulanceForegroundService.getAppData().getAmbulance();
+                                        if (ambulance != null) {
+                                            // center ambulance
+                                            centerMap(ambulance, false, zoomLevel, 0, mapHeight / 3, 3000);
                                         }
+                                    }
 
-                                        // enable button
-                                        compassButton.setEnabled(true);
+                                    // enable button
+                                    compassButton.setEnabled(true);
 
-                                    })
-                            .addOnFailureListener(
-                                    e -> {
+                                })
+                        .addOnFailureListener(
+                                e -> {
 
-                                        Log.i(TAG, "Failed to start location updates");
+                                    Log.i(TAG, "Failed to start location updates");
 
-                                        // set animatingMarkerAndCamera = false
-                                        isAnimatingMarkerAndCamera = false;
+                                    // set animatingMarkerAndCamera = false
+                                    isAnimatingMarkerAndCamera = false;
 
-                                        fusedLocationClient = null;
+                                    fusedLocationClient = null;
 
-                                        // enable button
-                                        compassButton.setEnabled(true);
+                                    // enable button
+                                    compassButton.setEnabled(true);
 
-                                    });
-                } else {
-                    Log.i(TAG, "Failed to start location updates. Looper is null");
-                    fusedLocationClient = null;
-                }
+                                });
+
             } catch (SecurityException e) {
                 Log.i(TAG, "Failed to start location updates");
                 fusedLocationClient = null;
@@ -630,6 +619,69 @@ public class MapFragment extends FragmentWithLocalBroadcastReceiver implements O
         } else {
             fusedLocationClient = null;
         }
+    }
+
+    public void onLocationResult(@NonNull LocationResult locationResult) {
+
+        Log.d(TAG, String.format("Got location results: %s", locationResult));
+
+        Ambulance ambulance = AmbulanceForegroundService.getAppData().getAmbulance();
+
+        if (ambulance != null && locationResult.getLocations().size() > 0) {
+
+            updateFilter.update(locationResult.getLocations());
+
+            if (updateFilter.hasUpdates()) {
+
+                // Sort updates
+                updateFilter.sort();
+
+                // update server or buffer
+                List<VehicleUpdate> updates = updateFilter.getFilteredUpdates();
+
+                // get last location
+                VehicleUpdate lastUpdate = updates.get(updates.size() - 1);
+                Location lastLocation = lastUpdate.getLocation();
+
+                // reset filter
+                updateFilter.reset();
+
+                // calculate update distance
+                Marker currentMarker = ambulanceMarkers.get(ambulance.getId());
+                if (currentMarker != null) {
+                    double distance = calculateDistanceHaversine(currentMarker.getPosition(), lastLocation);
+                    double speed = lastUpdate.getVelocity();
+                    double time = distance / lastUpdate.getVelocity();
+                    int animateTimeInMs = Math.min((int) (1000 * time), 3000);
+
+                    // determine zoomLevel
+                    float zoomLevel;
+                    if (autoZoom) {
+                        if (speed < SPEED_STOPPED) {
+                            zoomLevel = ZOOM_LEVEL_STOPPED;
+                        } else if (speed < SPEED_SMALL) {
+                            zoomLevel = ZOOM_LEVEL_SMALL_SPEEDS;
+                        } else if (speed < SPEED_MEDIUM) {
+                            zoomLevel = ZOOM_LEVEL_MEDIUM_SPEEDS;
+                        } else if (speed < SPEED_HIGH) {
+                            zoomLevel = ZOOM_LEVEL_HIGH_SPEEDS;
+                        } else {
+                            zoomLevel = ZOOM_LEVEL_MAXIMUM;
+                        }
+                        Log.d(TAG, String.format("velocity = %f, zoomLevel = %f", speed, zoomLevel));
+                    } else {
+                        zoomLevel = this.zoomLevel;
+                    }
+
+                    // animate or buffer
+                    animateMarkerAndCamera(ambulance, lastLocation, zoomLevel, animateTimeInMs);
+                } else {
+                    Log.d(TAG, "Marker for current ambulance does not exist");
+                }
+
+            }
+        }
+
     }
 
     private void stopLocationUpdates() {
@@ -672,9 +724,11 @@ public class MapFragment extends FragmentWithLocalBroadcastReceiver implements O
         Ambulance ambulance = appData.getAmbulance();
         if (ambulance != null) {
             compassButton.setVisibility(View.VISIBLE);
+            searchButton.setVisibility(View.VISIBLE);
             showAmbulanceButton.setVisibility(View.VISIBLE);
         } else {
             compassButton.setVisibility(View.GONE);
+            searchButton.setVisibility(View.GONE);
             showAmbulanceButton.setVisibility(View.GONE);
         }
         Call call = appData.getCalls().getCurrentCall();
@@ -705,18 +759,18 @@ public class MapFragment extends FragmentWithLocalBroadcastReceiver implements O
 
 
     public void centerMap(LatLng latLng, float bearing) {
-        centerMap(latLng, bearing, false, 0, null);
+        centerMap(latLng, bearing, false, zoomLevel, 0, null);
     }
 
     public void centerMap(LatLng latLng, float bearing, boolean dropMarker) {
-        centerMap(latLng, bearing, dropMarker, 0, null);
+        centerMap(latLng, bearing, dropMarker, zoomLevel, 0, null);
     }
 
 //    public void centerMap(LatLng latLng, float bearing, boolean dropMarker, int animateTimeInMs) {
 //        centerMap(latLng, bearing, dropMarker, animateTimeInMs, null);
 //    }
 
-    public void centerMap(LatLng latLng, float bearing, boolean dropMarker, int animateTimeInMs, GoogleMap.CancelableCallback animateCallback) {
+    public void centerMap(LatLng latLng, float bearing, boolean dropMarker, float zoomLevel, int animateTimeInMs, GoogleMap.CancelableCallback animateCallback) {
 
         if (googleMap == null) {
             Log.d(TAG, "centerMap: google maps is null. Aborting...");
@@ -724,31 +778,62 @@ public class MapFragment extends FragmentWithLocalBroadcastReceiver implements O
         }
 
         Log.d(TAG,
-                String.format("centerMap latlng = %s, bearing = %f, dropMarker = %b, animateTimeInMs = %d",
+                String.format("centerMap latLng = %s, bearing = %f, dropMarker = %b, animateTimeInMs = %d",
                         latLng, bearing, dropMarker, animateTimeInMs));
         org.emstrack.ambulance.util.GoogleMapsHelper.centerMap(googleMap, latLng, bearing, zoomLevel, dropMarker, animateTimeInMs, animateCallback);
 
     }
 
+    public void centerMap(LatLng latLng, float bearing, boolean dropMarker, float zoomLevel,
+                          int xOffset, int yOffset, int animateTimeInMs,
+                          GoogleMap.CancelableCallback animateCallback) {
+
+        if (googleMap == null) {
+            Log.d(TAG, "centerMap: google maps is null. Aborting...");
+            return;
+        }
+
+        Log.d(TAG,
+                String.format("centerMap latLng = %s, bearing = %f, dropMarker = %b, animateTimeInMs = %d",
+                        latLng, bearing, dropMarker, animateTimeInMs));
+        org.emstrack.ambulance.util.GoogleMapsHelper.centerMap(googleMap, latLng, bearing, zoomLevel,
+                xOffset, yOffset, dropMarker, animateTimeInMs, animateCallback);
+
+    }
+
     public void centerMap(Ambulance ambulance) {
-        centerMap(ambulance, false, 0, null);
+        centerMap(ambulance, false, zoomLevel,0, null);
     }
 
 //    public void centerMap(Ambulance ambulance, boolean dropPin) {
 //        centerMap(ambulance, dropPin, 0, null);
 //    }
 
-    public void centerMap(Ambulance ambulance, boolean dropPin, int animateTimeInMs) {
-        centerMap(ambulance, dropPin, animateTimeInMs, null);
+    public void centerMap(Ambulance ambulance, boolean dropPin, float zoomLevel, int xOffset, int yOffset, int animateTimeInMs) {
+        centerMap(ambulance, dropPin, zoomLevel, xOffset, yOffset, animateTimeInMs,null);
     }
 
-    public void centerMap(Ambulance ambulance, boolean dropPin, int animateTimeInMs, GoogleMap.CancelableCallback animateCallback) {
+    public void centerMap(Ambulance ambulance, boolean dropPin, float zoomLevel, int animateTimeInMs, GoogleMap.CancelableCallback animateCallback) {
 
         if (ambulance != null) {
 
             GPSLocation location = ambulance.getLocation();
             LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
-            centerMap(latLng, (float) ambulance.getOrientation(), dropPin, animateTimeInMs, animateCallback);
+            centerMap(latLng, (float) ambulance.getOrientation(), dropPin, zoomLevel, animateTimeInMs, animateCallback);
+
+        } else {
+            Log.d(TAG, "No ambulance is selected");
+        }
+
+    }
+
+    public void centerMap(Ambulance ambulance, boolean dropPin, float zoomLevel, int xOffset, int yOffset, int animateTimeInMs, GoogleMap.CancelableCallback animateCallback) {
+
+        if (ambulance != null) {
+
+            GPSLocation location = ambulance.getLocation();
+            LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
+            centerMap(latLng, (float) ambulance.getOrientation(), dropPin, zoomLevel, xOffset, yOffset, animateTimeInMs, animateCallback);
 
         } else {
             Log.d(TAG, "No ambulance is selected");
@@ -1127,14 +1212,15 @@ public class MapFragment extends FragmentWithLocalBroadcastReceiver implements O
     private static class AnimateBuffer {
         LatLng latLng;
         float bearing;
+        float zoomLevel;
         int animateTimeInMs;
 
-        AnimateBuffer(LatLng latLng, float bearing, int animateTimeInMs) {
-            this.latLng = latLng; this.bearing = bearing; this.animateTimeInMs = animateTimeInMs;
+        AnimateBuffer(LatLng latLng, float bearing, float zoomLevel, int animateTimeInMs) {
+            this.latLng = latLng; this.bearing = bearing; this.zoomLevel = zoomLevel; this.animateTimeInMs = animateTimeInMs;
         }
     }
 
-    private synchronized void doAnimateMarkerAndCamera(Ambulance ambulance, LatLng latLng, float bearing, int animateTimeInMs) {
+    private synchronized void doAnimateMarkerAndCamera(Ambulance ambulance, LatLng latLng, float bearing, float zoomLevel, int animateTimeInMs) {
 
         // set flag
         isAnimatingMarkerAndCamera = true;
@@ -1143,7 +1229,9 @@ public class MapFragment extends FragmentWithLocalBroadcastReceiver implements O
         updateAmbulanceMarker(ambulance, latLng, bearing, animateTimeInMs);
 
         // center map
-        centerMap(latLng, bearing, false, animateTimeInMs, new GoogleMap.CancelableCallback() {
+        centerMap(latLng, bearing, false, zoomLevel,
+                0, mapHeight / 3,
+                animateTimeInMs, new GoogleMap.CancelableCallback() {
 
             @Override
             public void onCancel() {
@@ -1165,7 +1253,8 @@ public class MapFragment extends FragmentWithLocalBroadcastReceiver implements O
 
                     // animate buffer
                     doAnimateMarkerAndCamera(ambulance,
-                            animateBuffer.latLng, animateBuffer.bearing,
+                            animateBuffer.latLng,
+                            animateBuffer.bearing, animateBuffer.zoomLevel,
                             animateBuffer.animateTimeInMs);
 
                     // release buffer
@@ -1186,7 +1275,7 @@ public class MapFragment extends FragmentWithLocalBroadcastReceiver implements O
 
     }
 
-    private synchronized void animateMarkerAndCamera(Ambulance ambulance, Location lastLocation, int animateTimeInMs) {
+    private synchronized void animateMarkerAndCamera(Ambulance ambulance, Location lastLocation, float zoomLevel, int animateTimeInMs) {
 
         LatLng latLng = new LatLng(lastLocation.getLatitude(), lastLocation.getLongitude());
         float bearing = lastLocation.getBearing();
@@ -1194,12 +1283,12 @@ public class MapFragment extends FragmentWithLocalBroadcastReceiver implements O
         if (isAnimatingMarkerAndCamera) {
 
             // override buffer
-            animateBuffer = new AnimateBuffer(latLng, bearing, animateTimeInMs);
+            animateBuffer = new AnimateBuffer(latLng, bearing, zoomLevel, animateTimeInMs);
 
         } else {
 
             // do animate
-            doAnimateMarkerAndCamera(ambulance, latLng, bearing, animateTimeInMs);
+            doAnimateMarkerAndCamera(ambulance, latLng, bearing, zoomLevel, animateTimeInMs);
 
         }
 

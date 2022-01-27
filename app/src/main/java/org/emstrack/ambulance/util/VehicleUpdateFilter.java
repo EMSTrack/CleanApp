@@ -81,7 +81,7 @@ public class VehicleUpdateFilter {
         double brn = dandb[1];
         double vel = currentVehicleUpdate.getVelocity();
         if (dt > 0)
-            vel = distance / dt;
+            vel = 1000 * distance / dt;
 
         // ambulanceUpdateFilter velocity
         double Kv = 0.9;
