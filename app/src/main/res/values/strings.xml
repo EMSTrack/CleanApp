@@ -2,7 +2,7 @@
 <resources>
 
     <string name="app_name">EMSTrack</string>
-    <string name="app_version" translatable="false">0_9_19</string>
+    <string name="app_version" translatable="false">0_9_20</string>
     <string name="client_name" translatable="false">AndroidClient</string>
 
     <string name="drawer_open">Open navigation drawer</string>
@@ -182,7 +182,7 @@
     <string name="detailsText">Details</string>
     <string name="patients">Patients:</string>
     <string name="noPatientInformationAvailable">No patient information available</string>
-    <string name="numberOfWaypoints">Number of waypoints:</string>
+    <string name="numberOfWaypoints">Waypoints:</string>
     <string name="nextWaypoint">Next waypoint:</string>
     <string name="type">Type:</string>
     <string name="waypointType">Waypoint type</string>

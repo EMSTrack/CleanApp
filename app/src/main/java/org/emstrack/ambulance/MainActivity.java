@@ -378,9 +378,6 @@ public class MainActivity extends AppCompatActivity {
         // setup navigation
         setUpNavigation();
 
-        // call on new intent
-        onNewIntent(getIntent());
-
         // enable google places
         String apiKey = getString(R.string.GoogleMapsKey);
         if (!Places.isInitialized()) {
@@ -389,6 +386,9 @@ public class MainActivity extends AppCompatActivity {
 
         // Create a new Places client instance.
         placesClient = Places.createClient(this);
+
+        // process intent
+        onProcessIntent();
 
     }
 
@@ -758,6 +758,7 @@ public class MainActivity extends AppCompatActivity {
 
         Log.d(TAG, "onResume");
 
+        // other initialization
         AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
         int nextCallId = -1;
         if (appData != null && appData.getProfile() != null) {
@@ -835,7 +836,17 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
         Log.d(TAG, "onNewIntent");
+        setIntent(intent);
+        onProcessIntent();
+    }
+
+    private void onProcessIntent() {
+        Log.d(TAG, "onProcessIntent");
+
+        // get intent
+        Intent intent = getIntent();
 
         // get parameters
         Bundle extras = intent.getExtras();
@@ -848,7 +859,11 @@ public class MainActivity extends AppCompatActivity {
                 if (action.equals(MainActivity.ACTION_MARK_AS_VISITING) ||
                         action.equals(MainActivity.ACTION_MARK_AS_VISITED) ||
                         action.equals(MainActivity.ACTION_OPEN_CALL_FRAGMENT)) {
-                    navigate(R.id.callFragment, extras);
+                    if (AmbulanceForegroundService.getAppData().getCalls().getCurrentCall() != null) {
+                        navigate(R.id.callFragment, extras);
+                    } else {
+                        Log.d(TAG, "Call is null, aborting...");
+                    }
                 } else {
                     Log.d(TAG, "Unknown action");
                 }
@@ -870,7 +885,6 @@ public class MainActivity extends AppCompatActivity {
             Log.d(TAG, "extras is null");
         }
 
-        super.onNewIntent(intent);
     }
 
     @Override
@@ -881,7 +895,7 @@ public class MainActivity extends AppCompatActivity {
         } else if (backButtonMode == BackButtonMode.UP){
             navigatePopBackStack();
         } else if (backButtonMode == BackButtonMode.FINISH) {
-            finish();
+            super.onBackPressed();
         }
     }
 

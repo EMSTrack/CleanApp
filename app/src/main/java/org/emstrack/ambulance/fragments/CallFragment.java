@@ -589,7 +589,8 @@ public class CallFragment extends FragmentWithLocalBroadcastReceiver {
             // set visiting button
             AmbulanceCall ambulanceCall = call.getCurrentAmbulanceCall();
             List<Waypoint> waypointSet = ambulanceCall.getWaypointSet();
-            if (waypointSet.get(position) == ambulanceCall.getNextWaypoint()) {
+            Waypoint nextWaypoint = ambulanceCall.getNextWaypoint();
+            if (waypointSet.get(position) == nextWaypoint) {
                 // waypoint is next waypoint
                 Log.d(TAG, "Waypoint is next waypoint, set as selected");
 
@@ -597,6 +598,22 @@ public class CallFragment extends FragmentWithLocalBroadcastReceiver {
                 adapter.setSelectedPosition(position);
 
             }
+
+            // set waypoint label
+            int completedWaypoints;
+            if (nextWaypoint != null) {
+                completedWaypoints = 0;
+                for (Waypoint waypoint : waypointSet) {
+                    if (waypoint == nextWaypoint) {
+                        break;
+                    }
+                    completedWaypoints++;
+                }
+            } else {
+                completedWaypoints = waypointSet.size();
+            }
+            callNumberWaypointsView.setText(String.format(Locale.ENGLISH, "%d/%d", completedWaypoints, waypointSet.size()));
+
         }
     }
 

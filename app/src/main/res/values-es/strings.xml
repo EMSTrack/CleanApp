@@ -162,7 +162,7 @@
     <string name="detailsText">Detalles</string>
     <string name="patients">Pacientes:</string>
     <string name="noPatientInformationAvailable">No hay información disponible para el paciente</string>
-    <string name="numberOfWaypoints">"Número de puntos de ruta: "</string>
+    <string name="numberOfWaypoints">"Puntos de ruta: "</string>
     <string name="nextWaypoint">Punto de ruta siguiente:</string>
     <string name="type">Tipo:</string>
     <string name="waypointType">Tipo de punto de ruta:</string>

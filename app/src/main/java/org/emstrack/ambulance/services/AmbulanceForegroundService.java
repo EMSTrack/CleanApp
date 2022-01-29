@@ -5536,7 +5536,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                 markAsVisitingIntent.putExtra("ambulanceId", ambulanceCall.getAmbulanceId());
                 markAsVisitingIntent.putExtra("callId", call.getId());
                 markAsVisitingIntent.putExtra("waypointId", waypoint.getId());
-                markAsVisitingIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                markAsVisitingIntent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
                 PendingIntent markAsVisitingPendingIntent = PendingIntent.getActivity(AmbulanceForegroundService.this, 0,
                         markAsVisitingIntent,
                         android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M ?
@@ -5661,7 +5661,7 @@ public class  AmbulanceForegroundService extends BroadcastService implements Mqt
                 markAsVisitedIntent.putExtra("ambulanceId", ambulanceCall.getAmbulanceId());
                 markAsVisitedIntent.putExtra("callId", call.getId());
                 markAsVisitedIntent.putExtra("waypointId", waypoint.getId());
-                markAsVisitedIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                markAsVisitedIntent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
                 PendingIntent markAsVisitedPendingIntent = PendingIntent.getActivity(AmbulanceForegroundService.this, 0,
                         markAsVisitedIntent,
                         android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M ?
