@@ -45,7 +45,7 @@ public class FragmentWithLocalBroadcastReceiver extends Fragment implements OnRe
     @Override
     public void onReceive(Context context, @NonNull Intent intent) {
         Log.d(TAG, "Intent received: " + intent);
-    };
+    }
 
     @Override
     public void onResume() {
@@ -66,7 +66,7 @@ public class FragmentWithLocalBroadcastReceiver extends Fragment implements OnRe
     }
 
     public void setupReceiver(@NonNull IntentFilter filter, @NonNull OnReceive onReceive) {
-        this.receiver = new LocalBroadcastReceiver(this);
+        this.receiver = new LocalBroadcastReceiver(onReceive);
         this.filter = filter;
         this.receiverActive = false;
     }

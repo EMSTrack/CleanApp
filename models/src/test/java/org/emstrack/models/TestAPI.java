@@ -1,5 +1,6 @@
 package org.emstrack.models;
 
+import android.content.Context;
 import android.net.Uri;
 import android.os.Build;
 import android.util.Log;
@@ -10,11 +11,11 @@ import org.emstrack.models.api.OnAPICallComplete;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
+import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
 import org.robolectric.shadows.ShadowLog;
 import org.robolectric.shadows.ShadowLooper;
 
-import java.net.URI;
 import java.util.List;
 
 import retrofit2.Response;
@@ -41,9 +42,10 @@ public class TestAPI {
 
         APIService service = APIServiceGenerator.createService(APIService.class);
 
-        String username = "admin";
-        String password = "cruzrojaadmin";
-        String serverURI = "https://cruzroja.ucsd.edu/en/";
+        final Context application = RuntimeEnvironment.getApplication();
+        String username = application.getString(R.string.apiUser);
+        String password = application.getString(R.string.apiPassword);
+        String serverURI = application.getString(R.string.apiServerUrl);
         Credentials credentials = new Credentials(username, password, serverURI, "");
 
         retrofit2.Call<Token> callSync = service.getToken(credentials);
@@ -75,7 +77,7 @@ public class TestAPI {
         // token login
         Uri.Builder builder = new Uri.Builder();
         builder.scheme("https")
-                .authority("cruzroja.ucsd.edu")
+                .authority(application.getString(R.string.apiServer))
                 .appendPath("en")
                 .appendPath("guest");
         String url = builder.build().toString();
@@ -91,7 +93,7 @@ public class TestAPI {
         Log.d(TAG, "token = " + tokenLogin_.getToken());
         assertEquals(tokenLogin_.getUsername(), "guest");
         Log.d(TAG, "url = " + tokenLogin_.getUrl());
-        assertEquals(tokenLogin_.getUrl(), "https://cruzroja.ucsd.edu/en/guest");
+        assertEquals(tokenLogin_.getUrl(), String.format("https://%s/en/guest", application.getString(R.string.apiServer)));
 
     }
 
@@ -100,9 +102,10 @@ public class TestAPI {
 
         APIService service = APIServiceGenerator.createService(APIService.class);
 
-        String username = "admin";
-        String password = "cruzrojaadmin";
-        String serverURI = "https://cruzroja.ucsd.edu/";
+        final Context application = RuntimeEnvironment.getApplication();
+        String username = application.getString(R.string.apiUser);
+        String password = application.getString(R.string.apiPassword);
+        String serverURI = application.getString(R.string.apiServerUrl);
         Credentials credentials = new Credentials(username, password, serverURI, "");
 
         retrofit2.Call<Token> callAsync = service.getToken(credentials);
@@ -131,9 +134,10 @@ public class TestAPI {
 
         APIService service = APIServiceGenerator.createService(APIService.class);
 
-        String username = "admin";
-        String password = "cruzrojaadmin";
-        String serverURI = "https://cruzroja.ucsd.edu/";
+        final Context application = RuntimeEnvironment.getApplication();
+        String username = application.getString(R.string.apiUser);
+        String password = application.getString(R.string.apiPassword);
+        String serverURI = application.getString(R.string.apiServerUrl);
         Credentials credentials = new Credentials(username, password, serverURI, "");
 
         retrofit2.Call<Token> callAsync = service.getToken(credentials);
@@ -196,9 +200,10 @@ public class TestAPI {
     @Test
     public void testAsyncApiCascaded2() throws InterruptedException {
 
-        String username = "admin";
-        String password = "cruzrojaadmin";
-        String serverURI = "https://cruzroja.ucsd.edu/";
+        final Context application = RuntimeEnvironment.getApplication();
+        String username = application.getString(R.string.apiUser);
+        String password = application.getString(R.string.apiPassword);
+        String serverURI = application.getString(R.string.apiServerUrl);
         Credentials credentials = new Credentials(username, password, serverURI, "");
 
         // Retrieve token

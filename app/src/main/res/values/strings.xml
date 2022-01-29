@@ -2,7 +2,7 @@
 <resources>
 
     <string name="app_name">EMSTrack</string>
-    <string name="app_version" translatable="false">0_9_11</string>
+    <string name="app_version" translatable="false">0_9_20</string>
     <string name="client_name" translatable="false">AndroidClient</string>
 
     <string name="drawer_open">Open navigation drawer</string>
@@ -182,7 +182,7 @@
     <string name="detailsText">Details</string>
     <string name="patients">Patients:</string>
     <string name="noPatientInformationAvailable">No patient information available</string>
-    <string name="numberOfWaypoints">Number of waypoints:</string>
+    <string name="numberOfWaypoints">Waypoints:</string>
     <string name="nextWaypoint">Next waypoint:</string>
     <string name="type">Type:</string>
     <string name="waypointType">Waypoint type</string>
@@ -296,8 +296,6 @@
     <string name="locationPermissionSettingsMessage">After clicking \'%1$s\' you will be taken to the application\'s settings page where you can enable background location for this device%2$s in the \'Permissions\' settings.</string>
     <string name="needPermissions">Need permissions</string>
     <string name="login_as_demo">Demo</string>
-    <string name="demoUsername" translatable="false">test</string>
-    <string name="demoPassword" translatable="false">testuser</string>
     <string name="demoServer" translatable="false">ssl://cruzroja.ucsd.edu:8883</string>
     <string name="demoLoginMessage">Click \'%1$s\' to obtain credentials to demo the application.</string>
     <string name="tracking">Tracking</string>
@@ -417,5 +415,21 @@
     <string name="successfullyPostWaypoint">Successfully posted new waypoint.</string>
     <string name="couldNotPostWaypoint">Could not post new waypoint.</string>
     <string name="cannotAddWaypoint">It is not possible to add a new waypoint at this time.\n\nMake sure that the vehicle and call are still current.</string>
+
+    <string name="distanceLabel">Distance:</string>
+    <string name="waypointNotVisitedYet">not visited yet</string>
+    <string name="waypointSkipped">skipped on %1$s</string>
+    <string name="waypointVisited">visited on %1$s</string>
+    <string name="waypointVisiting">visiting since %1$s</string>
+    <string name="waypointNext">next waypoint</string>
+    <string name="skipWaypoint">Skip Waypoint?</string>
+    <string name="successfullyPatchWaypoint">Successfully patched waypoint</string>
+    <string name="couldNotPatchWaypoint">Could not patch waypoint</string>
+    <string name="show_call_waypoints">Show call waypoints</string>
+    <string name="auto_zoom">Auto zoom</string>
+    <string name="drive_mode">Drive mode</string>
+    <string name="show_own_vehicle">Show own vehicle</string>
+    <string name="show_other_vehicles">Show other vehicles</string>
+    <string name="show_hospitals">Show hospitals</string>
 
 </resources>

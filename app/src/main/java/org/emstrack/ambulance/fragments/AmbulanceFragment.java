@@ -252,48 +252,54 @@ public class AmbulanceFragment extends FragmentWithLocalBroadcastReceiver {
 
                                 // Update on server
                                 Ambulance ambulance = AmbulanceForegroundService.getAppData().getAmbulance();
-                                Intent intent = new Intent(getContext(), AmbulanceForegroundService.class);
-                                intent.setAction(AmbulanceForegroundService.Actions.UPDATE_AMBULANCE_STATUS);
-                                Bundle bundle = new Bundle();
-                                bundle.putInt(AmbulanceForegroundService.BroadcastExtras.AMBULANCE_ID, ambulance.getId());
-                                bundle.putString(AmbulanceForegroundService.BroadcastExtras.AMBULANCE_STATUS, statusCode);
-                                intent.putExtras(bundle);
+                                if (ambulance != null) {
 
-                                // disable button before updating
-                                ambulanceStatusButton.setEnabled(false);
+                                    Intent intent = new Intent(getContext(), AmbulanceForegroundService.class);
+                                    intent.setAction(AmbulanceForegroundService.Actions.UPDATE_AMBULANCE_STATUS);
+                                    Bundle bundle = new Bundle();
+                                    bundle.putInt(AmbulanceForegroundService.BroadcastExtras.AMBULANCE_ID, ambulance.getId());
+                                    bundle.putString(AmbulanceForegroundService.BroadcastExtras.AMBULANCE_STATUS, statusCode);
+                                    intent.putExtras(bundle);
 
-                                new OnServiceComplete(requireContext(),
-                                        AmbulanceForegroundService.BroadcastActions.AMBULANCE_UPDATE,
-                                        BroadcastActions.FAILURE,
-                                        intent) {
+                                    // disable button before updating
+                                    ambulanceStatusButton.setEnabled(false);
 
-                                    @Override
-                                    public void onSuccess(Bundle extras) {
+                                    new OnServiceComplete(requireContext(),
+                                            AmbulanceForegroundService.BroadcastActions.AMBULANCE_UPDATE,
+                                            BroadcastActions.FAILURE,
+                                            intent) {
 
-                                        Log.d(TAG, "Successfully updated status");
+                                        @Override
+                                        public void onSuccess(Bundle extras) {
 
-                                        // enable button after update is submitted
-                                        ambulanceStatusButton.setEnabled(true);
+                                            Log.d(TAG, "Successfully updated status");
+
+                                            // enable button after update is submitted
+                                            ambulanceStatusButton.setEnabled(true);
 
 
+                                        }
+
+                                        @Override
+                                        public void onFailure(Bundle extras) {
+                                            super.onFailure(extras);
+
+                                            Log.d(TAG, "Failed to update status");
+
+                                            // enable button after update is submitted
+                                            ambulanceStatusButton.setEnabled(true);
+
+                                            new SimpleAlertDialog(activity, getString(R.string.alert_warning_title))
+                                                    .alert(getString(R.string.couldNotUpdateAmbulanceStatus));
+
+                                        }
                                     }
+                                            .setSuccessIdCheck(false)
+                                            .start();
 
-                                    @Override
-                                    public void onFailure(Bundle extras) {
-                                        super.onFailure(extras);
-
-                                        Log.d(TAG, "Failed to update status");
-
-                                        // enable button after update is submitted
-                                        ambulanceStatusButton.setEnabled(true);
-
-                                        new SimpleAlertDialog(activity, getString(R.string.alert_warning_title))
-                                                .alert(getString(R.string.couldNotUpdateAmbulanceStatus));
-
-                                    }
+                                } else {
+                                    Log.e(TAG, "ambulance is null!");
                                 }
-                                        .setSuccessIdCheck(false)
-                                        .start();
 
                             })
                     .setCancelable(true)
@@ -374,23 +380,33 @@ public class AmbulanceFragment extends FragmentWithLocalBroadcastReceiver {
         // get calls
         CallStack calls = appData.getCalls();
 
-        // Set call_current info
-        Map<String, Integer> callSummary = calls.summary(appData.getSettings().getAmbulancecallStatus().keySet(), ambulance.getId());
-        Log.d(TAG, "Call summary = " + callSummary.toString());
+        String summaryText = "";
+        Settings settings = appData.getSettings();
+        if (settings != null) {
+            // Set call_current info
+            Map<String, Integer> callSummary = calls.summary(settings.getAmbulancecallStatus().keySet(), ambulance.getId());
+            Log.d(TAG, "Call summary = " + callSummary.toString());
 
-        final String summaryText = getString(R.string.requestedSuspended,
-                callSummary.get(AmbulanceCall.STATUS_REQUESTED),
-                callSummary.get(AmbulanceCall.STATUS_SUSPENDED));
+            summaryText = getString(R.string.requestedSuspended,
+                    callSummary.get(AmbulanceCall.STATUS_REQUESTED),
+                    callSummary.get(AmbulanceCall.STATUS_SUSPENDED));
+
+        }
         callInformationText.setText(summaryText);
 
         // sort current calls
         List<Pair<Call, AmbulanceCall>> callList = new ArrayList<>(calls.filter(ambulance.getId()).values());
 
-        // Install adapter
-        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(requireContext());
-        CallRecyclerAdapter adapter =  new CallRecyclerAdapter(getActivity(), callList);
-        ambulanceCallRecyclerView.setLayoutManager(linearLayoutManager);
-        ambulanceCallRecyclerView.setAdapter(adapter);
+        try {
+            // Install adapter
+            LinearLayoutManager linearLayoutManager = new LinearLayoutManager(requireContext());
+            CallRecyclerAdapter adapter = new CallRecyclerAdapter(requireActivity(), callList);
+            ambulanceCallRecyclerView.setLayoutManager(linearLayoutManager);
+            ambulanceCallRecyclerView.setAdapter(adapter);
+        } catch (IllegalStateException e) {
+            Log.e(TAG, "Invalid context or activity");
+            e.printStackTrace();
+        }
 
     }
 

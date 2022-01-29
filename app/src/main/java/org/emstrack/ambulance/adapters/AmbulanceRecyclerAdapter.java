@@ -1,23 +1,22 @@
 package org.emstrack.ambulance.adapters;
 
 import android.app.Activity;
-import android.util.SparseArray;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.RecyclerView;
 
 import org.emstrack.ambulance.R;
 import org.emstrack.ambulance.views.AmbulanceViewHolder;
 import org.emstrack.models.Ambulance;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Connects Equipment data to the RecyclerView (called from EquipmentFragment)
+ * RecyclerView for ambulances
  * @author Mauricio de Oliveira
  * @since 7/07/2020
  */
@@ -29,11 +28,12 @@ public class AmbulanceRecyclerAdapter extends RecyclerView.Adapter<AmbulanceView
     }
 
     private static final String TAG = AmbulanceRecyclerAdapter.class.getSimpleName();
+
     private final Activity activity;
     private final LoginAmbulance loginAmbulance;
-    List<Ambulance> ambulances;
+    private final List<Ambulance> ambulances;
 
-    public AmbulanceRecyclerAdapter(Activity activity, List<Ambulance> ambulances, LoginAmbulance loginAmbulance) {
+    public AmbulanceRecyclerAdapter(@NonNull Activity activity, @NonNull List<Ambulance> ambulances, @Nullable LoginAmbulance loginAmbulance) {
         this.activity = activity;
         this.ambulances = ambulances;
         this.loginAmbulance = loginAmbulance;

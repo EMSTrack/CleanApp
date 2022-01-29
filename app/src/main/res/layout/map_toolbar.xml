@@ -11,12 +11,23 @@
 
     <ImageView
         android:id="@+id/showWaypointsButton"
-        android:layout_width="40dp"
+        android:layout_width="36dp"
         android:layout_height="36dp"
         app:tint="@color/iconColor"
         android:padding="@dimen/mapToolbarPadding"
         android:layout_marginHorizontal="@dimen/mapToolbarHorizontalMargin"
-        app:srcCompat="@drawable/ic_phone_solid" />
+        app:srcCompat="@drawable/ic_phone_solid"
+        android:contentDescription="@string/show_call_waypoints" />
+
+    <ImageView
+        android:id="@+id/searchButton"
+        android:layout_width="36dp"
+        android:layout_height="36dp"
+        app:tint="@color/iconColor"
+        android:padding="@dimen/mapToolbarPadding"
+        android:layout_marginHorizontal="@dimen/mapToolbarHorizontalMargin"
+        app:srcCompat="@drawable/ic_search_solid"
+        android:contentDescription="@string/auto_zoom" />
 
     <ImageView
         android:id="@+id/compassButton"
@@ -25,7 +36,8 @@
         app:tint="@color/iconColor"
         android:padding="@dimen/mapToolbarPadding"
         android:layout_marginHorizontal="@dimen/mapToolbarHorizontalMargin"
-        app:srcCompat="@drawable/ic_compass_regular" />
+        app:srcCompat="@drawable/ic_compass_regular"
+        android:contentDescription="@string/drive_mode" />
 
     <ImageView
         android:id="@+id/showAmbulanceButton"
@@ -34,7 +46,8 @@
         app:tint="@color/iconColor"
         android:padding="@dimen/mapToolbarPadding"
         android:layout_marginHorizontal="@dimen/mapToolbarHorizontalMargin"
-        app:srcCompat="@drawable/ic_car_solid" />
+        app:srcCompat="@drawable/ic_car_solid"
+        android:contentDescription="@string/show_own_vehicle" />
 
     <ImageView
         android:id="@+id/showAmbulancesButton"
@@ -43,7 +56,8 @@
         app:tint="@color/iconColor"
         android:padding="@dimen/mapToolbarPadding"
         android:layout_marginHorizontal="@dimen/mapToolbarHorizontalMargin"
-        app:srcCompat="@drawable/ic_cars_solid" />
+        app:srcCompat="@drawable/ic_cars_solid"
+        android:contentDescription="@string/show_other_vehicles" />
 
     <ImageView
         android:id="@+id/showHospitalsButton"
@@ -52,7 +66,8 @@
         app:tint="@color/iconColor"
         android:padding="@dimen/mapToolbarPadding"
         android:layout_marginStart="@dimen/mapToolbarHorizontalMargin"
-        app:srcCompat="@drawable/ic_hospital" />
+        app:srcCompat="@drawable/ic_hospital"
+        android:contentDescription="@string/show_hospitals" />
 
 
 </LinearLayout>

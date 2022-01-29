@@ -201,8 +201,9 @@ public interface APIService {
      *
      * @return the api call
      */
+    @Headers("Content-Type: application/json")
     @PATCH("/en/api/call/{callId}/ambulance/{ambulanceId}/waypoint/")
-    Call<Waypoint> patchCallWaypoint(@Path("callId") int callId, @Path("ambulanceId") int ambulanceId, @Body Waypoint waypoint);
+    Call<Waypoint> patchCallWaypoint(@Path("callId") int callId, @Path("ambulanceId") int ambulanceId, @Body String waypoint);
 
     /**
      * Retrieve api version

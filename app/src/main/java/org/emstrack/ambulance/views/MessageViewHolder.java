@@ -3,11 +3,9 @@ package org.emstrack.ambulance.views;
 import static org.emstrack.ambulance.util.FormatUtils.formatDate;
 import static org.emstrack.ambulance.util.FormatUtils.formatTime;
 
-import android.content.Context;
 import android.view.View;
 import android.widget.TextView;
 
-import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import org.emstrack.ambulance.R;
@@ -31,7 +29,7 @@ public class MessageViewHolder extends RecyclerView.ViewHolder {
 
     private final int viewType;
 
-    public MessageViewHolder(Context context, View view, int viewType) {
+    public MessageViewHolder(View view, int viewType) {
         super(view);
         this.viewType = viewType;
         messageText = view.findViewById(R.id.message_text);
@@ -39,7 +37,7 @@ public class MessageViewHolder extends RecyclerView.ViewHolder {
         messageTimestamp = view.findViewById(R.id.message_timestamp);
     }
 
-    public void setNote(Note item, @NonNull Context context) {
+    public void setNote(Note item) {
         // message contents
         if (viewType == MessageRecyclerAdapter.DATE) {
             messageTimestamp.setText(formatDate(item.getUpdatedOn(), DateFormat.MEDIUM));

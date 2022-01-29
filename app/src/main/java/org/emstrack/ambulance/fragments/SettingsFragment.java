@@ -78,9 +78,13 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         // and save them in settings
         AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
         Settings settings = appData.getSettings();
-        settings.setUnits(units);
-        settings.setWaypointEnterDetection(waypointEnterDetection);
-        settings.setWaypointExitDetection(waypointExitDetection);
+        if (settings != null) {
+            settings.setUnits(units);
+            settings.setWaypointEnterDetection(waypointEnterDetection);
+            settings.setWaypointExitDetection(waypointExitDetection);
+        } else {
+            Log.e(TAG, "settings was null");
+        }
 
     }
 

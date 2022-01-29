@@ -4,8 +4,6 @@ import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 
-import com.google.android.material.transition.MaterialSharedAxis;
-
 public class DragHelper implements View.OnTouchListener {
 
     private static final String TAG = DragHelper.class.getSimpleName();

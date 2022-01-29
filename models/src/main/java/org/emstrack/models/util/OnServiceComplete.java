@@ -6,9 +6,14 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+
+import java.util.Locale;
 
 /**
  * Safely run and chain services by listening to success and failure actions
@@ -137,6 +142,8 @@ public abstract class OnServiceComplete extends BroadcastReceiver implements Sta
     private boolean successIdCheck;
     private boolean failureIdCheck;
 
+    private final Looper looper;
+
     /**
      * @param context the current context
      * @param successAction the success action to listen to
@@ -144,13 +151,15 @@ public abstract class OnServiceComplete extends BroadcastReceiver implements Sta
      * @param intent the intent to fire
      * @param timeout timeout in milliseconds
      * @param next the next {@link StartableTask} to execute
+     * @param looper the looper to run the timeout timer
      */
-    public OnServiceComplete(final Context context,
-                             final String successAction,
-                             final String failureAction,
-                             Intent intent,
+    public OnServiceComplete(@NonNull Context context,
+                             @NonNull String successAction,
+                             @NonNull String failureAction,
+                             @Nullable Intent intent,
                              int timeout,
-                             StartableTask next) {
+                             @Nullable StartableTask next,
+                             @NonNull Looper looper) {
 
         // context and next
         this.context = context;
@@ -186,6 +195,26 @@ public abstract class OnServiceComplete extends BroadcastReceiver implements Sta
         // Default failure message
         this.failureMessage = "Failed to complete service request";
 
+        // get main looper
+        this.looper = looper;
+
+    }
+
+    /**
+     * @param context the current context
+     * @param successAction the success action to listen to
+     * @param failureAction the failure action to listen to
+     * @param intent the intent to fire
+     * @param timeout timeout in milliseconds
+     * @param next the next {@link StartableTask} to execute
+     */
+    public OnServiceComplete(@NonNull Context context,
+                             @NonNull String successAction,
+                             @NonNull String failureAction,
+                             @Nullable Intent intent,
+                             int timeout,
+                             @Nullable StartableTask next) {
+        this(context, successAction, failureAction, intent, timeout, next, Looper.getMainLooper());
     }
 
     /**
@@ -197,10 +226,10 @@ public abstract class OnServiceComplete extends BroadcastReceiver implements Sta
      * @param intent the intent to fire
      * @param timeout timeout in milliseconds
      */
-    public OnServiceComplete(final Context context,
-                             final String successAction,
-                             final String failureAction,
-                             Intent intent,
+    public OnServiceComplete(@NonNull Context context,
+                             @NonNull String successAction,
+                             @NonNull String failureAction,
+                             @Nullable Intent intent,
                              int timeout) {
         this(context, successAction, failureAction, intent, timeout, null);
     }
@@ -214,11 +243,11 @@ public abstract class OnServiceComplete extends BroadcastReceiver implements Sta
      * @param intent the intent to fire
      * @param next the next {@link StartableTask} to execute
      */
-    public OnServiceComplete(final Context context,
-                             final String successAction,
-                             final String failureAction,
-                             Intent intent,
-                             StartableTask next) {
+    public OnServiceComplete(@NonNull Context context,
+                             @NonNull String successAction,
+                             @NonNull String failureAction,
+                             @Nullable Intent intent,
+                             @Nullable StartableTask next) {
         this(context, successAction, failureAction, intent, DEFAULT_TIMEOUT, next);
     }
 
@@ -230,12 +259,58 @@ public abstract class OnServiceComplete extends BroadcastReceiver implements Sta
      * @param failureAction the failure action to listen to
      * @param intent the intent to fire
       */
-    public OnServiceComplete(final Context context,
-                             final String successAction,
-                             final String failureAction,
-                             Intent intent) {
+    public OnServiceComplete(@NonNull Context context,
+                             @NonNull String successAction,
+                             @NonNull String failureAction,
+                             @Nullable Intent intent) {
 
         this(context, successAction, failureAction, intent, DEFAULT_TIMEOUT);
+    }
+
+    /**
+     * Defaults to no next <code>OnServiceComplete</code> and 10 seconds timeout
+     *
+     * @param context the current context
+     * @param successAction the success action to listen to
+     * @param failureAction the failure action to listen to
+     */
+    public OnServiceComplete(@NonNull Context context,
+                             @NonNull String successAction,
+                             @NonNull String failureAction) {
+
+        this(context, successAction, failureAction, null, DEFAULT_TIMEOUT);
+    }
+
+    /**
+     * Defaults to no next <code>OnServiceComplete</code> and 10 seconds timeout
+     *
+     * @param context the current context
+     * @param successAction the success action to listen to
+     * @param failureAction the failure action to listen to
+     * @param intent the intent to fire
+     */
+    public OnServiceComplete(@NonNull Context context,
+                             @NonNull String successAction,
+                             @NonNull String failureAction,
+                             @Nullable Intent intent,
+                             @NonNull Looper looper) {
+
+        this(context, successAction, failureAction, intent, DEFAULT_TIMEOUT, null, looper);
+    }
+
+    /**
+     * Defaults to no next <code>OnServiceComplete</code> and 10 seconds timeout
+     *
+     * @param context the current context
+     * @param successAction the success action to listen to
+     * @param failureAction the failure action to listen to
+     */
+    public OnServiceComplete(@NonNull Context context,
+                             @NonNull String successAction,
+                             @NonNull String failureAction,
+                             @NonNull Looper looper) {
+
+        this(context, successAction, failureAction, null, DEFAULT_TIMEOUT, null, looper);
     }
 
     /**
@@ -259,7 +334,7 @@ public abstract class OnServiceComplete extends BroadcastReceiver implements Sta
         }
 
         // Start timeout timer
-        new Handler().postDelayed(() -> {
+        new Handler(this.looper).postDelayed(() -> {
 
             // unregister to prevent memory leak
             unregister(this.context);
@@ -274,7 +349,7 @@ public abstract class OnServiceComplete extends BroadcastReceiver implements Sta
                 Bundle bundle = new Bundle();
                 bundle.putString(BroadcastExtras.UUID, uuid);
                 bundle.putString(org.emstrack.models.util.BroadcastExtras.MESSAGE,
-                        String.format("Timed out without completing service in %d seconds.", this.timeout/1000));
+                        String.format(Locale.ENGLISH, "Timed out without completing service in %d seconds.", this.timeout/1000));
 
                 // Call failure
                 onFailure(bundle);

@@ -5,7 +5,7 @@ import androidx.test.core.app.ApplicationProvider;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import android.util.Log;
 
-import org.eclipse.paho.android.service.MqttAndroidClient;
+import org.eclipse.paho.client.mqttv3.MqttAsyncClient;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -34,12 +34,12 @@ public class MqttInstrumentedTest {
 
         assertEquals("org.emstrack.mqtt.test", appContext.getPackageName());
 
-        final String serverUri = "ssl://cruzroja.ucsd.edu:8883";
+        final String serverUri = appContext.getString(R.string.mqttServer);
         final String clientId = "TestClient_" + UUID.randomUUID().toString();
-        final String username = "admin";
-        final String password = "cruzrojaadmin";
+        final String username = appContext.getString(R.string.mqttUser);
+        final String password = appContext.getString(R.string.mqttPassword);
 
-        MqttAndroidClient client = new MqttAndroidClient(appContext, serverUri, clientId);
+        MqttAsyncClient client = new MqttAsyncClient(serverUri, clientId, null);
         final MqttProfileClient profileClient = new MqttProfileClient(client);
 
         // Test login
@@ -71,7 +71,9 @@ public class MqttInstrumentedTest {
 
             @Override
             public void onSuccess() {
-                assertEquals(true, true);
+
+                assertTrue(profileClient.isConnected());
+
             }
 
             @Override
@@ -79,8 +81,6 @@ public class MqttInstrumentedTest {
                 fail();
             }
         });
-        Thread.sleep(2000);
-        assertEquals(true, profileClient.isConnected());
 
         /*
         // Test settings
@@ -200,9 +200,10 @@ public class MqttInstrumentedTest {
         */
 
         // Test logout
+        Thread.sleep(4000);
         profileClient.disconnect();
         Thread.sleep(1000);
-        assertEquals(false, profileClient.isConnected());
+        assertFalse(profileClient.isConnected());
 
     }
 

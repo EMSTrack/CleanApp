@@ -1,15 +1,11 @@
 package org.emstrack.ambulance.util;
 
-import android.app.Activity;
 import android.content.Context;
 import android.graphics.Point;
-import android.view.View;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 
-import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.BitmapDescriptor;
@@ -275,6 +271,30 @@ public class GoogleMapsHelper {
                                  LatLng latLng,
                                  float bearing,
                                  float zoomLevel,
+                                 int xOffset, int yOffset,
+                                 boolean dropMarker,
+                                 int animateTimeInMs,
+                                 GoogleMap.CancelableCallback animateCallback) {
+
+        float currentZoomLevel = googleMap.getCameraPosition().zoom;
+        double scale = 1f;
+        if (zoomLevel != currentZoomLevel) {
+            // scale offset
+            scale = Math.pow(2, currentZoomLevel - zoomLevel);
+            xOffset = (int) scale * xOffset;
+            yOffset = (int) scale * yOffset;
+        }
+
+        Point center = googleMap.getProjection().toScreenLocation(latLng);
+        center.set(center.x - xOffset, center.y - yOffset);
+        centerMap(googleMap, googleMap.getProjection().fromScreenLocation(center),
+                bearing, zoomLevel, dropMarker, animateTimeInMs, animateCallback);
+    }
+
+    public static void centerMap(@NonNull GoogleMap googleMap,
+                                 LatLng latLng,
+                                 float bearing,
+                                 float zoomLevel,
                                  boolean dropMarker,
                                  int animateTimeInMs,
                                  GoogleMap.CancelableCallback animateCallback) {
@@ -282,6 +302,8 @@ public class GoogleMapsHelper {
         if (dropMarker) {
             googleMap.addMarker(new MarkerOptions().position(latLng));
         }
+
+
         if (animateTimeInMs > 0) {
             CameraPosition cameraPosition = new CameraPosition.Builder()
                     .target(latLng)

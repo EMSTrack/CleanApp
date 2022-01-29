@@ -16,13 +16,12 @@ import org.emstrack.models.Note;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 
 /**
- * Connects Equipment data to the RecyclerView (called from EquipmentFragment)
- * @author James Basa
- * @since 2/17/2020
+ * RecyclerView for messages
+ * @author Mauricio de Oliveira
+ * @since 12/17/2021
  */
 
 public class MessageRecyclerAdapter extends RecyclerView.Adapter<MessageViewHolder> {
@@ -37,7 +36,7 @@ public class MessageRecyclerAdapter extends RecyclerView.Adapter<MessageViewHold
     private final String username;
     private final List<Note> messages;
 
-    public MessageRecyclerAdapter(Context context, List<? extends Note> messages, String username) {
+    public MessageRecyclerAdapter(@NonNull Context context, @NonNull List<? extends Note> messages, @NonNull String username) {
         this.context = context;
         this.messages = new ArrayList<>(messages);
         this.username = username;
@@ -57,7 +56,7 @@ public class MessageRecyclerAdapter extends RecyclerView.Adapter<MessageViewHold
         }
     }
 
-    public static boolean isSameDay(Calendar calendar1, Calendar calendar2) {
+    public static boolean isSameDay(@NonNull Calendar calendar1, @NonNull Calendar calendar2) {
         return calendar1.get(Calendar.YEAR) == calendar2.get(Calendar.YEAR)
                 && calendar1.get(Calendar.MONTH) == calendar2.get(Calendar.MONTH)
                 && calendar1.get(Calendar.DAY_OF_MONTH) == calendar2.get(Calendar.DAY_OF_MONTH);
@@ -108,13 +107,13 @@ public class MessageRecyclerAdapter extends RecyclerView.Adapter<MessageViewHold
         } else { // if (viewType == OTHER) {
             view = LayoutInflater.from(parent.getContext()).inflate(R.layout.left_message_item, parent, false);
         }
-        return new MessageViewHolder(context, view, viewType);
+        return new MessageViewHolder(view, viewType);
     }
 
     @Override
     public void onBindViewHolder(@NonNull MessageViewHolder holder, int position) {
         Note item = messages.get(position);
-        holder.setNote(item, context);
+        holder.setNote(item);
     }
 
     @Override

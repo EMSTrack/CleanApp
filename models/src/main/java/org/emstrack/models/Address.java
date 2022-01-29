@@ -1,5 +1,7 @@
 package org.emstrack.models;
 
+import static org.emstrack.models.util.StateHelper.getStateAbbreviation;
+
 import android.os.Build;
 import android.util.Log;
 
@@ -9,9 +11,12 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.libraries.places.api.model.AddressComponent;
 import com.google.android.libraries.places.api.model.AddressComponents;
 
+import org.emstrack.models.util.StringHelper;
+
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -123,6 +128,18 @@ public class Address {
      * @param address an address
      */
     public Address(Address address) {
+        this.number = address.number;
+        this.street = address.street;
+        this.unit = address.unit;
+        this.neighborhood = address.neighborhood;
+        this.city = address.city;
+        this.state = address.state;
+        this.zipcode = address.zipcode;
+        this.country = address.country;
+        this.location = address.location;
+    }
+
+    public void copy(@NonNull Address address) {
         this.number = address.number;
         this.street = address.street;
         this.unit = address.unit;
@@ -327,6 +344,127 @@ public class Address {
             }
         }
         return addressComponentTypeMap;
+    }
+
+    public static boolean isUnitLabel(String str, Locale locale) {
+        if (locale.getLanguage().equals("en")) {
+            return Arrays.asList(new String[]{"apartment", "apt", "building", "bldg", "floor", "fl", "suite", "ste", "room", "rm", "department", "dept", "unit", "#"}).contains(str.toLowerCase(locale));
+        } else if (locale.getLanguage().equals("es")) {
+            return Arrays.asList(new String[]{"departmento", "dept", "apartamento", "ap", "edificio", "ed", "suite", "st"}).contains(str.toLowerCase(locale));
+        } else {
+            return false;
+        }
+    }
+
+    public static String[] parseThoroughfare(String str, Locale locale) {
+        List<String> parts = StringHelper.removeEmpty(str.split("[\\p{Blank},/]"));
+        // System.out.println("parts = " + parts);
+
+        if (parts.size() == 0) {
+            return new String[] {"", "", ""};
+        }
+
+        String streetNumber = "";
+        String streetUnit = "";
+        int beginIndex = 0;
+        int endIndex = parts.size() - 1;
+        if (endIndex > 0) {
+            if (StringHelper.isInt(parts.get(0))) {
+
+                // starts with a number
+                streetNumber = parts.get(0);
+                beginIndex += 1;
+
+                if (StringHelper.isInt(parts.get(endIndex)) || (parts.get(endIndex).charAt(0) == '#' && StringHelper.isInt(parts.get(endIndex).substring(1)))) {
+
+                    // ends with a unit number
+                    streetUnit = parts.get(endIndex);
+                    endIndex -= 1;
+
+                    // preceeded by a unit label
+                    if (endIndex > 0 && isUnitLabel(parts.get(endIndex), Locale.ENGLISH)) {
+                        streetUnit = parts.get(endIndex) + " " + streetUnit;
+                        endIndex -= 1;
+                    }
+                }
+
+            } else {
+
+                if (StringHelper.isInt(parts.get(endIndex))) {
+                    // ends with a number
+
+                    if (endIndex - 1 > 0) {
+                        if (StringHelper.isInt(parts.get(endIndex - 1))) {
+
+                            // preceded by a number
+                            streetNumber = parts.get(endIndex - 1);
+                            streetUnit = parts.get(endIndex);
+                            endIndex -= 2;
+
+                        } else if (isUnitLabel(parts.get(endIndex - 1), locale)) {
+
+                            streetNumber = parts.get(endIndex - 2);
+                            streetUnit = parts.get(endIndex - 1) + " " + parts.get(endIndex);
+                            endIndex -= 3;
+
+                        } else {
+
+                            streetNumber = parts.get(endIndex);
+                            endIndex -= 1;
+
+                        }
+
+                    } else {
+
+                        streetNumber = parts.get(endIndex);
+                        endIndex -= 1;
+
+                    }
+                }
+
+            }
+        }
+
+        String streetAddress = StringHelper.concatenateStringList(parts, beginIndex, endIndex - beginIndex + 1, " ");
+        return new String[] {streetNumber, streetAddress, streetUnit};
+    }
+
+    public static Locale getLocaleByCountryCode(String countryCode) {
+        switch (countryCode.toUpperCase()) {
+            case "BR":
+                return new Locale("pt");
+            case "MX":
+                return new Locale("es");
+            default:
+            case "US":
+                return new Locale("en");
+        }
+
+    }
+
+    public static Address parseAddress(android.location.Address address) {
+
+        // add gps location
+        Address location = new Address(new GPSLocation(address.getLatitude(), address.getLongitude()));
+
+        // get country
+        String country = address.getCountryCode();
+        location.setCountry(country);
+
+        // add state
+        Locale locale = getLocaleByCountryCode(country);
+        location.setState(getStateAbbreviation(country, address.getAdminArea(), locale));
+
+        // add street address
+        location.setNumber(address.getFeatureName());
+        location.setStreet(address.getThoroughfare());
+
+        // add rest
+        location.setNeighborhood(address.getSubLocality());
+        location.setCity(address.getLocality());
+        location.setZipcode(address.getPostalCode());
+
+        return location;
     }
 
     private static String matchFirstType(List<String> addressComponentTypes, String[] possibleTypes) {

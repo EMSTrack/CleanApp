@@ -31,18 +31,20 @@ public class GeofenceBroadcastReceiver extends BroadcastReceiver {
 
         GeofencingEvent geofencingEvent = GeofencingEvent.fromIntent(intent);
         if (geofencingEvent.hasError()) {
-            //String errorMessage = GeofenceErrorMessages.getErrorString(this,
-            //       geofencingEvent.getErrorCode());
-            //Log.e(TAG, errorMessage);
-            Log.d(TAG, "Geofencing Error");
+            Log.d(TAG, "GEOFENCING ERROR CODE = " + geofencingEvent.getErrorCode());
             return;
         }
 
         // Get the transition type.
         int geofenceTransition = geofencingEvent.getGeofenceTransition();
+        Log.d(TAG, "GEOFENCE TRANSITION = " + geofenceTransition);
+        if (geofenceTransition == -1) {
+            Log.d(TAG, "GEOFENCE TRANSITION = " + geofenceTransition);
+            return;
+        }
 
         List<Geofence> triggeringGeofences = geofencingEvent.getTriggeringGeofences();
-        List<String> geofenceIds = new ArrayList<String>();
+        List<String> geofenceIds = new ArrayList<>();
 
         if (triggeringGeofences != null) {
             for (Geofence geofence : triggeringGeofences) {
@@ -84,7 +86,7 @@ public class GeofenceBroadcastReceiver extends BroadcastReceiver {
             getLocalBroadcastManager(context).sendBroadcast(localIntent);
 
         } else {
-            Log.i(TAG, "GEOFENCE_TRIGGERED: UNKNOWN EVENT " + String.valueOf(geofenceTransition));
+            Log.i(TAG, "GEOFENCE_TRIGGERED: UNKNOWN EVENT " + geofenceTransition);
         }
 
     }

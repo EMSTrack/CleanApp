@@ -1,5 +1,6 @@
 package org.emstrack.ambulance.fragments;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -10,15 +11,13 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
-import android.widget.Button;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AlertDialog;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.LinearSnapHelper;
 import androidx.recyclerview.widget.RecyclerView;
@@ -26,6 +25,7 @@ import androidx.recyclerview.widget.SnapHelper;
 
 import com.google.android.material.badge.BadgeDrawable;
 import com.google.android.material.badge.BadgeUtils;
+import com.google.android.material.bottomsheet.BottomSheetBehavior;
 
 import org.emstrack.ambulance.MainActivity;
 import org.emstrack.ambulance.R;
@@ -41,6 +41,7 @@ import org.emstrack.ambulance.views.WaypointViewHolder;
 import org.emstrack.models.Ambulance;
 import org.emstrack.models.AmbulanceCall;
 import org.emstrack.models.Call;
+import org.emstrack.models.Patient;
 import org.emstrack.models.PriorityCode;
 import org.emstrack.models.RadioCode;
 import org.emstrack.models.Settings;
@@ -48,7 +49,6 @@ import org.emstrack.models.Waypoint;
 
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 
 @com.google.android.material.badge.ExperimentalBadgeUtils
 public class CallFragment extends FragmentWithLocalBroadcastReceiver {
@@ -61,14 +61,11 @@ public class CallFragment extends FragmentWithLocalBroadcastReceiver {
     private LinearLayoutManager waypointLinearLayoutManager;
     private RecyclerView waypointBrowserRecyclerView;
 
-    private LinearLayoutManager patientLinearLayoutManager;
     private RecyclerView patientRecyclerView;
 
-    private Button waypointToolbarNextButton;
-    private Button waypointToolbarVisitingButton;
-    private Button waypointToolbarSkipButton;
-    private Button waypointToolbarAddWaypointButton;
-    private Button waypointToolbarUndoButton;
+    private ImageView bottomSheetNextIcon;
+    private ImageView bottomSheetAddIcon;
+    private ImageView bottomSheetUndoIcon;
 
     private TextView callPriorityTextView;
     private TextView callPriorityPrefixTextView;
@@ -79,17 +76,19 @@ public class CallFragment extends FragmentWithLocalBroadcastReceiver {
     private TextView ambulanceIdentifierText;
     private TextView ambulanceStatusText;
 
-    private TextView callPatientsTextView;
     private ImageView callPatientShowAddIcon;
-    private EditText callAddPatientNameEditText;
-    private EditText callAddPatientAgeEditText;
     private View callPatientAddLayout;
-    private ImageView callPatientAddIcon;
-    private ImageView callPatientCancelAddIcon;
     private ImageView callMessageButton;
     private FrameLayout callMessageButtonFrameLayout;
     private WaypointInfoRecyclerAdapter waypointAdapter;
+    private BottomSheetBehavior<View> bottomSheetBehavior;
+    private ImageView waypointMaximize;
+    private ImageView waypointMinimize;
+    private View patientScrollView;
+    private View callPatientsTextView;
+    private View bottomFillerView;
 
+    @SuppressLint("NotifyDataSetChanged")
     @Override
     public void onReceive(Context context, @NonNull Intent intent) {
         final String action = intent.getAction();
@@ -99,6 +98,7 @@ public class CallFragment extends FragmentWithLocalBroadcastReceiver {
                     Log.i(TAG, "AMBULANCE_UPDATE");
                     if (waypointAdapter != null) {
                         waypointAdapter.notifyDataSetChanged();
+                        configureWaypointEditor();
                     }
                     break;
                 case AmbulanceForegroundService.BroadcastActions.CALL_UPDATE:
@@ -127,25 +127,27 @@ public class CallFragment extends FragmentWithLocalBroadcastReceiver {
         View view = inflater.inflate(R.layout.fragment_call, container, false);
         activity = (MainActivity) requireActivity();
 
-        // setup callLayout
-        View callLayout = view.findViewById(R.id.callLayout);
+        // bottom sheet
+        View waypointBrowserBottomSheet = view.findViewById(R.id.waypointBrowserBottomSheet);
+        bottomSheetBehavior = BottomSheetBehavior.from(waypointBrowserBottomSheet);
 
         // Retrieve callLayout parts
-        View callEndButton = callLayout.findViewById(R.id.callEndButton);
-        callMessageButtonFrameLayout = callLayout.findViewById(R.id.callMessageButtonFrameLayout);
-        callMessageButton = callLayout.findViewById(R.id.callMessageButton);
+        View callEndButton = view.findViewById(R.id.callEndButton);
+        callMessageButtonFrameLayout = view.findViewById(R.id.callMessageButtonFrameLayout);
+        callMessageButton = view.findViewById(R.id.callMessageButton);
 
-        ambulanceIdentifierText = callLayout.findViewById(R.id.ambulanceIdentifierText);
-        ambulanceStatusText = callLayout.findViewById(R.id.ambulanceStatusText);
+        ambulanceIdentifierText = view.findViewById(R.id.ambulanceIdentifierText);
+        ambulanceStatusText = view.findViewById(R.id.ambulanceStatusText);
 
-        callPriorityTextView = callLayout.findViewById(R.id.callPriorityTextView);
-        callPriorityPrefixTextView = callLayout.findViewById(R.id.callPriorityPrefix);
-        callPrioritySuffixTextView = callLayout.findViewById(R.id.callPrioritySuffix);
+        callPriorityTextView = view.findViewById(R.id.callPriorityTextView);
+        callPriorityPrefixTextView = view.findViewById(R.id.callPriorityPrefix);
+        callPrioritySuffixTextView = view.findViewById(R.id.callPrioritySuffix);
 
-        callRadioCodeTextView = callLayout.findViewById(R.id.callRadioCodeText);
-        callDescriptionTextView = callLayout.findViewById(R.id.callDetailsText);
-        callPatientsTextView = callLayout.findViewById(R.id.callPatientsText);
-        callNumberWaypointsView = callLayout.findViewById(R.id.callNumberOfWaypointsText);
+        callRadioCodeTextView = view.findViewById(R.id.callRadioCodeText);
+        callDescriptionTextView = view.findViewById(R.id.callDetailsText);
+        callPatientsTextView = view.findViewById(R.id.callPatientsText);
+        callNumberWaypointsView = view.findViewById(R.id.callNumberOfWaypointsText);
+        bottomFillerView = view.findViewById(R.id.bottomFillerView);
 
         // setup call buttons
         callEndButton.setOnClickListener(v -> {
@@ -164,42 +166,38 @@ public class CallFragment extends FragmentWithLocalBroadcastReceiver {
         });
 
         // add patient
-        callPatientAddLayout = callLayout.findViewById(R.id.callPatientAddLayout);
+        callPatientAddLayout = view.findViewById(R.id.callPatientAddLayout);
 
-        callPatientShowAddIcon = callLayout.findViewById(R.id.callPatientShowAddIcon);
+        callPatientShowAddIcon = view.findViewById(R.id.callPatientShowAddIcon);
         callPatientShowAddIcon.setOnClickListener(v -> togglePatientAddVisibility() );
 
-        callAddPatientNameEditText = callPatientAddLayout.findViewById(R.id.patientNameEditText);
-        callAddPatientAgeEditText = callPatientAddLayout.findViewById(R.id.patientAgeEditText);
+        EditText callAddPatientNameEditText = callPatientAddLayout.findViewById(R.id.patientNameEditText);
+        EditText callAddPatientAgeEditText = callPatientAddLayout.findViewById(R.id.patientAgeEditText);
 
-        callPatientAddIcon = callPatientAddLayout.findViewById(R.id.patientAddIcon);
+        ImageView callPatientAddIcon = callPatientAddLayout.findViewById(R.id.patientAddIcon);
         callPatientAddIcon.setEnabled(false);
         callPatientAddIcon.setOnClickListener(v -> addPatient());
 
-        callPatientCancelAddIcon = callPatientAddLayout.findViewById(R.id.patientCancelAddIcon);
-        callPatientCancelAddIcon.setOnClickListener(v -> {
-            togglePatientAddVisibility();
-        });
+        ImageView callPatientCancelAddIcon = callPatientAddLayout.findViewById(R.id.patientCancelAddIcon);
+        callPatientCancelAddIcon.setOnClickListener(v -> togglePatientAddVisibility());
 
 
         // enable plus only when text is not empty
         callAddPatientNameEditText.addTextChangedListener(new ViewTextWatcher(callPatientAddIcon));
 
         // Set patient recycler view
-        patientRecyclerView = callLayout.findViewById(R.id.patientRecyclerView);
-        patientLinearLayoutManager = new LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false);
+        patientScrollView = view.findViewById(R.id.patientScrollView);
+        patientRecyclerView = view.findViewById(R.id.patientRecyclerView);
+        LinearLayoutManager patientLinearLayoutManager = new LinearLayoutManager(requireContext(),
+                LinearLayoutManager.VERTICAL, false);
         patientRecyclerView.setLayoutManager(patientLinearLayoutManager);
 
         // Set waypoint browser
-        View waypointBrowser = callLayout.findViewById(R.id.callWaypointBrowser);
-        waypointBrowserRecyclerView = waypointBrowser.findViewById(R.id.waypointBrowserRecyclerView);
+        waypointBrowserRecyclerView = view.findViewById(R.id.waypointBrowserRecyclerView);
 
-        View waypointBrowserToolbar = waypointBrowser.findViewById(R.id.waypointBrowserToolbar);
-        waypointToolbarNextButton = waypointBrowserToolbar.findViewById(R.id.waypointToolbarNextButton);
-        waypointToolbarVisitingButton = waypointBrowserToolbar.findViewById(R.id.waypointToolbarVisitingButton);
-        waypointToolbarSkipButton = waypointBrowserToolbar.findViewById(R.id.waypointToolbarSkipButton);
-        waypointToolbarAddWaypointButton = waypointBrowserToolbar.findViewById(R.id.waypointToolbarAddWaypointButton);
-        waypointToolbarUndoButton = waypointBrowserToolbar.findViewById(R.id.waypointToolbarUndoButton);
+        bottomSheetUndoIcon = waypointBrowserBottomSheet.findViewById(R.id.bottomSheetUndoIcon);
+        bottomSheetAddIcon = waypointBrowserBottomSheet.findViewById(R.id.bottomSheetAddIcon);
+        bottomSheetNextIcon = waypointBrowserBottomSheet.findViewById(R.id.bottomSheetCurrentIcon);
 
         // called after user scrolls waypoint tool
         waypointLinearLayoutManager = new LinearLayoutManager(requireContext(),
@@ -221,85 +219,65 @@ public class CallFragment extends FragmentWithLocalBroadcastReceiver {
         SnapHelper snapHelper = new LinearSnapHelper();
         snapHelper.attachToRecyclerView(waypointBrowserRecyclerView);
 
+        // set waypoint arrows
+        waypointMaximize = view.findViewById(R.id.waypointMaximize);
+        waypointMinimize = view.findViewById(R.id.waypointMinimize);
+        waypointMaximize.setOnClickListener(v -> {
+            waypointMaximize.setVisibility(View.GONE);
+            waypointMinimize.setVisibility(View.VISIBLE);
+            waypointLinearLayoutManager.setOrientation(LinearLayoutManager.VERTICAL);
+            waypointAdapter.setHideRightPanel(false);
+            waypointBrowserRecyclerView.setAdapter(waypointAdapter);
+        });
+        waypointMinimize.setOnClickListener(v -> {
+            waypointMaximize.setVisibility(View.VISIBLE);
+            waypointMinimize.setVisibility(View.GONE);
+            waypointLinearLayoutManager.setOrientation(LinearLayoutManager.HORIZONTAL);
+            waypointAdapter.setHideRightPanel(true);
+            waypointBrowserRecyclerView.setAdapter(waypointAdapter);
+        });
+
         // set up toolbar
-        waypointToolbarNextButton
-                .setOnClickListener(v -> {
-                    RecyclerView.Adapter adapter = waypointBrowserRecyclerView.getAdapter();
-                    if (adapter != null) {
-                        AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
-                        Call call = appData.getCalls().getCurrentCall();
-                        AmbulanceCall ambulanceCall = call.getCurrentAmbulanceCall();
-                        waypointBrowserRecyclerView.smoothScrollToPosition(ambulanceCall.getNextWaypointPosition());
+        bottomSheetNextIcon
+                .setOnClickListener(v -> waypointBrowserRecyclerView.smoothScrollToPosition(getNextWaypointPosition()));
+
+        bottomSheetAddIcon
+                .setOnClickListener(v -> activity.navigate(R.id.action_call_to_selectLocation));
+
+        bottomSheetUndoIcon
+                .setOnClickListener(v-> new SimpleAlertDialog(requireActivity(), getString(R.string.alert_warning_title))
+                        .alert(getString(R.string.notImplementedYet)));
+
+        // bottom sheet callback
+        bottomSheetBehavior.addBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback() {
+            @Override
+            public void onStateChanged(@NonNull View bottomSheet, int newState) {
+                if (newState == BottomSheetBehavior.STATE_EXPANDED) {
+                    int orientation = waypointLinearLayoutManager.getOrientation();
+                    if (orientation == LinearLayoutManager.VERTICAL) {
+                        waypointMaximize.setVisibility(View.GONE);
+                        waypointMinimize.setVisibility(View.VISIBLE);
+                    } else {
+                        waypointMaximize.setVisibility(View.VISIBLE);
+                        waypointMinimize.setVisibility(View.GONE);
                     }
-                });
+                    bottomSheetUndoIcon.setVisibility(View.VISIBLE);
+                    bottomSheetNextIcon.setVisibility(View.VISIBLE);
+                    bottomSheetAddIcon.setVisibility(View.VISIBLE);
+                } else if (newState == BottomSheetBehavior.STATE_COLLAPSED) {
+                    waypointMaximize.setVisibility(View.GONE);
+                    waypointMinimize.setVisibility(View.GONE);
+                    bottomSheetUndoIcon.setVisibility(View.GONE);
+                    bottomSheetNextIcon.setVisibility(View.GONE);
+                    bottomSheetAddIcon.setVisibility(View.GONE);
+                }
+            }
 
-        waypointToolbarUndoButton
-                .setOnClickListener(v -> {
-                    new SimpleAlertDialog(getActivity(), getString(R.string.alert_warning_title))
-                            .alert(getString(R.string.notImplementedYet));
-                });
+            @Override
+            public void onSlide(@NonNull View bottomSheet, float slideOffset) {
 
-        waypointToolbarAddWaypointButton
-                .setOnClickListener(v -> {
-                    activity.navigate(R.id.action_call_to_selectLocation);
-                });
-//                .setOnClickListener(v -> {
-//                    Call call = AmbulanceForegroundService.getAppData().getCalls().getCurrentCall();
-//                    activity.promptNextWaypointDialog(call.getId());
-//                });
-
-        waypointToolbarSkipButton
-                .setOnClickListener(v -> {
-                    AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
-                    Ambulance ambulance = appData.getAmbulance();
-                    int currentPosition = waypointLinearLayoutManager.findFirstVisibleItemPosition();
-                    Call call = appData.getCalls().getCurrentCall();
-                    AmbulanceCall ambulanceCall = call.getCurrentAmbulanceCall();
-                    try {
-                        List<Waypoint> waypointSet = ambulanceCall.getWaypointSet();
-                        Waypoint waypoint = waypointSet.get(currentPosition);
-                        promptSkipVisitingOrVisited(Waypoint.STATUS_SKIPPED,
-                                waypoint.getId(), call.getId(), ambulance.getId(),
-                                getString(R.string.pleaseConfirm),
-                                getString(R.string.skipCurrentWaypoint,
-                                        waypoint.getLocation().toAddress(requireContext())),
-                                getString(R.string.skippingWaypoint));
-                    } catch (NullPointerException e) {
-                        Log.d(TAG, "Exception in waypointToolbarSkipButton: " + e);
-                    }
-                });
-
-        waypointToolbarVisitingButton
-                .setOnClickListener(v -> {
-                    try {
-                        AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
-                        Ambulance ambulance = appData.getAmbulance();
-                        int currentPosition = waypointLinearLayoutManager.findFirstVisibleItemPosition();
-                        Call call = AmbulanceForegroundService.getAppData().getCalls().getCurrentCall();
-                        AmbulanceCall ambulanceCall = call.getCurrentAmbulanceCall();
-                        List<Waypoint> waypointSet = ambulanceCall.getWaypointSet();
-                        Waypoint waypoint = waypointSet.get(currentPosition);
-
-                        if (waypoint.isCreated()) {
-                            promptSkipVisitingOrVisited(Waypoint.STATUS_VISITING,
-                                    waypoint.getId(), call.getId(), ambulance.getId(),
-                                    getString(R.string.pleaseConfirm),
-                                    getString(R.string.visitCurrentWaypoint,
-                                            waypoint.getLocation().toAddress(requireContext())),
-                                    getString(R.string.visitingWaypoint));
-                        } else {
-                            promptSkipVisitingOrVisited(Waypoint.STATUS_VISITED,
-                                    waypoint.getId(), call.getId(), ambulance.getId(),
-                                    getString(R.string.pleaseConfirm),
-                                    getString(R.string.visitedCurrentWaypoint,
-                                            waypoint.getLocation().toAddress(requireContext())),
-                                    getString(R.string.visitedWaypoint));
-                        }
-
-                    } catch (NullPointerException e) {
-                        Log.d(TAG, "Exception in waypointToolbarSkipButton: " + e);
-                    }
-                });
+            }
+        });
 
         // update call
         refreshData();
@@ -323,6 +301,12 @@ public class CallFragment extends FragmentWithLocalBroadcastReceiver {
 
         Log.d(TAG, "onResume");
         activity.setupNavigationBar();
+
+        // configure waypoint editor
+        configureWaypointEditor();
+
+        // set colors
+        setColors();
 
     }
 
@@ -357,7 +341,8 @@ public class CallFragment extends FragmentWithLocalBroadcastReceiver {
                             if (action.equals(MainActivity.ACTION_MARK_AS_VISITING)) {
                                 if (waypoint.isCreated()) {
                                     Log.d(TAG, "Will prompt to mark visiting");
-                                    promptSkipVisitingOrVisited(Waypoint.STATUS_VISITING,
+                                    WaypointViewHolder.promptSkipVisitingOrVisited(activity,
+                                            Waypoint.STATUS_VISITING,
                                             waypointId, callId, ambulanceId,
                                             getString(R.string.pleaseConfirm),
                                             getString(R.string.visitCurrentWaypoint,
@@ -368,7 +353,8 @@ public class CallFragment extends FragmentWithLocalBroadcastReceiver {
                             } else if (action.equals(MainActivity.ACTION_MARK_AS_VISITED)) {
                                 if (waypoint.isVisiting()) {
                                     Log.d(TAG, "Will prompt to mark visited");
-                                    promptSkipVisitingOrVisited(Waypoint.STATUS_VISITED,
+                                    WaypointViewHolder.promptSkipVisitingOrVisited(activity,
+                                            Waypoint.STATUS_VISITED,
                                             waypointId, callId, ambulanceId,
                                             getString(R.string.pleaseConfirm),
                                             getString(R.string.visitedCurrentWaypoint,
@@ -383,8 +369,8 @@ public class CallFragment extends FragmentWithLocalBroadcastReceiver {
 
                 if (invalidCall) {
                     Log.d(TAG, String.format("Ambulance '%d', call '%d' and waypoint '%d' are not current", ambulanceId, callId, waypointId));
-                    new SimpleAlertDialog(activity, getString(R.string.alert_warning_title))
-                            .alert(getString(R.string.invalidNotification), (dialogInterface, i) -> activity.navigate(R.id.mapFragment));
+//                    new SimpleAlertDialog(activity, getString(R.string.alert_warning_title))
+//                            .alert(getString(R.string.invalidNotification), (dialogInterface, i) -> activity.navigate(R.id.mapFragment));
                 }
 
             }
@@ -397,6 +383,11 @@ public class CallFragment extends FragmentWithLocalBroadcastReceiver {
 
         // Get app data
         AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
+        Ambulance ambulance = appData.getAmbulance();
+        if (ambulance == null) {
+            Log.d(TAG, "No current ambulance");
+            return;
+        }
 
         // get current call
         Call call = appData.getCalls().getCurrentCall();
@@ -412,30 +403,19 @@ public class CallFragment extends FragmentWithLocalBroadcastReceiver {
             return;
         }
 
-        // get ambulanceCapabilities
+        // get settings
         Settings settings = appData.getSettings();
-        Map<String, String> ambulanceStatusMap = settings.getAmbulanceStatus();
-
-        // set ambulance identifier
-        Ambulance ambulance = appData.getAmbulance();
-        ambulanceIdentifierText.setText(ambulance.getIdentifier());
 
         // set ambulance status
         String status = ambulance.getStatus();
-        ambulanceStatusText.setText(ambulanceStatusMap.get(status));
+        ambulanceStatusText.setText(settings != null ? settings.getAmbulanceStatus().get(status) : "");
+
+        // set ambulance identifier
+        ambulanceIdentifierText.setText(ambulance.getIdentifier());
 
         // set call priority
         String priority = call.getPriority();
         callPriorityTextView.setText(priority);
-
-        // set colors
-        try {
-            ambulanceStatusText.setTextColor(activity.getAmbulanceStatusBackgroundColorMap().get(status));
-            callPriorityTextView.setBackgroundColor(activity.getCallPriorityBackgroundColors().get(priority));
-            callPriorityTextView.setTextColor(activity.getCallPriorityForegroundColors().get(priority));
-        } catch (NullPointerException e) {
-            Log.d(TAG, "Could not set colors");
-        }
 
         int priorityCodeInt = call.getPriorityCode();
         if (priorityCodeInt < 0) {
@@ -460,27 +440,26 @@ public class CallFragment extends FragmentWithLocalBroadcastReceiver {
         callDescriptionTextView.setText(call.getDetails());
 
         // Install patients adapter
-        PatientRecyclerAdapter patientAdapter = new PatientRecyclerAdapter(requireActivity(), call.getPatientSet());
+        List<Patient> patientSet = call.getPatientSet();
+        PatientRecyclerAdapter patientAdapter = new PatientRecyclerAdapter(patientSet);
         patientRecyclerView.setAdapter(patientAdapter);
-        callPatientsTextView.setVisibility(View.GONE);
+        if (patientSet.size() > 0) {
+            callPatientsTextView.setVisibility(View.GONE);
+        }
         callPatientAddLayout.setVisibility(View.GONE);
-        patientRecyclerView.setVisibility(View.VISIBLE);
+        patientScrollView.setVisibility(View.VISIBLE);
 
         int numberOfWaypoints = ambulanceCall.getWaypointSet().size();
         callNumberWaypointsView.setText(String.valueOf(numberOfWaypoints));
 
-        if (numberOfWaypoints > 0) {
-
-            // Install adapter
-            waypointAdapter = new WaypointInfoRecyclerAdapter(requireActivity(), ambulanceCall.getWaypointSet());
-            waypointBrowserRecyclerView.setAdapter(waypointAdapter);
-            waypointBrowserRecyclerView.setVisibility(View.VISIBLE);
-
-            // configure waypoint editor
-            configureWaypointEditor(ambulanceCall.getNextWaypointPosition());
-        } else {
-            waypointBrowserRecyclerView.setVisibility(View.GONE);
-        }
+        // Install adapter
+        waypointAdapter = new WaypointInfoRecyclerAdapter(requireActivity(), ambulanceCall.getWaypointSet(),
+                false, false, true, false);
+        waypointBrowserRecyclerView.setAdapter(waypointAdapter);
+        waypointAdapter
+                .getItemTouchHelper()
+                .attachToRecyclerView(waypointBrowserRecyclerView);
+        configureWaypointEditor();
 
         // set badge
         int numberOfUnreadNotes = call.getNumberOfUnreadNotes();
@@ -509,29 +488,93 @@ public class CallFragment extends FragmentWithLocalBroadcastReceiver {
 
     }
 
-    void configureWaypointEditor(int position) {
+    private void setColors() {
+
+        // Get app data
+        AmbulanceAppData appData = AmbulanceForegroundService.getAppData();
+        Ambulance ambulance = appData.getAmbulance();
+        if (ambulance == null) {
+            Log.d(TAG, "No current ambulance");
+            return;
+        }
+
+        // get current call
+        Call call = appData.getCalls().getCurrentCall();
+        if (call == null) {
+            Log.d(TAG, "No current call");
+            return;
+        }
+
+        String status = ambulance.getStatus();
+        String priority = call.getPriority();
+
+        try {
+            ambulanceStatusText.setTextColor(activity.getAmbulanceStatusBackgroundColorMap().get(status));
+            callPriorityTextView.setBackgroundColor(activity.getCallPriorityBackgroundColors().get(priority));
+            callPriorityTextView.setTextColor(activity.getCallPriorityForegroundColors().get(priority));
+        } catch (NullPointerException e) {
+            Log.d(TAG, "Could not set colors");
+        }
+
+    }
+
+    private int getNextWaypointPosition() {
+        Call call = AmbulanceForegroundService.getAppData().getCalls().getCurrentCall();
+        if (call != null) {
+            return call.getCurrentAmbulanceCall().getNextWaypointPosition();
+        }
+        return -1;
+    }
+
+    private void configureWaypointEditor() {
+        configureWaypointEditor(getNextWaypointPosition(), 0);
+    }
+
+    private void configureWaypointEditor(int position) {
         configureWaypointEditor(position, 0);
     }
 
-    void configureWaypointEditor(int position, int count) {
+    private void configureWaypointEditor(int position, int numberOfAttempts) {
+
+        // configure buttons
+        if (bottomSheetBehavior.getState() == BottomSheetBehavior.STATE_COLLAPSED) {
+            bottomSheetUndoIcon.setVisibility(View.GONE);
+            bottomSheetNextIcon.setVisibility(View.GONE);
+            bottomSheetAddIcon.setVisibility(View.GONE);
+            waypointMaximize.setVisibility(View.GONE);
+            waypointMinimize.setVisibility(View.GONE);
+        } else {
+            bottomSheetUndoIcon.setVisibility(View.VISIBLE);
+            bottomSheetNextIcon.setVisibility(View.VISIBLE);
+            bottomSheetAddIcon.setVisibility(View.VISIBLE);
+            if (waypointLinearLayoutManager.getOrientation() == LinearLayoutManager.VERTICAL) {
+                waypointAdapter.setHideRightPanel(false);
+                waypointMaximize.setVisibility(View.GONE);
+                waypointMinimize.setVisibility(View.VISIBLE);
+            } else {
+                waypointAdapter.setHideRightPanel(true);
+                waypointMaximize.setVisibility(View.VISIBLE);
+                waypointMinimize.setVisibility(View.GONE);
+            }
+        }
 
         // get current position
         int currentPosition = waypointLinearLayoutManager.findFirstVisibleItemPosition();
         Log.d(TAG, String.format("Waypoint editor; position = %d, currentPosition = %d", position, currentPosition));
 
         if (currentPosition == -1) {
-            if (getContext() != null && count < MAX_RETRIES) {
+            if (getContext() != null && numberOfAttempts < MAX_RETRIES) {
                 // configure waypoint after a while
                 new Handler().postDelayed(() -> {
                     Log.d(TAG, "Delaying configuring Waypoint editor");
-                    configureWaypointEditor(position, count + 1);
+                    configureWaypointEditor(position, numberOfAttempts + 1);
                 }, 100);
             } else {
                 Log.d(TAG, "Out of context or MAX_RETRIES exceeded. Giving up configuring waypoint editor. Editor is likely not visible");
             }
         }
 
-        if (currentPosition != position) {
+        if (currentPosition != position && waypointLinearLayoutManager.getOrientation() == LinearLayoutManager.HORIZONTAL) {
             Log.d(TAG, String.format("Will set waypoint position to %d", position));
             // set current position, will configure waypoint editor then
             waypointLinearLayoutManager.scrollToPosition(position);
@@ -539,154 +582,61 @@ public class CallFragment extends FragmentWithLocalBroadcastReceiver {
         }
 
         // get adapter and itemCount
-        RecyclerView.Adapter adapter = waypointBrowserRecyclerView.getAdapter();
-        int itemCount = adapter != null ? adapter.getItemCount() : 0;
+        WaypointInfoRecyclerAdapter adapter = (WaypointInfoRecyclerAdapter) waypointBrowserRecyclerView.getAdapter();
+        Call call = AmbulanceForegroundService.getAppData().getCalls().getCurrentCall();
+        if (adapter != null && call != null && position != -1) {
 
-        // set visiting button
-        try {
-            Call call = AmbulanceForegroundService.getAppData().getCalls().getCurrentCall();
+            // set visiting button
             AmbulanceCall ambulanceCall = call.getCurrentAmbulanceCall();
             List<Waypoint> waypointSet = ambulanceCall.getWaypointSet();
-            Waypoint waypoint = waypointSet.get(position);
             Waypoint nextWaypoint = ambulanceCall.getNextWaypoint();
-
-            String text;
-            int backgroundColor, textColor;
-
-            int nextWaypointId = nextWaypoint == null ? -1 : nextWaypoint.getId();
-            int nextWaypointOrder = nextWaypoint == null ? -1 : nextWaypoint.getOrder();
-
-            if (waypoint.getId() == nextWaypointId) {
+            if (waypointSet.get(position) == nextWaypoint) {
                 // waypoint is next waypoint
-                Log.d(TAG, "Waypoint is next waypoint");
+                Log.d(TAG, "Waypoint is next waypoint, set as selected");
 
-                if (waypoint.isCreated()) {
-
-                    text = getString(R.string.visiting);
-                    backgroundColor = getResources().getColor(R.color.bootstrapWarning);
-                    textColor = getResources().getColor(R.color.bootstrapDark);
-
-                } else { // if waypoint.isVisiting()
-
-                    text = getString(R.string.visited);
-                    backgroundColor = getResources().getColor(R.color.bootstrapPrimary);
-                    textColor = getResources().getColor(R.color.bootstrapLight);
-
-                }
-
-                waypointToolbarVisitingButton.setEnabled(true);
-                waypointToolbarAddWaypointButton.setEnabled(true);
-                waypointToolbarSkipButton.setEnabled(true);
-                waypointToolbarUndoButton.setEnabled(true);
-
-                if (waypoint.isCreated()) {
-                    // color current waypoint
-                    WaypointViewHolder viewHolder = (WaypointViewHolder) waypointBrowserRecyclerView.findViewHolderForAdapterPosition(position);
-                    if (viewHolder != null) {
-                        viewHolder.setAsCurrent();
-                    }
-                }
-
-            } else if (waypoint.getOrder() < nextWaypointOrder || nextWaypointOrder == -1) {
-                Log.d(TAG, "Waypoint comes before current waypoint or there is no next waypoint");
-
-                if (waypoint.isVisited()) {
-
-                    // waypoint is already visited
-                    text = getString(R.string.visited);
-                    backgroundColor = getResources().getColor(R.color.bootstrapPrimary);
-
-                } else { // { if (waypoint.isSkipped()) {
-
-                    // waypoint was skipped
-                    text = getString(R.string.skipped);
-                    backgroundColor = getResources().getColor(R.color.bootstrapSecondary);
-
-                }
-                textColor = getResources().getColor(R.color.bootstrapDark);
-
-                waypointToolbarVisitingButton.setEnabled(false);
-                waypointToolbarAddWaypointButton.setEnabled(nextWaypointOrder == -1 && position == waypointSet.size() - 1);
-                waypointToolbarSkipButton.setEnabled(false);
-                // enable undo only if last waypoint
-                waypointToolbarUndoButton.setEnabled(nextWaypointOrder == -1 && position == waypointSet.size() - 1);
-
-            } else { // if (waypoint.getOrder() > nextWaypoint.getOrder()) {
-                Log.d(TAG, "Waypoint comes after current waypoint");
-
-                // waypoint is not visited yet
-                text = getString(R.string.visiting);
-                backgroundColor = getResources().getColor(R.color.bootstrapWarning);
-                textColor = getResources().getColor(R.color.bootstrapSecondary);
-
-                waypointToolbarVisitingButton.setEnabled(false);
-                waypointToolbarAddWaypointButton.setEnabled(true);
-                waypointToolbarSkipButton.setEnabled(true);
-                waypointToolbarUndoButton.setEnabled(false);
+                // set as selected
+                adapter.setSelectedPosition(position);
 
             }
 
-            waypointToolbarVisitingButton.setText(text);
-            waypointToolbarVisitingButton.setBackgroundColor(backgroundColor);
-            waypointToolbarVisitingButton.setTextColor(textColor);
+            // set waypoint label
+            int completedWaypoints;
+            if (nextWaypoint != null) {
+                completedWaypoints = 0;
+                for (Waypoint waypoint : waypointSet) {
+                    if (waypoint == nextWaypoint) {
+                        break;
+                    }
+                    completedWaypoints++;
+                }
+            } else {
+                completedWaypoints = waypointSet.size();
+            }
+            callNumberWaypointsView.setText(String.format(Locale.ENGLISH, "%d/%d", completedWaypoints, waypointSet.size()));
 
-        } catch (NullPointerException e) {
-            Log.d(TAG, "Exception in setupWaypointToolbar: " + e);
         }
-
-    }
-
-    public void promptSkipVisitingOrVisited(final String status,
-                                            final int waypointId, final int callId, final int ambulanceId,
-                                            final String title, final String message, final String doneMessage) {
-
-        Log.d(TAG, "Creating promptSkipVisitingOrVisited dialog");
-
-        // Use the Builder class for convenient dialog construction
-        AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
-        builder.setTitle(title)
-                .setMessage(message)
-                .setNegativeButton(android.R.string.no,
-                        (dialog, id) -> Log.i(TAG, "Continuing..."))
-                .setPositiveButton(android.R.string.yes,
-                        (dialog, id) -> {
-
-                            Log.i(TAG, String.format("Will mark as '%1$s'", status));
-
-                            Toast.makeText(getContext(), doneMessage, Toast.LENGTH_SHORT).show();
-
-                            String action;
-                            if (status.equals(Waypoint.STATUS_SKIPPED))
-                                action = AmbulanceForegroundService.Actions.WAYPOINT_SKIP;
-                            else if (status.equals(Waypoint.STATUS_VISITING))
-                                action = AmbulanceForegroundService.Actions.WAYPOINT_ENTER;
-                            else // if (status == Waypoint.STATUS_VISITED)
-                                action = AmbulanceForegroundService.Actions.WAYPOINT_EXIT;
-
-                            // update waypoint status on server
-                            Intent intent = new Intent(getContext(),
-                                    AmbulanceForegroundService.class);
-                            intent.setAction(action);
-                            Bundle bundle = new Bundle();
-                            bundle.putInt(AmbulanceForegroundService.BroadcastExtras.WAYPOINT_ID, waypointId);
-                            bundle.putInt(AmbulanceForegroundService.BroadcastExtras.AMBULANCE_ID, ambulanceId);
-                            bundle.putInt(AmbulanceForegroundService.BroadcastExtras.CALL_ID, callId);
-                            intent.putExtras(bundle);
-                            activity.startService(intent);
-
-                        });
-
-        // Create the AlertDialog object and return it
-        builder.create().show();
     }
 
     private void togglePatientAddVisibility() {
         if (callPatientAddLayout.getVisibility() == View.VISIBLE) {
             callPatientAddLayout.setVisibility(View.GONE);
             callPatientShowAddIcon.setVisibility(View.VISIBLE);
+            bottomFillerView.setVisibility(View.GONE);
+            bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+            bottomSheetBehavior.setHideable(false);
+
+            // hide keyboard
+            View view = activity.getCurrentFocus();
+            if (view != null) {
+                InputMethodManager imm = (InputMethodManager) activity.getSystemService(Context.INPUT_METHOD_SERVICE);
+                imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+            }
         } else {
             callPatientAddLayout.setVisibility(View.VISIBLE);
             callPatientShowAddIcon.setVisibility(View.GONE);
+            bottomFillerView.setVisibility(View.VISIBLE);
+            bottomSheetBehavior.setHideable(true);
+            bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
         }
     }
 

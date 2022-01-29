@@ -4,6 +4,9 @@ import android.app.Activity;
 import android.content.DialogInterface;
 import android.util.Log;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
 import org.emstrack.models.util.Alert;
 
 /**
@@ -15,7 +18,7 @@ import org.emstrack.models.util.Alert;
 
 public class SimpleAlertDialog extends Alert {
 
-    private static String TAG = SimpleAlertDialog.class.getSimpleName();
+    private String TAG = SimpleAlertDialog.class.getSimpleName();
 
     private final android.app.AlertDialog.Builder builder;
     private final DialogInterface.OnClickListener onClickListener;
@@ -28,8 +31,8 @@ public class SimpleAlertDialog extends Alert {
         this.alert = null;
     }
 
-    public SimpleAlertDialog(Activity activity, String title,
-                             DialogInterface.OnClickListener onClickListener) {
+    public SimpleAlertDialog(@NonNull Activity activity, @NonNull String title,
+                             @Nullable DialogInterface.OnClickListener onClickListener) {
 
         // create builder
         this.builder = new android.app.AlertDialog.Builder(activity);
@@ -40,20 +43,20 @@ public class SimpleAlertDialog extends Alert {
 
     }
 
-    public SimpleAlertDialog(Activity activity, String title) {
+    public SimpleAlertDialog(@NonNull Activity activity, @NonNull String title) {
         this(activity, title, (dialog, which) -> { /* do nothing */ });
     }
 
-    public void setTag(String TAG) {
+    public void setTag(@NonNull String TAG) {
         this.TAG = TAG;
     }
 
-    public void alert(String message) {
+    public void alert(@NonNull String message) {
         alert(message, this.onClickListener);
     }
 
-    public void alert(String message,
-                      DialogInterface.OnClickListener onOkClickAction) {
+    public void alert(@NonNull String message,
+                      @NonNull DialogInterface.OnClickListener onOkClickAction) {
 
         // Log message
         Log.d(TAG, message);

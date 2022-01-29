@@ -90,14 +90,11 @@ public class MarkerAnimation {
         final float right = whichWayToTurn(startRotation, finalRotation);
 
         ValueAnimator valueAnimator = new ValueAnimator();
-        valueAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
-            @Override
-            public void onAnimationUpdate(ValueAnimator animation) {
-                float v = animation.getAnimatedFraction();
-                LatLng newPosition = latLngInterpolator.interpolate(v, startPosition, finalPosition);
-                marker.setPosition(newPosition);
-                marker.setRotation(startRotation + right * v * angle);
-            }
+        valueAnimator.addUpdateListener(animation -> {
+            float v = animation.getAnimatedFraction();
+            LatLng newPosition = latLngInterpolator.interpolate(v, startPosition, finalPosition);
+            marker.setPosition(newPosition);
+            marker.setRotation(startRotation + right * v * angle);
         });
         valueAnimator.setFloatValues(0, 1); // Ignored.
         valueAnimator.setDuration(durationInMs);
@@ -106,12 +103,7 @@ public class MarkerAnimation {
 
     @TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
     public static ObjectAnimator animateMarkerToICS(Marker marker, LatLng finalPosition, float finalRotation, final int durationInMs, final LatLngInterpolator latLngInterpolator) {
-        TypeEvaluator<LatLng> typeEvaluator = new TypeEvaluator<LatLng>() {
-            @Override
-            public LatLng evaluate(float fraction, LatLng startValue, LatLng endValue) {
-                return latLngInterpolator.interpolate(fraction, startValue, endValue);
-            }
-        };
+        TypeEvaluator<LatLng> typeEvaluator = (fraction, startValue, endValue) -> latLngInterpolator.interpolate(fraction, startValue, endValue);
         // setup animator
         Property<Marker, LatLng> position = Property.of(Marker.class, LatLng.class, "position");
         PropertyValuesHolder positionProperty = PropertyValuesHolder.ofObject(position, typeEvaluator, finalPosition);

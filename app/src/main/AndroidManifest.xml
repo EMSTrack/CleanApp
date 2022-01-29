@@ -33,7 +33,6 @@
             </intent-filter>
         </activity>
 
-        <service android:name="org.eclipse.paho.android.service.MqttService"/>
         <service android:name=".services.AmbulanceForegroundService"
             android:foregroundServiceType="location"/>
 
@@ -41,7 +40,6 @@
             android:name=".services.GeofenceBroadcastReceiver"
             android:enabled="true"
             android:exported="true"/>
-
 
         <meta-data
             android:name="com.google.android.gms.version"

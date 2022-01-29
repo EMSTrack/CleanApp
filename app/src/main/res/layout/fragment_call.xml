@@ -1,25 +1,221 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/fragment_call"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:paddingHorizontal="10dp"
-    android:paddingVertical="10dp"
-    android:orientation="vertical"
     tools:context="org.emstrack.ambulance.fragments.CallFragment">
 
-    <ScrollView
+    <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="10dp"
+        android:layout_marginTop="10dp">
 
-        <include layout="@layout/call_current"
-            android:id="@+id/callLayout"
+        <include layout="@layout/ambulance_header"
+            android:id="@+id/callAmbulanceHeader"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"/>
 
-    </ScrollView>
+        <ImageView
+            android:layout_below="@id/callAmbulanceHeader"
+            android:id="@+id/callPhoneIcon"
+            android:layout_height="@dimen/ambulanceToolbarIconHeight"
+            android:layout_width="@dimen/ambulanceToolbarIconWidth"
+            app:srcCompat="@drawable/ic_phone_solid"
+            app:tint="@color/iconColorDark" />
 
-</LinearLayout>
+        <RelativeLayout
+            android:layout_below="@id/callAmbulanceHeader"
+            android:id="@+id/callDetailsLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:layout_toEndOf="@id/callPhoneIcon"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/callPriorityLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/priorityLabel"
+                android:textStyle="bold" />
+
+            <include
+                android:id="@+id/callPriorityLayout"
+                layout="@layout/call_priority"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:layout_toEndOf="@id/callPriorityLabel" />
+
+            <TextView
+                android:id="@+id/callRadioCodeLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/callPriorityLabel"
+                android:text="@string/radio_code_label"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/callRadioCodeText"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/callPriorityLabel"
+                android:layout_toEndOf="@id/callRadioCodeLabel"
+                android:gravity="end"
+                android:text="@string/radio_code" />
+
+            <TextView
+                android:id="@+id/callDetailsLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/callRadioCodeLabel"
+                android:text="@string/detailsLabel"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/callDetailsText"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/callRadioCodeLabel"
+                android:layout_toEndOf="@id/callDetailsLabel"
+                android:gravity="end"
+                android:text="@string/detailsText" />
+
+            <FrameLayout
+                android:id="@+id/callMessageButtonFrameLayout"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/callDetailsText"
+                android:layout_toStartOf="@id/callEndButton"
+                android:clipChildren="false"
+                android:clipToPadding="false">
+
+                <ImageView
+                    android:id="@+id/callMessageButton"
+                    android:layout_width="@dimen/ambulanceToolbarIconWidth"
+                    android:layout_height="@dimen/ambulanceToolbarIconHeight"
+                    android:layout_marginStart="20dp"
+                    android:layout_marginTop="5dp"
+                    app:srcCompat="@drawable/ic_envelope_solid"
+                    app:tint="@color/iconColorDark" />
+
+            </FrameLayout>
+
+            <ImageView
+                android:id="@+id/callEndButton"
+                android:layout_width="@dimen/ambulanceToolbarIconWidth"
+                android:layout_height="@dimen/ambulanceToolbarIconHeight"
+                android:layout_below="@id/callDetailsText"
+                android:layout_alignParentEnd="true"
+                android:layout_marginStart="10dp"
+                android:layout_marginTop="5dp"
+                app:srcCompat="@drawable/ic_sign_out_alt"
+                app:tint="@color/iconColorDark" />
+
+        </RelativeLayout>
+
+        <LinearLayout
+            android:id="@+id/patientsLabel"
+            android:layout_height="wrap_content"
+            android:layout_width="match_parent"
+            android:layout_marginVertical="2pt"
+            android:layout_below="@id/callDetailsLayout"
+            android:orientation="horizontal">
+
+            <ImageView
+                android:id="@+id/callPatientIcon"
+                android:layout_width="@dimen/ambulanceToolbarIconWidth"
+                android:layout_height="@dimen/ambulanceToolbarIconHeight"
+                app:srcCompat="@drawable/ic_user_friends_solid"
+                app:tint="@color/iconColorDark" />
+
+            <TextView
+                android:id="@+id/callPatientsLabel"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:layout_gravity="center_vertical"
+                android:text="@string/patients"
+                android:textStyle="bold"
+                android:layout_weight="1"/>
+
+            <ImageView
+                android:id="@+id/callPatientShowAddIcon"
+                android:layout_height="@dimen/ambulanceToolbarIconHeight"
+                android:layout_width="@dimen/ambulanceToolbarIconWidth"
+                app:srcCompat="@drawable/ic_plus_square_solid"
+                android:layout_gravity="center_vertical"
+                android:layout_marginStart="5dp"
+                app:tint="@color/iconColorDark" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/patientDetails"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/patientsLabel"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/callPatientsText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="end"
+                android:layout_marginStart="35dp"
+                android:text="@string/noPatientAvailable" />
+
+            <include layout="@layout/patient_edit_item"
+                android:id="@+id/callPatientAddLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="35dp"
+                android:visibility="gone" />
+
+            <ScrollView
+                android:id="@+id/patientScrollView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:visibility="gone">
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/patientRecyclerView"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="35dp" />
+
+            </ScrollView>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/bottomFillerView"
+            android:layout_below="@id/patientDetails"
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:orientation="horizontal" />
+
+    </RelativeLayout>
+
+    <include
+        layout="@layout/waypoint_bottom_sheet"
+        android:id="@+id/waypointBrowserBottomSheet"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:behavior_peekHeight="40dp"
+        app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior"
+        style="?attr/bottomSheetStyle" />
+
+    <!--
+        app:behavior_fitToContents="false"
+        app:behavior_expandedOffset="150dp"
+        app:behavior_halfExpandedRatio="0.3"
+    -->
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>
 
 
