@@ -1872,7 +1872,7 @@ public class MainActivity extends AppCompatActivity {
         AlertDialog alertDialog = new AlertDialog.Builder(this)
                 .setTitle(R.string.panicTitle)
                 .setMessage(getString(R.string.panicMessage, getString(android.R.string.ok), DIALOG_DISMISS_TIME/1000))
-                .setPositiveButton(R.string.confirm, (dialog, which) -> sendPanicMessage() )
+                .setPositiveButton(android.R.string.ok, (dialog, which) -> sendPanicMessage() )
                 .setNegativeButton(android.R.string.cancel, null)
                 .create();
 

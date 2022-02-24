@@ -12,7 +12,7 @@
     <string name="message_please_wait">Por favor espere…</string>
     <string name="logout_confirm">¿Seguro que desea cerrar la sesión?</string>
 
-    <string name="login_username_hint">Usuário</string>
+    <string name="login_username_hint">Usuario</string>
     <string name="login_password_hint">Contraseña</string>
     <string name="login_remember_user_text">Recordar usuário</string>
     <string name="login_button_text">Acceder</string>
@@ -42,9 +42,7 @@
 
     <string name="action_settings">Configuraciones</string>
 
-    <string name="location_settings_inadequate_warning">La configuración del móvil no es adecuada para ejecutar esta muestra. Arreglo en Configuraciones.</string>
-
-    <string name="permission_rationale">Se necesita permiso de ubicación para la funcionalidad principal.</string>
+    <string name="permission_rationale">Se necesita permiso de ubicación para que la aplicación funcione correctamente.</string>
     <string name="permission_denied_explanation">El permiso fue denegado, pero es necesario para la funcionalidad principal.</string>
 
     <string name="settings">Configuraciones</string>
@@ -70,8 +68,8 @@
     <string name="callLabel">Llamadas:</string>
     <string name="failedToConnectToBroker">No se pudo conectar.</string>
     <string name="Exception">Excepción:</string>
-    <string name="loginSuccessMessage">Usuário \'%1$s\' conectado.</string>
-    <string name="couldNotLoginUser">No se pudo connectar usuário \'%1$s\'.</string>
+    <string name="loginSuccessMessage">Usuario \'%1$s\' conectado.</string>
+    <string name="couldNotLoginUser">No se pudo connectar el usuario \'%1$s\'.</string>
     <string name="invalidAmbulanceId">Vehículo inválido.</string>
     <string name="couldNotParseAmbulance">No se pudo traducir actualización de vehículo.</string>
     <string name="couldNotSubscribeToAmbulance">"No se pudo suscribirse a vehículo. "</string>
@@ -116,15 +114,15 @@
     <string name="failedToRemoveGeofence">Error al eliminar geofence.</string>
     <string name="couldNotSubscribeToCalls">No se ha podido suscribir a las llamadas.</string>
     <string name="couldNotParseCall">No se pudo analizar la llamada.</string>
-    <string name="couldNotParseStatus">No se pudo analizar los estados.</string>
+    <string name="couldNotParseStatus">No se pudo analizar el estado de la llamada.</string>
     <string name="couldNotSubscribeToStatuses">No se pudo suscribir a los estados.</string>
     <string name="couldNotPublish">No se pudo publicar en %1$s.</string>
     <string name="couldNotFindAmbulance">No se pudo encontrar vehículo.</string>
     <string name="couldNotSubscribe">No se pudo suscribir a %1$s.</string>
     <string name="couldNotDeclineCall">No se puede rechazar la llamada. Actualmente atiende otra llamada.</string>
     <string name="couldNotParseCallData">No se pudo analizar los datos de la llamada.</string>
-    <string name="willNotProcessNextCall">No procesará la próxima llamada. Llamada actualmente en servicio.</string>
-    <string name="cannotSetCallAccepted">No se puede establecer la llamada como en curso: ya se está atendiendo la llamada</string>
+    <string name="willNotProcessNextCall">No procesará la próxima llamada. Ya existe una llamada actualmente en servicio.</string>
+    <string name="cannotSetCallAccepted">No se puede establecer la llamada como en curso: ya se está atendiendo la llamada.</string>
     <string name="selectAmbulance">Seleccione vehículo:</string>
     <string name="requestToStreamLocation">Solicitando transmitir actualizaciones…</string>
     <string name="ambulanceButtonDefaultText">Seleccionar vehículo</string>
@@ -188,8 +186,8 @@
     <string name="suspendingCall">Suspendiendo llamada</string>
     <string name="endingCall">Terminando llamada</string>
     <string name="checkingResources">Por favor sea paciente. Comprobando permisos…</string>
-    <string name="permissionsSatisfied">Permisos de localización satisfechos.</string>
-    <string name="expectLimitedFunctionality">Permisos de localización no satisfechos. Espere una funcionalidad limitada.</string>
+    <string name="permissionsSatisfied">Permisos de ubicación satisfechos.</string>
+    <string name="expectLimitedFunctionality">Permisos de ubicación no satisfechos. Espere una funcionalidad limitada.</string>
     <string name="settingsAreInadequate">Los permisos de ubicación de GPS son inadecuados y no se pueden corregir aquí. Arreglo en Configuraciones.</string>
     <string name="decline">Rechazar</string>
     <string name="accept">Aceptar</string>
@@ -224,8 +222,8 @@
     <string name="couldNotStopUpdatingLocations">No se pudo dejar de actualizar ubicaciones.</string>
     <string name="lastLocationUpdate">Última actualización de ubicación en %1$s</string>
     <string name="lastServerUpdate">Última actualización del servidor en %1$s</string>
-    <string name="serverIsOnline">El servidor esta conectado</string>
-    <string name="serverIsOffline">El servidor esta disconectado</string>
+    <string name="serverIsOnline">El servidor está conectado</string>
+    <string name="serverIsOffline">El servidor está disconectado</string>
     <string name="messagesOnBuffer">%1$d mensajes almacenados</string>
     <string name="oneMessageOnBuffer">1 mensaje almacenado</string>
     <string name="defaultDateFormat">d MMM HH:mm:ss z</string>
@@ -234,7 +232,7 @@
     <string name="couldNotOpenGoogleMaps">No se pudo abrir Google Maps.</string>
     <string name="wouldYouLikeToNavigate">" ¿Te gustaría obtener direcciones en %1$s?"</string>
     <string name="other">Otras:</string>
-    <string name="selectOthers">Seleccione una otra localización:</string>
+    <string name="selectOthers">Seleccione una otra ubicación:</string>
     <string name="radio_code">Código de Radio</string>
     <string name="radio_code_label">Código de Radio:</string>
     <string name="unavailable">Indisponible</string>
@@ -314,11 +312,11 @@
     <string name="StatusLabel">Estado:</string>
     <string name="priorityLabel">Prioridad:</string>
     <string name="retrievingAmbulance">Recuperando vehículo \'%1$s\'</string>
-    <string name="numberOfPatientsLabel">Numero de pacientes:</string>
+    <string name="numberOfPatientsLabel">Número de pacientes:</string>
     <string name="name">Nombre</string>
     <string name="age">Edad</string>
     <string name="logoutAmbulance">Liberando vehículo \'%1$s\'</string>
-    <string name="numberOfMessagesLabel">Numero de mensajens:</string>
+    <string name="numberOfMessagesLabel">Número de mensajes:</string>
     <string name="toCall">Llamar</string>
     <string name="equipment_type">Tipo de equipo</string>
     <string name="noEquipmentText">\'%1$s\' no tiene equipos registrados</string>
@@ -347,7 +345,6 @@
     <string name="offline">desconectado</string>
     <string name="alertOnline">Este ícono monitorea el estado de su conexión a los servidores de EMSTrack.\n\nActualmente estás \'%1$s\'.</string>
 
-    <string name="app_description">Utilice esta aplicación para rastrear recursos de emergencia usando el sistema EMSTrack.\n\nVisite <a href="https://emstrack.org/web">emstrack.org</a> para obtener más detalles.</string>
     <string name="app_credits">Los siguientes proyectos de código abierto se usaron para construir esta aplicación:</string>
     <string name="build_date">La fecha de construcción:</string>
     <string name="credits">Créditos:</string>
@@ -358,6 +355,7 @@
     <string name="panicMessage">Si hace clic en \'%1$s\', se transmitirá un mensaje de pánico a nuestro servidores.\n\nSi no lo hace, este cuadro de diálogo se cerrará automáticamente en %2$ds sin enviar un mensaje.\n\nIMPORTANTE: esta función aún no es compatible con su servidor actual.</string>
 
     <string name="EMSTrackURL">Para más informacion contacte\n\n<a href="https://emstrack.org/web">emstrack.org</a></string>
+    <string name="app_description">Utilice esta aplicación para rastrear recursos de emergencia usando el sistema EMSTrack.\n\nVisite <a href="https://emstrack.org/web">emstrack.org</a> para obtener más detalles.</string>
     <string name="Other">Ubicación</string>
     <string name="Search">Búsqueda</string>
     <string name="Waypoints">Punto de ruta</string>

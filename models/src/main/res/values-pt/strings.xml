@@ -3,9 +3,8 @@
     <string name="locationTypeHospital">hospital</string>
     <string name="locationTypeBase">base</string>
     <string name="locationTypeIncident">incidente</string>
-    <string name="locationTypeOther">ubicación</string>
+    <string name="locationTypeOther">local</string>
     <string name="locationTypeAED">desfibrilador automático</string>
-    <string name="locationTypeWaypoint">punto de ruta</string>
-
+    <string name="locationTypeWaypoint">ponto de rota</string>
     <string name="Hospital">Hospital</string>
 </resources>
