@@ -36,7 +36,7 @@ public class TestRetrofit {
         System.out.println("servers = " + servers);
 
         String username = "admin";
-        String password = "cruzrojaadmin";
+        String password = "cruzr0j4";
         String serverURI = "https://cruzroja.ucsd.edu/";
         Credentials credentials = new Credentials(username, password, serverURI, "");
 
@@ -73,7 +73,7 @@ public class TestRetrofit {
 
         System.out.println("test_retrofit_with_credentials()");
 
-        Credentials credentials = new Credentials("admin", "cruzrojaadmin",
+        Credentials credentials = new Credentials("admin", "cruzr0j4",
                 "https://cruzroja.ucsd.edu", "");
 
         // Retrieve token

@@ -42,7 +42,7 @@ public class TestAPI {
         APIService service = APIServiceGenerator.createService(APIService.class);
 
         String username = "admin";
-        String password = "cruzrojaadmin";
+        String password = "cruzr0j4";
         String serverURI = "https://cruzroja.ucsd.edu/en/";
         Credentials credentials = new Credentials(username, password, serverURI, "");
 
@@ -101,7 +101,7 @@ public class TestAPI {
         APIService service = APIServiceGenerator.createService(APIService.class);
 
         String username = "admin";
-        String password = "cruzrojaadmin";
+        String password = "cruzr0j4";
         String serverURI = "https://cruzroja.ucsd.edu/";
         Credentials credentials = new Credentials(username, password, serverURI, "");
 
@@ -132,7 +132,7 @@ public class TestAPI {
         APIService service = APIServiceGenerator.createService(APIService.class);
 
         String username = "admin";
-        String password = "cruzrojaadmin";
+        String password = "cruzr0j4";
         String serverURI = "https://cruzroja.ucsd.edu/";
         Credentials credentials = new Credentials(username, password, serverURI, "");
 
@@ -197,7 +197,7 @@ public class TestAPI {
     public void testAsyncApiCascaded2() throws InterruptedException {
 
         String username = "admin";
-        String password = "cruzrojaadmin";
+        String password = "cruzr0j4";
         String serverURI = "https://cruzroja.ucsd.edu/";
         Credentials credentials = new Credentials(username, password, serverURI, "");
 

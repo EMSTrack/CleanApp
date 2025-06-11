@@ -48,7 +48,7 @@ public class MqttInstrumentedTest {
         final String serverUri = "ssl://cruzroja.ucsd.edu:8883";
         final String clientId = "TestClient_" + UUID.randomUUID().toString();
         final String username = "admin";
-        final String password = "cruzrojaadmin";
+        final String password = "cruzr0j4";
 
         MqttAndroidClient client = new MqttAndroidClient(appContext, serverUri, clientId);
         final MqttProfileClient profileClient = new MqttProfileClient(client);

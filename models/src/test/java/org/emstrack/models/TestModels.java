@@ -40,6 +40,7 @@ public class TestModels {
         profile.setHospitals(hospitals);
 
         GsonBuilder gsonBuilder = new GsonBuilder();
+        gsonBuilder.setDateFormat("MMM d, y K:mm:ss a");
         gsonBuilder.setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES);
         Gson gson = gsonBuilder.create();
 
@@ -316,6 +317,7 @@ public class TestModels {
                 defaults);
 
         GsonBuilder gsonBuilder = new GsonBuilder();
+        gsonBuilder.setDateFormat("MMM d, y K:mm:ss a");
         gsonBuilder.setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES);
         Gson gson = gsonBuilder.create();
 
@@ -500,7 +502,7 @@ public class TestModels {
         assertEquals(df.format(expectedDate), df.format(answerDate));
 
         // Test partial serialization
-        gson = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().create();
+        gson = new GsonBuilder().setDateFormat("MMM d, y K:mm:ss a").excludeFieldsWithoutExposeAnnotation().create();
 
         to_json = gson.toJson(ambulance);
 
@@ -804,6 +806,7 @@ public class TestModels {
         AmbulanceCall ambulanceCall = new AmbulanceCall(1,2,AmbulanceCall.STATUS_SUSPENDED, "", 1, new Date(), waypointSet);
 
         GsonBuilder gsonBuilder = new GsonBuilder();
+        gsonBuilder.setDateFormat("MMM d, y K:mm:ss a");
         gsonBuilder.setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES);
         Gson gson = gsonBuilder.create();
 
@@ -922,6 +925,7 @@ public class TestModels {
         double epsilon = 1e-4;
 
         GsonBuilder gsonBuilder = new GsonBuilder();
+        gsonBuilder.setDateFormat("MMM d, y K:mm:ss a");
         gsonBuilder.setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES);
         Gson gson = gsonBuilder.create();
 
