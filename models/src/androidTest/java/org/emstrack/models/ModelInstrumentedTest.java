@@ -2,10 +2,11 @@ package org.emstrack.models;
 
 import android.content.Context;
 
+import androidx.test.annotation.UiThreadTest;
 import androidx.test.core.app.ApplicationProvider;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
-import android.test.UiThreadTest;
+
 import android.util.Log;
 
 import org.emstrack.models.api.APIService;
@@ -47,7 +48,7 @@ public class ModelInstrumentedTest {
         Log.d(TAG, "api");
 
         String username = "admin";
-        String password = "cruzrojaadmin";
+        String password = "cruzr0j4";
         String serverURI = "https://cruzroja.ucsd.edu/";
         Credentials credentials = new Credentials(username, password, serverURI, "");
 

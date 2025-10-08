@@ -7,6 +7,8 @@ import android.content.IntentFilter;
 import android.os.Build;
 import android.os.Bundle;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+
+import android.os.Looper;
 import android.util.Log;
 
 import org.emstrack.models.util.BroadcastActions;
@@ -26,6 +28,7 @@ import static junit.framework.Assert.assertFalse;
 import static junit.framework.Assert.assertNotNull;
 import static junit.framework.TestCase.assertTrue;
 import static org.junit.Assert.assertSame;
+import static org.robolectric.Shadows.shadowOf;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk=Build.VERSION_CODES.P)
@@ -73,6 +76,7 @@ public class TestOnServiceComplete {
         instance.sendBroadcast(new Intent("com.bar"));
         assertFalse(called[0]);
         instance.sendBroadcast(new Intent("com.foo"));
+        shadowOf(Looper.getMainLooper()).idle();
         assertTrue(called[0]);
     }
 

@@ -5,21 +5,14 @@ import androidx.test.core.app.ApplicationProvider;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import android.util.Log;
 
-import com.google.gson.FieldNamingPolicy;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
+//https://stackoverflow.com/questions/71155187/android-paho-mqtt-crashes-android-12-targeting-s-version-31-and-above-requi
+import info.mqtt.android.service.Ack;
+import info.mqtt.android.service.MqttAndroidClient;
 
-import org.eclipse.paho.android.service.MqttAndroidClient;
-import org.eclipse.paho.client.mqttv3.MqttException;
-import org.eclipse.paho.client.mqttv3.MqttMessage;
-import org.emstrack.models.Ambulance;
-import org.emstrack.models.AmbulancePermission;
-import org.emstrack.models.Hospital;
-import org.emstrack.models.HospitalPermission;
+//import org.eclipse.paho.android.service.MqttAndroidClient;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.util.List;
 import java.util.UUID;
 
 import static org.junit.Assert.*;
@@ -48,9 +41,10 @@ public class MqttInstrumentedTest {
         final String serverUri = "ssl://cruzroja.ucsd.edu:8883";
         final String clientId = "TestClient_" + UUID.randomUUID().toString();
         final String username = "admin";
-        final String password = "cruzrojaadmin";
+        final String password = "cruzr0j4";
 
-        MqttAndroidClient client = new MqttAndroidClient(appContext, serverUri, clientId);
+        //https://stackoverflow.com/questions/71155187/android-paho-mqtt-crashes-android-12-targeting-s-version-31-and-above-requi
+        MqttAndroidClient client = new MqttAndroidClient(appContext, serverUri, clientId, Ack.AUTO_ACK, null, false, 1000);
         final MqttProfileClient profileClient = new MqttProfileClient(client);
 
         // Test login

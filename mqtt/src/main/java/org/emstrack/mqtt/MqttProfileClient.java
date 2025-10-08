@@ -11,7 +11,8 @@ import java.util.regex.Pattern;
 
 import android.util.Log;
 
-import org.eclipse.paho.android.service.MqttAndroidClient;
+//import org.eclipse.paho.android.service.MqttAndroidClient;
+import info.mqtt.android.service.MqttAndroidClient;
 
 import org.eclipse.paho.client.mqttv3.DisconnectedBufferOptions;
 import org.eclipse.paho.client.mqttv3.IMqttActionListener;
@@ -121,7 +122,7 @@ public class MqttProfileClient implements MqttCallbackExtended {
                                 Log.d(TAG, "Will disconnect.");
 
                                 // try to disconnect
-                                try {
+                                //try {
                                     MqttProfileClient.this.mqttClient.disconnect(null,
                                             new IMqttActionListener() {
 
@@ -147,9 +148,9 @@ public class MqttProfileClient implements MqttCallbackExtended {
                                                         disconnectCallback.onFailure(exception);
                                                 }
                                             });
-                                } catch (MqttException e) {
-                                    Log.e(TAG, "Could not disconnect.");
-                                }
+//                                } catch (MqttException e) {
+//                                    Log.e(TAG, "Could not disconnect.");
+//                                }
 
                             }
                         }
